@@ -54,3 +54,25 @@ To enable accounts and cloud sync:
 4. Never place a Supabase secret/service-role key in the mobile app.
 
 The schema enables Row Level Security and restricts each item to its owning authenticated user.
+
+## Native share + OCR
+
+ONE can receive shared text, URLs, screenshots and supported documents through the native share sheet.
+
+Screenshot OCR runs on-device:
+- iOS: Apple Vision
+- Android: ML Kit
+
+Because share receiving and OCR use native modules, test them with a development/native build rather than Expo Go.
+
+Shared screenshots can store:
+- user context
+- extracted OCR text
+- detected dates/times
+- URLs
+- email addresses
+- phone numbers
+- prices
+- inferred tags/categories
+
+Authenticated users store attachments privately in the `one-attachments` Supabase bucket with per-user RLS policies.
