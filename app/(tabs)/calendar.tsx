@@ -1,18 +1,17 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useItems } from '@/src/context/ItemsContext';
 import { useTheme } from '@/src/theme/useTheme';
-
-const agenda = [
-  ['15:00', 'Dentist appointment', 'Health Clinic · 1h'],
-  ['18:00', 'Call Anna back', 'Personal'],
-  ['All day', 'Package arrives', 'PostNord'],
-  ['All day', 'Cancel Netflix', 'Subscription'],
-  ['All day', 'Max birthday gift', 'Get something special'],
-  ['08:20', 'Flight to Barcelona', 'Travel']
-];
 
 export default function CalendarScreen() {
   const theme = useTheme();
+  const { items } = useItems();
+
+  const datedItems = items
+    .filter((item) => item.date && !item.completed)
+    .sort((a, b) => `${a.date}T${a.time || '23:59'}`.localeCompare(`${b.date}T${b.time || '23:59'}`));
+
+  const monthLabel = new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(new Date());
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
@@ -21,11 +20,11 @@ export default function CalendarScreen() {
         <Text style={[styles.tagline, { color: theme.textSecondary }]}>A calmer mind. A fuller life.</Text>
 
         <View style={[styles.calendar, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <Text style={[styles.month, { color: theme.text }]}>September 2026</Text>
+          <Text style={[styles.month, { color: theme.text }]}>{monthLabel}</Text>
           <View style={styles.days}>
-            {['15','16','17','18','19','20','21'].map((day) => (
-              <View key={day} style={[styles.day, day === '18' && { backgroundColor: theme.accent }]}>
-                <Text style={{ color: day === '18' ? '#fff' : theme.text }}>{day}</Text>
+            {getWeekDays(new Date()).map(({ iso, day, active }) => (
+              <View key={iso} style={[styles.day, active && { backgroundColor: theme.accent }]}>
+                <Text style={{ color: active ? '#fff' : theme.text }}>{day}</Text>
               </View>
             ))}
           </View>
@@ -33,19 +32,46 @@ export default function CalendarScreen() {
 
         <Text style={[styles.heading, { color: theme.text }]}>Upcoming</Text>
         <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          {agenda.map(([time, title, subtitle]) => (
-            <View key={title} style={[styles.row, { borderBottomColor: theme.border }]}>
-              <Text style={[styles.time, { color: theme.textSecondary }]}>{time}</Text>
-              <View>
-                <Text style={[styles.title, { color: theme.text }]}>{title}</Text>
-                <Text style={[styles.subtitle, { color: theme.textSecondary }]}>{subtitle}</Text>
+          {datedItems.length ? datedItems.map((item) => (
+            <View key={item.id} style={[styles.row, { borderBottomColor: theme.border }]}>
+              <Text style={[styles.time, { color: theme.textSecondary }]}>{item.time || 'All day'}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.title, { color: theme.text }]}>{item.title}</Text>
+                <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
+                  {[formatDate(item.date!), item.location || item.category].filter(Boolean).join(' · ')}
+                </Text>
               </View>
             </View>
-          ))}
+          )) : (
+            <Text style={[styles.empty, { color: theme.textSecondary }]}>No dated items yet.</Text>
+          )}
         </View>
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+function getWeekDays(now: Date) {
+  const start = new Date(now);
+  start.setDate(now.getDate() - 3);
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    const iso = toIsoDate(date);
+    return { iso, day: String(date.getDate()), active: iso === toIsoDate(now) };
+  });
+}
+
+function toIsoDate(date: Date) {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
+function formatDate(iso: string) {
+  const date = new Date(`${iso}T12:00:00`);
+  return new Intl.DateTimeFormat('en', { weekday: 'short', month: 'short', day: 'numeric' }).format(date);
 }
 
 const styles = StyleSheet.create({
@@ -62,5 +88,6 @@ const styles = StyleSheet.create({
   row: { minHeight: 68, borderBottomWidth: StyleSheet.hairlineWidth, padding: 14, flexDirection: 'row', gap: 16, alignItems: 'center' },
   time: { width: 58, fontSize: 13 },
   title: { fontSize: 16, fontWeight: '600' },
-  subtitle: { fontSize: 13, marginTop: 3 }
+  subtitle: { fontSize: 13, marginTop: 3 },
+  empty: { padding: 18, fontSize: 14 }
 });

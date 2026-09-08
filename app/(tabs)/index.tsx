@@ -1,8 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { mockItems } from '@/src/data/mockItems';
-import { useItems } from '@/src/hooks/useItems';
+import { useItems } from '@/src/context/ItemsContext';
 import { parseQuickCapture } from '@/src/parser/quickCapture';
 import { useTheme } from '@/src/theme/useTheme';
 import type { OneItem } from '@/src/types/item';
@@ -10,7 +9,7 @@ import type { OneItem } from '@/src/types/item';
 export default function InboxScreen() {
   const theme = useTheme();
   const [input, setInput] = useState('');
-  const { items, add, toggleCompleted, remove } = useItems(mockItems);
+  const { items, add, toggleCompleted, remove } = useItems();
   const parsed = useMemo(() => parseQuickCapture(input), [input]);
 
   const todayIso = toIsoDate(new Date());
