@@ -39,3 +39,18 @@ npm run start
 ```
 
 Node.js 22.13+ is recommended for Expo SDK 57.
+
+## Cloud configuration
+
+ONE runs fully in local/offline mode when Supabase environment variables are absent.
+
+To enable accounts and cloud sync:
+
+1. Create a dedicated Supabase project for ONE.
+2. Apply `supabase/one_schema.sql`.
+3. Set:
+   - `EXPO_PUBLIC_SUPABASE_URL`
+   - `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+4. Never place a Supabase secret/service-role key in the mobile app.
+
+The schema enables Row Level Security and restricts each item to its owning authenticated user.

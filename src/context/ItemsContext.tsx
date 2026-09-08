@@ -1,5 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useAuth } from '@/src/context/AuthContext';
 import { mockItems } from '@/src/data/mockItems';
+import { deleteCloudItem, pullCloudItems, upsertCloudItem } from '@/src/supabase/items';
 import { cancelItemNotification, scheduleItemNotification } from '@/src/notifications/localNotifications';
 import { loadItems, saveItems } from '@/src/storage/items';
 import type { OneItem } from '@/src/types/item';
@@ -7,6 +9,7 @@ import type { OneItem } from '@/src/types/item';
 type ItemsContextValue = {
   items: OneItem[];
   hydrated: boolean;
+  cloudSyncing: boolean;
   add: (item: OneItem) => Promise<void>;
   toggleCompleted: (id: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
@@ -15,8 +18,10 @@ type ItemsContextValue = {
 const ItemsContext = createContext<ItemsContextValue | null>(null);
 
 export function ItemsProvider({ children }: { children: React.ReactNode }) {
+  const { session } = useAuth();
   const [items, setItems] = useState<OneItem[]>(mockItems);
   const [hydrated, setHydrated] = useState(false);
+  const [cloudSyncing, setCloudSyncing] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -35,11 +40,48 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     saveItems(items);
   }, [items, hydrated]);
 
+  useEffect(() => {
+    if (!session?.user.id || !hydrated) return;
+
+    let cancelled = false;
+
+    async function syncFromCloud() {
+      setCloudSyncing(true);
+      try {
+        const cloud = await pullCloudItems();
+        if (cancelled) return;
+
+        if (cloud.length) {
+          setItems((local) => mergeByUpdatedAt(local, cloud));
+        } else {
+          await Promise.all(items.map((item) => upsertCloudItem(item, session.user.id)));
+        }
+      } catch (error) {
+        console.warn('ONE cloud sync failed', error);
+      } finally {
+        if (!cancelled) setCloudSyncing(false);
+      }
+    }
+
+    syncFromCloud();
+    return () => {
+      cancelled = true;
+    };
+  }, [session?.user.id, hydrated]);
+
   const add = useCallback(async (item: OneItem) => {
     const notificationId = await scheduleItemNotification(item);
     const withNotification = notificationId ? { ...item, notificationId } : item;
     setItems((current) => [withNotification, ...current]);
-  }, []);
+
+    if (session?.user.id) {
+      try {
+        await upsertCloudItem(withNotification, session.user.id);
+      } catch (error) {
+        console.warn('ONE cloud add failed', error);
+      }
+    }
+  }, [session?.user.id]);
 
   const toggleCompleted = useCallback(async (id: string) => {
     const currentItem = items.find((item) => item.id === id);
@@ -55,34 +97,62 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       notificationId = await scheduleItemNotification({ ...currentItem, completed: false });
     }
 
-    setItems((current) =>
-      current.map((item) =>
-        item.id === id
-          ? {
-              ...item,
-              completed: nextCompleted,
-              notificationId,
-              updatedAt: new Date().toISOString()
-            }
-          : item
-      )
-    );
-  }, [items]);
+    const updated: OneItem = {
+      ...currentItem,
+      completed: nextCompleted,
+      notificationId,
+      updatedAt: new Date().toISOString()
+    };
+
+    setItems((current) => current.map((item) => (item.id === id ? updated : item)));
+
+    if (session?.user.id) {
+      try {
+        await upsertCloudItem(updated, session.user.id);
+      } catch (error) {
+        console.warn('ONE cloud update failed', error);
+      }
+    }
+  }, [items, session?.user.id]);
 
   const remove = useCallback(async (id: string) => {
     const currentItem = items.find((item) => item.id === id);
     if (currentItem?.notificationId) {
       await cancelItemNotification(currentItem.notificationId);
     }
+
     setItems((current) => current.filter((item) => item.id !== id));
-  }, [items]);
+
+    if (session?.user.id) {
+      try {
+        await deleteCloudItem(id);
+      } catch (error) {
+        console.warn('ONE cloud delete failed', error);
+      }
+    }
+  }, [items, session?.user.id]);
 
   const value = useMemo(
-    () => ({ items, hydrated, add, toggleCompleted, remove }),
-    [items, hydrated, add, toggleCompleted, remove]
+    () => ({ items, hydrated, cloudSyncing, add, toggleCompleted, remove }),
+    [items, hydrated, cloudSyncing, add, toggleCompleted, remove]
   );
 
   return <ItemsContext.Provider value={value}>{children}</ItemsContext.Provider>;
+}
+
+function mergeByUpdatedAt(local: OneItem[], cloud: OneItem[]) {
+  const merged = new Map<string, OneItem>();
+
+  for (const item of [...local, ...cloud]) {
+    const existing = merged.get(item.id);
+    if (!existing || new Date(item.updatedAt).getTime() >= new Date(existing.updatedAt).getTime()) {
+      merged.set(item.id, item);
+    }
+  }
+
+  return Array.from(merged.values()).sort(
+    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+  );
 }
 
 export function useItems() {
