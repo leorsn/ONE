@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
 import { parseQuickCapture } from '@/src/parser/quickCapture';
@@ -65,7 +66,9 @@ export default function InboxScreen() {
             returnKeyType="done"
             onSubmitEditing={handleSave}
           />
-          <Text style={{ color: theme.textSecondary }}>⌁</Text>
+          <Pressable onPress={() => router.push("/ask")} hitSlop={10}>
+            <Text style={{ color: theme.accent, fontWeight: "700" }}>Ask</Text>
+          </Pressable>
         </View>
 
         {parsed ? (
