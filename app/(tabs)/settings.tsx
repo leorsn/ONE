@@ -64,9 +64,20 @@ export default function SettingsScreen() {
               value={appearanceLabel(preference)}
               onPress={() => router.push("/settings/appearance")}
             />
-            <SettingsRow icon={icons.bell} label="Notifications" value="Per item" />
+            <SettingsRow
+              icon={icons.bell}
+              label="Notifications"
+              value="Per item"
+              onPress={() => router.push("/settings/notifications")}
+            />
             <SettingsRow icon={icons.cloud} label="Cloud sync" value={cloudSyncing ? 'Syncing…' : session ? 'Connected' : 'Sign in'} />
-            <SettingsRow icon={icons.shield} label="Privacy" value="Private by default" last />
+            <SettingsRow
+              icon={icons.shield}
+              label="Privacy"
+              value="Private by default"
+              onPress={() => router.push("/settings/privacy")}
+              last
+            />
           </Surface>
         </View>
 

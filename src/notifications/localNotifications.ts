@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { loadNotificationPreferences } from '@/src/storage/preferences';
 import type { OneItem } from '@/src/types/item';
 
 Notifications.setNotificationHandler({
@@ -11,6 +12,14 @@ Notifications.setNotificationHandler({
   })
 });
 
+export async function getNotificationPermissionStatus() {
+  if (Platform.OS === 'web') return 'unsupported' as const;
+  const current = await Notifications.getPermissionsAsync();
+  if (current.granted) return 'granted' as const;
+  if (current.canAskAgain) return 'undetermined' as const;
+  return 'denied' as const;
+}
+
 export async function ensureNotificationPermissions() {
   if (Platform.OS === 'web') return false;
 
@@ -21,15 +30,18 @@ export async function ensureNotificationPermissions() {
   return requested.granted;
 }
 
-export function getReminderDate(item: Pick<OneItem, 'date' | 'time'>) {
+export function getReminderDate(
+  item: Pick<OneItem, 'date' | 'time'>,
+  leadMinutes = 10
+) {
   if (!item.date) return null;
 
   const [year, month, day] = item.date.split('-').map(Number);
   const [hour, minute] = (item.time || '09:00').split(':').map(Number);
   const eventDate = new Date(year, month - 1, day, hour, minute, 0, 0);
 
-  if (item.time) {
-    eventDate.setMinutes(eventDate.getMinutes() - 10);
+  if (item.time && leadMinutes > 0) {
+    eventDate.setMinutes(eventDate.getMinutes() - leadMinutes);
   }
 
   return eventDate;
@@ -41,12 +53,16 @@ export async function scheduleItemNotification(item: OneItem) {
   const granted = await ensureNotificationPermissions();
   if (!granted) return undefined;
 
-  const triggerDate = getReminderDate(item);
+  const preferences = await loadNotificationPreferences();
+  const triggerDate = getReminderDate(item, preferences.leadMinutes);
   if (!triggerDate || triggerDate.getTime() <= Date.now()) return undefined;
 
   return Notifications.scheduleNotificationAsync({
     content: {
-      title: item.time ? `${item.title} soon` : item.title,
+      title:
+        item.time && preferences.leadMinutes > 0
+          ? `${item.title} soon`
+          : item.title,
       body: item.time
         ? `Starts at ${item.time}${item.location ? ` · ${item.location}` : ''}`
         : item.location || item.category || 'Saved in ONE',
