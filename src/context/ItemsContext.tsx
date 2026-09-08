@@ -1,14 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { mockItems } from '@/src/data/mockItems';
+import { cancelItemNotification, scheduleItemNotification } from '@/src/notifications/localNotifications';
 import { loadItems, saveItems } from '@/src/storage/items';
 import type { OneItem } from '@/src/types/item';
 
 type ItemsContextValue = {
   items: OneItem[];
   hydrated: boolean;
-  add: (item: OneItem) => void;
-  toggleCompleted: (id: string) => void;
-  remove: (id: string) => void;
+  add: (item: OneItem) => Promise<void>;
+  toggleCompleted: (id: string) => Promise<void>;
+  remove: (id: string) => Promise<void>;
 };
 
 const ItemsContext = createContext<ItemsContextValue | null>(null);
@@ -34,23 +35,47 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     saveItems(items);
   }, [items, hydrated]);
 
-  const add = useCallback((item: OneItem) => {
-    setItems((current) => [item, ...current]);
+  const add = useCallback(async (item: OneItem) => {
+    const notificationId = await scheduleItemNotification(item);
+    const withNotification = notificationId ? { ...item, notificationId } : item;
+    setItems((current) => [withNotification, ...current]);
   }, []);
 
-  const toggleCompleted = useCallback((id: string) => {
+  const toggleCompleted = useCallback(async (id: string) => {
+    const currentItem = items.find((item) => item.id === id);
+    if (!currentItem) return;
+
+    const nextCompleted = !currentItem.completed;
+    let notificationId = currentItem.notificationId;
+
+    if (nextCompleted) {
+      await cancelItemNotification(notificationId);
+      notificationId = undefined;
+    } else if (currentItem.date) {
+      notificationId = await scheduleItemNotification({ ...currentItem, completed: false });
+    }
+
     setItems((current) =>
       current.map((item) =>
         item.id === id
-          ? { ...item, completed: !item.completed, updatedAt: new Date().toISOString() }
+          ? {
+              ...item,
+              completed: nextCompleted,
+              notificationId,
+              updatedAt: new Date().toISOString()
+            }
           : item
       )
     );
-  }, []);
+  }, [items]);
 
-  const remove = useCallback((id: string) => {
+  const remove = useCallback(async (id: string) => {
+    const currentItem = items.find((item) => item.id === id);
+    if (currentItem?.notificationId) {
+      await cancelItemNotification(currentItem.notificationId);
+    }
     setItems((current) => current.filter((item) => item.id !== id));
-  }, []);
+  }, [items]);
 
   const value = useMemo(
     () => ({ items, hydrated, add, toggleCompleted, remove }),

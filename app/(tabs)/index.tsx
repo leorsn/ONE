@@ -17,7 +17,7 @@ export default function InboxScreen() {
   const upcoming = items.filter((item) => item.date && item.date > todayIso && !item.saved);
   const saved = items.filter((item) => item.saved || ['link', 'idea', 'shopping', 'travel'].includes(item.type));
 
-  function handleSave() {
+  async function handleSave() {
     if (!parsed) return;
     const now = new Date().toISOString();
     const item: OneItem = {
@@ -37,7 +37,7 @@ export default function InboxScreen() {
       createdAt: now,
       updatedAt: now
     };
-    add(item);
+    await add(item);
     setInput('');
   }
 
@@ -154,8 +154,8 @@ function Section({ title, children, theme }: { title: string; children: React.Re
 function ItemRow({ item, theme, onToggle, onDelete }: {
   item: OneItem;
   theme: ReturnType<typeof useTheme>;
-  onToggle: (id: string) => void;
-  onDelete: (id: string) => void;
+  onToggle: (id: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 }) {
   return (
     <Pressable

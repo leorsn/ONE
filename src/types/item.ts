@@ -26,6 +26,7 @@ export type OneItem = {
   date?: string;
   time?: string;
   reminderAt?: string;
+  notificationId?: string;
   category?: string;
   location?: string;
   url?: string;
