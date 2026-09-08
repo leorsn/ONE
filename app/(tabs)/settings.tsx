@@ -1,17 +1,21 @@
 import { useState } from 'react';
+import { router } from 'expo-router';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
+import { useOnboarding } from '@/src/context/OnboardingContext';
 import { IconTile, PageHeader, PrimaryButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
-import { icons } from '@/src/ui/icons';
-import { useTheme } from '@/src/theme/useTheme';
+import { OneIcon, icons } from '@/src/ui/icons';
+import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 
 export default function SettingsScreen() {
   const theme = useTheme();
   const { session, configured, signIn, signUp, signOut } = useAuth();
   const { cloudSyncing, items } = useItems();
+  const { reset: resetOnboarding } = useOnboarding();
+  const { preference } = useThemePreference();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -54,7 +58,12 @@ export default function SettingsScreen() {
         <View style={styles.block}>
           <SectionHeader title="Preferences" />
           <Surface>
-            <SettingsRow icon={icons.appearance} label="Appearance" value="System" />
+            <SettingsRow
+              icon={icons.appearance}
+              label="Appearance"
+              value={appearanceLabel(preference)}
+              onPress={() => router.push("/settings/appearance")}
+            />
             <SettingsRow icon={icons.bell} label="Notifications" value="Per item" />
             <SettingsRow icon={icons.cloud} label="Cloud sync" value={cloudSyncing ? 'Syncing…' : session ? 'Connected' : 'Sign in'} />
             <SettingsRow icon={icons.shield} label="Privacy" value="Private by default" last />
@@ -94,6 +103,23 @@ export default function SettingsScreen() {
           </View>
         ) : null}
 
+        <View style={styles.block}>
+          <SectionHeader title="About" />
+          <Surface>
+            <SettingsRow
+              icon={icons.ask}
+              label="Replay onboarding"
+              value="3 steps"
+              onPress={async () => {
+                await Haptics.selectionAsync();
+                await resetOnboarding();
+                router.replace('/onboarding');
+              }}
+              last
+            />
+          </Surface>
+        </View>
+
         {session ? (
           <View style={styles.block}>
             <SectionHeader title="Account" />
@@ -130,18 +156,42 @@ export default function SettingsScreen() {
     icon,
     label,
     value,
-    last = false
+    last = false,
+    onPress
   }: {
     icon: (typeof icons)[keyof typeof icons];
     label: string;
     value: string;
     last?: boolean;
+    onPress?: () => void | Promise<void>;
   }) {
-    return (
-      <View style={[styles.row, !last && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+    const content = (
+      <>
         <IconTile icon={icon} tone="neutral" size={36} />
         <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
         <Text style={[styles.rowValue, { color: theme.textSecondary }]}>{value}</Text>
+        {onPress ? <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} /> : null}
+      </>
+    );
+
+    if (onPress) {
+      return (
+        <Pressable
+          onPress={onPress}
+          style={({ pressed }) => [
+            styles.row,
+            !last && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth },
+            { opacity: pressed ? 0.62 : 1 }
+          ]}
+        >
+          {content}
+        </Pressable>
+      );
+    }
+
+    return (
+      <View style={[styles.row, !last && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+        {content}
       </View>
     );
   }
@@ -173,3 +223,9 @@ const styles = StyleSheet.create({
   signOutText: { fontSize: 15, fontWeight: '700' },
   footer: { textAlign: 'center', fontSize: 11.5, marginTop: -4 }
 });
+
+function appearanceLabel(value: 'system' | 'light' | 'dark') {
+  if (value === 'light') return 'Light';
+  if (value === 'dark') return 'Dark';
+  return 'System';
+}
