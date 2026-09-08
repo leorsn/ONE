@@ -51,10 +51,22 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         const cloud = await pullCloudItems();
         if (cancelled) return;
 
-        if (cloud.length) {
-          setItems((local) => mergeByUpdatedAt(local, cloud));
-        } else {
-          await Promise.all(items.map((item) => upsertCloudItem(item, session.user.id)));
+        const merged = mergeByUpdatedAt(items, cloud);
+        setItems(merged);
+
+        const cloudById = new Map(cloud.map((item) => [item.id, item]));
+        const localToUpload = items.filter((localItem) => {
+          const cloudItem = cloudById.get(localItem.id);
+          return (
+            !cloudItem ||
+            new Date(localItem.updatedAt).getTime() > new Date(cloudItem.updatedAt).getTime()
+          );
+        });
+
+        if (localToUpload.length) {
+          await Promise.all(
+            localToUpload.map((item) => upsertCloudItem(item, session.user.id))
+          );
         }
       } catch (error) {
         console.warn('ONE cloud sync failed', error);
@@ -108,7 +120,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     if (session?.user.id) {
       try {
-        await upsertCloudItem(updated, session.user.id);
+        await upsertCloudItem(updated, session.user.id, { refreshEmbedding: false });
       } catch (error) {
         console.warn('ONE cloud update failed', error);
       }

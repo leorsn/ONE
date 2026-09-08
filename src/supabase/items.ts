@@ -1,3 +1,4 @@
+import { refreshItemEmbedding } from '@/src/search/semantic';
 import { supabase } from '@/src/supabase/client';
 import type { OneItem } from '@/src/types/item';
 
@@ -30,25 +31,38 @@ type CloudItemRow = {
 };
 
 export async function pullCloudItems(): Promise<OneItem[]> {
-  if (!supabase) return [];
-
   const { data, error } = await supabase
     .from('items')
-    .select('*')
+    .select(
+      'id,user_id,title,raw_input,type,item_date,item_time,reminder_at,category,location,url,notes,completed,saved,source_type,source_app,original_text,attachment_url,image_url,extracted_text,user_context,tags,entities,created_at,updated_at'
+    )
     .order('updated_at', { ascending: false });
 
   if (error) throw error;
   return (data as CloudItemRow[]).map(fromRow);
 }
 
-export async function upsertCloudItem(item: OneItem, userId: string) {
-  if (!supabase) return;
-  const { error } = await supabase.from('items').upsert(toRow(item, userId), { onConflict: 'id' });
+export async function upsertCloudItem(
+  item: OneItem,
+  userId: string,
+  options: { refreshEmbedding?: boolean } = {}
+) {
+  const { error } = await supabase
+    .from('items')
+    .upsert(toRow(item, userId), { onConflict: 'id' });
+
   if (error) throw error;
+
+  if (options.refreshEmbedding !== false) {
+    try {
+      await refreshItemEmbedding(item.id);
+    } catch (embeddingError) {
+      console.warn('ONE semantic indexing failed', embeddingError);
+    }
+  }
 }
 
 export async function deleteCloudItem(id: string) {
-  if (!supabase) return;
   const { error } = await supabase.from('items').delete().eq('id', id);
   if (error) throw error;
 }
