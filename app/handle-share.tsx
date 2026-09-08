@@ -1,13 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { useIncomingShare } from 'expo-sharing';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
+import { extractTextFromImage } from '@/src/ocr/extractText';
 import { createItemFromShare } from '@/src/sharing/ingest';
 import { uploadSharedAttachment } from '@/src/supabase/attachments';
 import { useTheme } from '@/src/theme/useTheme';
+
+type OcrState = 'idle' | 'reading' | 'ready' | 'failed';
 
 export default function HandleShareScreen() {
   const theme = useTheme();
@@ -23,9 +26,40 @@ export default function HandleShareScreen() {
 
   const [context, setContext] = useState('');
   const [saving, setSaving] = useState(false);
+  const [ocrState, setOcrState] = useState<OcrState>('idle');
+  const [extractedText, setExtractedText] = useState('');
 
   const primary = sharedPayloads[0];
   const resolved = resolvedSharedPayloads[0];
+  const imageUri = resolved?.contentType === 'image' ? resolved.contentUri : null;
+
+  useEffect(() => {
+    if (!imageUri) {
+      setOcrState('idle');
+      setExtractedText('');
+      return;
+    }
+
+    let cancelled = false;
+    setOcrState('reading');
+
+    extractTextFromImage(imageUri)
+      .then((result) => {
+        if (cancelled) return;
+        setExtractedText(result.text);
+        setOcrState('ready');
+      })
+      .catch((ocrError) => {
+        if (cancelled) return;
+        console.warn('ONE OCR failed', ocrError);
+        setExtractedText('');
+        setOcrState('failed');
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [imageUri]);
 
   const preview = useMemo(() => {
     if (!primary) return 'Waiting for shared content…';
@@ -58,7 +92,8 @@ export default function HandleShareScreen() {
         payload: primary,
         resolved,
         context,
-        storedAttachmentPath
+        storedAttachmentPath,
+        extractedText
       });
 
       await add(item);
@@ -78,6 +113,8 @@ export default function HandleShareScreen() {
     clearSharedPayloads();
     router.replace('/(tabs)');
   }
+
+  const waitingForOcr = Boolean(imageUri) && ocrState === 'reading';
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
@@ -123,6 +160,22 @@ export default function HandleShareScreen() {
               </View>
             </View>
 
+            {imageUri ? (
+              <View style={[styles.ocrCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                <View style={styles.ocrHeader}>
+                  <Text style={[styles.ocrTitle, { color: theme.text }]}>Screenshot intelligence</Text>
+                  {ocrState === 'reading' ? <ActivityIndicator size="small" /> : null}
+                  {ocrState === 'ready' ? <Text style={{ color: theme.accent }}>Ready</Text> : null}
+                  {ocrState === 'failed' ? <Text style={{ color: theme.textSecondary }}>Unavailable</Text> : null}
+                </View>
+                <Text style={[styles.ocrText, { color: theme.textSecondary }]} numberOfLines={6}>
+                  {ocrState === 'reading'
+                    ? 'ONE is extracting text on-device…'
+                    : extractedText || 'No readable text detected. You can still add your own context.'}
+                </Text>
+              </View>
+            ) : null}
+
             <View>
               <Text style={[styles.heading, { color: theme.text }]}>Add context</Text>
               <Text style={[styles.hint, { color: theme.textSecondary }]}>
@@ -147,10 +200,20 @@ export default function HandleShareScreen() {
 
             <Pressable
               onPress={handleSave}
-              disabled={saving}
-              style={[styles.saveButton, { backgroundColor: theme.accent, opacity: saving ? 0.65 : 1 }]}
+              disabled={saving || waitingForOcr}
+              style={[
+                styles.saveButton,
+                {
+                  backgroundColor: theme.accent,
+                  opacity: saving || waitingForOcr ? 0.65 : 1
+                }
+              ]}
             >
-              {saving ? <ActivityIndicator color="#fff" /> : <Text style={styles.saveText}>Save to ONE</Text>}
+              {saving || waitingForOcr ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.saveText}>Save to ONE</Text>
+              )}
             </Pressable>
           </>
         ) : (
@@ -183,6 +246,10 @@ const styles = StyleSheet.create({
   icon: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   previewLabel: { fontSize: 12, marginBottom: 4 },
   previewText: { fontSize: 16, fontWeight: '600', lineHeight: 21 },
+  ocrCard: { borderWidth: 1, borderRadius: 18, padding: 15, gap: 10 },
+  ocrHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
+  ocrTitle: { fontSize: 16, fontWeight: '700', flex: 1 },
+  ocrText: { fontSize: 13, lineHeight: 19 },
   heading: { fontSize: 22, fontWeight: '800' },
   hint: { fontSize: 13, marginTop: 5, lineHeight: 18 },
   contextInput: { minHeight: 110, borderWidth: 1, borderRadius: 18, padding: 15, fontSize: 16, textAlignVertical: 'top' },

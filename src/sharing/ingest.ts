@@ -1,4 +1,5 @@
 import type { ResolvedSharePayload, SharePayload } from 'expo-sharing';
+import { analyzeOcrText } from '@/src/ocr/intelligence';
 import { parseQuickCapture } from '@/src/parser/quickCapture';
 import type { OneItem, OneSourceType } from '@/src/types/item';
 
@@ -6,15 +7,18 @@ export function createItemFromShare({
   payload,
   resolved,
   context,
-  storedAttachmentPath
+  storedAttachmentPath,
+  extractedText
 }: {
   payload: SharePayload;
   resolved?: ResolvedSharePayload;
   context: string;
   storedAttachmentPath?: string;
+  extractedText?: string;
 }): OneItem {
   const rawValue = payload.value?.trim() || '';
-  const combined = [context.trim(), rawValue].filter(Boolean).join(' ');
+  const ocr = analyzeOcrText(extractedText || '', context);
+  const combined = [context.trim(), rawValue, extractedText?.trim()].filter(Boolean).join(' ');
   const parsed = parseQuickCapture(combined || context || 'Shared item');
   const now = new Date().toISOString();
 
@@ -28,6 +32,7 @@ export function createItemFromShare({
 
   const title =
     context.trim() ||
+    ocr.suggestedTitle ||
     parsed?.title ||
     resolved?.originalName ||
     (payload.shareType === 'url' ? rawValue : 'Shared to ONE');
@@ -41,9 +46,9 @@ export function createItemFromShare({
     title,
     rawInput: combined || rawValue || context,
     type: parsed?.type || (payload.shareType === 'url' ? 'link' : 'note'),
-    date: parsed?.date,
-    time: parsed?.time,
-    category: parsed?.category,
+    date: parsed?.date || ocr.date,
+    time: parsed?.time || ocr.time,
+    category: parsed?.category || ocr.category,
     url: payload.shareType === 'url' || resolvedType === 'website' ? rawValue || uri || undefined : undefined,
     completed: false,
     saved: true,
@@ -51,12 +56,14 @@ export function createItemFromShare({
     originalText: payload.shareType === 'text' ? rawValue : undefined,
     attachmentUrl: storedAttachmentPath || (isFile ? uri || rawValue || undefined : undefined),
     imageUrl: storedAttachmentPath || (isImage ? uri || rawValue || undefined : undefined),
+    extractedText: extractedText?.trim() || undefined,
     userContext: context.trim() || undefined,
-    tags: [
+    tags: Array.from(new Set([
       ...(parsed?.category ? [parsed.category.toLowerCase()] : []),
+      ...ocr.tags,
       sourceType
-    ],
-    entities: [],
+    ])),
+    entities: ocr.entities,
     createdAt: now,
     updatedAt: now
   };
