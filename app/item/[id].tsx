@@ -52,11 +52,13 @@ export default function ItemDetailScreen() {
     );
   }
 
+  const currentItem = item;
+
   async function saveChanges() {
     if (!title.trim()) return;
     setSaving(true);
     try {
-      await update(item.id, {
+      await update(currentItem.id, {
         title: title.trim(),
         date: clean(date),
         time: clean(time),
@@ -82,7 +84,7 @@ export default function ItemDetailScreen() {
         style: 'destructive',
         onPress: async () => {
           await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          await remove(item.id);
+          await remove(currentItem.id);
           router.back();
         }
       }
@@ -103,11 +105,11 @@ export default function ItemDetailScreen() {
         </View>
 
         <View style={styles.hero}>
-          <IconTile icon={iconForType(item.type)} size={54} />
+          <IconTile icon={iconForType(currentItem.type)} size={54} />
           <View style={{ flex: 1 }}>
-            <Text style={[styles.type, { color: theme.accent }]}>{formatType(item.type)}</Text>
+            <Text style={[styles.type, { color: theme.accent }]}>{formatType(currentItem.type)}</Text>
             <Text style={[styles.source, { color: theme.textSecondary }]}>
-              {sourceLabel(item.sourceType)} · {formatUpdated(item.updatedAt)}
+              {sourceLabel(currentItem.sourceType)} · {formatUpdated(currentItem.updatedAt)}
             </Text>
           </View>
         </View>
@@ -155,22 +157,22 @@ export default function ItemDetailScreen() {
           />
         </View>
 
-        {item.extractedText ? (
+        {currentItem.extractedText ? (
           <View style={styles.block}>
             <Text style={[styles.label, { color: theme.textSecondary }]}>Recognized text</Text>
             <Surface padded>
-              <Text style={[styles.extracted, { color: theme.textSecondary }]} selectable>{item.extractedText}</Text>
+              <Text style={[styles.extracted, { color: theme.textSecondary }]} selectable>{currentItem.extractedText}</Text>
             </Surface>
           </View>
         ) : null}
 
-        {item.url ? (
+        {currentItem.url ? (
           <Pressable
-            onPress={() => Linking.openURL(item.url!)}
+            onPress={() => Linking.openURL(currentItem.url!)}
             style={[styles.linkCard, { backgroundColor: theme.accentSoft }]}
           >
             <OneIcon name={icons.link} size={18} color={theme.accent} />
-            <Text style={[styles.linkText, { color: theme.accent }]} numberOfLines={1}>{item.url}</Text>
+            <Text style={[styles.linkText, { color: theme.accent }]} numberOfLines={1}>{currentItem.url}</Text>
             <OneIcon name={icons.chevron} size={14} color={theme.accent} />
           </Pressable>
         ) : null}
@@ -275,7 +277,7 @@ const styles = StyleSheet.create({
   largeInput: { minHeight: 108, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 14, fontSize: 14.5, lineHeight: 20, textAlignVertical: 'top' },
   extracted: { fontSize: 13, lineHeight: 19 },
   linkCard: { minHeight: 50, borderRadius: 15, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  linkText: { flex: 1, fontSize: 13, fontWeight: '650' },
+  linkText: { flex: 1, fontSize: 13, fontWeight: '600' },
   deleteAction: { minHeight: 44, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center' },
   deleteText: { fontSize: 13.5, fontWeight: '700' },
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }

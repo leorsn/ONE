@@ -42,7 +42,8 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   }, [items, hydrated]);
 
   useEffect(() => {
-    if (!session?.user.id || !hydrated) return;
+    const userId = session?.user.id;
+    if (!userId || !hydrated) return;
 
     let cancelled = false;
 
@@ -65,7 +66,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (localToUpload.length) {
-          await Promise.all(localToUpload.map((item) => upsertCloudItem(item, session.user.id)));
+          await Promise.all(localToUpload.map((item) => upsertCloudItem(item, userId)));
         }
       } catch (error) {
         console.warn('ONE cloud sync failed', error);
