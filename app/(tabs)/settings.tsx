@@ -5,7 +5,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { IconTile, PageHeader, PrimaryButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
-import { OneIcon, icons } from '@/src/ui/icons';
+import { icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
 export default function SettingsScreen() {
@@ -142,7 +142,6 @@ export default function SettingsScreen() {
         <IconTile icon={icon} tone="neutral" size={36} />
         <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
         <Text style={[styles.rowValue, { color: theme.textSecondary }]}>{value}</Text>
-        <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />
       </View>
     );
   }
