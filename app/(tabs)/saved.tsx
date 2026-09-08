@@ -1,7 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
+import { OneItemRow } from '@/src/ui/OneItemRow';
+import { EmptyState, PageHeader, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
 const filters = ['All', 'Links', 'Ideas', 'Shopping', 'Travel'] as const;
@@ -10,86 +14,102 @@ export default function SavedScreen() {
   const theme = useTheme();
   const { items } = useItems();
   const [filter, setFilter] = useState<(typeof filters)[number]>('All');
+  const [query, setQuery] = useState('');
 
   const savedItems = useMemo(() => {
-    const base = items.filter((item) => item.saved || ['link', 'idea', 'shopping', 'travel'].includes(item.type));
+    const clean = query.trim().toLowerCase();
+    const base = items
+      .filter((item) => item.saved || ['link', 'idea', 'shopping', 'travel'].includes(item.type))
+      .filter((item) => {
+        if (!clean) return true;
+        return [item.title, item.category, item.userContext, item.url, item.extractedText]
+          .filter(Boolean)
+          .some((value) => value!.toLowerCase().includes(clean));
+      });
+
     if (filter === 'All') return base;
     if (filter === 'Links') return base.filter((item) => item.type === 'link');
     if (filter === 'Ideas') return base.filter((item) => item.type === 'idea');
     if (filter === 'Shopping') return base.filter((item) => item.type === 'shopping' || item.category === 'Gift idea');
     return base.filter((item) => item.type === 'travel');
-  }, [items, filter]);
+  }, [items, filter, query]);
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text style={[styles.brand, { color: theme.text }]}>ONE</Text>
-        <Text style={[styles.title, { color: theme.text }]}>Saved</Text>
-        <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-          Links, ideas, shopping and more — all in one place.
-        </Text>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
+      <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <PageHeader title="Saved" subtitle="Links, ideas and moments worth keeping." />
 
-        <View style={styles.filters}>
+        <View style={[styles.search, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+          <OneIcon name={icons.search} size={18} color={theme.textTertiary} />
+          <TextInput
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search saved"
+            placeholderTextColor={theme.textTertiary}
+            style={[styles.searchInput, { color: theme.text }]}
+          />
+          {query ? (
+            <Pressable onPress={() => setQuery('')}>
+              <OneIcon name={icons.close} size={15} color={theme.textTertiary} />
+            </Pressable>
+          ) : null}
+        </View>
+
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
           {filters.map((name) => {
             const active = name === filter;
             return (
               <Pressable
                 key={name}
-                onPress={() => setFilter(name)}
-                style={[styles.filter, { backgroundColor: active ? theme.accent : theme.surface, borderColor: theme.border }]}
+                onPress={async () => {
+                  await Haptics.selectionAsync();
+                  setFilter(name);
+                }}
+                style={[
+                  styles.filter,
+                  {
+                    backgroundColor: active ? theme.text : theme.fill,
+                    borderColor: active ? theme.text : theme.fill
+                  }
+                ]}
               >
-                <Text style={{ color: active ? '#fff' : theme.text }}>{name}</Text>
+                <Text style={[styles.filterText, { color: active ? theme.background : theme.textSecondary }]}>
+                  {name}
+                </Text>
               </Pressable>
             );
           })}
-        </View>
+        </ScrollView>
 
-        <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          {savedItems.length ? savedItems.map((item) => (
-            <View key={item.id} style={[styles.row, { borderBottomColor: theme.border }]}>
-              <View style={[styles.thumb, { backgroundColor: theme.accentSoft }]}>
-                <Text style={{ color: theme.accent }}>{iconFor(item.type)}</Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.itemTitle, { color: theme.text }]}>{item.title}</Text>
-                <Text style={[styles.itemMeta, { color: theme.textSecondary }]}>
-                  {[item.category, item.url, item.userContext].filter(Boolean).join(' · ') || formatType(item.type)}
-                </Text>
-              </View>
-              <Text style={{ color: theme.textSecondary }}>•••</Text>
-            </View>
-          )) : (
-            <Text style={[styles.empty, { color: theme.textSecondary }]}>Nothing in this category yet.</Text>
-          )}
+        <View style={styles.block}>
+          <SectionHeader title={filter === 'All' ? 'Your memory' : filter} meta={String(savedItems.length)} />
+          <Surface>
+            {savedItems.length ? (
+              savedItems.map((item) => <OneItemRow key={item.id} item={item} />)
+            ) : (
+              <EmptyState icon={icons.saved} title="Nothing here yet" body="Share something to ONE or save an idea from your inbox." />
+            )}
+          </Surface>
         </View>
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-function formatType(type: string) {
-  return type.charAt(0).toUpperCase() + type.slice(1);
-}
-
-function iconFor(type: string) {
-  if (type === 'link') return '↗';
-  if (type === 'travel') return '✈';
-  if (type === 'shopping') return '◫';
-  return '◇';
-}
-
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { padding: 20, gap: 14 },
-  brand: { fontSize: 34, fontWeight: '800', letterSpacing: -1.2 },
-  title: { fontSize: 30, fontWeight: '800', marginTop: 8 },
-  subtitle: { fontSize: 14, lineHeight: 20 },
-  filters: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginVertical: 4 },
-  filter: { borderWidth: 1, borderRadius: 18, paddingHorizontal: 14, paddingVertical: 8 },
-  card: { borderWidth: 1, borderRadius: 18, overflow: 'hidden' },
-  row: { minHeight: 78, borderBottomWidth: StyleSheet.hairlineWidth, padding: 12, flexDirection: 'row', gap: 12, alignItems: 'center' },
-  thumb: { width: 50, height: 50, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  itemTitle: { fontSize: 16, fontWeight: '600' },
-  itemMeta: { fontSize: 13, marginTop: 4 },
-  empty: { padding: 18, fontSize: 14 }
+  search: {
+    minHeight: 52,
+    borderRadius: 17,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10
+  },
+  searchInput: { flex: 1, fontSize: 15 },
+  filters: { gap: 8, paddingRight: 20 },
+  filter: { minHeight: 34, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  filterText: { fontSize: 12.5, fontWeight: '700' },
+  block: { gap: 10 }
 });
