@@ -2,12 +2,15 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import { useIncomingShare } from 'expo-sharing';
+import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { extractTextFromImage } from '@/src/ocr/extractText';
 import { createItemFromShare } from '@/src/sharing/ingest';
 import { uploadSharedAttachment } from '@/src/supabase/attachments';
+import { IconTile, PrimaryButton, SectionHeader, Surface } from '@/src/ui/primitives';
+import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
 type OcrState = 'idle' | 'reading' | 'ready' | 'failed';
@@ -16,13 +19,7 @@ export default function HandleShareScreen() {
   const theme = useTheme();
   const { session } = useAuth();
   const { add } = useItems();
-  const {
-    sharedPayloads,
-    resolvedSharedPayloads,
-    isResolving,
-    error,
-    clearSharedPayloads
-  } = useIncomingShare();
+  const { sharedPayloads, resolvedSharedPayloads, isResolving, error, clearSharedPayloads } = useIncomingShare();
 
   const [context, setContext] = useState('');
   const [saving, setSaving] = useState(false);
@@ -75,9 +72,7 @@ export default function HandleShareScreen() {
     try {
       let storedAttachmentPath: string | undefined;
       const contentUri = resolved && 'contentUri' in resolved ? resolved.contentUri : null;
-      const isAttachment =
-        Boolean(contentUri) &&
-        ['image', 'file', 'video', 'audio'].includes(primary.shareType || '');
+      const isAttachment = Boolean(contentUri) && ['image', 'file', 'video', 'audio'].includes(primary.shareType || '');
 
       if (isAttachment && session?.user.id && contentUri) {
         storedAttachmentPath = await uploadSharedAttachment({
@@ -97,13 +92,11 @@ export default function HandleShareScreen() {
       });
 
       await add(item);
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       clearSharedPayloads();
       router.replace('/(tabs)/saved');
     } catch (saveError) {
-      Alert.alert(
-        'Could not save to ONE',
-        saveError instanceof Error ? saveError.message : 'Unknown error'
-      );
+      Alert.alert('Could not save to ONE', saveError instanceof Error ? saveError.message : 'Unknown error');
     } finally {
       setSaving(false);
     }
@@ -117,143 +110,162 @@ export default function HandleShareScreen() {
   const waitingForOcr = Boolean(imageUri) && ocrState === 'reading';
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <View style={styles.topBar}>
-          <Pressable onPress={handleCancel}>
-            <Text style={{ color: theme.textSecondary }}>Cancel</Text>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <View style={styles.nav}>
+          <Pressable onPress={handleCancel} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+            <OneIcon name={icons.close} size={17} color={theme.text} />
           </Pressable>
-          <Text style={[styles.brand, { color: theme.text }]}>Save to ONE</Text>
-          <View style={{ width: 48 }} />
+          <Text style={[styles.navTitle, { color: theme.text }]}>Save to ONE</Text>
+          <View style={{ width: 40 }} />
         </View>
 
         {isResolving ? (
-          <View style={styles.center}>
-            <ActivityIndicator />
-            <Text style={{ color: theme.textSecondary }}>Reading shared content…</Text>
-          </View>
+          <Surface padded>
+            <View style={styles.center}>
+              <ActivityIndicator />
+              <Text style={[styles.stateText, { color: theme.textSecondary }]}>Reading shared content…</Text>
+            </View>
+          </Surface>
         ) : null}
 
         {error ? (
-          <Text style={{ color: theme.textSecondary }}>
-            ONE could not fully resolve this share, but you can still save the raw content.
-          </Text>
+          <View style={[styles.notice, { backgroundColor: theme.fill }]}>
+            <OneIcon name={icons.more} size={17} color={theme.warning} />
+            <Text style={[styles.noticeText, { color: theme.textSecondary }]}>ONE could not fully resolve this share. Raw content can still be saved.</Text>
+          </View>
         ) : null}
 
         {primary ? (
           <>
-            <View style={[styles.previewCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              {resolved?.contentType === 'image' && resolved.contentUri ? (
-                <Image source={{ uri: resolved.contentUri }} style={styles.image} resizeMode="cover" />
-              ) : (
-                <View style={[styles.icon, { backgroundColor: theme.accentSoft }]}>
-                  <Text style={{ color: theme.accent, fontSize: 22 }}>↗</Text>
+            <View style={styles.block}>
+              <SectionHeader title="Shared content" />
+              <Surface padded>
+                <View style={styles.previewRow}>
+                  {imageUri ? (
+                    <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
+                  ) : (
+                    <IconTile icon={primary.shareType === 'url' ? icons.link : icons.upload} size={58} />
+                  )}
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.kind, { color: theme.accent }]}>{labelFor(primary.shareType)}</Text>
+                    <Text style={[styles.previewTitle, { color: theme.text }]} numberOfLines={4}>{preview}</Text>
+                  </View>
                 </View>
-              )}
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.previewLabel, { color: theme.textSecondary }]}>
-                  {labelFor(primary.shareType)}
-                </Text>
-                <Text style={[styles.previewText, { color: theme.text }]} numberOfLines={4}>
-                  {preview}
-                </Text>
-              </View>
+              </Surface>
             </View>
 
             {imageUri ? (
-              <View style={[styles.ocrCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <View style={styles.ocrHeader}>
-                  <Text style={[styles.ocrTitle, { color: theme.text }]}>Screenshot intelligence</Text>
-                  {ocrState === 'reading' ? <ActivityIndicator size="small" /> : null}
-                  {ocrState === 'ready' ? <Text style={{ color: theme.accent }}>Ready</Text> : null}
-                  {ocrState === 'failed' ? <Text style={{ color: theme.textSecondary }}>Unavailable</Text> : null}
-                </View>
-                <Text style={[styles.ocrText, { color: theme.textSecondary }]} numberOfLines={6}>
-                  {ocrState === 'reading'
-                    ? 'ONE is extracting text on-device…'
-                    : extractedText || 'No readable text detected. You can still add your own context.'}
+              <View style={styles.block}>
+                <SectionHeader title="Screenshot intelligence" />
+                <Surface padded>
+                  <View style={styles.ocrHeader}>
+                    <IconTile icon={icons.screenshot} tone={ocrState === 'ready' ? 'success' : 'neutral'} size={40} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.ocrTitle, { color: theme.text }]}>{ocrHeadline(ocrState)}</Text>
+                      <Text style={[styles.ocrMeta, { color: theme.textSecondary }]}>{ocrMeta(ocrState)}</Text>
+                    </View>
+                    {ocrState === 'reading' ? <ActivityIndicator size="small" /> : null}
+                    {ocrState === 'ready' ? <OneIcon name={icons.check} size={17} color={theme.success} /> : null}
+                  </View>
+                  {extractedText ? (
+                    <View style={[styles.ocrTextWrap, { borderTopColor: theme.border }]}>
+                      <Text style={[styles.ocrText, { color: theme.textSecondary }]} numberOfLines={7}>{extractedText}</Text>
+                    </View>
+                  ) : null}
+                </Surface>
+              </View>
+            ) : null}
+
+            <View style={styles.block}>
+              <SectionHeader title="Add context" meta="Optional" />
+              <TextInput
+                value={context}
+                onChangeText={setContext}
+                placeholder="Gift Dad, Barcelona, Tax 2026…"
+                placeholderTextColor={theme.textTertiary}
+                style={[styles.contextInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
+                multiline
+              />
+              <Text style={[styles.contextHelp, { color: theme.textTertiary }]}>
+                A few words make this much easier to find later with Ask ONE.
+              </Text>
+            </View>
+
+            {!session && ['image', 'file', 'video', 'audio'].includes(primary.shareType || '') ? (
+              <View style={[styles.notice, { backgroundColor: theme.accentSoft }]}>
+                <OneIcon name={icons.cloud} size={17} color={theme.accent} />
+                <Text style={[styles.noticeText, { color: theme.textSecondary }]}>
+                  Sign in to keep shared files privately synced across devices.
                 </Text>
               </View>
             ) : null}
 
-            <View>
-              <Text style={[styles.heading, { color: theme.text }]}>Add context</Text>
-              <Text style={[styles.hint, { color: theme.textSecondary }]}>
-                Optional. Example: “Gift Dad”, “Barcelona”, or “Tax 2026”.
-              </Text>
-            </View>
-
-            <TextInput
-              value={context}
-              onChangeText={setContext}
-              placeholder="What should ONE remember this as?"
-              placeholderTextColor={theme.textSecondary}
-              style={[styles.contextInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
-              multiline
-            />
-
-            {!session && ['image', 'file', 'video', 'audio'].includes(primary.shareType || '') ? (
-              <Text style={[styles.note, { color: theme.textSecondary }]}>
-                You can save this locally now. Sign in to a ONE Account to keep shared files privately in cloud storage across devices.
-              </Text>
-            ) : null}
-
-            <Pressable
+            <PrimaryButton
+              label={saving ? 'Saving…' : waitingForOcr ? 'Reading screenshot…' : 'Save to ONE'}
+              icon={icons.check}
               onPress={handleSave}
               disabled={saving || waitingForOcr}
-              style={[
-                styles.saveButton,
-                {
-                  backgroundColor: theme.accent,
-                  opacity: saving || waitingForOcr ? 0.65 : 1
-                }
-              ]}
-            >
-              {saving || waitingForOcr ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.saveText}>Save to ONE</Text>
-              )}
-            </Pressable>
+            />
           </>
-        ) : (
-          <View style={styles.center}>
-            <Text style={{ color: theme.textSecondary }}>No shared content found.</Text>
-          </View>
-        )}
+        ) : !isResolving ? (
+          <Surface>
+            <View style={styles.center}>
+              <IconTile icon={icons.upload} tone="neutral" size={46} />
+              <Text style={[styles.stateTitle, { color: theme.text }]}>No shared content</Text>
+              <Text style={[styles.stateText, { color: theme.textSecondary }]}>Return to the share sheet and choose ONE again.</Text>
+            </View>
+          </Surface>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 function labelFor(type?: string) {
-  if (type === 'url') return 'Link';
-  if (type === 'image') return 'Image';
-  if (type === 'file') return 'File';
-  if (type === 'video') return 'Video';
-  if (type === 'audio') return 'Audio';
-  return 'Text';
+  if (type === 'url') return 'LINK';
+  if (type === 'image') return 'IMAGE';
+  if (type === 'file') return 'FILE';
+  if (type === 'video') return 'VIDEO';
+  if (type === 'audio') return 'AUDIO';
+  return 'TEXT';
+}
+
+function ocrHeadline(state: OcrState) {
+  if (state === 'reading') return 'Reading on-device';
+  if (state === 'ready') return 'Text recognized';
+  if (state === 'failed') return 'Recognition unavailable';
+  return 'Ready for analysis';
+}
+
+function ocrMeta(state: OcrState) {
+  if (state === 'reading') return 'Apple Vision / ML Kit';
+  if (state === 'ready') return 'Included in ONE recall';
+  if (state === 'failed') return 'You can still save the screenshot';
+  return 'Private OCR';
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { padding: 20, gap: 20, paddingBottom: 40 },
-  topBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  brand: { fontSize: 18, fontWeight: '800' },
-  center: { minHeight: 160, alignItems: 'center', justifyContent: 'center', gap: 10 },
-  previewCard: { borderWidth: 1, borderRadius: 20, padding: 14, flexDirection: 'row', gap: 14, alignItems: 'center' },
-  image: { width: 86, height: 86, borderRadius: 14 },
-  icon: { width: 56, height: 56, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  previewLabel: { fontSize: 12, marginBottom: 4 },
-  previewText: { fontSize: 16, fontWeight: '600', lineHeight: 21 },
-  ocrCard: { borderWidth: 1, borderRadius: 18, padding: 15, gap: 10 },
-  ocrHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  ocrTitle: { fontSize: 16, fontWeight: '700', flex: 1 },
-  ocrText: { fontSize: 13, lineHeight: 19 },
-  heading: { fontSize: 22, fontWeight: '800' },
-  hint: { fontSize: 13, marginTop: 5, lineHeight: 18 },
-  contextInput: { minHeight: 110, borderWidth: 1, borderRadius: 18, padding: 15, fontSize: 16, textAlignVertical: 'top' },
-  note: { fontSize: 13, lineHeight: 19 },
-  saveButton: { minHeight: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  saveText: { color: '#fff', fontSize: 16, fontWeight: '800' }
+  content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40, gap: 20 },
+  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  navButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 16, fontWeight: '800' },
+  block: { gap: 10 },
+  previewRow: { flexDirection: 'row', alignItems: 'center', gap: 13 },
+  image: { width: 76, height: 76, borderRadius: 16 },
+  kind: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1 },
+  previewTitle: { marginTop: 5, fontSize: 15.5, lineHeight: 20, fontWeight: '700' },
+  ocrHeader: { flexDirection: 'row', alignItems: 'center', gap: 11 },
+  ocrTitle: { fontSize: 15, fontWeight: '700' },
+  ocrMeta: { marginTop: 3, fontSize: 12 },
+  ocrTextWrap: { marginTop: 14, paddingTop: 13, borderTopWidth: StyleSheet.hairlineWidth },
+  ocrText: { fontSize: 12.5, lineHeight: 18 },
+  contextInput: { minHeight: 112, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 15, fontSize: 15, lineHeight: 20, textAlignVertical: 'top' },
+  contextHelp: { marginLeft: 2, fontSize: 11.5, lineHeight: 16 },
+  notice: { minHeight: 54, borderRadius: 16, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  noticeText: { flex: 1, fontSize: 12, lineHeight: 17 },
+  center: { minHeight: 120, alignItems: 'center', justifyContent: 'center', gap: 9 },
+  stateTitle: { fontSize: 15, fontWeight: '700' },
+  stateText: { fontSize: 12.5, textAlign: 'center' }
 });

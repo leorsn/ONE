@@ -11,6 +11,7 @@ type ItemsContextValue = {
   hydrated: boolean;
   cloudSyncing: boolean;
   add: (item: OneItem) => Promise<void>;
+  update: (id: string, changes: Partial<OneItem>) => Promise<void>;
   toggleCompleted: (id: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
 };
@@ -64,9 +65,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         });
 
         if (localToUpload.length) {
-          await Promise.all(
-            localToUpload.map((item) => upsertCloudItem(item, session.user.id))
-          );
+          await Promise.all(localToUpload.map((item) => upsertCloudItem(item, session.user.id)));
         }
       } catch (error) {
         console.warn('ONE cloud sync failed', error);
@@ -94,6 +93,39 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       }
     }
   }, [session?.user.id]);
+
+  const update = useCallback(async (id: string, changes: Partial<OneItem>) => {
+    const currentItem = items.find((item) => item.id === id);
+    if (!currentItem) return;
+
+    if (currentItem.notificationId) {
+      await cancelItemNotification(currentItem.notificationId);
+    }
+
+    const baseUpdated: OneItem = {
+      ...currentItem,
+      ...changes,
+      notificationId: undefined,
+      updatedAt: new Date().toISOString()
+    };
+
+    const notificationId =
+      !baseUpdated.completed && baseUpdated.date
+        ? await scheduleItemNotification(baseUpdated)
+        : undefined;
+
+    const updated = notificationId ? { ...baseUpdated, notificationId } : baseUpdated;
+
+    setItems((current) => current.map((item) => (item.id === id ? updated : item)));
+
+    if (session?.user.id) {
+      try {
+        await upsertCloudItem(updated, session.user.id);
+      } catch (error) {
+        console.warn('ONE cloud edit failed', error);
+      }
+    }
+  }, [items, session?.user.id]);
 
   const toggleCompleted = useCallback(async (id: string) => {
     const currentItem = items.find((item) => item.id === id);
@@ -145,8 +177,8 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   }, [items, session?.user.id]);
 
   const value = useMemo(
-    () => ({ items, hydrated, cloudSyncing, add, toggleCompleted, remove }),
-    [items, hydrated, cloudSyncing, add, toggleCompleted, remove]
+    () => ({ items, hydrated, cloudSyncing, add, update, toggleCompleted, remove }),
+    [items, hydrated, cloudSyncing, add, update, toggleCompleted, remove]
   );
 
   return <ItemsContext.Provider value={value}>{children}</ItemsContext.Provider>;
