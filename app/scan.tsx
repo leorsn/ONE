@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
@@ -25,6 +25,10 @@ export default function ScanScreen() {
   const [asset, setAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [text, setText] = useState('');
   const [intelligence, setIntelligence] = useState<OcrIntelligence | null>(null);
+  const [merchant, setMerchant] = useState('');
+  const [documentDate, setDocumentDate] = useState('');
+  const [amountText, setAmountText] = useState('');
+  const [currency, setCurrency] = useState('EUR');
   const [saving, setSaving] = useState(false);
 
   async function takePhoto() {
@@ -56,12 +60,20 @@ export default function ScanScreen() {
     setState('reading');
     setText('');
     setIntelligence(null);
+    setMerchant('');
+    setDocumentDate('');
+    setAmountText('');
+    setCurrency('EUR');
 
     try {
       const result = await extractTextFromImage(nextAsset.uri);
       const analyzed = analyzeOcrText(result.text);
       setText(result.text);
       setIntelligence(analyzed);
+      setMerchant(analyzed.merchant || '');
+      setDocumentDate(analyzed.date || '');
+      setAmountText(analyzed.amount !== undefined ? String(analyzed.amount) : '');
+      setCurrency(analyzed.currency || 'EUR');
       setState('ready');
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
@@ -92,9 +104,18 @@ export default function ScanScreen() {
 
       const now = new Date().toISOString();
       const documentKind = intelligence?.documentKind || 'other';
-      const merchant = intelligence?.merchant;
-      const title = merchant
-        ? documentKind === 'invoice' ? `${merchant} invoice` : `${merchant} receipt`
+      const correctedMerchant = merchant.trim() || undefined;
+      const correctedDate = documentDate.trim() || intelligence?.date;
+      const correctedAmount = parseAmountInput(amountText);
+      const correctedCurrency = correctedAmount !== undefined
+        ? (currency.trim().toUpperCase().slice(0, 3) || 'EUR')
+        : undefined;
+      const title = correctedMerchant
+        ? documentKind === 'invoice'
+          ? correctedMerchant + ' invoice'
+          : documentKind === 'receipt'
+            ? correctedMerchant + ' receipt'
+            : correctedMerchant + ' document'
         : intelligence?.suggestedTitle || 'Scanned document';
 
       const item: OneItem = {
@@ -102,7 +123,7 @@ export default function ScanScreen() {
         title,
         rawInput: text || title,
         type: 'document',
-        date: intelligence?.date,
+        date: correctedDate,
         category: intelligence?.category || (documentKind === 'other' ? 'Documents' : 'Receipts'),
         completed: false,
         saved: true,
@@ -111,11 +132,11 @@ export default function ScanScreen() {
         attachmentUrl: storedPath || asset.uri,
         extractedText: text || undefined,
         documentKind,
-        merchant,
-        amount: intelligence?.amount,
-        currency: intelligence?.currency,
+        merchant: correctedMerchant,
+        amount: correctedAmount,
+        currency: correctedCurrency,
         tags: Array.from(new Set(['document', documentKind, ...(intelligence?.tags || [])])),
-        entities: intelligence?.entities || [],
+        entities: correctedEntities(intelligence?.entities || [], correctedMerchant, correctedAmount, correctedCurrency),
         createdAt: now,
         updatedAt: now
       };
@@ -189,9 +210,10 @@ export default function ScanScreen() {
               {intelligence ? (
                 <View style={[styles.details, { borderTopColor: theme.border }]}>
                   <Detail label="Type" value={formatKind(intelligence.documentKind)} />
-                  <Detail label="Merchant" value={intelligence.merchant} />
-                  <Detail label="Date" value={intelligence.date} />
-                  <Detail label="Amount" value={formatAmount(intelligence.amount, intelligence.currency)} />
+                  <EditableDetail label="Merchant" value={merchant} onChange={setMerchant} placeholder="Unknown" />
+                  <EditableDetail label="Date" value={documentDate} onChange={setDocumentDate} placeholder="YYYY-MM-DD" />
+                  <EditableDetail label="Amount" value={amountText} onChange={setAmountText} placeholder="0.00" keyboardType="decimal-pad" />
+                  <EditableDetail label="Currency" value={currency} onChange={(value) => setCurrency(value.toUpperCase())} placeholder="EUR" maxLength={3} />
                 </View>
               ) : null}
             </Surface>
@@ -237,6 +259,38 @@ export default function ScanScreen() {
       </View>
     );
   }
+
+  function EditableDetail({
+    label,
+    value,
+    onChange,
+    placeholder,
+    keyboardType = 'default',
+    maxLength
+  }: {
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    placeholder: string;
+    keyboardType?: 'default' | 'decimal-pad';
+    maxLength?: number;
+  }) {
+    return (
+      <View style={styles.detailRow}>
+        <Text style={[styles.detailLabel, { color: theme.textTertiary }]}>{label}</Text>
+        <TextInput
+          value={value}
+          onChangeText={onChange}
+          placeholder={placeholder}
+          placeholderTextColor={theme.textTertiary}
+          keyboardType={keyboardType}
+          maxLength={maxLength}
+          autoCapitalize={label === 'Currency' ? 'characters' : 'sentences'}
+          style={[styles.detailInput, { color: theme.text, backgroundColor: theme.fill }]}
+        />
+      </View>
+    );
+  }
 }
 
 function formatKind(kind?: string) {
@@ -244,13 +298,27 @@ function formatKind(kind?: string) {
   return kind.split('_').map((value) => value.charAt(0).toUpperCase() + value.slice(1)).join(' ');
 }
 
-function formatAmount(amount?: number, currency = 'EUR') {
-  if (amount === undefined) return undefined;
-  try {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
+function parseAmountInput(value: string) {
+  const clean = value.trim().replace(/[^0-9.,-]/g, '');
+  if (!clean) return undefined;
+
+  const comma = clean.lastIndexOf(',');
+  const dot = clean.lastIndexOf('.');
+  let normalized = clean;
+
+  if (comma > dot) normalized = clean.replace(/\\./g, '').replace(',', '.');
+  else if (dot > comma) normalized = clean.replace(/,/g, '');
+  else normalized = clean.replace(',', '.');
+
+  const amount = Number(normalized);
+  return Number.isFinite(amount) ? amount : undefined;
+}
+
+function correctedEntities(entities: string[], merchant?: string, amount?: number, currency?: string) {
+  const base = entities.filter((entity) => !entity.startsWith('merchant:') && !entity.startsWith('amount:'));
+  if (merchant) base.push('merchant:' + merchant);
+  if (amount !== undefined) base.push('amount:' + String(amount) + ' ' + (currency || 'EUR'));
+  return Array.from(new Set(base));
 }
 
 const styles = StyleSheet.create({
@@ -277,6 +345,7 @@ const styles = StyleSheet.create({
   detailRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   detailLabel: { width: 72, fontSize: 11.5, fontWeight: '700' },
   detailValue: { flex: 1, fontSize: 13.5, fontWeight: '600', textAlign: 'right' },
+  detailInput: { flex: 1, minHeight: 38, borderRadius: 10, paddingHorizontal: 10, fontSize: 13.5, fontWeight: '600', textAlign: 'right' },
   ocrLabel: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1 },
   ocrText: { marginTop: 9, fontSize: 12.5, lineHeight: 18 },
   rescan: { minHeight: 40, alignItems: 'center', justifyContent: 'center' },
