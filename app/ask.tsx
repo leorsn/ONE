@@ -277,5 +277,9 @@ const styles = StyleSheet.create({
   exampleRow: { minHeight: 66, paddingHorizontal: 14, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
   exampleText: { flex: 1, fontSize: 13.5, lineHeight: 18, fontWeight: '600' },
   privacyNote: { minHeight: 54, borderRadius: 16, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  privacyText: { flex: 1, fontSize: 12, lineHeight: 17 }
+  privacyText: { flex: 1, fontSize: 12, lineHeight: 17 },
+  lockedButton: { minHeight: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  lockedButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
+  lockedBack: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
+  lockedBackText: { fontSize: 13, fontWeight: '700' }
 });
