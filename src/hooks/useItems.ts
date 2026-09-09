@@ -10,7 +10,7 @@ export function useItems(seed: OneItem[]) {
     let mounted = true;
     loadItems().then((stored) => {
       if (!mounted) return;
-      if (stored.length) setItems(stored);
+      if (stored !== null) setItems(stored);
       setHydrated(true);
     });
     return () => { mounted = false; };
