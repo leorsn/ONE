@@ -44,6 +44,14 @@
             ]
           }
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow ONE to scan receipts and documents.",
+          "photosPermission": "Allow ONE to import receipts and documents from your photo library.",
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {

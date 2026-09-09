@@ -114,6 +114,30 @@ export default function ItemDetailScreen() {
           </View>
         </View>
 
+        {(currentItem.type === 'document' || currentItem.merchant || currentItem.amount !== undefined) ? (
+          <Surface padded>
+            <View style={styles.documentHeader}>
+              <IconTile icon={icons.document} tone="neutral" size={40} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.documentTitle, { color: theme.text }]}>Document details</Text>
+                <Text style={[styles.documentMeta, { color: theme.textSecondary }]}>
+                  {formatDocumentKind(currentItem.documentKind)}
+                </Text>
+              </View>
+              {currentItem.amount !== undefined ? (
+                <Text style={[styles.documentAmount, { color: theme.text }]}>
+                  {formatMoney(currentItem.amount, currentItem.currency)}
+                </Text>
+              ) : null}
+            </View>
+            <View style={[styles.documentDetails, { borderTopColor: theme.border }]}>
+              {currentItem.merchant ? <InfoLine label="Merchant" value={currentItem.merchant} /> : null}
+              {currentItem.date ? <InfoLine label="Date" value={currentItem.date} /> : null}
+              {currentItem.currency ? <InfoLine label="Currency" value={currentItem.currency} /> : null}
+            </View>
+          </Surface>
+        ) : null}
+
         <View style={styles.block}>
           <Text style={[styles.label, { color: theme.textSecondary }]}>Title</Text>
           <TextInput
@@ -192,6 +216,15 @@ export default function ItemDetailScreen() {
     </SafeAreaView>
   );
 
+  function InfoLine({ label, value }: { label: string; value: string }) {
+    return (
+      <View style={styles.infoLine}>
+        <Text style={[styles.infoLabel, { color: theme.textTertiary }]}>{label}</Text>
+        <Text style={[styles.infoValue, { color: theme.text }]} numberOfLines={1}>{value}</Text>
+      </View>
+    );
+  }
+
   function FieldRow({
     label,
     value,
@@ -254,6 +287,16 @@ function sourceLabel(value: string) {
   if (value === 'manual') return 'Captured';
   return formatType(value);
 }
+function formatDocumentKind(value?: string) {
+  if (!value) return 'Scanned document';
+  return value.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+}
+
+function formatMoney(amount: number, currency = 'EUR') {
+  try { return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount); }
+  catch { return `${amount.toFixed(2)} ${currency}`; }
+}
+
 function formatUpdated(value: string) {
   const date = new Date(value);
   return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
@@ -269,6 +312,14 @@ const styles = StyleSheet.create({
   type: { fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.9 },
   source: { marginTop: 5, fontSize: 12.5 },
   block: { gap: 8 },
+  documentHeader: { flexDirection: 'row', alignItems: 'center', gap: 11 },
+  documentTitle: { fontSize: 15, fontWeight: '800' },
+  documentMeta: { marginTop: 3, fontSize: 12 },
+  documentAmount: { fontSize: 16, fontWeight: '800' },
+  documentDetails: { marginTop: 13, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, gap: 8 },
+  infoLine: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  infoLabel: { width: 76, fontSize: 11.5, fontWeight: '700' },
+  infoValue: { flex: 1, textAlign: 'right', fontSize: 13, fontWeight: '600' },
   label: { fontSize: 12, fontWeight: '700', marginLeft: 2 },
   titleInput: { minHeight: 72, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 15, fontSize: 22, lineHeight: 27, fontWeight: '700', textAlignVertical: 'top' },
   fieldRow: { minHeight: 60, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },

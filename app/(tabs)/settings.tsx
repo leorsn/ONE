@@ -9,6 +9,7 @@ import { useOnboarding } from '@/src/context/OnboardingContext';
 import { IconTile, PageHeader, PrimaryButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
+import { usePlan } from '@/src/context/PlanContext';
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -16,6 +17,7 @@ export default function SettingsScreen() {
   const { cloudSyncing, items } = useItems();
   const { reset: resetOnboarding } = useOnboarding();
   const { preference } = useThemePreference();
+  const { plan, isBetaAccess } = usePlan();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -54,6 +56,19 @@ export default function SettingsScreen() {
             </View>
           </Surface>
         ) : null}
+
+        <View style={styles.block}>
+          <SectionHeader title="Membership" />
+          <Surface>
+            <SettingsRow
+              icon={icons.crown}
+              label={plan === 'one_ai' ? 'ONE AI' : 'ONE'}
+              value={isBetaAccess ? 'Beta access' : plan === 'one_ai' ? '€4.99 / month' : '€2.99 / month'}
+              onPress={() => router.push('/upgrade')}
+              last
+            />
+          </Surface>
+        </View>
 
         <View style={styles.block}>
           <SectionHeader title="Preferences" />

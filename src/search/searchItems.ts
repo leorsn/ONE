@@ -45,7 +45,10 @@ function scoreItem(item: OneItem, terms: string[]): SearchResult {
     category: normalize(item.category),
     tags: normalize(item.tags.join(' ')),
     entities: normalize(item.entities.join(' ')),
-    type: normalize(item.type)
+    type: normalize(item.type),
+    merchant: normalize(item.merchant),
+    document: normalize(item.documentKind),
+    money: normalize(item.amount !== undefined ? `${item.amount} ${item.currency || ''}` : '')
   };
 
   let score = 0;
@@ -86,6 +89,18 @@ function scoreItem(item: OneItem, terms: string[]): SearchResult {
     }
     if (fields.type.includes(term)) {
       score += 3;
+      matched.add(term);
+    }
+    if (fields.merchant.includes(term)) {
+      score += 7;
+      matched.add(term);
+    }
+    if (fields.document.includes(term)) {
+      score += 5;
+      matched.add(term);
+    }
+    if (fields.money.includes(term)) {
+      score += 4;
       matched.add(term);
     }
   }

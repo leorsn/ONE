@@ -87,6 +87,7 @@ export function iconForType(type: OneItem['type']) {
   if (type === 'reminder') return icons.reminder;
   if (type === 'event') return icons.event;
   if (type === 'note') return icons.note;
+  if (type === 'document') return icons.document;
   return icons.task;
 }
 
@@ -95,7 +96,9 @@ function metaFor(item: OneItem, showDate: boolean) {
     showDate ? prettyDate(item.date) : undefined,
     item.category,
     item.userContext,
-    item.location
+    item.location,
+    item.merchant,
+    item.amount !== undefined ? formatAmount(item.amount, item.currency) : undefined
   ].filter(Boolean);
   return values.join(' · ') || formatType(item.type);
 }
@@ -104,6 +107,11 @@ function prettyDate(iso?: string) {
   if (!iso) return undefined;
   const date = new Date(`${iso}T12:00:00`);
   return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
+}
+
+function formatAmount(amount: number, currency = 'EUR') {
+  try { return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount); }
+  catch { return `${amount.toFixed(2)} ${currency}`; }
 }
 
 function formatType(type: string) {

@@ -11,6 +11,7 @@ import { iconForType } from '@/src/ui/OneItemRow';
 import { EmptyState, IconTile, SectionHeader, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
+import { usePlan } from '@/src/context/PlanContext';
 import type { OneItem } from '@/src/types/item';
 
 type SearchMode = 'keywords' | 'searching' | 'hybrid' | 'fallback';
@@ -26,6 +27,7 @@ export default function AskOneScreen() {
   const theme = useTheme();
   const { session } = useAuth();
   const { items } = useItems();
+  const { hasAi } = usePlan();
   const [query, setQuery] = useState('');
   const [semanticMatches, setSemanticMatches] = useState<SemanticMatch[]>([]);
   const [searchMode, setSearchMode] = useState<SearchMode>('keywords');
@@ -67,6 +69,28 @@ export default function AskOneScreen() {
     () => combineResults(items, lexicalResults, semanticMatches),
     [items, lexicalResults, semanticMatches]
   );
+
+  if (!hasAi) {
+    return (
+      <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+        <View style={[styles.content, { justifyContent: 'center' }]}>
+          <View style={styles.hero}>
+            <IconTile icon={icons.crown} size={52} />
+            <Text style={[styles.heading, { color: theme.text }]}>Ask ONE is part of ONE AI.</Text>
+            <Text style={[styles.subheading, { color: theme.textSecondary }]}>
+              Upgrade to search your personal memory by meaning and ask natural-language questions.
+            </Text>
+          </View>
+          <Pressable onPress={() => router.push('/upgrade')} style={[styles.lockedButton, { backgroundColor: theme.accent }]}>
+            <Text style={styles.lockedButtonText}>View ONE AI</Text>
+          </Pressable>
+          <Pressable onPress={() => router.back()} style={styles.lockedBack}>
+            <Text style={[styles.lockedBackText, { color: theme.textSecondary }]}>Not now</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>

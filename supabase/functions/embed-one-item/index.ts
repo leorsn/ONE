@@ -53,7 +53,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: item, error: readError } = await supabase
       .from('items')
-      .select('id,title,raw_input,category,notes,original_text,extracted_text,user_context,tags,entities')
+      .select('id,title,raw_input,category,notes,original_text,extracted_text,user_context,document_kind,merchant,amount,currency,tags,entities')
       .eq('id', itemId)
       .single()
 
@@ -72,6 +72,9 @@ Deno.serve(async (req: Request) => {
       item.original_text,
       item.extracted_text,
       item.raw_input,
+      item.document_kind,
+      item.merchant,
+      item.amount != null ? `${item.amount} ${item.currency ?? ''}` : null,
       ...(item.tags ?? []),
       ...(item.entities ?? []),
     ].filter(Boolean).join('\n').slice(0, 12000)

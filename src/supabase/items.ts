@@ -24,6 +24,10 @@ type CloudItemRow = {
   image_url: string | null;
   extracted_text: string | null;
   user_context: string | null;
+  document_kind: OneItem['documentKind'] | null;
+  merchant: string | null;
+  amount: number | string | null;
+  currency: string | null;
   tags: string[];
   entities: string[];
   created_at: string;
@@ -34,7 +38,7 @@ export async function pullCloudItems(): Promise<OneItem[]> {
   const { data, error } = await supabase
     .from('items')
     .select(
-      'id,user_id,title,raw_input,type,item_date,item_time,reminder_at,category,location,url,notes,completed,saved,source_type,source_app,original_text,attachment_url,image_url,extracted_text,user_context,tags,entities,created_at,updated_at'
+      'id,user_id,title,raw_input,type,item_date,item_time,reminder_at,category,location,url,notes,completed,saved,source_type,source_app,original_text,attachment_url,image_url,extracted_text,user_context,document_kind,merchant,amount,currency,tags,entities,created_at,updated_at'
     )
     .order('updated_at', { ascending: false });
 
@@ -90,6 +94,10 @@ function toRow(item: OneItem, userId: string): CloudItemRow {
     image_url: item.imageUrl ?? null,
     extracted_text: item.extractedText ?? null,
     user_context: item.userContext ?? null,
+    document_kind: item.documentKind ?? null,
+    merchant: item.merchant ?? null,
+    amount: item.amount ?? null,
+    currency: item.currency ?? null,
     tags: item.tags,
     entities: item.entities,
     created_at: item.createdAt,
@@ -119,6 +127,10 @@ function fromRow(row: CloudItemRow): OneItem {
     imageUrl: row.image_url ?? undefined,
     extractedText: row.extracted_text ?? undefined,
     userContext: row.user_context ?? undefined,
+    documentKind: row.document_kind ?? undefined,
+    merchant: row.merchant ?? undefined,
+    amount: row.amount === null ? undefined : Number(row.amount),
+    currency: row.currency ?? undefined,
     tags: row.tags ?? [],
     entities: row.entities ?? [],
     createdAt: row.created_at,

@@ -30,8 +30,14 @@ export function createItemFromShare({
         ? 'link'
         : 'share';
 
+  const isStructuredDocument = Boolean(ocr.documentKind);
   const title =
     context.trim() ||
+    (ocr.merchant
+      ? ocr.documentKind === 'invoice'
+        ? `${ocr.merchant} invoice`
+        : `${ocr.merchant} receipt`
+      : undefined) ||
     ocr.suggestedTitle ||
     parsed?.title ||
     resolved?.originalName ||
@@ -45,10 +51,10 @@ export function createItemFromShare({
     id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     title,
     rawInput: combined || rawValue || context,
-    type: parsed?.type || (payload.shareType === 'url' ? 'link' : 'note'),
+    type: isStructuredDocument ? 'document' : parsed?.type || (payload.shareType === 'url' ? 'link' : 'note'),
     date: parsed?.date || ocr.date,
     time: parsed?.time || ocr.time,
-    category: parsed?.category || ocr.category,
+    category: ocr.category || parsed?.category,
     url: payload.shareType === 'url' || resolvedType === 'website' ? rawValue || uri || undefined : undefined,
     completed: false,
     saved: true,
@@ -58,6 +64,10 @@ export function createItemFromShare({
     imageUrl: storedAttachmentPath || (isImage ? uri || rawValue || undefined : undefined),
     extractedText: extractedText?.trim() || undefined,
     userContext: context.trim() || undefined,
+    documentKind: ocr.documentKind,
+    merchant: ocr.merchant,
+    amount: ocr.amount,
+    currency: ocr.currency,
     tags: Array.from(new Set([
       ...(parsed?.category ? [parsed.category.toLowerCase()] : []),
       ...ocr.tags,

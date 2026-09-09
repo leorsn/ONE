@@ -71,6 +71,12 @@ export default function InboxScreen() {
           <RoundIconButton icon={icons.ask} onPress={() => router.push('/ask')} accessibilityLabel="Ask ONE" filled />
         </View>
 
+        <View style={styles.quickActions}>
+          <QuickAction label="Scan" icon={icons.scan} onPress={() => router.push('/scan')} />
+          <QuickAction label="Share" icon={icons.upload} onPress={() => router.push('/share')} />
+          <QuickAction label="Ask" icon={icons.ask} badge="AI" onPress={() => router.push('/ask')} />
+        </View>
+
         {parsed ? (
           <View style={styles.block}>
             <SectionHeader title="ONE understood" meta={`${Math.round(parsed.confidence * 100)}%`} />
@@ -134,6 +140,39 @@ export default function InboxScreen() {
     </SafeAreaView>
   );
 
+  function QuickAction({
+    label,
+    icon,
+    onPress,
+    badge
+  }: {
+    label: string;
+    icon: (typeof icons)[keyof typeof icons];
+    onPress: () => void;
+    badge?: string;
+  }) {
+    return (
+      <Pressable
+        onPress={async () => {
+          await Haptics.selectionAsync();
+          onPress();
+        }}
+        style={({ pressed }) => [
+          styles.quickAction,
+          { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }
+        ]}
+      >
+        <IconTile icon={icon} tone="neutral" size={34} />
+        <Text style={[styles.quickLabel, { color: theme.text }]}>{label}</Text>
+        {badge ? (
+          <View style={[styles.aiBadge, { backgroundColor: theme.accentSoft }]}>
+            <Text style={[styles.aiBadgeText, { color: theme.accent }]}>{badge}</Text>
+          </View>
+        ) : null}
+      </Pressable>
+    );
+  }
+
   function Chip({ label }: { label: string }) {
     return (
       <View style={[styles.chip, { backgroundColor: theme.fill }]}>
@@ -166,6 +205,11 @@ const styles = StyleSheet.create({
   capture: { minHeight: 64, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', paddingLeft: 10, paddingRight: 8, gap: 10 },
   input: { flex: 1, fontSize: 16, letterSpacing: -0.15 },
   block: { gap: 10 },
+  quickActions: { flexDirection: 'row', gap: 8 },
+  quickAction: { flex: 1, minHeight: 52, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 9, flexDirection: 'row', alignItems: 'center', gap: 7 },
+  quickLabel: { flex: 1, fontSize: 12.5, fontWeight: '700' },
+  aiBadge: { minHeight: 20, borderRadius: 7, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
+  aiBadgeText: { fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
   interpretationTop: { padding: 15, flexDirection: 'row', alignItems: 'center', gap: 12 },
   interpretationTitle: { fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
   interpretationMeta: { fontSize: 12.5, marginTop: 4 },

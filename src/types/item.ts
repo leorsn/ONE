@@ -7,16 +7,28 @@ export type OneItemType =
   | 'link'
   | 'idea'
   | 'travel'
-  | 'shopping';
+  | 'shopping'
+  | 'document';
 
 export type OneSourceType =
   | 'manual'
   | 'share'
+  | 'scan'
   | 'email'
   | 'screenshot'
   | 'photo'
   | 'link'
   | 'system';
+
+export type OneDocumentKind =
+  | 'receipt'
+  | 'invoice'
+  | 'ticket'
+  | 'reservation'
+  | 'letter'
+  | 'contract'
+  | 'business_card'
+  | 'other';
 
 export type OneItem = {
   id: string;
@@ -40,6 +52,10 @@ export type OneItem = {
   imageUrl?: string;
   extractedText?: string;
   userContext?: string;
+  documentKind?: OneDocumentKind;
+  merchant?: string;
+  amount?: number;
+  currency?: string;
   tags: string[];
   entities: string[];
   createdAt: string;

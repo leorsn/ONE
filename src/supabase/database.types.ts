@@ -16,10 +16,13 @@ export type Database = {
     Tables: {
       items: {
         Row: {
+          amount: number | null
           attachment_url: string | null
           category: string | null
+          currency: string | null
           completed: boolean
           created_at: string
+          document_kind: string | null
           embedding: string | null
           entities: string[]
           extracted_text: string | null
@@ -28,6 +31,7 @@ export type Database = {
           item_date: string | null
           item_time: string | null
           location: string | null
+          merchant: string | null
           notes: string | null
           original_text: string | null
           raw_input: string | null
@@ -44,10 +48,13 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          amount?: number | null
           attachment_url?: string | null
           category?: string | null
+          currency?: string | null
           completed?: boolean
           created_at?: string
+          document_kind?: string | null
           embedding?: string | null
           entities?: string[]
           extracted_text?: string | null
@@ -56,6 +63,7 @@ export type Database = {
           item_date?: string | null
           item_time?: string | null
           location?: string | null
+          merchant?: string | null
           notes?: string | null
           original_text?: string | null
           raw_input?: string | null
@@ -72,10 +80,13 @@ export type Database = {
           user_id: string
         }
         Update: {
+          amount?: number | null
           attachment_url?: string | null
           category?: string | null
+          currency?: string | null
           completed?: boolean
           created_at?: string
+          document_kind?: string | null
           embedding?: string | null
           entities?: string[]
           extracted_text?: string | null
@@ -84,6 +95,7 @@ export type Database = {
           item_date?: string | null
           item_time?: string | null
           location?: string | null
+          merchant?: string | null
           notes?: string | null
           original_text?: string | null
           raw_input?: string | null

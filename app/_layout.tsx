@@ -6,16 +6,19 @@ import { AuthProvider } from '@/src/context/AuthContext';
 import { ItemsProvider } from '@/src/context/ItemsContext';
 import { OnboardingProvider, useOnboarding } from '@/src/context/OnboardingContext';
 import { ThemeProvider, useThemeContext } from '@/src/context/ThemeContext';
+import { PlanProvider } from '@/src/context/PlanContext';
 
 export default function RootLayout() {
   return (
     <ThemeProvider>
       <OnboardingProvider>
-        <AuthProvider>
-          <ItemsProvider>
-            <RootNavigation />
-          </ItemsProvider>
-        </AuthProvider>
+        <PlanProvider>
+          <AuthProvider>
+            <ItemsProvider>
+              <RootNavigation />
+            </ItemsProvider>
+          </AuthProvider>
+        </PlanProvider>
       </OnboardingProvider>
     </ThemeProvider>
   );

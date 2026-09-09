@@ -8,7 +8,7 @@ import { EmptyState, PageHeader, SectionHeader, Surface, uiStyles } from '@/src/
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
-const filters = ['All', 'Links', 'Ideas', 'Shopping', 'Travel'] as const;
+const filters = ['All', 'Documents', 'Links', 'Ideas', 'Shopping', 'Travel'] as const;
 
 export default function SavedScreen() {
   const theme = useTheme();
@@ -19,15 +19,16 @@ export default function SavedScreen() {
   const savedItems = useMemo(() => {
     const clean = query.trim().toLowerCase();
     const base = items
-      .filter((item) => item.saved || ['link', 'idea', 'shopping', 'travel'].includes(item.type))
+      .filter((item) => item.saved || ['link', 'idea', 'shopping', 'travel', 'document'].includes(item.type))
       .filter((item) => {
         if (!clean) return true;
-        return [item.title, item.category, item.userContext, item.url, item.extractedText]
+        return [item.title, item.category, item.userContext, item.url, item.extractedText, item.merchant, item.currency, item.documentKind]
           .filter(Boolean)
           .some((value) => value!.toLowerCase().includes(clean));
       });
 
     if (filter === 'All') return base;
+    if (filter === 'Documents') return base.filter((item) => item.type === 'document');
     if (filter === 'Links') return base.filter((item) => item.type === 'link');
     if (filter === 'Ideas') return base.filter((item) => item.type === 'idea');
     if (filter === 'Shopping') return base.filter((item) => item.type === 'shopping' || item.category === 'Gift idea');

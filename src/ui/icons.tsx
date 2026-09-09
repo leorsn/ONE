@@ -60,5 +60,8 @@ export const icons = {
   more: { ios: 'ellipsis', android: 'more_horiz', web: 'more_horiz' },
   edit: { ios: 'pencil', android: 'edit', web: 'edit' },
   sync: { ios: 'arrow.triangle.2.circlepath', android: 'sync', web: 'sync' },
-  shield: { ios: 'checkmark.shield', android: 'verified_user', web: 'verified_user' }
+  shield: { ios: 'checkmark.shield', android: 'verified_user', web: 'verified_user' },
+  scan: { ios: 'doc.viewfinder', android: 'document_scanner', web: 'document_scanner' },
+  document: { ios: 'doc.text', android: 'description', web: 'description' },
+  crown: { ios: 'crown', android: 'workspace_premium', web: 'workspace_premium' }
 } as const;
