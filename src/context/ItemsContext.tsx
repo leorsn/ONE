@@ -19,10 +19,11 @@ type ItemsContextValue = {
 };
 
 const ItemsContext = createContext<ItemsContextValue | null>(null);
+const DEVELOPMENT_SEED_ITEMS: OneItem[] = __DEV__ ? mockItems : [];
 
 export function ItemsProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
-  const [items, setItems] = useState<OneItem[]>(mockItems);
+  const [items, setItems] = useState<OneItem[]>(DEVELOPMENT_SEED_ITEMS);
   const [hydrated, setHydrated] = useState(false);
   const [cloudSyncing, setCloudSyncing] = useState(false);
 
@@ -30,7 +31,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
     loadItems().then((stored) => {
       if (!mounted) return;
-      setItems(stored.length ? stored : mockItems);
+      setItems(stored ?? DEVELOPMENT_SEED_ITEMS);
       setHydrated(true);
     });
     return () => {
