@@ -12,13 +12,13 @@ export default function RootLayout() {
   return (
     <ThemeProvider>
       <OnboardingProvider>
-        <PlanProvider>
-          <AuthProvider>
+        <AuthProvider>
+          <PlanProvider>
             <ItemsProvider>
               <RootNavigation />
             </ItemsProvider>
-          </AuthProvider>
-        </PlanProvider>
+          </PlanProvider>
+        </AuthProvider>
       </OnboardingProvider>
     </ThemeProvider>
   );

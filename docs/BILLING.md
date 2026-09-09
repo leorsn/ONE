@@ -53,3 +53,25 @@ The UI must never hard-code trial eligibility as guaranteed. It should read elig
 ## Beta
 
 During development, `BETA_PLAN` remains set to `one_ai` so all features can be tested without live App Store purchases.
+
+
+## RevenueCat mobile integration
+
+The app-side RevenueCat layer is implemented with `react-native-purchases`.
+
+Environment variables:
+
+- `EXPO_PUBLIC_REVENUECAT_IOS_KEY`
+- `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY`
+
+RevenueCat configuration expected:
+
+- Entitlement `one`
+- Entitlement `one_ai`
+- Offering `default`
+- Package `one_monthly` -> `app.one.mobile.one.monthly`
+- Package `one_ai_monthly` -> `app.one.mobile.oneai.monthly`
+
+If no platform RevenueCat key is present, ONE stays in beta mode with ONE AI enabled for development.
+
+Real purchase testing still requires a native Expo development build and correctly configured App Store/RevenueCat products.
