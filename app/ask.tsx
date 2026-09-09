@@ -6,6 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { searchOneItems } from '@/src/search/searchItems';
+import { buildDirectAnswer } from '@/src/search/answer';
 import { searchSemantically, type SemanticMatch } from '@/src/search/semantic';
 import { iconForType } from '@/src/ui/OneItemRow';
 import { EmptyState, IconTile, SectionHeader, Surface } from '@/src/ui/primitives';
@@ -18,9 +19,10 @@ type SearchMode = 'keywords' | 'searching' | 'hybrid' | 'fallback';
 type CombinedResult = { item: OneItem; score: number; semanticSimilarity?: number };
 
 const examples = [
+  'How much did I spend this month?',
+  'Show me invoices over €500',
   'Which ideas did I save for Dad’s birthday?',
-  'When was the dentist appointment?',
-  'What did I save for Barcelona?'
+  'When was the dentist appointment?'
 ];
 
 export default function AskOneScreen() {
@@ -68,6 +70,11 @@ export default function AskOneScreen() {
   const results = useMemo(
     () => combineResults(items, lexicalResults, semanticMatches),
     [items, lexicalResults, semanticMatches]
+  );
+
+  const directAnswer = useMemo(
+    () => buildDirectAnswer(query, items, lexicalResults[0]?.item),
+    [query, items, lexicalResults]
   );
 
   if (!hasAi) {
@@ -136,6 +143,29 @@ export default function AskOneScreen() {
 
         {query.trim() ? (
           <View style={styles.resultsBlock}>
+            {directAnswer ? (
+              <View style={[styles.answerCard, { backgroundColor: theme.accentSoft, borderColor: theme.accent }]}>
+                <View style={styles.answerHeader}>
+                  <OneIcon name={icons.ask} size={17} color={theme.accent} />
+                  <Text style={[styles.answerEyebrow, { color: theme.accent }]}>ONE ANSWER</Text>
+                </View>
+                <Text style={[styles.answerTitle, { color: theme.text }]}>{directAnswer.title}</Text>
+                <Text style={[styles.answerBody, { color: theme.textSecondary }]}>{directAnswer.body}</Text>
+                {directAnswer.meta ? (
+                  <Text style={[styles.answerMeta, { color: theme.textTertiary }]}>{directAnswer.meta}</Text>
+                ) : null}
+                {directAnswer.itemIds.length === 1 ? (
+                  <Pressable
+                    onPress={() => router.push({ pathname: '/item/[id]', params: { id: directAnswer.itemIds[0] } })}
+                    style={styles.answerOpen}
+                  >
+                    <Text style={[styles.answerOpenText, { color: theme.accent }]}>Open memory</Text>
+                    <OneIcon name={icons.chevron} size={13} color={theme.accent} />
+                  </Pressable>
+                ) : null}
+              </View>
+            ) : null}
+
             <SectionHeader title={results.length ? 'Best matches' : 'Results'} meta={String(results.length)} />
             {results.length ? (
               <Surface>
@@ -278,6 +308,14 @@ const styles = StyleSheet.create({
   exampleText: { flex: 1, fontSize: 13.5, lineHeight: 18, fontWeight: '600' },
   privacyNote: { minHeight: 54, borderRadius: 16, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
   privacyText: { flex: 1, fontSize: 12, lineHeight: 17 },
+  answerCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 20, padding: 16 },
+  answerHeader: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  answerEyebrow: { fontSize: 10.5, fontWeight: '900', letterSpacing: 1 },
+  answerTitle: { marginTop: 11, fontSize: 24, lineHeight: 29, fontWeight: '800', letterSpacing: -0.5 },
+  answerBody: { marginTop: 7, fontSize: 13.5, lineHeight: 20 },
+  answerMeta: { marginTop: 8, fontSize: 11.5, lineHeight: 16 },
+  answerOpen: { marginTop: 12, minHeight: 32, flexDirection: 'row', alignItems: 'center', gap: 4, alignSelf: 'flex-start' },
+  answerOpenText: { fontSize: 12.5, fontWeight: '700' },
   lockedButton: { minHeight: 52, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   lockedButtonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' },
   lockedBack: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
