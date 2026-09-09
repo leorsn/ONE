@@ -1,4 +1,4 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlan } from '@/src/context/PlanContext';
@@ -12,7 +12,7 @@ const aiFeatures = ['Everything in ONE', 'Ask ONE', 'Meaning-based semantic reca
 
 export default function UpgradeScreen() {
   const theme = useTheme();
-  const { plan, isBetaAccess } = usePlan();
+  const { plan, isBetaAccess, billingConfigured, purchasing, purchase, restore } = usePlan();
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
@@ -39,6 +39,7 @@ export default function UpgradeScreen() {
           period="/ month"
           offer={subscriptionProducts.oneMonthly.trialDays + ' days free, then ' + formatEUR(subscriptionProducts.oneMonthly.priceEUR) + '/month'}
           features={baseFeatures}
+          planKey="one"
           current={plan === 'one'}
         />
 
@@ -48,6 +49,7 @@ export default function UpgradeScreen() {
           period="/ month"
           offer="No trial · billed immediately"
           features={aiFeatures}
+          planKey="one_ai"
           highlighted
           current={plan === 'one_ai'}
         />
@@ -59,6 +61,21 @@ export default function UpgradeScreen() {
               ONE AI is enabled during beta so Ask ONE and semantic recall can be tested end-to-end. App Store purchases are not active yet.
             </Text>
           </View>
+        ) : null}
+
+        {billingConfigured ? (
+          <Pressable
+            disabled={purchasing}
+            onPress={async () => {
+              const outcome = await restore();
+              if (!outcome.ok && outcome.error) Alert.alert('Restore purchases', outcome.error);
+              else if (outcome.ok) Alert.alert('Restore purchases', 'Your App Store purchases are synced with ONE.');
+            }}
+            style={styles.restore}
+          >
+            {purchasing ? <ActivityIndicator size="small" /> : null}
+            <Text style={[styles.restoreText, { color: theme.accent }]}>Restore purchases</Text>
+          </Pressable>
         ) : null}
 
         <PrimaryButton label="Back to ONE" icon={icons.check} onPress={() => router.back()} />
@@ -76,6 +93,7 @@ export default function UpgradeScreen() {
     period,
     offer,
     features,
+    planKey,
     highlighted = false,
     current = false
   }: {
@@ -84,6 +102,7 @@ export default function UpgradeScreen() {
     period: string;
     offer: string;
     features: string[];
+    planKey: 'one' | 'one_ai';
     highlighted?: boolean;
     current?: boolean;
   }) {
@@ -115,10 +134,50 @@ export default function UpgradeScreen() {
               </View>
             ))}
           </View>
+
+          {!current ? (
+            <Pressable
+              disabled={!billingConfigured || purchasing}
+              onPress={async () => {
+                const outcome = await purchase(planKey);
+                if (!outcome.ok && !outcome.cancelled && outcome.error) {
+                  Alert.alert('ONE subscription', outcome.error);
+                }
+              }}
+              style={[
+                styles.purchaseButton,
+                {
+                  backgroundColor: billingConfigured
+                    ? highlighted ? theme.accent : theme.text
+                    : theme.fillStrong,
+                  opacity: purchasing ? 0.62 : 1
+                }
+              ]}
+            >
+              {purchasing ? <ActivityIndicator size="small" color={billingConfigured ? '#FFFFFF' : theme.textTertiary} /> : null}
+              <Text
+                style={[
+                  styles.purchaseButtonText,
+                  { color: billingConfigured ? '#FFFFFF' : theme.textTertiary }
+                ]}
+              >
+                {billingConfigured
+                  ? purchaseLabel(planKey, plan)
+                  : isBetaAccess ? 'Available at launch' : 'Unavailable'}
+              </Text>
+            </Pressable>
+          ) : null}
         </Surface>
       </View>
     );
   }
+}
+
+function purchaseLabel(nextPlan: 'one' | 'one_ai', currentPlan: 'none' | 'one' | 'one_ai') {
+  if (nextPlan === 'one') {
+    return currentPlan === 'one_ai' ? 'Switch to ONE' : 'Start 7-day free trial';
+  }
+  return currentPlan === 'one' ? 'Upgrade to ONE AI' : 'Get ONE AI';
 }
 
 function formatEUR(value: number) {
@@ -147,6 +206,10 @@ const styles = StyleSheet.create({
   featureList: { marginTop: 16, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth, gap: 10 },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   featureText: { flex: 1, fontSize: 13, lineHeight: 18 },
+  purchaseButton: { marginTop: 16, minHeight: 50, borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  purchaseButtonText: { fontSize: 13.5, fontWeight: '800' },
+  restore: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  restoreText: { fontSize: 13, fontWeight: '700' },
   beta: { minHeight: 72, borderRadius: 18, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
   betaText: { flex: 1, fontSize: 12, lineHeight: 17 },
   legal: { textAlign: 'center', fontSize: 10.5, lineHeight: 15 }

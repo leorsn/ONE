@@ -17,7 +17,7 @@ export default function SettingsScreen() {
   const { cloudSyncing, items } = useItems();
   const { reset: resetOnboarding } = useOnboarding();
   const { preference } = useThemePreference();
-  const { plan, isBetaAccess } = usePlan();
+  const { plan, isBetaAccess, hasAi } = usePlan();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -52,7 +52,7 @@ export default function SettingsScreen() {
             <View style={[styles.accountStats, { borderTopColor: theme.border }]}>
               <Stat value={String(items.length)} label="Memories" />
               <Stat value="Private" label="Storage" />
-              <Stat value="On" label="Recall" />
+              <Stat value={hasAi ? 'AI' : 'Standard'} label="Recall" />
             </View>
           </Surface>
         ) : null}
@@ -62,8 +62,8 @@ export default function SettingsScreen() {
           <Surface>
             <SettingsRow
               icon={icons.crown}
-              label={plan === 'one_ai' ? 'ONE AI' : 'ONE'}
-              value={isBetaAccess ? 'Beta access' : plan === 'one_ai' ? '€4.99 / month' : '€2.99 / month'}
+              label={membershipLabel(plan)}
+              value={isBetaAccess ? 'Beta access' : membershipValue(plan)}
               onPress={() => router.push('/upgrade')}
               last
             />
@@ -250,8 +250,21 @@ const styles = StyleSheet.create({
   footer: { textAlign: 'center', fontSize: 11.5, marginTop: -4 }
 });
 
+function membershipLabel(plan: 'none' | 'one' | 'one_ai') {
+  if (plan === 'one_ai') return 'ONE AI';
+  if (plan === 'one') return 'ONE';
+  return 'No subscription';
+}
+
+function membershipValue(plan: 'none' | 'one' | 'one_ai') {
+  if (plan === 'one_ai') return '€4.99 / month';
+  if (plan === 'one') return '€2.99 / month';
+  return 'Choose a plan';
+}
+
 function appearanceLabel(value: 'system' | 'light' | 'dark') {
   if (value === 'light') return 'Light';
   if (value === 'dark') return 'Dark';
   return 'System';
 }
+
