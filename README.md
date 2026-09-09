@@ -51,8 +51,8 @@ The current branch passes:
 
 Planned:
 
-- ONE — 2.99 EUR/month
-- ONE AI — 4.99 EUR/month
+- ONE — 7-day free trial, then 2.99 EUR/month auto-renewing
+- ONE AI — 4.99 EUR/month auto-renewing, no trial
 
 See `docs/PRODUCT_STRATEGY.md` for the current product and monetization decisions.
 

@@ -22,6 +22,13 @@ ONE is designed as a personal digital memory, not just a task manager.
 
 ### ONE — 2.99 EUR/month
 
+Billing model:
+
+- 7-day free trial for eligible new subscribers
+- 2.99 EUR/month after the trial
+- auto-renews monthly unless cancelled
+- trial is configured as an App Store introductory free-trial offer
+
 A complete non-AI organization product:
 
 - Capture / Inbox
@@ -35,9 +42,16 @@ A complete non-AI organization product:
 - Cloud sync
 - Classical search
 
-Suggested annual price: 24.99 EUR/year.
+Possible later annual price: 24.99 EUR/year. Monthly launch pricing remains the priority.
 
 ### ONE AI — 4.99 EUR/month
+
+Billing model:
+
+- no free trial
+- charged immediately at purchase
+- auto-renews monthly unless cancelled
+- ranked above ONE in the same App Store subscription group so upgrades take effect immediately
 
 Includes everything in ONE plus:
 
@@ -53,7 +67,7 @@ Includes everything in ONE plus:
   - "Show me all invoices over 500 EUR."
   - "What did I save about Barcelona?"
 
-Suggested annual price: 39.99 EUR/year.
+Possible later annual price: 39.99 EUR/year. Monthly launch pricing remains the priority.
 
 ## AI cost principle
 

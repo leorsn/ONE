@@ -5,6 +5,7 @@ import { usePlan } from '@/src/context/PlanContext';
 import { IconTile, PrimaryButton, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
+import { subscriptionProducts } from '@/src/subscription/products';
 
 const baseFeatures = ['Capture, calendar & reminders', 'Saved & classical search', 'Share to ONE', 'Scan to ONE & OCR', 'Private cloud sync'];
 const aiFeatures = ['Everything in ONE', 'Ask ONE', 'Meaning-based semantic recall', 'AI answers grounded in your memory', 'Cross-item document & receipt analysis'];
@@ -36,6 +37,7 @@ export default function UpgradeScreen() {
           name="ONE"
           price="€2.99"
           period="/ month"
+          offer="7 days free, then €2.99/month"
           features={baseFeatures}
           current={plan === 'one'}
         />
@@ -44,6 +46,7 @@ export default function UpgradeScreen() {
           name="ONE AI"
           price="€4.99"
           period="/ month"
+          offer="No trial · billed immediately"
           features={aiFeatures}
           highlighted
           current={plan === 'one_ai'}
@@ -61,7 +64,7 @@ export default function UpgradeScreen() {
         <PrimaryButton label="Back to ONE" icon={icons.check} onPress={() => router.back()} />
 
         <Text style={[styles.legal, { color: theme.textTertiary }]}>
-          Planned annual pricing: ONE €24.99 · ONE AI €39.99. Final App Store pricing may be adjusted before release.
+          ONE includes a 7-day introductory free trial for eligible new subscribers and then renews automatically at €2.99/month unless cancelled. ONE AI has no trial and renews at €4.99/month. App Store billing is not active during beta.
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -71,6 +74,7 @@ export default function UpgradeScreen() {
     name,
     price,
     period,
+    offer,
     features,
     highlighted = false,
     current = false
@@ -78,6 +82,7 @@ export default function UpgradeScreen() {
     name: string;
     price: string;
     period: string;
+    offer: string;
     features: string[];
     highlighted?: boolean;
     current?: boolean;
@@ -99,6 +104,7 @@ export default function UpgradeScreen() {
                 <Text style={[styles.price, { color: theme.text }]}>{price}</Text>
                 <Text style={[styles.period, { color: theme.textSecondary }]}>{period}</Text>
               </View>
+              <Text style={[styles.offer, { color: highlighted ? theme.textSecondary : theme.accent }]}>{offer}</Text>
             </View>
           </View>
           <View style={[styles.featureList, { borderTopColor: theme.border }]}>
@@ -133,6 +139,7 @@ const styles = StyleSheet.create({
   priceRow: { marginTop: 7, flexDirection: 'row', alignItems: 'baseline', gap: 4 },
   price: { fontSize: 29, fontWeight: '900', letterSpacing: -0.8 },
   period: { fontSize: 12.5 },
+  offer: { marginTop: 6, fontSize: 12, fontWeight: '700' },
   featureList: { marginTop: 16, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth, gap: 10 },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
   featureText: { flex: 1, fontSize: 13, lineHeight: 18 },
