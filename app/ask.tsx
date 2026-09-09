@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
@@ -27,10 +27,11 @@ const examples = [
 
 export default function AskOneScreen() {
   const theme = useTheme();
+  const { q } = useLocalSearchParams<{ q?: string }>();
   const { session } = useAuth();
   const { items } = useItems();
   const { hasAi } = usePlan();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState(typeof q === 'string' ? q : '');
   const [semanticMatches, setSemanticMatches] = useState<SemanticMatch[]>([]);
   const [searchMode, setSearchMode] = useState<SearchMode>('keywords');
 

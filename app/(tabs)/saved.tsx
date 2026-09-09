@@ -177,7 +177,7 @@ export default function SavedScreen() {
               <Text style={[styles.summaryAmount, { color: theme.text }]}>
                 {primaryTotal ? formatCurrencyTotal(primaryTotal, 'de-DE') : '€0.00'}
               </Text>
-              <Text style={[styles.summaryCaption, { color: theme.textSecondary }]}>captured spending</Text>
+              <Text style={[styles.summaryCaption, { color: theme.textSecondary }]}>captured total</Text>
             </View>
             <IconTile icon={icons.document} size={46} />
           </View>
@@ -229,7 +229,7 @@ export default function SavedScreen() {
             <Text style={styles.actionButtonText}>Scan document</Text>
           </Pressable>
           <Pressable
-            onPress={() => router.push('/ask')}
+            onPress={() => router.push({ pathname: '/ask', params: { q: 'How much did I spend this month?' } })}
             style={({ pressed }) => [
               styles.actionButton,
               { backgroundColor: theme.fill, opacity: pressed ? 0.62 : 1 }
