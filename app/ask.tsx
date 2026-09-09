@@ -77,6 +77,18 @@ export default function AskOneScreen() {
     [query, items, lexicalResults]
   );
 
+  const displayedResults = useMemo<CombinedResult[]>(() => {
+    if (results.length || !directAnswer) return results;
+    const itemById = new Map(items.map((item) => [item.id, item]));
+    return directAnswer.itemIds
+      .map((id, index) => {
+        const item = itemById.get(id);
+        return item ? { item, score: 100 - index } : null;
+      })
+      .filter((value): value is CombinedResult => Boolean(value))
+      .slice(0, 12);
+  }, [results, directAnswer, items]);
+
   if (!hasAi) {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
@@ -166,10 +178,15 @@ export default function AskOneScreen() {
               </View>
             ) : null}
 
-            <SectionHeader title={results.length ? 'Best matches' : 'Results'} meta={String(results.length)} />
-            {results.length ? (
-              <Surface>
-                {results.map(({ item, semanticSimilarity }) => (
+            {displayedResults.length || !directAnswer ? (
+              <>
+                <SectionHeader
+                  title={directAnswer ? 'Supporting memories' : displayedResults.length ? 'Best matches' : 'Results'}
+                  meta={String(displayedResults.length)}
+                />
+                {displayedResults.length ? (
+                  <Surface>
+                    {displayedResults.map(({ item, semanticSimilarity }) => (
                   <Pressable
                     key={item.id}
                     onPress={async () => {
@@ -185,7 +202,7 @@ export default function AskOneScreen() {
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.resultTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
                       <Text style={[styles.resultMeta, { color: theme.textSecondary }]} numberOfLines={1}>
-                        {[item.userContext, item.category, item.date, item.time].filter(Boolean).join(' · ') || item.type}
+                        {resultMetaFor(item)}
                       </Text>
                       {(item.extractedText || item.originalText) ? (
                         <Text style={[styles.snippet, { color: theme.textTertiary }]} numberOfLines={2}>
@@ -202,20 +219,22 @@ export default function AskOneScreen() {
                       <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />
                     </View>
                   </Pressable>
-                ))}
-              </Surface>
-            ) : searchMode === 'searching' ? (
-              <Surface padded>
-                <View style={styles.searchingState}>
-                  <ActivityIndicator />
-                  <Text style={[styles.searchingText, { color: theme.textSecondary }]}>Searching your memory…</Text>
-                </View>
-              </Surface>
-            ) : (
-              <Surface>
-                <EmptyState icon={icons.search} title="No matching memory" body="Try another phrasing, or save more context to ONE." />
-              </Surface>
-            )}
+                    ))}
+                  </Surface>
+                ) : searchMode === 'searching' ? (
+                  <Surface padded>
+                    <View style={styles.searchingState}>
+                      <ActivityIndicator />
+                      <Text style={[styles.searchingText, { color: theme.textSecondary }]}>Searching your memory…</Text>
+                    </View>
+                  </Surface>
+                ) : (
+                  <Surface>
+                    <EmptyState icon={icons.search} title="No matching memory" body="Try another phrasing, or save more context to ONE." />
+                  </Surface>
+                )}
+              </>
+            ) : null}
           </View>
         ) : (
           <View style={styles.resultsBlock}>
@@ -271,6 +290,21 @@ function combineResults(items: OneItem[], lexical: ReturnType<typeof searchOneIt
   }
 
   return Array.from(combined.values()).sort((a, b) => b.score - a.score).slice(0, 12);
+}
+
+function resultMetaFor(item: OneItem) {
+  const amount = item.amount !== undefined ? formatResultMoney(item.amount, item.currency || 'EUR') : undefined;
+  return [item.merchant, amount, item.userContext, item.category, item.date, item.time]
+    .filter(Boolean)
+    .join(' · ') || item.type;
+}
+
+function formatResultMoney(amount: number, currency: string) {
+  try {
+    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount);
+  } catch {
+    return amount.toFixed(2) + ' ' + currency;
+  }
 }
 
 function modeLabel(mode: SearchMode, signedIn: boolean) {
