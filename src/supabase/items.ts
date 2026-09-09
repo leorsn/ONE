@@ -26,7 +26,7 @@ type CloudItemRow = {
   user_context: string | null;
   document_kind: OneItem['documentKind'] | null;
   merchant: string | null;
-  amount: number | string | null;
+  amount: number | null;
   currency: string | null;
   tags: string[];
   entities: string[];
