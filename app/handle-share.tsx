@@ -9,6 +9,7 @@ import { useItems } from '@/src/context/ItemsContext';
 import { extractTextFromImage } from '@/src/ocr/extractText';
 import { createItemFromShare } from '@/src/sharing/ingest';
 import { uploadSharedAttachment } from '@/src/supabase/attachments';
+import { persistLocalAttachment } from '@/src/storage/attachments';
 import { IconTile, PrimaryButton, SectionHeader, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
@@ -74,13 +75,20 @@ export default function HandleShareScreen() {
       const contentUri = resolved && 'contentUri' in resolved ? resolved.contentUri : null;
       const isAttachment = Boolean(contentUri) && ['image', 'file', 'video', 'audio'].includes(primary.shareType || '');
 
-      if (isAttachment && session?.user.id && contentUri) {
-        storedAttachmentPath = await uploadSharedAttachment({
-          uri: contentUri,
-          mimeType: resolved?.contentMimeType,
-          originalName: resolved?.originalName,
-          userId: session.user.id
-        });
+      if (isAttachment && contentUri) {
+        if (session?.user.id) {
+          storedAttachmentPath = await uploadSharedAttachment({
+            uri: contentUri,
+            mimeType: resolved?.contentMimeType,
+            originalName: resolved?.originalName,
+            userId: session.user.id
+          });
+        } else {
+          storedAttachmentPath = await persistLocalAttachment({
+            uri: contentUri,
+            originalName: resolved?.originalName
+          });
+        }
       }
 
       const item = createItemFromShare({

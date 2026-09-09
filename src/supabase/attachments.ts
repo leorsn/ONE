@@ -30,6 +30,17 @@ export async function uploadSharedAttachment({
   return data.path;
 }
 
+export async function deleteSharedAttachment(path: string, userId: string) {
+  if (!path.startsWith(userId + '/')) return false;
+
+  const { error } = await supabase.storage
+    .from(BUCKET)
+    .remove([path]);
+
+  if (error) throw error;
+  return true;
+}
+
 export async function createAttachmentSignedUrl(path: string, expiresInSeconds = 3600) {
   const { data, error } = await supabase.storage
     .from(BUCKET)

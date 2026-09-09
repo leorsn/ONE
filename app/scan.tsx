@@ -9,6 +9,7 @@ import { useItems } from '@/src/context/ItemsContext';
 import { extractTextFromImage } from '@/src/ocr/extractText';
 import { analyzeOcrText, type OcrIntelligence } from '@/src/ocr/intelligence';
 import { uploadSharedAttachment } from '@/src/supabase/attachments';
+import { persistLocalAttachment } from '@/src/storage/attachments';
 import { IconTile, PrimaryButton, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
@@ -82,6 +83,11 @@ export default function ScanScreen() {
           originalName: asset.fileName || `scan-${Date.now()}.jpg`,
           userId: session.user.id
         });
+      } else {
+        storedPath = await persistLocalAttachment({
+          uri: asset.uri,
+          originalName: asset.fileName || `scan-${Date.now()}.jpg`
+        });
       }
 
       const now = new Date().toISOString();
@@ -102,7 +108,7 @@ export default function ScanScreen() {
         saved: true,
         sourceType: 'scan',
         imageUrl: storedPath || asset.uri,
-        attachmentUrl: storedPath,
+        attachmentUrl: storedPath || asset.uri,
         extractedText: text || undefined,
         documentKind,
         merchant,

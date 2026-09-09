@@ -2,8 +2,10 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import { useAuth } from '@/src/context/AuthContext';
 import { mockItems } from '@/src/data/mockItems';
 import { deleteCloudItem, pullCloudItems, upsertCloudItem } from '@/src/supabase/items';
+import { deleteSharedAttachment } from '@/src/supabase/attachments';
 import { cancelItemNotification, scheduleItemNotification } from '@/src/notifications/localNotifications';
 import { loadItems, saveItems } from '@/src/storage/items';
+import { removeLocalAttachment } from '@/src/storage/attachments';
 import type { OneItem } from '@/src/types/item';
 
 type ItemsContextValue = {
@@ -169,11 +171,31 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     setItems((current) => current.filter((item) => item.id !== id));
 
+    const attachmentPaths = Array.from(
+      new Set([currentItem?.attachmentUrl, currentItem?.imageUrl].filter((value): value is string => Boolean(value)))
+    );
+
+    for (const path of attachmentPaths) {
+      try {
+        await removeLocalAttachment(path);
+      } catch (error) {
+        console.warn('ONE local attachment cleanup failed', error);
+      }
+    }
+
     if (session?.user.id) {
       try {
         await deleteCloudItem(id);
       } catch (error) {
         console.warn('ONE cloud delete failed', error);
+      }
+
+      for (const path of attachmentPaths) {
+        try {
+          await deleteSharedAttachment(path, session.user.id);
+        } catch (error) {
+          console.warn('ONE cloud attachment cleanup failed', error);
+        }
       }
     }
   }, [items, session?.user.id]);
