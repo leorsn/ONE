@@ -35,16 +35,16 @@ export default function UpgradeScreen() {
 
         <PlanCard
           name="ONE"
-          price="€2.99"
+          price={formatEUR(subscriptionProducts.oneMonthly.priceEUR)}
           period="/ month"
-          offer="7 days free, then €2.99/month"
+          offer={subscriptionProducts.oneMonthly.trialDays + ' days free, then ' + formatEUR(subscriptionProducts.oneMonthly.priceEUR) + '/month'}
           features={baseFeatures}
           current={plan === 'one'}
         />
 
         <PlanCard
           name="ONE AI"
-          price="€4.99"
+          price={formatEUR(subscriptionProducts.oneAiMonthly.priceEUR)}
           period="/ month"
           offer="No trial · billed immediately"
           features={aiFeatures}
@@ -119,6 +119,10 @@ export default function UpgradeScreen() {
       </View>
     );
   }
+}
+
+function formatEUR(value: number) {
+  return '€' + value.toFixed(2);
 }
 
 const styles = StyleSheet.create({
