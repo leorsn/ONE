@@ -7,58 +7,70 @@ export type GroundedRecallAnswer = {
   itemIds: string[];
 };
 
-export function buildGroundedRecallAnswer(query: string, matches: OneItem[]): GroundedRecallAnswer | undefined {
+export function buildGroundedRecallAnswer(
+  query: string,
+  items: OneItem[],
+  bestMatch?: OneItem
+): GroundedRecallAnswer | undefined {
   const clean = normalize(query);
-  if (!clean.trim() || !matches.length) return undefined;
+  if (!clean.trim()) return undefined;
   const german = looksGerman(clean);
-  const best = matches[0];
 
-  if (/\b(where|wo)\b/.test(clean)) {
-    const located = matches.find((item) => item.location);
-    if (located?.location) {
+  if (/\b(where|wo)\b/.test(clean) && bestMatch) {
+    if (bestMatch.location) {
       return {
-        title: located.location,
-        body: located.title,
+        title: bestMatch.location,
+        body: bestMatch.title,
         meta: german ? 'Aus deinen gespeicherten ONE-Daten' : 'From your saved ONE data',
-        itemIds: [located.id]
+        itemIds: [bestMatch.id]
       };
     }
 
     return {
       title: german ? 'Kein Ort gespeichert' : 'No location saved',
       body: german
-        ? `ONE hat für „${best.title}“ keinen Ort gespeichert.`
-        : `ONE does not have a location saved for “${best.title}”.`,
-      itemIds: [best.id]
+        ? `ONE hat für „${bestMatch.title}“ keinen Ort gespeichert.`
+        : `ONE does not have a location saved for “${bestMatch.title}”.`,
+      itemIds: [bestMatch.id]
     };
   }
 
-  if (/\b(when|wann)\b/.test(clean)) {
-    const dated = matches.find((item) => item.date);
-    if (dated?.date) {
+  if (/\b(when|wann)\b/.test(clean) && bestMatch) {
+    if (bestMatch.date) {
       return {
-        title: formatDate(dated.date, german),
-        body: [dated.title, dated.time, dated.location].filter(Boolean).join(' · '),
+        title: formatDate(bestMatch.date, german),
+        body: [bestMatch.title, bestMatch.time, bestMatch.location].filter(Boolean).join(' · '),
         meta: german ? 'Aus deinen gespeicherten ONE-Daten' : 'From your saved ONE data',
-        itemIds: [dated.id]
+        itemIds: [bestMatch.id]
       };
     }
 
     return {
       title: german ? 'Kein Datum gespeichert' : 'No date saved',
       body: german
-        ? `ONE hat für „${best.title}“ kein Datum gespeichert.`
-        : `ONE does not have a date saved for “${best.title}”.`,
-      itemIds: [best.id]
+        ? `ONE hat für „${bestMatch.title}“ kein Datum gespeichert.`
+        : `ONE does not have a date saved for “${bestMatch.title}”.`,
+      itemIds: [bestMatch.id]
     };
   }
 
   if (mentionsGiftIdeas(clean)) {
-    const ideas = matches.filter((item) =>
-      item.type === 'idea' ||
-      item.tags.some((tag) => /gift|geschenk|birthday|geburtstag/.test(normalize(tag))) ||
-      /gift|geschenk|birthday|geburtstag/.test(normalize(item.userContext || ''))
-    );
+    const wantsDad = /dad|father|papa|vater/.test(clean);
+    const wantsMom = /mom|mother|mama|mutter/.test(clean);
+    const ideas = items.filter((item) => {
+      const haystack = normalize([
+        item.title,
+        item.userContext,
+        item.notes,
+        item.tags.join(' '),
+        item.extractedText
+      ].filter(Boolean).join(' '));
+      const isGift = item.type === 'idea' || /gift|geschenk|birthday|geburtstag/.test(haystack);
+      if (!isGift) return false;
+      if (wantsDad && !/dad|father|papa|vater/.test(haystack)) return false;
+      if (wantsMom && !/mom|mother|mama|mutter/.test(haystack)) return false;
+      return true;
+    });
 
     if (ideas.length) {
       return {
@@ -72,30 +84,33 @@ export function buildGroundedRecallAnswer(query: string, matches: OneItem[]): Gr
     }
   }
 
-  if (/receipt|beleg|bon|invoice|rechnung/.test(clean)) {
-    const document = matches.find((item) => item.type === 'document' || item.documentKind);
-    if (document) {
+  if (/receipt|beleg|bon|invoice|rechnung/.test(clean) && bestMatch) {
+    if (bestMatch.type === 'document' || bestMatch.documentKind) {
       return {
-        title: document.merchant || document.title,
+        title: bestMatch.merchant || bestMatch.title,
         body: [
-          document.documentKind ? formatKind(document.documentKind) : undefined,
-          document.amount !== undefined ? formatMoney(document.amount, document.currency) : undefined,
-          document.date
+          bestMatch.documentKind ? formatKind(bestMatch.documentKind) : undefined,
+          bestMatch.amount !== undefined ? formatMoney(bestMatch.amount, bestMatch.currency) : undefined,
+          bestMatch.date
         ].filter(Boolean).join(' · '),
         meta: german ? 'Gespeichertes Dokument in ONE' : 'Saved document in ONE',
-        itemIds: [document.id]
+        itemIds: [bestMatch.id]
       };
     }
   }
 
-  if (/what did i save|what have i saved|was hatte ich|was habe ich|zeig.*gespeichert|show.*saved/.test(clean)) {
+  if (/what did i save|what have i saved|was hatte ich|was habe ich|zeig.*gespeichert|show.*saved/.test(clean) && bestMatch) {
     return {
-      title: german
-        ? `${matches.length} passende ${matches.length === 1 ? 'Erinnerung' : 'Erinnerungen'}`
-        : `${matches.length} matching ${matches.length === 1 ? 'memory' : 'memories'}`,
-      body: matches.slice(0, 5).map(summarizeMemory).join('\n'),
-      meta: german ? 'Aus ONE, ohne zusätzliche Annahmen' : 'From ONE, without adding assumptions',
-      itemIds: matches.map((item) => item.id)
+      title: bestMatch.title,
+      body: [
+        bestMatch.userContext,
+        bestMatch.date,
+        bestMatch.location,
+        bestMatch.merchant,
+        bestMatch.amount !== undefined ? formatMoney(bestMatch.amount, bestMatch.currency) : undefined
+      ].filter(Boolean).join(' · ') || (german ? 'Keine weiteren Details gespeichert.' : 'No additional details are saved.'),
+      meta: german ? 'Bester gespeicherter Treffer in ONE' : 'Best saved match in ONE',
+      itemIds: [bestMatch.id]
     };
   }
 
@@ -104,10 +119,6 @@ export function buildGroundedRecallAnswer(query: string, matches: OneItem[]): Gr
 
 function mentionsGiftIdeas(value: string) {
   return /gift|geschenk|birthday|geburtstag/.test(value) && /idea|idee|ideas|ideen|save|saved|gespeichert/.test(value);
-}
-
-function summarizeMemory(item: OneItem) {
-  return [item.title, item.date, item.location, item.merchant].filter(Boolean).join(' · ');
 }
 
 function formatDate(iso: string, german: boolean) {
