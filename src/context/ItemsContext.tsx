@@ -57,6 +57,18 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     async function hydrateScope() {
       try {
+        // A signed-out or different-account user must never keep receiving
+        // lock-screen reminders containing the previous account's private data.
+        if (
+          previousScope &&
+          previousScope !== desiredScope &&
+          previousScope !== 'anonymous'
+        ) {
+          const suspended = await suspendItemNotifications(itemsRef.current);
+          await saveItems(previousScope, suspended);
+          itemsRef.current = suspended;
+        }
+
         const stored = await loadItems(desiredScope);
         let nextItems = stored ?? (desiredScope === 'anonymous' ? DEVELOPMENT_SEED_ITEMS : []);
 
@@ -70,12 +82,16 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
           const transferable = itemsRef.current.filter(shouldSyncItem);
           if (transferable.length) {
             nextItems = mergeByUpdatedAt(transferable, nextItems);
-            await saveItems(desiredScope, nextItems);
           }
 
           // Once the user explicitly signs in, their real anonymous captures move
           // into that account and are removed from the signed-out device scope.
           await clearItems('anonymous');
+        }
+
+        if (desiredScope !== 'anonymous') {
+          nextItems = await reconcileItemNotifications(nextItems);
+          await saveItems(desiredScope, nextItems);
         }
 
         if (cancelled) return;
@@ -129,7 +145,10 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         const visibleLocal = items.filter((item) => !deletedIds.has(item.id));
         const visibleCloud = cloud.filter((item) => !deletedIds.has(item.id));
 
-        const merged = mergeByUpdatedAt(visibleLocal, visibleCloud);
+        const merged = await reconcileItemNotifications(
+          mergeByUpdatedAt(visibleLocal, visibleCloud)
+        );
+        if (cancelled) return;
         setItems(merged);
 
         const cloudById = new Map(visibleCloud.map((item) => [item.id, item]));
@@ -332,6 +351,60 @@ function shouldSyncItem(item: OneItem) {
   return !(__DEV__ && DEVELOPMENT_SEED_IDS.has(item.id));
 }
 
+async function suspendItemNotifications(items: OneItem[]) {
+  const next: OneItem[] = [];
+
+  for (const item of items) {
+    if (!item.notificationId) {
+      next.push(item);
+      continue;
+    }
+
+    try {
+      await cancelItemNotification(item.notificationId);
+    } catch (error) {
+      console.warn('ONE notification privacy suspension failed', error);
+    }
+
+    next.push({ ...item, notificationId: undefined });
+  }
+
+  return next;
+}
+
+async function reconcileItemNotifications(items: OneItem[]) {
+  const next: OneItem[] = [];
+
+  for (const item of items) {
+    if (item.completed || !item.date) {
+      if (item.notificationId) {
+        try {
+          await cancelItemNotification(item.notificationId);
+        } catch (error) {
+          console.warn('ONE stale notification cleanup failed', error);
+        }
+      }
+      next.push(item.notificationId ? { ...item, notificationId: undefined } : item);
+      continue;
+    }
+
+    if (item.notificationId) {
+      next.push(item);
+      continue;
+    }
+
+    try {
+      const notificationId = await scheduleItemNotification(item);
+      next.push(notificationId ? { ...item, notificationId } : item);
+    } catch (error) {
+      console.warn('ONE notification reconciliation failed', error);
+      next.push(item);
+    }
+  }
+
+  return next;
+}
+
 async function removeCloudAttachments(paths: string[], userId: string) {
   for (const path of paths) {
     if (!path.startsWith(userId + '/')) continue;
@@ -345,7 +418,14 @@ function mergeByUpdatedAt(local: OneItem[], cloud: OneItem[]) {
   for (const item of [...local, ...cloud]) {
     const existing = merged.get(item.id);
     if (!existing || new Date(item.updatedAt).getTime() >= new Date(existing.updatedAt).getTime()) {
-      merged.set(item.id, item);
+      // notificationId is device-local state and intentionally never stored in
+      // Supabase. Preserve it when the cloud row wins the data merge.
+      merged.set(
+        item.id,
+        !item.notificationId && existing?.notificationId
+          ? { ...item, notificationId: existing.notificationId }
+          : item
+      );
     }
   }
 
