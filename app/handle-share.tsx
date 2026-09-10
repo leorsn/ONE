@@ -1,14 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useIncomingShare } from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
+import type { CaptureDraft } from '@/src/capture/core';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { extractTextFromImage } from '@/src/ocr/extractText';
-import { createItemFromShare } from '@/src/sharing/ingest';
-import { uploadSharedAttachment } from '@/src/supabase/attachments';
+import { createItemFromShare, createShareDraft } from '@/src/sharing/ingest';
 import { persistLocalAttachment } from '@/src/storage/attachments';
 import { IconTile, PrimaryButton, SectionHeader, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
@@ -22,14 +23,23 @@ export default function HandleShareScreen() {
   const { add } = useItems();
   const { sharedPayloads, resolvedSharedPayloads, isResolving, error, clearSharedPayloads } = useIncomingShare();
 
-  const [context, setContext] = useState('');
   const [saving, setSaving] = useState(false);
   const [ocrState, setOcrState] = useState<OcrState>('idle');
   const [extractedText, setExtractedText] = useState('');
+  const [draft, setDraft] = useState<CaptureDraft | null>(null);
 
   const primary = sharedPayloads[0];
   const resolved = resolvedSharedPayloads[0];
   const imageUri = resolved?.contentType === 'image' ? resolved.contentUri : null;
+
+  useEffect(() => {
+    if (!primary) {
+      setDraft(null);
+      return;
+    }
+
+    setDraft(createShareDraft({ payload: primary, resolved, extractedText }));
+  }, [primary, resolved?.contentType, resolved?.originalName]);
 
   useEffect(() => {
     if (!imageUri) {
@@ -46,6 +56,14 @@ export default function HandleShareScreen() {
         if (cancelled) return;
         setExtractedText(result.text);
         setOcrState('ready');
+        if (primary) {
+          setDraft((current) => createShareDraft({
+            payload: primary,
+            resolved,
+            context: current?.userContext,
+            extractedText: result.text
+          }));
+        }
       })
       .catch((ocrError) => {
         if (cancelled) return;
@@ -67,44 +85,43 @@ export default function HandleShareScreen() {
   }, [primary, resolved]);
 
   async function handleSave() {
-    if (!primary) return;
+    if (!primary || !draft || saving) return;
 
     setSaving(true);
     try {
-      let storedAttachmentPath: string | undefined;
       const contentUri = resolved && 'contentUri' in resolved ? resolved.contentUri : null;
       const isAttachment = Boolean(contentUri) && ['image', 'file', 'video', 'audio'].includes(primary.shareType || '');
+      let localAttachmentUri: string | undefined;
 
       if (isAttachment && contentUri) {
-        if (session?.user.id) {
-          storedAttachmentPath = await uploadSharedAttachment({
-            uri: contentUri,
-            mimeType: resolved?.contentMimeType,
-            originalName: resolved?.originalName,
-            userId: session.user.id
-          });
-        } else {
-          storedAttachmentPath = await persistLocalAttachment({
-            uri: contentUri,
-            originalName: resolved?.originalName
-          });
-        }
+        localAttachmentUri = await persistLocalAttachment({
+          uri: contentUri,
+          originalName: resolved?.originalName
+        });
       }
 
       const item = createItemFromShare({
         payload: primary,
         resolved,
-        context,
-        storedAttachmentPath,
-        extractedText
+        context: draft.userContext || '',
+        storedAttachmentPath: localAttachmentUri,
+        extractedText: draft.extractedText || extractedText,
+        draft
       });
 
       await add(item);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       clearSharedPayloads();
-      router.replace('/(tabs)/saved');
+
+      const actionable = ['appointment', 'reminder', 'task', 'event'].includes(item.type);
+      router.replace(actionable ? '/(tabs)' : '/(tabs)/saved');
     } catch (saveError) {
-      Alert.alert('Could not save to ONE', saveError instanceof Error ? saveError.message : 'Unknown error');
+      Alert.alert(
+        'Could not save to ONE',
+        saveError instanceof Error
+          ? saveError.message
+          : 'The shared content was not discarded. Try saving again.'
+      );
     } finally {
       setSaving(false);
     }
@@ -121,7 +138,7 @@ export default function HandleShareScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
-          <Pressable onPress={handleCancel} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Cancel share" onPress={handleCancel} style={[styles.navButton, { backgroundColor: theme.fill }]}>
             <OneIcon name={icons.close} size={17} color={theme.text} />
           </Pressable>
           <Text style={[styles.navTitle, { color: theme.text }]}>Save to ONE</Text>
@@ -140,7 +157,7 @@ export default function HandleShareScreen() {
         {error ? (
           <View style={[styles.notice, { backgroundColor: theme.fill }]}>
             <OneIcon name={icons.more} size={17} color={theme.warning} />
-            <Text style={[styles.noticeText, { color: theme.textSecondary }]}>ONE could not fully resolve this share. Raw content can still be saved.</Text>
+            <Text style={[styles.noticeText, { color: theme.textSecondary }]}>ONE could not fully resolve this share. The raw content can still be reviewed and saved.</Text>
           </View>
         ) : null}
 
@@ -164,56 +181,32 @@ export default function HandleShareScreen() {
             </View>
 
             {imageUri ? (
-              <View style={styles.block}>
-                <SectionHeader title="Screenshot intelligence" />
-                <Surface padded>
-                  <View style={styles.ocrHeader}>
-                    <IconTile icon={icons.screenshot} tone={ocrState === 'ready' ? 'success' : 'neutral'} size={40} />
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.ocrTitle, { color: theme.text }]}>{ocrHeadline(ocrState)}</Text>
-                      <Text style={[styles.ocrMeta, { color: theme.textSecondary }]}>{ocrMeta(ocrState)}</Text>
-                    </View>
-                    {ocrState === 'reading' ? <ActivityIndicator size="small" /> : null}
-                    {ocrState === 'ready' ? <OneIcon name={icons.check} size={17} color={theme.success} /> : null}
-                  </View>
-                  {extractedText ? (
-                    <View style={[styles.ocrTextWrap, { borderTopColor: theme.border }]}>
-                      <Text style={[styles.ocrText, { color: theme.textSecondary }]} numberOfLines={7}>{extractedText}</Text>
-                    </View>
-                  ) : null}
-                </Surface>
+              <View style={[styles.notice, { backgroundColor: ocrState === 'failed' ? theme.fill : theme.accentSoft }]}>
+                <IconTile icon={icons.screenshot} tone={ocrState === 'ready' ? 'success' : 'neutral'} size={36} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.ocrTitle, { color: theme.text }]}>{ocrHeadline(ocrState)}</Text>
+                  <Text style={[styles.ocrMeta, { color: theme.textSecondary }]}>{ocrMeta(ocrState)}</Text>
+                </View>
+                {ocrState === 'reading' ? <ActivityIndicator size="small" /> : null}
               </View>
             ) : null}
 
-            <View style={styles.block}>
-              <SectionHeader title="Add context" meta="Optional" />
-              <TextInput
-                value={context}
-                onChangeText={setContext}
-                placeholder="Gift Dad, Barcelona, Tax 2026…"
-                placeholderTextColor={theme.textTertiary}
-                style={[styles.contextInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
-                multiline
-              />
-              <Text style={[styles.contextHelp, { color: theme.textTertiary }]}>
-                A few words make this much easier to find later with Ask ONE.
+            {draft ? <CaptureReviewEditor draft={draft} onChange={setDraft} /> : null}
+
+            <View style={[styles.notice, { backgroundColor: theme.accentSoft }]}>
+              <OneIcon name={icons.cloud} size={17} color={theme.accent} />
+              <Text style={[styles.noticeText, { color: theme.textSecondary }]}>
+                {session
+                  ? 'ONE saves locally first. Account sync retries automatically when the network is available.'
+                  : 'This capture stays on this device until you sign in.'}
               </Text>
             </View>
-
-            {!session && ['image', 'file', 'video', 'audio'].includes(primary.shareType || '') ? (
-              <View style={[styles.notice, { backgroundColor: theme.accentSoft }]}>
-                <OneIcon name={icons.cloud} size={17} color={theme.accent} />
-                <Text style={[styles.noticeText, { color: theme.textSecondary }]}>
-                  Sign in to keep shared files privately synced across devices.
-                </Text>
-              </View>
-            ) : null}
 
             <PrimaryButton
               label={saving ? 'Saving…' : waitingForOcr ? 'Reading screenshot…' : 'Save to ONE'}
               icon={icons.check}
               onPress={handleSave}
-              disabled={saving || waitingForOcr}
+              disabled={saving || waitingForOcr || !draft?.title.trim()}
             />
           </>
         ) : !isResolving ? (
@@ -242,15 +235,15 @@ function labelFor(type?: string) {
 function ocrHeadline(state: OcrState) {
   if (state === 'reading') return 'Reading on-device';
   if (state === 'ready') return 'Text recognized';
-  if (state === 'failed') return 'Recognition unavailable';
-  return 'Ready for analysis';
+  if (state === 'failed') return 'OCR unavailable';
+  return 'Screenshot ready';
 }
 
 function ocrMeta(state: OcrState) {
-  if (state === 'reading') return 'Apple Vision / ML Kit';
-  if (state === 'ready') return 'Included in ONE recall';
-  if (state === 'failed') return 'You can still save the screenshot';
-  return 'Private OCR';
+  if (state === 'reading') return 'Private native OCR';
+  if (state === 'ready') return 'Review the recognized text before saving';
+  if (state === 'failed') return 'The original screenshot can still be saved';
+  return 'Waiting for OCR';
 }
 
 const styles = StyleSheet.create({
@@ -264,15 +257,10 @@ const styles = StyleSheet.create({
   image: { width: 76, height: 76, borderRadius: 16 },
   kind: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1 },
   previewTitle: { marginTop: 5, fontSize: 15.5, lineHeight: 20, fontWeight: '700' },
-  ocrHeader: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  ocrTitle: { fontSize: 15, fontWeight: '700' },
-  ocrMeta: { marginTop: 3, fontSize: 12 },
-  ocrTextWrap: { marginTop: 14, paddingTop: 13, borderTopWidth: StyleSheet.hairlineWidth },
-  ocrText: { fontSize: 12.5, lineHeight: 18 },
-  contextInput: { minHeight: 112, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 15, fontSize: 15, lineHeight: 20, textAlignVertical: 'top' },
-  contextHelp: { marginLeft: 2, fontSize: 11.5, lineHeight: 16 },
-  notice: { minHeight: 54, borderRadius: 16, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  notice: { minHeight: 56, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
   noticeText: { flex: 1, fontSize: 12, lineHeight: 17 },
+  ocrTitle: { fontSize: 13.5, fontWeight: '700' },
+  ocrMeta: { marginTop: 2, fontSize: 11.5, lineHeight: 16 },
   center: { minHeight: 120, alignItems: 'center', justifyContent: 'center', gap: 9 },
   stateTitle: { fontSize: 15, fontWeight: '700' },
   stateText: { fontSize: 12.5, textAlign: 'center' }
