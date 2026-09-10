@@ -37,3 +37,7 @@ export async function removeDeletionTombstone(id: string) {
     await AsyncStorage.removeItem(STORAGE_KEY);
   }
 }
+
+export async function clearDeletionTombstones() {
+  await AsyncStorage.removeItem(STORAGE_KEY);
+}
