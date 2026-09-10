@@ -1,11 +1,17 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useAuth } from '@/src/context/AuthContext';
 import { mockItems } from '@/src/data/mockItems';
 import { deleteCloudItem, pullCloudItems, upsertCloudItem } from '@/src/supabase/items';
 import { deleteSharedAttachment } from '@/src/supabase/attachments';
 import { cancelItemNotification, scheduleItemNotification } from '@/src/notifications/localNotifications';
-import { clearItems, loadItems, saveItems } from '@/src/storage/items';
-import { clearLocalAttachments, removeLocalAttachment } from '@/src/storage/attachments';
+import {
+  clearItems,
+  itemStorageScope,
+  loadItems,
+  saveItems,
+  type ItemStorageScope
+} from '@/src/storage/items';
+import { removeLocalAttachment } from '@/src/storage/attachments';
 import {
   clearDeletionTombstones,
   loadDeletionTombstones,
@@ -30,31 +36,82 @@ const DEVELOPMENT_SEED_ITEMS: OneItem[] = __DEV__ ? mockItems : [];
 const DEVELOPMENT_SEED_IDS = new Set(mockItems.map((item) => item.id));
 
 export function ItemsProvider({ children }: { children: React.ReactNode }) {
-  const { session } = useAuth();
-  const [items, setItems] = useState<OneItem[]>(DEVELOPMENT_SEED_ITEMS);
+  const { session, loading: authLoading } = useAuth();
+  const desiredScope = itemStorageScope(session?.user.id);
+  const [items, setItems] = useState<OneItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [cloudSyncing, setCloudSyncing] = useState(false);
+  const activeScopeRef = useRef<ItemStorageScope | null>(null);
+  const itemsRef = useRef<OneItem[]>([]);
 
   useEffect(() => {
-    let mounted = true;
-    loadItems().then((stored) => {
-      if (!mounted) return;
-      setItems(stored ?? DEVELOPMENT_SEED_ITEMS);
-      setHydrated(true);
-    });
+    itemsRef.current = items;
+  }, [items]);
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    let cancelled = false;
+    const previousScope = activeScopeRef.current;
+    setHydrated(false);
+
+    async function hydrateScope() {
+      try {
+        const stored = await loadItems(desiredScope);
+        let nextItems = stored ?? (desiredScope === 'anonymous' ? DEVELOPMENT_SEED_ITEMS : []);
+
+        if (desiredScope !== 'anonymous') {
+          // Development demo memories must never become part of an authenticated
+          // user's local account partition or cloud sync input.
+          nextItems = nextItems.filter(shouldSyncItem);
+        }
+
+        if (previousScope === 'anonymous' && desiredScope !== 'anonymous') {
+          const transferable = itemsRef.current.filter(shouldSyncItem);
+          if (transferable.length) {
+            nextItems = mergeByUpdatedAt(transferable, nextItems);
+            await saveItems(desiredScope, nextItems);
+          }
+
+          // Once the user explicitly signs in, their real anonymous captures move
+          // into that account and are removed from the signed-out device scope.
+          await clearItems('anonymous');
+        }
+
+        if (cancelled) return;
+        activeScopeRef.current = desiredScope;
+        itemsRef.current = nextItems;
+        setItems(nextItems);
+        setHydrated(true);
+      } catch (error) {
+        console.warn('ONE local storage hydration failed', error);
+        if (cancelled) return;
+
+        const fallback = desiredScope === 'anonymous' ? DEVELOPMENT_SEED_ITEMS : [];
+        activeScopeRef.current = desiredScope;
+        itemsRef.current = fallback;
+        setItems(fallback);
+        setHydrated(true);
+      }
+    }
+
+    void hydrateScope();
     return () => {
-      mounted = false;
+      cancelled = true;
     };
-  }, []);
+  }, [authLoading, desiredScope]);
 
   useEffect(() => {
-    if (!hydrated) return;
-    saveItems(items);
-  }, [items, hydrated]);
+    if (authLoading || !hydrated || activeScopeRef.current !== desiredScope) return;
+
+    saveItems(desiredScope, items).catch((error) => {
+      console.warn('ONE local storage save failed', error);
+    });
+  }, [items, hydrated, authLoading, desiredScope]);
 
   useEffect(() => {
     const userId = session?.user.id;
-    if (!userId || !hydrated) return;
+    if (!userId || !hydrated || activeScopeRef.current !== desiredScope) return;
     const syncUserId = userId;
 
     let cancelled = false;
@@ -62,15 +119,12 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     async function syncFromCloud() {
       setCloudSyncing(true);
       try {
-        const [cloud, allTombstones] = await Promise.all([
+        const [cloud, activeTombstones] = await Promise.all([
           pullCloudItems(),
-          loadDeletionTombstones()
+          loadDeletionTombstones(syncUserId)
         ]);
         if (cancelled) return;
 
-        const activeTombstones = allTombstones.filter(
-          (entry) => !entry.userId || entry.userId === syncUserId
-        );
         const deletedIds = new Set(activeTombstones.map((entry) => entry.id));
         const visibleLocal = items.filter((item) => !deletedIds.has(item.id));
         const visibleCloud = cloud.filter((item) => !deletedIds.has(item.id));
@@ -96,7 +150,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
           try {
             await deleteCloudItem(tombstone.id);
             await removeCloudAttachments(tombstone.attachmentPaths, syncUserId);
-            await removeDeletionTombstone(tombstone.id);
+            await removeDeletionTombstone(tombstone.id, syncUserId);
           } catch (error) {
             console.warn('ONE deferred delete cleanup failed', error);
           }
@@ -108,11 +162,11 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    syncFromCloud();
+    void syncFromCloud();
     return () => {
       cancelled = true;
     };
-  }, [session?.user.id, hydrated]);
+  }, [session?.user.id, hydrated, desiredScope]);
 
   const add = useCallback(async (item: OneItem) => {
     const notificationId = await scheduleItemNotification(item);
@@ -204,13 +258,16 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     const attachmentPaths = Array.from(
       new Set([currentItem.attachmentUrl, currentItem.imageUrl].filter((value): value is string => Boolean(value)))
     );
+    const userId = session?.user.id;
 
-    await saveDeletionTombstone({
-      id,
-      deletedAt: new Date().toISOString(),
-      userId: session?.user.id,
-      attachmentPaths
-    });
+    if (userId) {
+      await saveDeletionTombstone({
+        id,
+        deletedAt: new Date().toISOString(),
+        userId,
+        attachmentPaths
+      });
+    }
 
     setItems((current) => current.filter((item) => item.id !== id));
 
@@ -222,35 +279,46 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    if (!session?.user.id) return;
+    if (!userId) return;
 
     try {
       await deleteCloudItem(id);
-      await removeCloudAttachments(attachmentPaths, session.user.id);
-      await removeDeletionTombstone(id);
+      await removeCloudAttachments(attachmentPaths, userId);
+      await removeDeletionTombstone(id, userId);
     } catch (error) {
       console.warn('ONE cloud delete deferred until reconnect', error);
     }
   }, [items, session?.user.id]);
 
   const clearAll = useCallback(async () => {
+    const currentScope = desiredScope;
+    const currentUserId = session?.user.id;
+
     for (const item of items) {
-      if (!item.notificationId) continue;
-      try {
-        await cancelItemNotification(item.notificationId);
-      } catch (error) {
-        console.warn('ONE notification cleanup failed', error);
+      if (item.notificationId) {
+        try {
+          await cancelItemNotification(item.notificationId);
+        } catch (error) {
+          console.warn('ONE notification cleanup failed', error);
+        }
+      }
+
+      const localPaths = [item.attachmentUrl, item.imageUrl].filter((value): value is string => Boolean(value));
+      for (const path of localPaths) {
+        try {
+          await removeLocalAttachment(path);
+        } catch (error) {
+          console.warn('ONE local attachment cleanup failed', error);
+        }
       }
     }
 
-    await Promise.all([
-      clearItems(),
-      clearDeletionTombstones(),
-      clearLocalAttachments()
-    ]);
+    await clearItems(currentScope);
+    if (currentUserId) await clearDeletionTombstones(currentUserId);
 
+    itemsRef.current = [];
     setItems([]);
-  }, [items]);
+  }, [items, desiredScope, session?.user.id]);
 
   const value = useMemo(
     () => ({ items, hydrated, cloudSyncing, add, update, toggleCompleted, remove, clearAll }),
