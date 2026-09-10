@@ -14,23 +14,59 @@ import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const { session, configured, signIn, signUp, signOut } = useAuth();
+  const { session, configured, signIn, signUp, requestPasswordReset, signOut } = useAuth();
   const { cloudSyncing, items, clearAll } = useItems();
   const { reset: resetOnboarding } = useOnboarding();
   const { preference } = useThemePreference();
   const { plan, isBetaAccess, hasAi, billingConfigured, managementUrl } = usePlan();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [sendingReset, setSendingReset] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
 
   async function runAuth(action: 'signin' | 'signup') {
+    const cleanEmail = email.trim();
+    if (!isValidEmail(cleanEmail)) {
+      Alert.alert('ONE Account', 'Enter a valid email address.');
+      return;
+    }
+    if (!password) {
+      Alert.alert('ONE Account', 'Enter your password.');
+      return;
+    }
+
     await Haptics.selectionAsync();
     const error = action === 'signin'
-      ? await signIn(email.trim(), password)
-      : await signUp(email.trim(), password);
+      ? await signIn(cleanEmail, password)
+      : await signUp(cleanEmail, password);
 
     if (error) Alert.alert('ONE Account', error);
     else if (action === 'signup') Alert.alert('ONE Account', 'Account created. Check your email to confirm the account.');
+  }
+
+  async function runPasswordReset() {
+    const cleanEmail = email.trim();
+    if (!isValidEmail(cleanEmail)) {
+      Alert.alert('Reset password', 'Enter the email address for your ONE account first.');
+      return;
+    }
+
+    setSendingReset(true);
+    await Haptics.selectionAsync();
+    try {
+      const error = await requestPasswordReset(cleanEmail);
+      if (error) {
+        Alert.alert('Reset password', error);
+        return;
+      }
+
+      Alert.alert(
+        'Check your email',
+        'If an account exists for that address, ONE sent a secure password reset link. Open it on this device to choose a new password.'
+      );
+    } finally {
+      setSendingReset(false);
+    }
   }
 
   async function openSubscriptionManagement() {
@@ -193,6 +229,7 @@ export default function SettingsScreen() {
                   placeholderTextColor={theme.textTertiary}
                   autoCapitalize="none"
                   keyboardType="email-address"
+                  textContentType="emailAddress"
                   accessibilityLabel="Email address"
                   style={[styles.input, { color: theme.text, backgroundColor: theme.fill, borderColor: theme.border }]}
                 />
@@ -202,10 +239,22 @@ export default function SettingsScreen() {
                   placeholder="Password"
                   placeholderTextColor={theme.textTertiary}
                   secureTextEntry
+                  textContentType="password"
                   accessibilityLabel="Password"
+                  onSubmitEditing={() => void runAuth('signin')}
                   style={[styles.input, { color: theme.text, backgroundColor: theme.fill, borderColor: theme.border }]}
                 />
                 <PrimaryButton label="Sign in" icon={icons.lock} onPress={() => runAuth('signin')} />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Reset forgotten ONE password"
+                  disabled={sendingReset}
+                  onPress={() => void runPasswordReset()}
+                  style={({ pressed }) => [styles.textAction, { opacity: pressed || sendingReset ? 0.55 : 1 }]}
+                >
+                  {sendingReset ? <ActivityIndicator size="small" /> : null}
+                  <Text style={[styles.textActionLabel, { color: theme.textSecondary }]}>Forgot password?</Text>
+                </Pressable>
                 <Pressable accessibilityRole="button" accessibilityLabel="Create ONE account" onPress={() => runAuth('signup')} style={styles.createAccount}>
                   <Text style={[styles.createAccountText, { color: theme.accent }]}>Create an account</Text>
                 </Pressable>
@@ -347,6 +396,8 @@ const styles = StyleSheet.create({
   authBody: { marginTop: 6, fontSize: 13, lineHeight: 19 },
   form: { marginTop: 16, gap: 10 },
   input: { minHeight: 50, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 14, fontSize: 15 },
+  textAction: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  textActionLabel: { fontSize: 13, fontWeight: '700' },
   createAccount: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
   createAccountText: { fontSize: 13.5, fontWeight: '700' },
   accountActionRow: { minHeight: 64, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11, borderBottomWidth: StyleSheet.hairlineWidth },
@@ -371,4 +422,8 @@ function appearanceLabel(value: 'system' | 'light' | 'dark') {
   if (value === 'light') return 'Light';
   if (value === 'dark') return 'Dark';
   return 'System';
+}
+
+function isValidEmail(value: string) {
+  return /^\S+@\S+\.\S+$/.test(value);
 }
