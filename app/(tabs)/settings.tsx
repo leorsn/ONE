@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
@@ -18,7 +18,7 @@ export default function SettingsScreen() {
   const { cloudSyncing, items, clearAll } = useItems();
   const { reset: resetOnboarding } = useOnboarding();
   const { preference } = useThemePreference();
-  const { plan, isBetaAccess, hasAi } = usePlan();
+  const { plan, isBetaAccess, hasAi, billingConfigured, managementUrl } = usePlan();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [deletingAccount, setDeletingAccount] = useState(false);
@@ -31,6 +31,19 @@ export default function SettingsScreen() {
 
     if (error) Alert.alert('ONE Account', error);
     else if (action === 'signup') Alert.alert('ONE Account', 'Account created. Check your email to confirm the account.');
+  }
+
+  async function openSubscriptionManagement() {
+    if (!managementUrl) return;
+
+    await Haptics.selectionAsync();
+    const supported = await Linking.canOpenURL(managementUrl);
+    if (!supported) {
+      Alert.alert('Manage Subscription', 'ONE could not open your subscription management page on this device.');
+      return;
+    }
+
+    await Linking.openURL(managementUrl);
   }
 
   function confirmDeleteAccount() {
@@ -126,8 +139,17 @@ export default function SettingsScreen() {
               label={membershipLabel(plan)}
               value={isBetaAccess ? 'Beta access' : membershipValue(plan)}
               onPress={() => router.push('/upgrade')}
-              last
+              last={!billingConfigured || !managementUrl}
             />
+            {billingConfigured && managementUrl ? (
+              <SettingsRow
+                icon={icons.settings}
+                label="Manage Subscription"
+                value="App Store"
+                onPress={openSubscriptionManagement}
+                last
+              />
+            ) : null}
           </Surface>
         </View>
 
