@@ -90,8 +90,8 @@ function toRow(item: OneItem, userId: string): CloudItemRow {
     source_type: item.sourceType,
     source_app: item.sourceApp ?? null,
     original_text: item.originalText ?? null,
-    attachment_url: item.attachmentUrl ?? null,
-    image_url: item.imageUrl ?? null,
+    attachment_url: cloudPath(item.attachmentUrl, userId),
+    image_url: cloudPath(item.imageUrl, userId),
     extracted_text: item.extractedText ?? null,
     user_context: item.userContext ?? null,
     document_kind: item.documentKind ?? null,
@@ -133,7 +133,12 @@ function fromRow(row: CloudItemRow): OneItem {
     currency: row.currency ?? undefined,
     tags: row.tags ?? [],
     entities: row.entities ?? [],
+    syncState: 'synced',
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
+}
+
+function cloudPath(value: string | undefined, userId: string) {
+  return value?.startsWith(`${userId}/`) ? value : null;
 }
