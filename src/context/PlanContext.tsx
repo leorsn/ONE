@@ -43,7 +43,6 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [purchasing, setPurchasing] = useState(false);
 
   const refresh = useCallback(async () => {
-    await Promise.resolve();
     setLoading(true);
 
     try {
@@ -81,7 +80,11 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   }, [userId]);
 
   useEffect(() => {
-    void refresh();
+    const timer = setTimeout(() => {
+      void refresh();
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [refresh]);
 
   useEffect(() => {
