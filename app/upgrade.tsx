@@ -13,14 +13,24 @@ const aiFeatures = ['Everything in ONE', 'Ask ONE', 'Meaning-based semantic reca
 export default function UpgradeScreen() {
   const theme = useTheme();
   const { plan, isBetaAccess, billingConfigured, purchasing, purchase, restore } = usePlan();
+  const hardPaywall = billingConfigured && plan === 'none';
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
-          <Pressable onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill }]}>
-            <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
-          </Pressable>
+          {hardPaywall ? (
+            <View style={{ width: 40 }} />
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Close plans"
+              onPress={() => router.back()}
+              style={[styles.navButton, { backgroundColor: theme.fill }]}
+            >
+              <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
+            </Pressable>
+          )}
           <Text style={[styles.navTitle, { color: theme.text }]}>ONE Plans</Text>
           <View style={{ width: 40 }} />
         </View>
@@ -28,16 +38,14 @@ export default function UpgradeScreen() {
         <View style={styles.hero}>
           <IconTile icon={icons.crown} size={56} />
           <Text style={[styles.title, { color: theme.text }]}>Simple plans. No clutter.</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            Organization stays affordable. AI is optional.
-          </Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Organization stays affordable. AI is optional.</Text>
         </View>
 
         <PlanCard
           name="ONE"
           price={formatEUR(subscriptionProducts.oneMonthly.priceEUR)}
           period="/ month"
-          offer={subscriptionProducts.oneMonthly.trialDays + ' days free, then ' + formatEUR(subscriptionProducts.oneMonthly.priceEUR) + '/month'}
+          offer="7-day free trial for eligible new subscribers · then €2.99/month"
           features={baseFeatures}
           planKey="one"
           current={plan === 'one'}
@@ -57,14 +65,14 @@ export default function UpgradeScreen() {
         {isBetaAccess ? (
           <View style={[styles.beta, { backgroundColor: theme.accentSoft }]}>
             <OneIcon name={icons.ask} size={18} color={theme.accent} />
-            <Text style={[styles.betaText, { color: theme.textSecondary }]}>
-              ONE AI is enabled during beta so Ask ONE and semantic recall can be tested end-to-end. App Store purchases are not active yet.
-            </Text>
+            <Text style={[styles.betaText, { color: theme.textSecondary }]}>ONE AI is enabled during beta so Ask ONE and semantic recall can be tested end-to-end. App Store purchases are not active yet.</Text>
           </View>
         ) : null}
 
         {billingConfigured ? (
           <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Restore App Store purchases"
             disabled={purchasing}
             onPress={async () => {
               const outcome = await restore();
@@ -78,10 +86,12 @@ export default function UpgradeScreen() {
           </Pressable>
         ) : null}
 
-        <PrimaryButton label="Back to ONE" icon={icons.check} onPress={() => router.back()} />
+        {!hardPaywall ? <PrimaryButton label="Back to ONE" icon={icons.check} onPress={() => router.back()} /> : null}
 
         <Text style={[styles.legal, { color: theme.textTertiary }]}>
-          ONE includes a 7-day introductory free trial for eligible new subscribers and then renews automatically at €2.99/month unless cancelled. ONE AI has no trial and renews at €4.99/month. App Store billing is not active during beta.
+          {isBetaAccess
+            ? 'Beta billing is disabled. ONE AI remains unlocked for development testing.'
+            : 'Subscriptions renew automatically unless cancelled. ONE’s introductory free trial is available only to eligible App Store accounts. ONE AI has no free trial.'}
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -115,7 +125,7 @@ export default function UpgradeScreen() {
                 <Text style={[styles.planName, { color: theme.text }]}>{name}</Text>
                 {current ? (
                   <View style={[styles.currentPill, { backgroundColor: theme.accentSoft }]}>
-                    <Text style={[styles.currentText, { color: theme.accent }]}>CURRENT BETA</Text>
+                    <Text style={[styles.currentText, { color: theme.accent }]}>{isBetaAccess ? 'CURRENT BETA' : 'CURRENT'}</Text>
                   </View>
                 ) : null}
               </View>
@@ -126,6 +136,7 @@ export default function UpgradeScreen() {
               <Text style={[styles.offer, { color: highlighted ? theme.textSecondary : theme.accent }]}>{offer}</Text>
             </View>
           </View>
+
           <View style={[styles.featureList, { borderTopColor: theme.border }]}>
             {features.map((feature) => (
               <View key={feature} style={styles.featureRow}>
@@ -137,33 +148,24 @@ export default function UpgradeScreen() {
 
           {!current ? (
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={purchaseLabel(planKey, plan)}
               disabled={!billingConfigured || purchasing}
               onPress={async () => {
                 const outcome = await purchase(planKey);
-                if (!outcome.ok && !outcome.cancelled && outcome.error) {
-                  Alert.alert('ONE subscription', outcome.error);
-                }
+                if (!outcome.ok && !outcome.cancelled && outcome.error) Alert.alert('ONE subscription', outcome.error);
               }}
               style={[
                 styles.purchaseButton,
                 {
-                  backgroundColor: billingConfigured
-                    ? highlighted ? theme.accent : theme.text
-                    : theme.fillStrong,
+                  backgroundColor: billingConfigured ? highlighted ? theme.accent : theme.text : theme.fillStrong,
                   opacity: purchasing ? 0.62 : 1
                 }
               ]}
             >
               {purchasing ? <ActivityIndicator size="small" color={billingConfigured ? '#FFFFFF' : theme.textTertiary} /> : null}
-              <Text
-                style={[
-                  styles.purchaseButtonText,
-                  { color: billingConfigured ? '#FFFFFF' : theme.textTertiary }
-                ]}
-              >
-                {billingConfigured
-                  ? purchaseLabel(planKey, plan)
-                  : isBetaAccess ? 'Available at launch' : 'Unavailable'}
+              <Text style={[styles.purchaseButtonText, { color: billingConfigured ? '#FFFFFF' : theme.textTertiary }]}>
+                {billingConfigured ? purchaseLabel(planKey, plan) : isBetaAccess ? 'Available at launch' : 'Unavailable'}
               </Text>
             </Pressable>
           ) : null}
@@ -174,9 +176,7 @@ export default function UpgradeScreen() {
 }
 
 function purchaseLabel(nextPlan: 'one' | 'one_ai', currentPlan: 'none' | 'one' | 'one_ai') {
-  if (nextPlan === 'one') {
-    return currentPlan === 'one_ai' ? 'Switch to ONE' : 'Start 7-day free trial';
-  }
+  if (nextPlan === 'one') return currentPlan === 'one_ai' ? 'Switch to ONE' : 'Get ONE';
   return currentPlan === 'one' ? 'Upgrade to ONE AI' : 'Get ONE AI';
 }
 
