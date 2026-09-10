@@ -9,6 +9,7 @@ const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL || ONE_SUPABASE_URL;
 const supabasePublishableKey =
   process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY || ONE_SUPABASE_PUBLISHABLE_KEY;
 
+export const ONE_AUTH_CALLBACK_URL = 'one://auth/callback';
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabasePublishableKey);
 
 export const supabase = createClient<Database>(supabaseUrl, supabasePublishableKey, {
@@ -16,7 +17,8 @@ export const supabase = createClient<Database>(supabaseUrl, supabasePublishableK
     ...(Platform.OS !== 'web' ? { storage: AsyncStorage } : {}),
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false
+    detectSessionInUrl: false,
+    flowType: 'pkce'
   }
 });
 
