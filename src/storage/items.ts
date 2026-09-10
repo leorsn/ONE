@@ -17,3 +17,9 @@ export async function loadItems(): Promise<OneItem[] | null> {
 export async function saveItems(items: OneItem[]) {
   await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(items));
 }
+
+export async function clearItems() {
+  // Persist an intentionally empty collection so development seed data does not
+  // reappear after a user explicitly clears or deletes their ONE account.
+  await AsyncStorage.setItem(STORAGE_KEY, '[]');
+}
