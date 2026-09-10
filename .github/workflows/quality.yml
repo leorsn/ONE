@@ -29,11 +29,5 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: TypeScript
-        run: npm run typecheck
-
-      - name: Expo dependency check
-        run: npx expo install --check
-
-      - name: Expo Doctor
-        run: npx expo-doctor@latest
+      - name: Quality gate
+        run: npm run quality
