@@ -1,6 +1,6 @@
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { isSupabaseConfigured, supabase } from '@/src/supabase/client';
+import { isSupabaseConfigured, ONE_AUTH_CALLBACK_URL, supabase } from '@/src/supabase/client';
 
 type AuthContextValue = {
   session: Session | null;
@@ -50,7 +50,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   async function signUp(email: string, password: string) {
     if (!supabase) return 'Cloud sync is not configured yet.';
-    const { error } = await supabase.auth.signUp({ email, password });
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: ONE_AUTH_CALLBACK_URL
+      }
+    });
     return error?.message ?? null;
   }
 
