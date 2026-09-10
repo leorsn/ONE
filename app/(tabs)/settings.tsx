@@ -1,25 +1,27 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { useOnboarding } from '@/src/context/OnboardingContext';
+import { usePlan } from '@/src/context/PlanContext';
+import { deleteOneAccount } from '@/src/supabase/account';
 import { IconTile, PageHeader, PrimaryButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
-import { usePlan } from '@/src/context/PlanContext';
 
 export default function SettingsScreen() {
   const theme = useTheme();
   const { session, configured, signIn, signUp, signOut } = useAuth();
-  const { cloudSyncing, items } = useItems();
+  const { cloudSyncing, items, clearAll } = useItems();
   const { reset: resetOnboarding } = useOnboarding();
   const { preference } = useThemePreference();
   const { plan, isBetaAccess, hasAi } = usePlan();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [deletingAccount, setDeletingAccount] = useState(false);
 
   async function runAuth(action: 'signin' | 'signup') {
     await Haptics.selectionAsync();
@@ -28,7 +30,66 @@ export default function SettingsScreen() {
       : await signUp(email.trim(), password);
 
     if (error) Alert.alert('ONE Account', error);
-    else if (action === 'signup') Alert.alert('ONE Account', 'Account created. Check your email if confirmation is enabled.');
+    else if (action === 'signup') Alert.alert('ONE Account', 'Account created. Check your email to confirm the account.');
+  }
+
+  function confirmDeleteAccount() {
+    if (deletingAccount) return;
+
+    Alert.alert(
+      'Delete ONE Account?',
+      'This permanently deletes your cloud memories, documents, attachments and ONE account. This cannot be undone.\n\nImportant: deleting your ONE account does not cancel an App Store subscription. Any active ONE or ONE AI subscription must be cancelled separately in your Apple subscriptions.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete Account',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Delete permanently?',
+              'Your ONE account and synced data will be permanently removed.',
+              [
+                { text: 'Keep Account', style: 'cancel' },
+                {
+                  text: 'Delete Permanently',
+                  style: 'destructive',
+                  onPress: () => void runDeleteAccount()
+                }
+              ]
+            );
+          }
+        }
+      ]
+    );
+  }
+
+  async function runDeleteAccount() {
+    if (deletingAccount) return;
+
+    setDeletingAccount(true);
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+
+    try {
+      const error = await deleteOneAccount();
+      if (error) {
+        Alert.alert('Could not delete account', error);
+        return;
+      }
+
+      await clearAll();
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      Alert.alert(
+        'ONE Account Deleted',
+        'Your ONE account and synced data have been deleted. If you have an active App Store subscription, manage it separately in your Apple subscription settings.'
+      );
+    } catch (error) {
+      Alert.alert(
+        'Could not delete account',
+        error instanceof Error ? error.message : 'Please try again.'
+      );
+    } finally {
+      setDeletingAccount(false);
+    }
   }
 
   return (
@@ -77,20 +138,20 @@ export default function SettingsScreen() {
               icon={icons.appearance}
               label="Appearance"
               value={appearanceLabel(preference)}
-              onPress={() => router.push("/settings/appearance")}
+              onPress={() => router.push('/settings/appearance')}
             />
             <SettingsRow
               icon={icons.bell}
               label="Notifications"
               value="Per item"
-              onPress={() => router.push("/settings/notifications")}
+              onPress={() => router.push('/settings/notifications')}
             />
             <SettingsRow icon={icons.cloud} label="Cloud sync" value={cloudSyncing ? 'Syncing…' : session ? 'Connected' : 'Sign in'} />
             <SettingsRow
               icon={icons.shield}
               label="Privacy"
               value="Private by default"
-              onPress={() => router.push("/settings/privacy")}
+              onPress={() => router.push('/settings/privacy')}
               last
             />
           </Surface>
@@ -110,6 +171,7 @@ export default function SettingsScreen() {
                   placeholderTextColor={theme.textTertiary}
                   autoCapitalize="none"
                   keyboardType="email-address"
+                  accessibilityLabel="Email address"
                   style={[styles.input, { color: theme.text, backgroundColor: theme.fill, borderColor: theme.border }]}
                 />
                 <TextInput
@@ -118,10 +180,11 @@ export default function SettingsScreen() {
                   placeholder="Password"
                   placeholderTextColor={theme.textTertiary}
                   secureTextEntry
+                  accessibilityLabel="Password"
                   style={[styles.input, { color: theme.text, backgroundColor: theme.fill, borderColor: theme.border }]}
                 />
                 <PrimaryButton label="Sign in" icon={icons.lock} onPress={() => runAuth('signin')} />
-                <Pressable onPress={() => runAuth('signup')} style={styles.createAccount}>
+                <Pressable accessibilityRole="button" accessibilityLabel="Create ONE account" onPress={() => runAuth('signup')} style={styles.createAccount}>
                   <Text style={[styles.createAccountText, { color: theme.accent }]}>Create an account</Text>
                 </Pressable>
               </View>
@@ -151,14 +214,31 @@ export default function SettingsScreen() {
             <SectionHeader title="Account" />
             <Surface>
               <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Sign out of ONE"
                 onPress={async () => {
                   await Haptics.selectionAsync();
                   await signOut();
                 }}
-                style={({ pressed }) => [styles.signOutRow, { opacity: pressed ? 0.6 : 1 }]}
+                style={({ pressed }) => [styles.accountActionRow, { borderBottomColor: theme.border, opacity: pressed ? 0.6 : 1 }]}
               >
                 <IconTile icon={icons.logout} tone="danger" size={36} />
-                <Text style={[styles.signOutText, { color: theme.danger }]}>Sign out</Text>
+                <Text style={[styles.accountActionText, { color: theme.danger }]}>Sign out</Text>
+              </Pressable>
+
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Delete ONE account permanently"
+                disabled={deletingAccount}
+                onPress={confirmDeleteAccount}
+                style={({ pressed }) => [styles.accountActionRow, { opacity: pressed || deletingAccount ? 0.6 : 1 }]}
+              >
+                <IconTile icon={icons.delete} tone="danger" size={36} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.accountActionText, { color: theme.danger }]}>Delete Account</Text>
+                  <Text style={[styles.deleteMeta, { color: theme.textTertiary }]}>Permanently delete ONE data</Text>
+                </View>
+                {deletingAccount ? <ActivityIndicator size="small" /> : <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />}
               </Pressable>
             </Surface>
           </View>
@@ -203,6 +283,8 @@ export default function SettingsScreen() {
     if (onPress) {
       return (
         <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`${label}. ${value}`}
           onPress={onPress}
           style={({ pressed }) => [
             styles.row,
@@ -245,8 +327,9 @@ const styles = StyleSheet.create({
   input: { minHeight: 50, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 14, fontSize: 15 },
   createAccount: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
   createAccountText: { fontSize: 13.5, fontWeight: '700' },
-  signOutRow: { minHeight: 62, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  signOutText: { fontSize: 15, fontWeight: '700' },
+  accountActionRow: { minHeight: 64, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11, borderBottomWidth: StyleSheet.hairlineWidth },
+  accountActionText: { fontSize: 15, fontWeight: '700' },
+  deleteMeta: { marginTop: 3, fontSize: 11.5 },
   footer: { textAlign: 'center', fontSize: 11.5, marginTop: -4 }
 });
 
@@ -267,4 +350,3 @@ function appearanceLabel(value: 'system' | 'light' | 'dark') {
   if (value === 'dark') return 'Dark';
   return 'System';
 }
-
