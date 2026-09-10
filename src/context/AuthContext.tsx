@@ -1,6 +1,11 @@
 import type { Session } from '@supabase/supabase-js';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import { isSupabaseConfigured, ONE_AUTH_CALLBACK_URL, supabase } from '@/src/supabase/client';
+import {
+  isSupabaseConfigured,
+  ONE_AUTH_CALLBACK_URL,
+  ONE_PASSWORD_RESET_URL,
+  supabase
+} from '@/src/supabase/client';
 
 type AuthContextValue = {
   session: Session | null;
@@ -8,6 +13,8 @@ type AuthContextValue = {
   configured: boolean;
   signIn: (email: string, password: string) => Promise<string | null>;
   signUp: (email: string, password: string) => Promise<string | null>;
+  requestPasswordReset: (email: string) => Promise<string | null>;
+  updatePassword: (password: string) => Promise<string | null>;
   signOut: () => Promise<void>;
 };
 
@@ -18,11 +25,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(isSupabaseConfigured);
 
   useEffect(() => {
-    if (!supabase) {
-      setLoading(false);
-      return;
-    }
-
     let mounted = true;
 
     supabase.auth.getSession().then(({ data }) => {
@@ -43,13 +45,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function signIn(email: string, password: string) {
-    if (!supabase) return 'Cloud sync is not configured yet.';
+    if (!isSupabaseConfigured) return 'Cloud sync is not configured yet.';
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     return error?.message ?? null;
   }
 
   async function signUp(email: string, password: string) {
-    if (!supabase) return 'Cloud sync is not configured yet.';
+    if (!isSupabaseConfigured) return 'Cloud sync is not configured yet.';
     const { error } = await supabase.auth.signUp({
       email,
       password,
@@ -60,13 +62,36 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return error?.message ?? null;
   }
 
+  async function requestPasswordReset(email: string) {
+    if (!isSupabaseConfigured) return 'Cloud sync is not configured yet.';
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: ONE_PASSWORD_RESET_URL
+    });
+    return error?.message ?? null;
+  }
+
+  async function updatePassword(password: string) {
+    if (!isSupabaseConfigured) return 'Cloud sync is not configured yet.';
+    const { error } = await supabase.auth.updateUser({ password });
+    return error?.message ?? null;
+  }
+
   async function signOut() {
-    if (!supabase) return;
+    if (!isSupabaseConfigured) return;
     await supabase.auth.signOut();
   }
 
   const value = useMemo(
-    () => ({ session, loading, configured: isSupabaseConfigured, signIn, signUp, signOut }),
+    () => ({
+      session,
+      loading,
+      configured: isSupabaseConfigured,
+      signIn,
+      signUp,
+      requestPasswordReset,
+      updatePassword,
+      signOut
+    }),
     [session, loading]
   );
 
