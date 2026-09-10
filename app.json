@@ -7,11 +7,16 @@
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": false,
-      "bundleIdentifier": "app.one.mobile"
+      "supportsTablet": true,
+      "bundleIdentifier": "app.one.mobile",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
-      "package": "app.one.mobile"
+      "package": "app.one.mobile",
+      "versionCode": 1
     },
     "web": {
       "bundler": "metro"
