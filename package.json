@@ -8,9 +8,11 @@
     "ios": "expo start --ios",
     "android": "expo start --android",
     "web": "expo start --web",
+    "web:export": "expo export --platform web --output-dir .expo-web-test",
     "lint": "expo lint",
+    "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit",
-    "quality": "npm run typecheck && npx expo install --check && npx expo-doctor@latest"
+    "quality": "npm run typecheck && npm run lint && npm test && npx expo install --check && npx expo-doctor@latest && npm run web:export"
   },
   "dependencies": {
     "@expo/ui": "~57.0.9",
