@@ -4,9 +4,10 @@ import { mockItems } from '@/src/data/mockItems';
 import { deleteCloudItem, pullCloudItems, upsertCloudItem } from '@/src/supabase/items';
 import { deleteSharedAttachment } from '@/src/supabase/attachments';
 import { cancelItemNotification, scheduleItemNotification } from '@/src/notifications/localNotifications';
-import { loadItems, saveItems } from '@/src/storage/items';
-import { removeLocalAttachment } from '@/src/storage/attachments';
+import { clearItems, loadItems, saveItems } from '@/src/storage/items';
+import { clearLocalAttachments, removeLocalAttachment } from '@/src/storage/attachments';
 import {
+  clearDeletionTombstones,
   loadDeletionTombstones,
   removeDeletionTombstone,
   saveDeletionTombstone
@@ -21,6 +22,7 @@ type ItemsContextValue = {
   update: (id: string, changes: Partial<OneItem>) => Promise<void>;
   toggleCompleted: (id: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
+  clearAll: () => Promise<void>;
 };
 
 const ItemsContext = createContext<ItemsContextValue | null>(null);
@@ -180,7 +182,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       updatedAt: new Date().toISOString()
     };
 
-    setItems((current) => current.map((item) => (item.id === id ? updated : item)));
+    setItems((current) => current.map((item) => (item.id === id ? updated : item));
 
     if (session?.user.id && shouldSyncItem(updated)) {
       try {
@@ -231,9 +233,28 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     }
   }, [items, session?.user.id]);
 
+  const clearAll = useCallback(async () => {
+    for (const item of items) {
+      if (!item.notificationId) continue;
+      try {
+        await cancelItemNotification(item.notificationId);
+      } catch (error) {
+        console.warn('ONE notification cleanup failed', error);
+      }
+    }
+
+    await Promise.all([
+      clearItems(),
+      clearDeletionTombstones(),
+      clearLocalAttachments()
+    ]);
+
+    setItems([]);
+  }, [items]);
+
   const value = useMemo(
-    () => ({ items, hydrated, cloudSyncing, add, update, toggleCompleted, remove }),
-    [items, hydrated, cloudSyncing, add, update, toggleCompleted, remove]
+    () => ({ items, hydrated, cloudSyncing, add, update, toggleCompleted, remove, clearAll }),
+    [items, hydrated, cloudSyncing, add, update, toggleCompleted, remove, clearAll]
   );
 
   return <ItemsContext.Provider value={value}>{children}</ItemsContext.Provider>;
