@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
+import Constants from 'expo-constants';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,6 +12,8 @@ import { deleteOneAccount } from '@/src/supabase/account';
 import { IconTile, PageHeader, PrimaryButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
+
+const APP_VERSION = Constants.expoConfig?.version || '0.1.0';
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -315,7 +318,7 @@ export default function SettingsScreen() {
           </View>
         ) : null}
 
-        <Text style={[styles.footer, { color: theme.textTertiary }]}>ONE · Version 0.1.0</Text>
+        <Text style={[styles.footer, { color: theme.textTertiary }]}>ONE · Version {APP_VERSION}</Text>
       </ScrollView>
     </SafeAreaView>
   );
