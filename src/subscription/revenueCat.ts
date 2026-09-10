@@ -44,6 +44,11 @@ export async function getRevenueCatPlan(): Promise<OnePlan> {
   return planFromCustomerInfo(customerInfo);
 }
 
+export async function getSubscriptionManagementURL(): Promise<string | undefined> {
+  const customerInfo = await Purchases.getCustomerInfo();
+  return customerInfo.managementURL ?? undefined;
+}
+
 export async function purchaseRevenueCatPlan(plan: PaidOnePlan): Promise<PurchaseOutcome> {
   try {
     const rcPackage = await packageForPlan(plan);
