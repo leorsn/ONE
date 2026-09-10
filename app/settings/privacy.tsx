@@ -1,6 +1,10 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useItems } from '@/src/context/ItemsContext';
+import { exportOneData } from '@/src/export/exportOneData';
 import { IconTile, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
@@ -30,12 +34,27 @@ const protections = [
 
 export default function PrivacyScreen() {
   const theme = useTheme();
+  const { items } = useItems();
+  const [exporting, setExporting] = useState(false);
+
+  async function runExport() {
+    if (exporting) return;
+
+    setExporting(true);
+    await Haptics.selectionAsync();
+    try {
+      const error = await exportOneData(items);
+      if (error) Alert.alert('Export ONE data', error);
+    } finally {
+      setExporting(false);
+    }
+  }
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <View style={styles.content}>
         <View style={styles.nav}>
-          <Pressable onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill }]}>
             <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
           </Pressable>
           <Text style={[styles.navTitle, { color: theme.text }]}>Privacy</Text>
@@ -45,9 +64,7 @@ export default function PrivacyScreen() {
         <View style={styles.hero}>
           <IconTile icon={icons.shield} size={52} />
           <Text style={[styles.title, { color: theme.text }]}>Private by default.</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            ONE is designed around personal memory. Access boundaries are part of the architecture, not an afterthought.
-          </Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>ONE is designed around personal memory. Access boundaries are part of the architecture, not an afterthought.</Text>
         </View>
 
         <Surface>
@@ -71,11 +88,28 @@ export default function PrivacyScreen() {
           ))}
         </Surface>
 
+        <Surface>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`Export ${items.length} ONE memories as JSON`}
+            disabled={exporting}
+            onPress={() => void runExport()}
+            style={({ pressed }) => [styles.exportRow, { opacity: pressed || exporting ? 0.6 : 1 }]}
+          >
+            <IconTile icon={icons.upload} tone="neutral" size={38} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.rowTitle, { color: theme.text }]}>Export my data</Text>
+              <Text style={[styles.rowBody, { color: theme.textSecondary }]}>
+                Export {items.length} {items.length === 1 ? 'memory' : 'memories'} as a structured JSON file.
+              </Text>
+            </View>
+            {exporting ? <ActivityIndicator size="small" /> : <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />}
+          </Pressable>
+        </Surface>
+
         <View style={[styles.notice, { backgroundColor: theme.accentSoft }]}>
           <OneIcon name={icons.shield} size={17} color={theme.accent} />
-          <Text style={[styles.noticeText, { color: theme.textSecondary }]}>
-            A complete consumer privacy policy and legal disclosure still need to be added before public release.
-          </Text>
+          <Text style={[styles.noticeText, { color: theme.textSecondary }]}>A complete consumer privacy policy and legal disclosure still need to be added before public release.</Text>
         </View>
       </View>
     </SafeAreaView>
@@ -84,14 +118,15 @@ export default function PrivacyScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 20, paddingTop: 8, gap: 24 },
+  content: { flex: 1, paddingHorizontal: 20, paddingTop: 8, gap: 20 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 16, fontWeight: '800' },
-  hero: { alignItems: 'center', paddingTop: 10 },
+  hero: { alignItems: 'center', paddingTop: 6 },
   title: { marginTop: 14, fontSize: 27, lineHeight: 32, fontWeight: '800', letterSpacing: -0.7, textAlign: 'center' },
   subtitle: { marginTop: 8, maxWidth: 340, fontSize: 13.5, lineHeight: 19, textAlign: 'center' },
   row: { minHeight: 82, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  exportRow: { minHeight: 76, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
   rowTitle: { fontSize: 14.5, fontWeight: '700' },
   rowBody: { marginTop: 4, fontSize: 12, lineHeight: 17 },
   notice: { minHeight: 62, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
