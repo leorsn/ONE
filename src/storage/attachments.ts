@@ -47,6 +47,11 @@ export async function removeLocalAttachment(uri?: string | null) {
   return true;
 }
 
+export async function clearLocalAttachments() {
+  if (!ROOT) return;
+  await FileSystem.deleteAsync(ROOT, { idempotent: true });
+}
+
 async function ensureRoot() {
   if (!ROOT) return;
 
