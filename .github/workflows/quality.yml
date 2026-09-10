@@ -31,5 +31,13 @@ jobs:
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
 
+      - name: Install pinned lint tooling
+        run: npm install --no-save --package-lock=false --no-audit --no-fund eslint@9.39.5 eslint-config-expo@57.0.2
+
       - name: Quality gate
         run: npm run quality
+
+      - name: Verify clean checkout
+        run: |
+          git status --short
+          test -z "$(git status --porcelain)"
