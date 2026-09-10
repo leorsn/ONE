@@ -182,7 +182,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       updatedAt: new Date().toISOString()
     };
 
-    setItems((current) => current.map((item) => (item.id === id ? updated : item));
+    setItems((current) => current.map((item) => (item.id === id ? updated : item)));
 
     if (session?.user.id && shouldSyncItem(updated)) {
       try {
