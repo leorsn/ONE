@@ -19,9 +19,22 @@ export default function InboxScreen() {
 
   const todayIso = toIsoDate(new Date());
   const active = items.filter((item) => !item.completed);
-  const today = active.filter((item) => item.date === todayIso || (!item.date && !item.saved));
-  const upcoming = active.filter((item) => item.date && item.date > todayIso && !item.saved).sort(sortByDateTime).slice(0, 5);
-  const saved = active.filter((item) => item.saved || ['link', 'idea', 'shopping', 'travel'].includes(item.type)).slice(0, 4);
+  const newItems = active
+    .filter((item) => item.date === todayIso || (!item.date && !item.saved))
+    .sort(sortUpdated)
+    .slice(0, 6);
+  const upcoming = active
+    .filter((item) => item.date && item.date > todayIso && ['task', 'reminder', 'appointment', 'event'].includes(item.type))
+    .sort(sortByDateTime)
+    .slice(0, 6);
+  const saved = active
+    .filter((item) => item.saved)
+    .sort(sortUpdated)
+    .slice(0, 5);
+  const completed = items
+    .filter((item) => item.completed)
+    .sort(sortUpdated)
+    .slice(0, 3);
 
   async function handleSave() {
     if (!parsed) return;
@@ -35,7 +48,7 @@ export default function InboxScreen() {
       time: parsed.time,
       category: parsed.category,
       completed: false,
-      saved: ['link', 'idea', 'shopping', 'travel'].includes(parsed.type),
+      saved: ['link', 'idea', 'shopping', 'travel', 'note', 'document'].includes(parsed.type),
       sourceType: 'manual',
       originalText: input,
       tags: parsed.category ? [parsed.category.toLowerCase()] : [],
@@ -53,7 +66,7 @@ export default function InboxScreen() {
       <ScrollView contentContainerStyle={uiStyles.screenContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <PageHeader
           title="Inbox"
-          subtitle="A calmer mind. A fuller life."
+          subtitle="Capture first. ONE keeps the rest organized."
           action={<RoundIconButton icon={icons.person} onPress={() => router.push('/(tabs)/settings')} accessibilityLabel="Open settings" />}
         />
 
@@ -105,11 +118,11 @@ export default function InboxScreen() {
         ) : null}
 
         <View style={styles.block}>
-          <SectionHeader title="Today" meta={String(today.length)} />
+          <SectionHeader title="New" meta={String(newItems.length)} />
           <Surface>
-            {today.length
-              ? today.map((item) => <OneItemRow key={item.id} item={item} onToggle={toggleCompleted} showDate={false} />)
-              : <EmptyState icon={icons.check} title="Clear for today" body="Anything you capture without a date will appear here." />}
+            {newItems.length
+              ? newItems.map((item) => <OneItemRow key={item.id} item={item} onToggle={toggleCompleted} showDate={item.date !== todayIso} />)
+              : <EmptyState icon={icons.check} title="Inbox clear" body="New captures without a future date appear here." />}
           </Surface>
         </View>
 
@@ -118,11 +131,7 @@ export default function InboxScreen() {
             title="Upcoming"
             meta={String(upcoming.length)}
             action={
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Open calendar"
-                onPress={() => router.push('/(tabs)/calendar')}
-              >
+              <Pressable accessibilityRole="button" accessibilityLabel="Open calendar" onPress={() => router.push('/(tabs)/calendar')}>
                 <Text style={[styles.textAction, { color: theme.accent }]}>Calendar</Text>
               </Pressable>
             }
@@ -130,20 +139,16 @@ export default function InboxScreen() {
           <Surface>
             {upcoming.length
               ? upcoming.map((item) => <OneItemRow key={item.id} item={item} onToggle={toggleCompleted} />)
-              : <EmptyState icon={icons.calendar} title="Nothing scheduled" body="Dated tasks and appointments will show up here." />}
+              : <EmptyState icon={icons.calendar} title="Nothing scheduled" body="Appointments, reminders, events and dated tasks appear here." />}
           </Surface>
         </View>
 
         <View style={styles.block}>
           <SectionHeader
-            title="Recently saved"
+            title="Saved"
             meta={String(saved.length)}
             action={
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="View all saved items"
-                onPress={() => router.push('/(tabs)/saved')}
-              >
+              <Pressable accessibilityRole="button" accessibilityLabel="View all saved items" onPress={() => router.push('/(tabs)/saved')}>
                 <Text style={[styles.textAction, { color: theme.accent }]}>View all</Text>
               </Pressable>
             }
@@ -151,9 +156,18 @@ export default function InboxScreen() {
           <Surface>
             {saved.length
               ? saved.map((item) => <OneItemRow key={item.id} item={item} />)
-              : <EmptyState icon={icons.saved} title="Your memory is empty" body="Links, ideas, travel and shared screenshots collect here." />}
+              : <EmptyState icon={icons.saved} title="Your memory is empty" body="Links, ideas, screenshots, documents and reference material collect here." />}
           </Surface>
         </View>
+
+        {completed.length ? (
+          <View style={styles.block}>
+            <SectionHeader title="Completed" meta={String(completed.length)} />
+            <Surface>
+              {completed.map((item) => <OneItemRow key={item.id} item={item} onToggle={toggleCompleted} />)}
+            </Surface>
+          </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
@@ -211,11 +225,15 @@ function iconForParsedType(type: OneItem['type']) {
   if (type === 'link') return icons.link;
   if (type === 'idea') return icons.idea;
   if (type === 'travel') return icons.travel;
+  if (type === 'document') return icons.document;
+  if (type === 'note') return icons.note;
+  if (type === 'event') return icons.event;
   return icons.task;
 }
 
 function labelForType(type: string) { return type.charAt(0).toUpperCase() + type.slice(1); }
 function sortByDateTime(a: OneItem, b: OneItem) { return `${a.date}T${a.time || '23:59'}`.localeCompare(`${b.date}T${b.time || '23:59'}`); }
+function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(); }
 function toIsoDate(date: Date) {
   const y = date.getFullYear();
   const m = String(date.getMonth() + 1).padStart(2, '0');
