@@ -18,9 +18,13 @@ export function OneItemRow({
   showChevron?: boolean;
 }) {
   const theme = useTheme();
+  const meta = metaFor(item, showDate);
 
   return (
     <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`${item.title}. ${meta}${item.completed ? '. Completed' : ''}`}
+      accessibilityHint="Opens item details"
       onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
       style={({ pressed }) => [
         styles.row,
@@ -29,6 +33,9 @@ export function OneItemRow({
     >
       {onToggle && !item.saved ? (
         <Pressable
+          accessibilityRole="checkbox"
+          accessibilityLabel={`${item.completed ? 'Mark as incomplete' : 'Mark as complete'}: ${item.title}`}
+          accessibilityState={{ checked: item.completed }}
           hitSlop={10}
           onPress={async (event) => {
             event.stopPropagation();
@@ -63,7 +70,7 @@ export function OneItemRow({
           {item.title}
         </Text>
         <Text style={[styles.meta, { color: theme.textSecondary }]} numberOfLines={1}>
-          {metaFor(item, showDate)}
+          {meta}
         </Text>
       </View>
 
