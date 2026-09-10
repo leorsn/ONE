@@ -1,9 +1,11 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { AppState } from 'react-native';
 import { useAuth } from '@/src/context/AuthContext';
 import { mockItems } from '@/src/data/mockItems';
-import { deleteCloudItem, pullCloudItems, upsertCloudItem } from '@/src/supabase/items';
+import { deleteCloudItem, pullCloudItems } from '@/src/supabase/items';
 import { deleteSharedAttachment } from '@/src/supabase/attachments';
 import { cancelItemNotification, scheduleItemNotification } from '@/src/notifications/localNotifications';
+import { isRemindable, notificationTransition } from '@/src/notifications/policy';
 import {
   clearItems,
   itemStorageScope,
@@ -18,6 +20,8 @@ import {
   removeDeletionTombstone,
   saveDeletionTombstone
 } from '@/src/storage/deletions';
+import { syncItemToCloud } from '@/src/sync/cloudItem';
+import { canApplyScopedSyncResult, preserveDeviceLocalState, resolveCloudSnapshot } from '@/src/sync/merge';
 import type { OneItem } from '@/src/types/item';
 
 type ItemsContextValue = {
@@ -41,12 +45,20 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   const [items, setItems] = useState<OneItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
   const [cloudSyncing, setCloudSyncing] = useState(false);
+  const [syncRevision, setSyncRevision] = useState(0);
   const activeScopeRef = useRef<ItemStorageScope | null>(null);
   const itemsRef = useRef<OneItem[]>([]);
 
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') setSyncRevision((value) => value + 1);
+    });
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
@@ -57,8 +69,6 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     async function hydrateScope() {
       try {
-        // A signed-out or different-account user must never keep receiving
-        // lock-screen reminders containing the previous account's private data.
         if (
           previousScope &&
           previousScope !== desiredScope &&
@@ -72,20 +82,19 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         const stored = await loadItems(desiredScope);
         let nextItems = stored ?? (desiredScope === 'anonymous' ? DEVELOPMENT_SEED_ITEMS : []);
 
-        if (desiredScope !== 'anonymous') {
-          // Development demo memories must never become part of an authenticated
-          // user's local account partition or cloud sync input.
-          nextItems = nextItems.filter(shouldSyncItem);
+        if (desiredScope === 'anonymous') {
+          nextItems = nextItems.map((item) => ({ ...item, syncState: 'local' }));
+        } else {
+          nextItems = nextItems
+            .filter(shouldSyncItem)
+            .map((item) => ({ ...item, syncState: item.syncState || 'pending' }));
         }
 
         if (previousScope === 'anonymous' && desiredScope !== 'anonymous') {
-          const transferable = itemsRef.current.filter(shouldSyncItem);
-          if (transferable.length) {
-            nextItems = mergeByUpdatedAt(transferable, nextItems);
-          }
-
-          // Once the user explicitly signs in, their real anonymous captures move
-          // into that account and are removed from the signed-out device scope.
+          const transferable = itemsRef.current
+            .filter(shouldSyncItem)
+            .map((item) => ({ ...item, syncState: 'pending' as const }));
+          if (transferable.length) nextItems = mergeByUpdatedAt(transferable, nextItems);
           await clearItems('anonymous');
         }
 
@@ -103,7 +112,9 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         console.warn('ONE local storage hydration failed', error);
         if (cancelled) return;
 
-        const fallback = desiredScope === 'anonymous' ? DEVELOPMENT_SEED_ITEMS : [];
+        const fallback = desiredScope === 'anonymous'
+          ? DEVELOPMENT_SEED_ITEMS.map((item) => ({ ...item, syncState: 'local' as const }))
+          : [];
         activeScopeRef.current = desiredScope;
         itemsRef.current = fallback;
         setItems(fallback);
@@ -129,7 +140,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     const userId = session?.user.id;
     if (!userId || !hydrated || activeScopeRef.current !== desiredScope) return;
     const syncUserId = userId;
-
+    const syncScope = itemStorageScope(syncUserId);
     let cancelled = false;
 
     async function syncFromCloud() {
@@ -139,30 +150,36 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
           pullCloudItems(),
           loadDeletionTombstones(syncUserId)
         ]);
-        if (cancelled) return;
+        if (cancelled || !canApplyScopedSyncResult(syncScope, activeScopeRef.current)) return;
 
         const deletedIds = new Set(activeTombstones.map((entry) => entry.id));
-        const visibleLocal = items.filter((item) => !deletedIds.has(item.id));
+        const localSnapshot = itemsRef.current.filter((item) => !deletedIds.has(item.id));
         const visibleCloud = cloud.filter((item) => !deletedIds.has(item.id));
+        const resolution = resolveCloudSnapshot(localSnapshot, visibleCloud);
 
-        const merged = await reconcileItemNotifications(
-          mergeByUpdatedAt(visibleLocal, visibleCloud)
-        );
-        if (cancelled) return;
+        for (const remotelyDeleted of resolution.remoteDeleted) {
+          await cleanupDeviceState(remotelyDeleted);
+        }
+
+        let merged = await reconcileItemNotifications(resolution.merged);
+        if (cancelled || !canApplyScopedSyncResult(syncScope, activeScopeRef.current)) return;
+        itemsRef.current = merged;
         setItems(merged);
 
-        const cloudById = new Map(visibleCloud.map((item) => [item.id, item]));
-        const localToUpload = visibleLocal.filter((localItem) => {
-          if (!shouldSyncItem(localItem)) return false;
-          const cloudItem = cloudById.get(localItem.id);
-          return (
-            !cloudItem ||
-            new Date(localItem.updatedAt).getTime() > new Date(cloudItem.updatedAt).getTime()
-          );
-        });
-
-        if (localToUpload.length) {
-          await Promise.all(localToUpload.map((item) => upsertCloudItem(item, syncUserId)));
+        for (const candidate of resolution.localToUpload.filter(shouldSyncItem)) {
+          try {
+            const synced = await syncItemToCloud(candidate, syncUserId);
+            if (cancelled || !canApplyScopedSyncResult(syncScope, activeScopeRef.current)) return;
+            merged = merged.map((item) =>
+              item.id === synced.id
+                ? preserveDeviceLocalState(synced, item)
+                : item
+            );
+            itemsRef.current = merged;
+            setItems(merged);
+          } catch (error) {
+            console.warn('ONE deferred item sync failed; capture remains local', error);
+          }
         }
 
         for (const tombstone of activeTombstones) {
@@ -175,7 +192,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
           }
         }
       } catch (error) {
-        console.warn('ONE cloud sync failed', error);
+        console.warn('ONE cloud sync failed; local data preserved', error);
       } finally {
         if (!cancelled) setCloudSyncing(false);
       }
@@ -185,98 +202,95 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [session?.user.id, hydrated, desiredScope]);
+  }, [session?.user.id, hydrated, desiredScope, syncRevision]);
 
   const add = useCallback(async (item: OneItem) => {
-    const notificationId = await scheduleItemNotification(item);
-    const withNotification = notificationId ? { ...item, notificationId } : item;
-    setItems((current) => [withNotification, ...current]);
+    const userId = session?.user.id;
+    const scope = itemStorageScope(userId);
+    const base: OneItem = {
+      ...item,
+      syncState: userId ? 'pending' : 'local'
+    };
+    const notificationId = isRemindable(base) ? await scheduleItemNotification(base) : undefined;
+    const local = notificationId ? { ...base, notificationId } : base;
 
-    if (session?.user.id && shouldSyncItem(withNotification)) {
-      try {
-        await upsertCloudItem(withNotification, session.user.id);
-      } catch (error) {
-        console.warn('ONE cloud add failed', error);
-      }
+    itemsRef.current = [local, ...itemsRef.current];
+    setItems((current) => [local, ...current]);
+
+    if (!userId || !shouldSyncItem(local)) return;
+
+    try {
+      const synced = await syncItemToCloud(local, userId);
+      if (!canApplyScopedSyncResult(scope, activeScopeRef.current)) return;
+      setItems((current) => current.map((candidate) =>
+        candidate.id === synced.id ? preserveDeviceLocalState(synced, candidate) : candidate
+      ));
+    } catch (error) {
+      console.warn('ONE cloud add deferred until reconnect', error);
     }
   }, [session?.user.id]);
 
   const update = useCallback(async (id: string, changes: Partial<OneItem>) => {
-    const currentItem = items.find((item) => item.id === id);
+    const currentItem = itemsRef.current.find((item) => item.id === id);
     if (!currentItem) return;
 
-    if (currentItem.notificationId) {
-      await cancelItemNotification(currentItem.notificationId);
-    }
-
+    const userId = session?.user.id;
+    const scope = itemStorageScope(userId);
     const baseUpdated: OneItem = {
       ...currentItem,
       ...changes,
-      notificationId: undefined,
+      syncState: userId ? 'pending' : 'local',
       updatedAt: new Date().toISOString()
     };
 
-    const notificationId =
-      !baseUpdated.completed && baseUpdated.date
-        ? await scheduleItemNotification(baseUpdated)
-        : undefined;
-
-    const updated = notificationId ? { ...baseUpdated, notificationId } : baseUpdated;
-
-    setItems((current) => current.map((item) => (item.id === id ? updated : item)));
-
-    if (session?.user.id && shouldSyncItem(updated)) {
-      try {
-        await upsertCloudItem(updated, session.user.id);
-      } catch (error) {
-        console.warn('ONE cloud edit failed', error);
-      }
-    }
-  }, [items, session?.user.id]);
-
-  const toggleCompleted = useCallback(async (id: string) => {
-    const currentItem = items.find((item) => item.id === id);
-    if (!currentItem) return;
-
-    const nextCompleted = !currentItem.completed;
+    const transition = notificationTransition(currentItem, baseUpdated);
     let notificationId = currentItem.notificationId;
 
-    if (nextCompleted) {
+    if (transition === 'cancel' || transition === 'reschedule') {
       await cancelItemNotification(notificationId);
       notificationId = undefined;
-    } else if (currentItem.date) {
-      notificationId = await scheduleItemNotification({ ...currentItem, completed: false });
+    }
+    if (transition === 'schedule' || transition === 'reschedule') {
+      notificationId = await scheduleItemNotification(baseUpdated);
     }
 
-    const updated: OneItem = {
-      ...currentItem,
-      completed: nextCompleted,
-      notificationId,
-      updatedAt: new Date().toISOString()
-    };
-
+    const updated: OneItem = { ...baseUpdated, notificationId };
+    itemsRef.current = itemsRef.current.map((item) => (item.id === id ? updated : item));
     setItems((current) => current.map((item) => (item.id === id ? updated : item)));
 
-    if (session?.user.id && shouldSyncItem(updated)) {
-      try {
-        await upsertCloudItem(updated, session.user.id, { refreshEmbedding: false });
-      } catch (error) {
-        console.warn('ONE cloud update failed', error);
-      }
+    if (!userId || !shouldSyncItem(updated)) return;
+
+    try {
+      const synced = await syncItemToCloud(updated, userId);
+      if (!canApplyScopedSyncResult(scope, activeScopeRef.current)) return;
+      setItems((current) => current.map((candidate) =>
+        candidate.id === synced.id ? preserveDeviceLocalState(synced, candidate) : candidate
+      ));
+    } catch (error) {
+      console.warn('ONE cloud edit deferred until reconnect', error);
     }
-  }, [items, session?.user.id]);
+  }, [session?.user.id]);
+
+  const toggleCompleted = useCallback(async (id: string) => {
+    const currentItem = itemsRef.current.find((item) => item.id === id);
+    if (!currentItem) return;
+    await update(id, { completed: !currentItem.completed });
+  }, [update]);
 
   const remove = useCallback(async (id: string) => {
-    const currentItem = items.find((item) => item.id === id);
+    const currentItem = itemsRef.current.find((item) => item.id === id);
     if (!currentItem) return;
 
-    if (currentItem.notificationId) {
-      await cancelItemNotification(currentItem.notificationId);
-    }
+    if (currentItem.notificationId) await cancelItemNotification(currentItem.notificationId);
 
-    const attachmentPaths = Array.from(
-      new Set([currentItem.attachmentUrl, currentItem.imageUrl].filter((value): value is string => Boolean(value)))
-    );
+    const cloudAttachmentPaths = Array.from(new Set(
+      [currentItem.attachmentUrl, currentItem.imageUrl]
+        .filter((value): value is string => Boolean(value && !/^(file|content|ph):\/\//i.test(value)))
+    ));
+    const localAttachmentPaths = Array.from(new Set(
+      [currentItem.localAttachmentUri, currentItem.attachmentUrl, currentItem.imageUrl]
+        .filter((value): value is string => Boolean(value && /^(file|content|ph):\/\//i.test(value)))
+    ));
     const userId = session?.user.id;
 
     if (userId) {
@@ -284,13 +298,14 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         id,
         deletedAt: new Date().toISOString(),
         userId,
-        attachmentPaths
+        attachmentPaths: cloudAttachmentPaths
       });
     }
 
+    itemsRef.current = itemsRef.current.filter((item) => item.id !== id);
     setItems((current) => current.filter((item) => item.id !== id));
 
-    for (const path of attachmentPaths) {
+    for (const path of localAttachmentPaths) {
       try {
         await removeLocalAttachment(path);
       } catch (error) {
@@ -302,42 +317,25 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     try {
       await deleteCloudItem(id);
-      await removeCloudAttachments(attachmentPaths, userId);
+      await removeCloudAttachments(cloudAttachmentPaths, userId);
       await removeDeletionTombstone(id, userId);
     } catch (error) {
       console.warn('ONE cloud delete deferred until reconnect', error);
     }
-  }, [items, session?.user.id]);
+  }, [session?.user.id]);
 
   const clearAll = useCallback(async () => {
     const currentScope = desiredScope;
     const currentUserId = session?.user.id;
 
-    for (const item of items) {
-      if (item.notificationId) {
-        try {
-          await cancelItemNotification(item.notificationId);
-        } catch (error) {
-          console.warn('ONE notification cleanup failed', error);
-        }
-      }
-
-      const localPaths = [item.attachmentUrl, item.imageUrl].filter((value): value is string => Boolean(value));
-      for (const path of localPaths) {
-        try {
-          await removeLocalAttachment(path);
-        } catch (error) {
-          console.warn('ONE local attachment cleanup failed', error);
-        }
-      }
-    }
+    for (const item of itemsRef.current) await cleanupDeviceState(item);
 
     await clearItems(currentScope);
     if (currentUserId) await clearDeletionTombstones(currentUserId);
 
     itemsRef.current = [];
     setItems([]);
-  }, [items, desiredScope, session?.user.id]);
+  }, [desiredScope, session?.user.id]);
 
   const value = useMemo(
     () => ({ items, hydrated, cloudSyncing, add, update, toggleCompleted, remove, clearAll }),
@@ -376,7 +374,7 @@ async function reconcileItemNotifications(items: OneItem[]) {
   const next: OneItem[] = [];
 
   for (const item of items) {
-    if (item.completed || !item.date) {
+    if (!isRemindable(item)) {
       if (item.notificationId) {
         try {
           await cancelItemNotification(item.notificationId);
@@ -405,6 +403,29 @@ async function reconcileItemNotifications(items: OneItem[]) {
   return next;
 }
 
+async function cleanupDeviceState(item: OneItem) {
+  if (item.notificationId) {
+    try {
+      await cancelItemNotification(item.notificationId);
+    } catch (error) {
+      console.warn('ONE notification cleanup failed', error);
+    }
+  }
+
+  const localPaths = Array.from(new Set(
+    [item.localAttachmentUri, item.attachmentUrl, item.imageUrl]
+      .filter((value): value is string => Boolean(value && /^(file|content|ph):\/\//i.test(value)))
+  ));
+
+  for (const path of localPaths) {
+    try {
+      await removeLocalAttachment(path);
+    } catch (error) {
+      console.warn('ONE local attachment cleanup failed', error);
+    }
+  }
+}
+
 async function removeCloudAttachments(paths: string[], userId: string) {
   for (const path of paths) {
     if (!path.startsWith(userId + '/')) continue;
@@ -418,14 +439,7 @@ function mergeByUpdatedAt(local: OneItem[], cloud: OneItem[]) {
   for (const item of [...local, ...cloud]) {
     const existing = merged.get(item.id);
     if (!existing || new Date(item.updatedAt).getTime() >= new Date(existing.updatedAt).getTime()) {
-      // notificationId is device-local state and intentionally never stored in
-      // Supabase. Preserve it when the cloud row wins the data merge.
-      merged.set(
-        item.id,
-        !item.notificationId && existing?.notificationId
-          ? { ...item, notificationId: existing.notificationId }
-          : item
-      );
+      merged.set(item.id, existing ? preserveDeviceLocalState(item, existing) : item);
     }
   }
 
