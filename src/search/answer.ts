@@ -1,7 +1,8 @@
+import { buildGroundedRecallAnswer } from '@/src/search/grounded';
 import type { OneItem } from '@/src/types/item';
 
 export type OneDirectAnswer = {
-  kind: 'spend_total' | 'amount_threshold' | 'document_count' | 'date';
+  kind: 'spend_total' | 'amount_threshold' | 'document_count' | 'memory';
   title: string;
   body: string;
   meta?: string;
@@ -36,12 +37,7 @@ export function buildDirectAnswer(
   const threshold = extractAmountThreshold(normalized);
 
   if (threshold !== undefined && mentionsDocuments(normalized)) {
-    const kind = normalized.includes('invoice') || normalized.includes('rechnung')
-      ? 'invoice'
-      : normalized.includes('receipt') || normalized.includes('beleg') || normalized.includes('bon')
-        ? 'receipt'
-        : undefined;
-
+    const kind = requestedDocumentKind(normalized);
     const matching = items
       .filter((item) => item.amount !== undefined && item.amount > threshold)
       .filter((item) => !kind || item.documentKind === kind)
@@ -49,22 +45,17 @@ export function buildDirectAnswer(
 
     if (matching.length) {
       const currency = dominantCurrency(matching);
-      const noun = german
-        ? matching.length === 1 ? 'Dokument' : 'Dokumente'
-        : matching.length === 1 ? 'document' : 'documents';
-      const preposition = german ? 'über ' : ' over ';
-
       return {
         kind: 'amount_threshold',
         title: german
-          ? String(matching.length) + ' ' + noun + ' ' + preposition + formatMoney(threshold, currency, true)
-          : String(matching.length) + ' ' + noun + preposition + formatMoney(threshold, currency, false),
+          ? `${matching.length} ${matching.length === 1 ? 'Dokument' : 'Dokumente'} über ${formatMoney(threshold, currency, true)}`
+          : `${matching.length} ${matching.length === 1 ? 'document' : 'documents'} over ${formatMoney(threshold, currency, false)}`,
         body: matching
           .slice(0, 3)
-          .map((item) => (item.merchant || item.title) + ' · ' + formatMoney(item.amount!, item.currency || currency, german))
+          .map((item) => `${item.merchant || item.title} · ${formatMoney(item.amount!, item.currency || currency, german)}`)
           .join('\n'),
         meta: matching.length > 3
-          ? german ? '+ ' + String(matching.length - 3) + ' weitere' : '+ ' + String(matching.length - 3) + ' more'
+          ? german ? `+ ${matching.length - 3} weitere` : `+ ${matching.length - 3} more`
           : undefined,
         itemIds: matching.map((item) => item.id)
       };
@@ -79,18 +70,15 @@ export function buildDirectAnswer(
 
     if (matching.length) {
       const totals = groupTotals(matching);
-      const period = formatWindow(window, german);
       const totalText = Object.entries(totals)
         .map(([currency, total]) => formatMoney(total, currency, german))
         .join(' + ');
-      const receiptWord = german
-        ? matching.length === 1 ? 'Beleg' : 'Belege'
-        : matching.length === 1 ? 'receipt' : 'receipts';
+      const period = formatWindow(window, german);
 
       return {
         kind: 'spend_total',
         title: totalText,
-        body: String(matching.length) + ' ' + receiptWord + (period ? ' · ' + period : ''),
+        body: `${matching.length} ${german ? (matching.length === 1 ? 'Beleg' : 'Belege') : (matching.length === 1 ? 'receipt' : 'receipts')}${period ? ` · ${period}` : ''}`,
         meta: german ? 'Aus deinen gespeicherten Belegen' : 'From your saved receipts',
         itemIds: matching.map((item) => item.id)
       };
@@ -98,11 +86,7 @@ export function buildDirectAnswer(
   }
 
   if (mentionsCount(normalized) && mentionsDocuments(normalized)) {
-    const kind = normalized.includes('invoice') || normalized.includes('rechnung')
-      ? 'invoice'
-      : normalized.includes('receipt') || normalized.includes('beleg') || normalized.includes('bon')
-        ? 'receipt'
-        : undefined;
+    const kind = requestedDocumentKind(normalized);
     const matching = items.filter((item) => item.type === 'document' && (!kind || item.documentKind === kind));
 
     return {
@@ -115,20 +99,15 @@ export function buildDirectAnswer(
     };
   }
 
-  if (bestMatch?.date && /\b(wann|when)\b/.test(normalized)) {
-    const details = [formatDate(bestMatch.date, german), bestMatch.time, bestMatch.location]
-      .filter(Boolean)
-      .join(' · ');
+  const grounded = buildGroundedRecallAnswer(query, items, bestMatch);
+  if (grounded) return { kind: 'memory', ...grounded };
 
-    return {
-      kind: 'date',
-      title: bestMatch.title,
-      body: details,
-      meta: german ? 'Bester Treffer in ONE' : 'Best match in ONE',
-      itemIds: [bestMatch.id]
-    };
-  }
+  return undefined;
+}
 
+function requestedDocumentKind(value: string) {
+  if (value.includes('invoice') || value.includes('rechnung')) return 'invoice' as const;
+  if (value.includes('receipt') || value.includes('beleg') || value.includes('bon')) return 'receipt' as const;
   return undefined;
 }
 
@@ -156,7 +135,6 @@ function extractAmountThreshold(value: string) {
 function parseLooseNumber(value: string) {
   const comma = value.lastIndexOf(',');
   const dot = value.lastIndexOf('.');
-
   if (comma > dot) return Number(value.replace(/\./g, '').replace(',', '.'));
   if (dot > comma && value.length - dot - 1 === 3) return Number(value.replace(/\./g, ''));
   return Number(value.replace(/,/g, ''));
@@ -165,9 +143,7 @@ function parseLooseNumber(value: string) {
 type DateWindow = { start?: Date; end?: Date; labelMonth?: number; labelYear?: number };
 
 function resolveDateWindow(value: string, now: Date): DateWindow {
-  if (/this month|diesen monat/.test(value)) {
-    return monthWindow(now.getFullYear(), now.getMonth());
-  }
+  if (/this month|diesen monat/.test(value)) return monthWindow(now.getFullYear(), now.getMonth());
 
   if (/last month|letzten monat|vorigen monat/.test(value)) {
     const date = new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -198,7 +174,7 @@ function monthWindow(year: number, month: number): DateWindow {
 function isWithinWindow(iso: string | undefined, window: DateWindow) {
   if (!window.start || !window.end) return true;
   if (!iso) return false;
-  const date = new Date(iso + 'T12:00:00');
+  const date = new Date(`${iso}T12:00:00`);
   return date >= window.start && date < window.end;
 }
 
@@ -229,7 +205,7 @@ function formatMoney(amount: number, currency: string, german: boolean) {
       maximumFractionDigits: 2
     }).format(amount);
   } catch {
-    return amount.toFixed(2) + ' ' + currency;
+    return `${amount.toFixed(2)} ${currency}`;
   }
 }
 
@@ -241,18 +217,8 @@ function formatWindow(window: DateWindow, german: boolean) {
   }).format(new Date(window.labelYear, window.labelMonth, 1));
 }
 
-function formatDate(iso: string, german: boolean) {
-  const date = new Date(iso + 'T12:00:00');
-  return new Intl.DateTimeFormat(german ? 'de-DE' : 'en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric'
-  }).format(date);
-}
-
 function looksGerman(value: string) {
-  return /\b(wie|viel|wann|beleg|rechnung|ausgegeben|bezahlt|monat|uber|zeigen|zeig|mir)\b/.test(value);
+  return /\b(wie|viel|wann|wo|beleg|rechnung|ausgegeben|bezahlt|monat|uber|zeigen|zeig|mir|geschenk|idee)\b/.test(value);
 }
 
 function normalize(value: string) {
