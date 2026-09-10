@@ -10,6 +10,7 @@ import {
 import {
   configureRevenueCat,
   getRevenueCatPlan,
+  getSubscriptionManagementURL,
   isRevenueCatConfigured,
   purchaseRevenueCatPlan,
   restoreRevenueCatPurchases,
@@ -22,6 +23,7 @@ type PlanContextValue = {
   hasAi: boolean;
   isBetaAccess: boolean;
   billingConfigured: boolean;
+  managementUrl?: string;
   loading: boolean;
   purchasing: boolean;
   purchase: (plan: PaidOnePlan) => Promise<PurchaseOutcome>;
@@ -35,6 +37,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
   const [plan, setPlan] = useState<OnePlan>(BETA_PLAN);
   const [billingConfigured, setBillingConfigured] = useState(false);
+  const [managementUrl, setManagementUrl] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
 
@@ -47,21 +50,28 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       if (!configured) {
         setBillingConfigured(false);
         setPlan(BETA_PLAN);
+        setManagementUrl(undefined);
         return;
       }
 
-      const nextPlan = await getRevenueCatPlan();
+      const [nextPlan, nextManagementUrl] = await Promise.all([
+        getRevenueCatPlan(),
+        getSubscriptionManagementURL()
+      ]);
       setBillingConfigured(true);
       setPlan(nextPlan);
+      setManagementUrl(nextManagementUrl);
     } catch (error) {
       console.warn('ONE subscription refresh failed', error);
 
       if (isRevenueCatConfigured()) {
         setBillingConfigured(true);
         setPlan('none');
+        setManagementUrl(undefined);
       } else {
         setBillingConfigured(false);
         setPlan(BETA_PLAN);
+        setManagementUrl(undefined);
       }
     } finally {
       setLoading(false);
@@ -91,7 +101,10 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     setPurchasing(true);
     try {
       const outcome = await purchaseRevenueCatPlan(nextPlan);
-      if (outcome.ok && outcome.plan) setPlan(outcome.plan);
+      if (outcome.ok && outcome.plan) {
+        setPlan(outcome.plan);
+        setManagementUrl(await getSubscriptionManagementURL());
+      }
       return outcome;
     } finally {
       setPurchasing(false);
@@ -109,7 +122,10 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     setPurchasing(true);
     try {
       const outcome = await restoreRevenueCatPurchases();
-      if (outcome.ok && outcome.plan) setPlan(outcome.plan);
+      if (outcome.ok && outcome.plan) {
+        setPlan(outcome.plan);
+        setManagementUrl(await getSubscriptionManagementURL());
+      }
       return outcome;
     } finally {
       setPurchasing(false);
@@ -123,13 +139,14 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       hasAi: hasPlanFeature(plan, 'ask_one'),
       isBetaAccess: !billingConfigured,
       billingConfigured,
+      managementUrl,
       loading,
       purchasing,
       purchase,
       restore,
       refresh
     }),
-    [plan, billingConfigured, loading, purchasing, purchase, restore, refresh]
+    [plan, billingConfigured, managementUrl, loading, purchasing, purchase, restore, refresh]
   );
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;
