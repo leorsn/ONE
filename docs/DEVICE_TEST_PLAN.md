@@ -98,6 +98,9 @@ Verify direct answers, supporting memories and follow-up context.
 ## 8. Account and cloud sync
 
 - Create account / sign in.
+- Confirm the account email from the same iPhone and verify the deep link returns to ONE.
+- Sign out, tap `Forgot password?`, open the reset email on the same iPhone and set a new password.
+- Sign out again and confirm the new password works and the old password no longer works.
 - Add an item while signed in.
 - Restart app and confirm persistence.
 - Confirm cloud sync status.
@@ -106,6 +109,7 @@ Verify direct answers, supporting memories and follow-up context.
 - Delete a cloud-backed item while offline, restart, reconnect and confirm it does not return.
 - Confirm deferred cloud attachment cleanup completes after reconnect.
 - Confirm built-in development seed items never appear in the authenticated cloud account.
+- Delete the ONE account from Settings and confirm cloud items, attachments, local items and scheduled notifications are removed.
 
 ## 9. Subscription UI
 
@@ -117,11 +121,14 @@ Beta build without RevenueCat keys:
 Store-connected sandbox build:
 
 - no entitlement => hard paywall after onboarding
+- auth confirmation/password-reset deep links remain reachable even while the paywall is active
 - ONE purchase => base access
 - ONE AI purchase => Ask ONE access
 - Restore Purchases works
+- Manage Subscription opens the RevenueCat/App Store management destination
 - returning from background refreshes entitlement state
 - introductory offer copy does not promise eligibility to every user
+- deleting a ONE account does not falsely claim that the App Store subscription was cancelled
 
 ## 10. iPad
 
@@ -143,7 +150,11 @@ The first beta passes when there are no blocker crashes and the following work e
 - Documents
 - Share to ONE
 - Ask ONE
+- account confirmation
+- password recovery
 - account/cloud persistence
 - offline delete reconciliation
+- account deletion
+- subscription management
 
 Log every issue with screen, exact action, expected result, actual result and screenshot when possible.
