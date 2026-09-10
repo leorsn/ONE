@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Linking, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,6 +26,7 @@ export default function ItemDetailScreen() {
   const [saved, setSaved] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [activePicker, setActivePicker] = useState<'date' | 'time' | null>(null);
 
   useEffect(() => {
     if (!item) return;
@@ -44,7 +46,7 @@ export default function ItemDetailScreen() {
       <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
         <View style={styles.missing}>
           <EmptyState icon={icons.note} title="Item not found" body="This memory may have been removed." />
-          <Pressable onPress={() => router.back()}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()}>
             <Text style={{ color: theme.accent, fontWeight: '700' }}>Go back</Text>
           </Pressable>
         </View>
@@ -55,7 +57,7 @@ export default function ItemDetailScreen() {
   const currentItem = item;
 
   async function saveChanges() {
-    if (!title.trim()) return;
+    if (!title.trim() || saving) return;
     setSaving(true);
     try {
       await update(currentItem.id, {
@@ -95,11 +97,11 @@ export default function ItemDetailScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
-          <Pressable onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill }]}>
             <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
           </Pressable>
           <Text style={[styles.navTitle, { color: theme.text }]}>Details</Text>
-          <Pressable onPress={confirmDelete} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Delete item" onPress={confirmDelete} style={[styles.navButton, { backgroundColor: theme.fill }]}>
             <OneIcon name={icons.delete} size={17} color={theme.danger} />
           </Pressable>
         </View>
@@ -132,7 +134,7 @@ export default function ItemDetailScreen() {
             </View>
             <View style={[styles.documentDetails, { borderTopColor: theme.border }]}>
               {currentItem.merchant ? <InfoLine label="Merchant" value={currentItem.merchant} /> : null}
-              {currentItem.date ? <InfoLine label="Date" value={currentItem.date} /> : null}
+              {currentItem.date ? <InfoLine label="Date" value={formatHumanDate(currentItem.date)} /> : null}
               {currentItem.currency ? <InfoLine label="Currency" value={currentItem.currency} /> : null}
             </View>
           </Surface>
@@ -146,15 +148,16 @@ export default function ItemDetailScreen() {
             style={[styles.titleInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
             placeholder="Title"
             placeholderTextColor={theme.textTertiary}
+            accessibilityLabel="Item title"
             multiline
           />
         </View>
 
         <Surface>
-          <FieldRow label="Date" value={date} onChange={setDate} placeholder="YYYY-MM-DD" icon={icons.calendar} />
-          <FieldRow label="Time" value={time} onChange={setTime} placeholder="HH:MM" icon={icons.clock} />
-          <FieldRow label="Category" value={category} onChange={setCategory} placeholder="General" icon={icons.saved} />
-          <FieldRow label="Location" value={location} onChange={setLocation} placeholder="Optional" icon={icons.travel} last />
+          <DateTimeFieldRow kind="date" label="Date" value={date} icon={icons.calendar} />
+          <DateTimeFieldRow kind="time" label="Time" value={time} icon={icons.clock} />
+          <TextFieldRow label="Category" value={category} onChange={setCategory} placeholder="General" icon={icons.saved} />
+          <TextFieldRow label="Location" value={location} onChange={setLocation} placeholder="Optional" icon={icons.travel} last />
         </Surface>
 
         <View style={styles.block}>
@@ -165,6 +168,7 @@ export default function ItemDetailScreen() {
             style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
             placeholder="What should ONE remember this as?"
             placeholderTextColor={theme.textTertiary}
+            accessibilityLabel="Memory context"
             multiline
           />
         </View>
@@ -177,6 +181,7 @@ export default function ItemDetailScreen() {
             style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
             placeholder="Add notes"
             placeholderTextColor={theme.textTertiary}
+            accessibilityLabel="Notes"
             multiline
           />
         </View>
@@ -192,6 +197,8 @@ export default function ItemDetailScreen() {
 
         {currentItem.url ? (
           <Pressable
+            accessibilityRole="link"
+            accessibilityLabel="Open saved link"
             onPress={() => Linking.openURL(currentItem.url!)}
             style={[styles.linkCard, { backgroundColor: theme.accentSoft }]}
           >
@@ -208,7 +215,7 @@ export default function ItemDetailScreen() {
 
         <PrimaryButton label={saving ? 'Saving…' : 'Save changes'} icon={icons.check} onPress={saveChanges} disabled={saving || !title.trim()} />
 
-        <Pressable onPress={confirmDelete} style={styles.deleteAction}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Delete item" onPress={confirmDelete} style={styles.deleteAction}>
           <OneIcon name={icons.delete} size={16} color={theme.danger} />
           <Text style={[styles.deleteText, { color: theme.danger }]}>Delete item</Text>
         </Pressable>
@@ -225,7 +232,112 @@ export default function ItemDetailScreen() {
     );
   }
 
-  function FieldRow({
+  function DateTimeFieldRow({
+    kind,
+    label,
+    value,
+    icon
+  }: {
+    kind: 'date' | 'time';
+    label: string;
+    value: string;
+    icon: (typeof icons)[keyof typeof icons];
+  }) {
+    const pickerValue = kind === 'date' ? dateValue(value) : timeValue(value);
+    const isIos = Platform.OS === 'ios';
+    const isWeb = Platform.OS === 'web';
+
+    function applySelected(next: Date) {
+      if (kind === 'date') setDate(toIsoDate(next));
+      else setTime(toTime(next));
+      setActivePicker(null);
+      void Haptics.selectionAsync();
+    }
+
+    function clearValue() {
+      if (kind === 'date') setDate('');
+      else setTime('');
+      setActivePicker(null);
+      void Haptics.selectionAsync();
+    }
+
+    function activatePicker() {
+      if (isIos && !value) {
+        applySelected(new Date());
+        return;
+      }
+      setActivePicker(kind);
+    }
+
+    return (
+      <>
+        <View style={[styles.fieldRow, { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+          <IconTile icon={icon} tone="neutral" size={34} />
+          <Text style={[styles.fieldLabel, { color: theme.text }]}>{label}</Text>
+
+          {isWeb ? (
+            <TextInput
+              value={value}
+              onChangeText={kind === 'date' ? setDate : setTime}
+              placeholder={kind === 'date' ? 'YYYY-MM-DD' : 'HH:MM'}
+              placeholderTextColor={theme.textTertiary}
+              accessibilityLabel={label}
+              style={[styles.fieldInput, { color: theme.text }]}
+              autoCapitalize="none"
+            />
+          ) : isIos && value ? (
+            <View style={styles.nativePickerWrap}>
+              <DateTimePicker
+                value={pickerValue}
+                mode={kind}
+                display="compact"
+                is24Hour
+                accentColor={theme.accent}
+                onValueChange={(_event, selected) => applySelected(selected)}
+              />
+            </View>
+          ) : (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`${label}. ${value || 'Not set'}`}
+              onPress={activatePicker}
+              style={({ pressed }) => [styles.pickerButton, { backgroundColor: theme.fill, opacity: pressed ? 0.62 : 1 }]}
+            >
+              <Text style={[styles.pickerButtonText, { color: value ? theme.text : theme.textTertiary }]}>
+                {value ? (kind === 'date' ? formatHumanDate(value) : value) : `Add ${label.toLowerCase()}`}
+              </Text>
+            </Pressable>
+          )}
+
+          {value ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={`Clear ${label.toLowerCase()}`}
+              hitSlop={8}
+              onPress={clearValue}
+              style={styles.clearButton}
+            >
+              <OneIcon name={icons.close} size={12} color={theme.textTertiary} />
+            </Pressable>
+          ) : null}
+        </View>
+
+        {!isWeb && !isIos && activePicker === kind ? (
+          <DateTimePicker
+            value={pickerValue}
+            mode={kind}
+            presentation="dialog"
+            is24Hour
+            accentColor={theme.accent}
+            onValueChange={(_event, selected) => applySelected(selected)}
+            onDismiss={() => setActivePicker(null)}
+          />
+        ) : null}
+      </>
+    );
+  }
+
+  function TextFieldRow({
     label,
     value,
     onChange,
@@ -249,6 +361,7 @@ export default function ItemDetailScreen() {
           onChangeText={onChange}
           placeholder={placeholder}
           placeholderTextColor={theme.textTertiary}
+          accessibilityLabel={label}
           style={[styles.fieldInput, { color: theme.text }]}
           autoCapitalize="none"
         />
@@ -273,7 +386,7 @@ export default function ItemDetailScreen() {
       <View style={[styles.fieldRow, !last && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth }]}>
         <IconTile icon={icon} tone="neutral" size={34} />
         <Text style={[styles.fieldLabel, { color: theme.text }]}>{label}</Text>
-        <Switch value={value} onValueChange={onChange} trackColor={{ true: theme.accent }} />
+        <Switch accessibilityLabel={label} value={value} onValueChange={onChange} trackColor={{ true: theme.accent }} />
       </View>
     );
   }
@@ -302,6 +415,43 @@ function formatUpdated(value: string) {
   return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
 }
 
+function formatHumanDate(value: string) {
+  const parsed = dateValue(value);
+  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(parsed);
+}
+
+function dateValue(value: string) {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return new Date();
+
+  const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12, 0, 0, 0);
+  return Number.isNaN(date.getTime()) ? new Date() : date;
+}
+
+function timeValue(value: string) {
+  const now = new Date();
+  const match = /^(\d{2}):(\d{2})$/.exec(value);
+  if (!match) return now;
+
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours > 23 || minutes > 59) return now;
+
+  now.setHours(hours, minutes, 0, 0);
+  return now;
+}
+
+function toIsoDate(value: Date) {
+  const year = value.getFullYear();
+  const month = String(value.getMonth() + 1).padStart(2, '0');
+  const day = String(value.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function toTime(value: Date) {
+  return `${String(value.getHours()).padStart(2, '0')}:${String(value.getMinutes()).padStart(2, '0')}`;
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40, gap: 20 },
@@ -325,6 +475,10 @@ const styles = StyleSheet.create({
   fieldRow: { minHeight: 60, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
   fieldLabel: { width: 72, fontSize: 14, fontWeight: '600' },
   fieldInput: { flex: 1, fontSize: 14, textAlign: 'right', paddingVertical: 10 },
+  nativePickerWrap: { flex: 1, alignItems: 'flex-end' },
+  pickerButton: { flex: 1, minHeight: 36, borderRadius: 11, paddingHorizontal: 11, alignItems: 'flex-end', justifyContent: 'center' },
+  pickerButtonText: { fontSize: 13, fontWeight: '600' },
+  clearButton: { width: 26, height: 32, alignItems: 'center', justifyContent: 'center' },
   largeInput: { minHeight: 108, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 14, fontSize: 14.5, lineHeight: 20, textAlignVertical: 'top' },
   extracted: { fontSize: 13, lineHeight: 19 },
   linkCard: { minHeight: 50, borderRadius: 15, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
