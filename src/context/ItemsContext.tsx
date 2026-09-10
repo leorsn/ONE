@@ -44,11 +44,12 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   const desiredScope = itemStorageScope(session?.user.id);
   const [items, setItems] = useState<OneItem[]>([]);
   const [hydrated, setHydrated] = useState(false);
+  const [hydratedScope, setHydratedScope] = useState<ItemStorageScope | null>(null);
   const [cloudSyncing, setCloudSyncing] = useState(false);
   const [syncRevision, setSyncRevision] = useState(0);
   const activeScopeRef = useRef<ItemStorageScope | null>(null);
   const itemsRef = useRef<OneItem[]>([]);
-  const scopeReady = hydrated && !authLoading && activeScopeRef.current === desiredScope;
+  const scopeReady = hydrated && !authLoading && hydratedScope === desiredScope;
 
   useEffect(() => {
     itemsRef.current = items;
@@ -107,6 +108,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         activeScopeRef.current = desiredScope;
         itemsRef.current = nextItems;
         setItems(nextItems);
+        setHydratedScope(desiredScope);
         setHydrated(true);
       } catch (error) {
         console.warn('ONE local storage hydration failed', error);
@@ -118,6 +120,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         activeScopeRef.current = desiredScope;
         itemsRef.current = fallback;
         setItems(fallback);
+        setHydratedScope(desiredScope);
         setHydrated(true);
       }
     }
@@ -202,6 +205,13 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     };
   }, [session?.user.id, scopeReady, desiredScope, syncRevision]);
 
+  const applySyncedItem = useCallback((synced: OneItem) => {
+    itemsRef.current = itemsRef.current.map((candidate) =>
+      candidate.id === synced.id ? preserveDeviceLocalState(synced, candidate) : candidate
+    );
+    setItems(itemsRef.current);
+  }, []);
+
   const add = useCallback(async (item: OneItem) => {
     const userId = session?.user.id;
     const scope = itemStorageScope(userId);
@@ -221,7 +231,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.warn('ONE cloud add deferred until reconnect', error);
     }
-  }, [session?.user.id]);
+  }, [session?.user.id, applySyncedItem]);
 
   const update = useCallback(async (id: string, changes: Partial<OneItem>) => {
     const currentItem = itemsRef.current.find((item) => item.id === id);
@@ -260,7 +270,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.warn('ONE cloud edit deferred until reconnect', error);
     }
-  }, [session?.user.id]);
+  }, [session?.user.id, applySyncedItem]);
 
   const toggleCompleted = useCallback(async (id: string) => {
     const currentItem = itemsRef.current.find((item) => item.id === id);
@@ -327,13 +337,6 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     itemsRef.current = [];
     setItems([]);
   }, [desiredScope, session?.user.id]);
-
-  function applySyncedItem(synced: OneItem) {
-    itemsRef.current = itemsRef.current.map((candidate) =>
-      candidate.id === synced.id ? preserveDeviceLocalState(synced, candidate) : candidate
-    );
-    setItems(itemsRef.current);
-  }
 
   const value = useMemo(
     () => ({
