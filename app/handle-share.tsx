@@ -47,13 +47,13 @@ export default function HandleShareScreen() {
 
     let cancelled = false;
 
-    async function readImage() {
+    async function readImage(uri: string) {
       await Promise.resolve();
       if (cancelled) return;
       setOcrState('reading');
 
       try {
-        const result = await extractTextFromImage(ocrImageUri);
+        const result = await extractTextFromImage(uri);
         if (cancelled) return;
         setExtractedText(result.text);
         setOcrState('ready');
@@ -65,7 +65,7 @@ export default function HandleShareScreen() {
       }
     }
 
-    void readImage();
+    void readImage(ocrImageUri);
     return () => {
       cancelled = true;
     };
