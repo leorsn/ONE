@@ -102,9 +102,10 @@ Verify direct answers, supporting memories and follow-up context.
 - Restart app and confirm persistence.
 - Confirm cloud sync status.
 - Confirm private attachment can be reopened.
-- Delete a cloud-backed item and confirm it does not reappear immediately.
-
-Known V1 item to watch: offline deletion tombstones are still a separate hardening task.
+- Delete a cloud-backed item while online and confirm it stays deleted.
+- Delete a cloud-backed item while offline, restart, reconnect and confirm it does not return.
+- Confirm deferred cloud attachment cleanup completes after reconnect.
+- Confirm built-in development seed items never appear in the authenticated cloud account.
 
 ## 9. Subscription UI
 
@@ -143,5 +144,6 @@ The first beta passes when there are no blocker crashes and the following work e
 - Share to ONE
 - Ask ONE
 - account/cloud persistence
+- offline delete reconciliation
 
 Log every issue with screen, exact action, expected result, actual result and screenshot when possible.
