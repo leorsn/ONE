@@ -30,6 +30,8 @@ export type OneDocumentKind =
   | 'business_card'
   | 'other';
 
+export type OneSyncState = 'local' | 'pending' | 'synced';
+
 export type OneItem = {
   id: string;
   title: string;
@@ -50,6 +52,9 @@ export type OneItem = {
   originalText?: string;
   attachmentUrl?: string;
   imageUrl?: string;
+  localAttachmentUri?: string;
+  localAttachmentMimeType?: string;
+  localAttachmentName?: string;
   extractedText?: string;
   userContext?: string;
   documentKind?: OneDocumentKind;
@@ -58,6 +63,7 @@ export type OneItem = {
   currency?: string;
   tags: string[];
   entities: string[];
+  syncState?: OneSyncState;
   createdAt: string;
   updatedAt: string;
 };
