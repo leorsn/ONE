@@ -36,8 +36,9 @@ function RootNavigation() {
 
     const inOnboarding = segments[0] === 'onboarding';
     const inUpgrade = segments[0] === 'upgrade';
+    const inAuth = segments[0] === 'auth';
 
-    if (!completed && !inOnboarding) {
+    if (!completed && !inOnboarding && !inAuth) {
       router.replace('/onboarding');
       return;
     }
@@ -47,7 +48,7 @@ function RootNavigation() {
       return;
     }
 
-    if (completed && billingConfigured && !hasBaseAccess && !inUpgrade) {
+    if (completed && billingConfigured && !hasBaseAccess && !inUpgrade && !inAuth) {
       router.replace('/upgrade');
     }
   }, [
