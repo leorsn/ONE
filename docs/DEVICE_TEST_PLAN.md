@@ -33,6 +33,8 @@ Verify title, type, date, time, category and saved state before and after save.
 
 - Dated items appear on the correct day.
 - Opening an item from Calendar works.
+- Date and time editing use native device pickers on iOS/Android.
+- Date and time remain optional and can be cleared.
 - Notification permission is requested only when needed.
 - Reminder timing follows Settings.
 - Completing/deleting an item cancels its notification.
@@ -111,7 +113,28 @@ Verify direct answers, supporting memories and follow-up context.
 - Confirm built-in development seed items never appear in the authenticated cloud account.
 - Delete the ONE account from Settings and confirm cloud items, attachments, local items and scheduled notifications are removed.
 
-## 9. Subscription UI
+### Account isolation regression test
+
+1. Signed out, create an anonymous capture called `Anonymous transfer test`.
+2. Sign in to user A and verify that real anonymous capture transfers into user A exactly once.
+3. Create `User A private item` while signed in.
+4. Sign out and verify `User A private item` is no longer visible.
+5. Sign in to a different user B and verify neither user A item nor user A cloud data appears.
+6. Create `User B private item`, sign out, then sign back in to user A.
+7. Verify user A sees user A data and not user B data.
+8. Sign back in to user B and verify user B data is restored independently.
+9. Confirm development seed/demo memories never migrate into either authenticated account.
+10. Repeat an offline delete under user A and verify its tombstone cannot affect user B.
+
+## 9. Privacy and data control
+
+- Privacy screen opens.
+- `Export my data` creates a JSON export through the native share sheet.
+- Export contains the current account/scope items only.
+- Temporary export file is cleaned up after sharing.
+- Account deletion remains available in-app.
+
+## 10. Subscription UI
 
 Beta build without RevenueCat keys:
 
@@ -130,13 +153,14 @@ Store-connected sandbox build:
 - introductory offer copy does not promise eligibility to every user
 - deleting a ONE account does not falsely claim that the App Store subscription was cancelled
 
-## 10. iPad
+## 11. iPad
 
 - App installs and launches on iPad.
 - Tab bar is usable.
 - No clipped content.
 - Forms and chat composer remain readable with keyboard visible.
 - Scan and document screens remain usable in portrait.
+- Native date/time controls remain usable at iPad size.
 
 ## Exit criteria
 
@@ -146,6 +170,7 @@ The first beta passes when there are no blocker crashes and the following work e
 - capture
 - calendar
 - notifications
+- native date/time editing
 - Scan to ONE
 - Documents
 - Share to ONE
@@ -153,7 +178,9 @@ The first beta passes when there are no blocker crashes and the following work e
 - account confirmation
 - password recovery
 - account/cloud persistence
+- multi-account local isolation
 - offline delete reconciliation
+- data export
 - account deletion
 - subscription management
 
