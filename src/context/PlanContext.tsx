@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { AppState } from 'react-native';
 import { useAuth } from '@/src/context/AuthContext';
 import {
   BETA_PLAN,
@@ -56,7 +57,6 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       console.warn('ONE subscription refresh failed', error);
 
       if (isRevenueCatConfigured()) {
-        // Production billing exists, so never grant beta access on a billing failure.
         setBillingConfigured(true);
         setPlan('none');
       } else {
@@ -70,6 +70,14 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refresh();
+    });
+
+    return () => subscription.remove();
   }, [refresh]);
 
   const purchase = useCallback(async (nextPlan: PaidOnePlan) => {
