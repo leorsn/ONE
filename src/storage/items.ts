@@ -1,25 +1,60 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { OneItem } from '@/src/types/item';
 
-const STORAGE_KEY = '@one/items/v1';
+const LEGACY_STORAGE_KEY = '@one/items/v1';
+const STORAGE_PREFIX = '@one/items/v2/';
 
-export async function loadItems(): Promise<OneItem[] | null> {
-  const raw = await AsyncStorage.getItem(STORAGE_KEY);
-  if (raw === null) return null;
+export type ItemStorageScope = 'anonymous' | `user:${string}`;
 
+export function itemStorageScope(userId?: string | null): ItemStorageScope {
+  return userId ? `user:${userId}` : 'anonymous';
+}
+
+export async function loadItems(scope: ItemStorageScope): Promise<OneItem[] | null> {
+  const scopedKey = storageKey(scope);
+  const scopedRaw = await AsyncStorage.getItem(scopedKey);
+
+  if (scopedRaw !== null) return parseItems(scopedRaw);
+
+  // One-time migration from the pre-partitioned v1 store. Waiting for AuthContext
+  // to finish loading before calling this decides whether the legacy collection
+  // belongs to the current signed-in user or the anonymous device scope.
+  const legacyRaw = await AsyncStorage.getItem(LEGACY_STORAGE_KEY);
+  if (legacyRaw === null) return null;
+
+  const legacyItems = parseItems(legacyRaw);
+  if (legacyItems === null) {
+    await AsyncStorage.removeItem(LEGACY_STORAGE_KEY);
+    return null;
+  }
+
+  await AsyncStorage.multiSet([
+    [scopedKey, JSON.stringify(legacyItems)],
+    ['@one/items/migrated-v2', new Date().toISOString()]
+  ]);
+  await AsyncStorage.removeItem(LEGACY_STORAGE_KEY);
+  return legacyItems;
+}
+
+export async function saveItems(scope: ItemStorageScope, items: OneItem[]) {
+  await AsyncStorage.setItem(storageKey(scope), JSON.stringify(items));
+}
+
+export async function clearItems(scope: ItemStorageScope) {
+  // Persist an intentionally empty collection so development seed data does not
+  // reappear after a user explicitly clears this ONE storage scope.
+  await AsyncStorage.setItem(storageKey(scope), '[]');
+}
+
+function storageKey(scope: ItemStorageScope) {
+  return `${STORAGE_PREFIX}${scope}`;
+}
+
+function parseItems(raw: string): OneItem[] | null {
   try {
-    return JSON.parse(raw) as OneItem[];
+    const parsed = JSON.parse(raw) as unknown;
+    return Array.isArray(parsed) ? parsed as OneItem[] : null;
   } catch {
     return null;
   }
-}
-
-export async function saveItems(items: OneItem[]) {
-  await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-}
-
-export async function clearItems() {
-  // Persist an intentionally empty collection so development seed data does not
-  // reappear after a user explicitly clears or deletes their ONE account.
-  await AsyncStorage.setItem(STORAGE_KEY, '[]');
 }
