@@ -42,20 +42,26 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
 
     try {
       const configured = await configureRevenueCat(session?.user.id);
-      setBillingConfigured(configured);
 
       if (!configured) {
+        setBillingConfigured(false);
         setPlan(BETA_PLAN);
         return;
       }
 
-      setPlan(await getRevenueCatPlan());
+      const nextPlan = await getRevenueCatPlan();
+      setBillingConfigured(true);
+      setPlan(nextPlan);
     } catch (error) {
       console.warn('ONE subscription refresh failed', error);
 
-      if (!isRevenueCatConfigured()) {
-        setPlan(BETA_PLAN);
+      if (isRevenueCatConfigured()) {
+        // Production billing exists, so never grant beta access on a billing failure.
+        setBillingConfigured(true);
+        setPlan('none');
+      } else {
         setBillingConfigured(false);
+        setPlan(BETA_PLAN);
       }
     } finally {
       setLoading(false);
