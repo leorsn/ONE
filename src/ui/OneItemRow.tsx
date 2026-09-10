@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { IconTile } from '@/src/ui/primitives';
@@ -19,11 +19,12 @@ export function OneItemRow({
 }) {
   const theme = useTheme();
   const meta = metaFor(item, showDate);
+  const previewUri = imagePreviewUri(item);
 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`${item.title}. ${meta}${item.completed ? '. Completed' : ''}`}
+      accessibilityLabel={`${item.title}. ${meta}`}
       accessibilityHint="Opens item details"
       onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
       style={({ pressed }) => [
@@ -52,6 +53,8 @@ export function OneItemRow({
         >
           {item.completed ? <OneIcon name={icons.check} size={12} color="#FFFFFF" /> : null}
         </Pressable>
+      ) : previewUri ? (
+        <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill }]} resizeMode="cover" />
       ) : (
         <IconTile icon={iconForType(item.type)} size={38} />
       )}
@@ -69,9 +72,7 @@ export function OneItemRow({
         >
           {item.title}
         </Text>
-        <Text style={[styles.meta, { color: theme.textSecondary }]} numberOfLines={1}>
-          {meta}
-        </Text>
+        <Text style={[styles.meta, { color: theme.textSecondary }]} numberOfLines={1}>{meta}</Text>
       </View>
 
       {item.time ? (
@@ -100,14 +101,34 @@ export function iconForType(type: OneItem['type']) {
 
 function metaFor(item: OneItem, showDate: boolean) {
   const values = [
+    statusFor(item),
     showDate ? prettyDate(item.date) : undefined,
     item.category,
     item.userContext,
     item.location,
     item.merchant,
-    item.amount !== undefined ? formatAmount(item.amount, item.currency) : undefined
+    item.amount !== undefined ? formatAmount(item.amount, item.currency) : undefined,
+    syncLabel(item)
   ].filter(Boolean);
   return values.join(' · ') || formatType(item.type);
+}
+
+function statusFor(item: OneItem) {
+  if (item.completed) return 'Completed';
+  if (item.date) return 'Upcoming';
+  if (item.saved) return 'Saved';
+  return 'New';
+}
+
+function syncLabel(item: OneItem) {
+  if (item.syncState === 'pending') return 'Sync pending';
+  if (item.syncState === 'local') return 'On device';
+  return undefined;
+}
+
+function imagePreviewUri(item: OneItem) {
+  const candidate = item.localAttachmentUri || item.imageUrl;
+  return candidate && /^(file|content|ph|https?):\/\//i.test(candidate) ? candidate : undefined;
 }
 
 function prettyDate(iso?: string) {
@@ -128,6 +149,7 @@ function formatType(type: string) {
 const styles = StyleSheet.create({
   row: { minHeight: 72, paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 },
   check: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
+  preview: { width: 40, height: 40, borderRadius: 11 },
   content: { flex: 1, minWidth: 0 },
   title: { fontSize: 15.5, fontWeight: '600', letterSpacing: -0.18 },
   meta: { fontSize: 12.5, marginTop: 4 },
