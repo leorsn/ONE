@@ -6,6 +6,11 @@ import { deleteSharedAttachment } from '@/src/supabase/attachments';
 import { cancelItemNotification, scheduleItemNotification } from '@/src/notifications/localNotifications';
 import { loadItems, saveItems } from '@/src/storage/items';
 import { removeLocalAttachment } from '@/src/storage/attachments';
+import {
+  loadDeletionTombstones,
+  removeDeletionTombstone,
+  saveDeletionTombstone
+} from '@/src/storage/deletions';
 import type { OneItem } from '@/src/types/item';
 
 type ItemsContextValue = {
@@ -20,6 +25,7 @@ type ItemsContextValue = {
 
 const ItemsContext = createContext<ItemsContextValue | null>(null);
 const DEVELOPMENT_SEED_ITEMS: OneItem[] = __DEV__ ? mockItems : [];
+const DEVELOPMENT_SEED_IDS = new Set(mockItems.map((item) => item.id));
 
 export function ItemsProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
@@ -54,14 +60,25 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     async function syncFromCloud() {
       setCloudSyncing(true);
       try {
-        const cloud = await pullCloudItems();
+        const [cloud, allTombstones] = await Promise.all([
+          pullCloudItems(),
+          loadDeletionTombstones()
+        ]);
         if (cancelled) return;
 
-        const merged = mergeByUpdatedAt(items, cloud);
+        const activeTombstones = allTombstones.filter(
+          (entry) => !entry.userId || entry.userId === syncUserId
+        );
+        const deletedIds = new Set(activeTombstones.map((entry) => entry.id));
+        const visibleLocal = items.filter((item) => !deletedIds.has(item.id));
+        const visibleCloud = cloud.filter((item) => !deletedIds.has(item.id));
+
+        const merged = mergeByUpdatedAt(visibleLocal, visibleCloud);
         setItems(merged);
 
-        const cloudById = new Map(cloud.map((item) => [item.id, item]));
-        const localToUpload = items.filter((localItem) => {
+        const cloudById = new Map(visibleCloud.map((item) => [item.id, item]));
+        const localToUpload = visibleLocal.filter((localItem) => {
+          if (!shouldSyncItem(localItem)) return false;
           const cloudItem = cloudById.get(localItem.id);
           return (
             !cloudItem ||
@@ -71,6 +88,16 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
         if (localToUpload.length) {
           await Promise.all(localToUpload.map((item) => upsertCloudItem(item, syncUserId)));
+        }
+
+        for (const tombstone of activeTombstones) {
+          try {
+            await deleteCloudItem(tombstone.id);
+            await removeCloudAttachments(tombstone.attachmentPaths, syncUserId);
+            await removeDeletionTombstone(tombstone.id);
+          } catch (error) {
+            console.warn('ONE deferred delete cleanup failed', error);
+          }
         }
       } catch (error) {
         console.warn('ONE cloud sync failed', error);
@@ -90,7 +117,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     const withNotification = notificationId ? { ...item, notificationId } : item;
     setItems((current) => [withNotification, ...current]);
 
-    if (session?.user.id) {
+    if (session?.user.id && shouldSyncItem(withNotification)) {
       try {
         await upsertCloudItem(withNotification, session.user.id);
       } catch (error) {
@@ -123,7 +150,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     setItems((current) => current.map((item) => (item.id === id ? updated : item)));
 
-    if (session?.user.id) {
+    if (session?.user.id && shouldSyncItem(updated)) {
       try {
         await upsertCloudItem(updated, session.user.id);
       } catch (error) {
@@ -155,7 +182,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     setItems((current) => current.map((item) => (item.id === id ? updated : item)));
 
-    if (session?.user.id) {
+    if (session?.user.id && shouldSyncItem(updated)) {
       try {
         await upsertCloudItem(updated, session.user.id, { refreshEmbedding: false });
       } catch (error) {
@@ -166,15 +193,24 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
   const remove = useCallback(async (id: string) => {
     const currentItem = items.find((item) => item.id === id);
-    if (currentItem?.notificationId) {
+    if (!currentItem) return;
+
+    if (currentItem.notificationId) {
       await cancelItemNotification(currentItem.notificationId);
     }
 
-    setItems((current) => current.filter((item) => item.id !== id));
-
     const attachmentPaths = Array.from(
-      new Set([currentItem?.attachmentUrl, currentItem?.imageUrl].filter((value): value is string => Boolean(value)))
+      new Set([currentItem.attachmentUrl, currentItem.imageUrl].filter((value): value is string => Boolean(value)))
     );
+
+    await saveDeletionTombstone({
+      id,
+      deletedAt: new Date().toISOString(),
+      userId: session?.user.id,
+      attachmentPaths
+    });
+
+    setItems((current) => current.filter((item) => item.id !== id));
 
     for (const path of attachmentPaths) {
       try {
@@ -184,20 +220,14 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    if (session?.user.id) {
-      try {
-        await deleteCloudItem(id);
-      } catch (error) {
-        console.warn('ONE cloud delete failed', error);
-      }
+    if (!session?.user.id) return;
 
-      for (const path of attachmentPaths) {
-        try {
-          await deleteSharedAttachment(path, session.user.id);
-        } catch (error) {
-          console.warn('ONE cloud attachment cleanup failed', error);
-        }
-      }
+    try {
+      await deleteCloudItem(id);
+      await removeCloudAttachments(attachmentPaths, session.user.id);
+      await removeDeletionTombstone(id);
+    } catch (error) {
+      console.warn('ONE cloud delete deferred until reconnect', error);
     }
   }, [items, session?.user.id]);
 
@@ -207,6 +237,17 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   );
 
   return <ItemsContext.Provider value={value}>{children}</ItemsContext.Provider>;
+}
+
+function shouldSyncItem(item: OneItem) {
+  return !(__DEV__ && DEVELOPMENT_SEED_IDS.has(item.id));
+}
+
+async function removeCloudAttachments(paths: string[], userId: string) {
+  for (const path of paths) {
+    if (!path.startsWith(userId + '/')) continue;
+    await deleteSharedAttachment(path, userId);
+  }
 }
 
 function mergeByUpdatedAt(local: OneItem[], cloud: OneItem[]) {
