@@ -1,9 +1,10 @@
 import { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import * as Notifications from 'expo-notifications';
 import { AuthProvider } from '@/src/context/AuthContext';
-import { ItemsProvider } from '@/src/context/ItemsContext';
+import { ItemsProvider, useItems } from '@/src/context/ItemsContext';
 import { OnboardingProvider, useOnboarding } from '@/src/context/OnboardingContext';
 import { ThemeProvider, useThemeContext } from '@/src/context/ThemeContext';
 import { PlanProvider, usePlan } from '@/src/context/PlanContext';
@@ -28,11 +29,14 @@ function RootNavigation() {
   const router = useRouter();
   const segments = useSegments();
   const { loaded, completed } = useOnboarding();
+  const { hydrated: itemsHydrated } = useItems();
   const { theme, resolvedMode, loaded: themeLoaded } = useThemeContext();
   const { loading: subscriptionLoading, billingConfigured, hasBaseAccess } = usePlan();
+  const appReady = loaded && themeLoaded && !subscriptionLoading && itemsHydrated;
+  const canOpenMemories = completed && (!billingConfigured || hasBaseAccess);
 
   useEffect(() => {
-    if (!loaded || !themeLoaded || subscriptionLoading) return;
+    if (!appReady) return;
 
     const inOnboarding = segments[0] === 'onboarding';
     const inUpgrade = segments[0] === 'upgrade';
@@ -51,17 +55,38 @@ function RootNavigation() {
     if (completed && billingConfigured && !hasBaseAccess && !inUpgrade && !inAuth) {
       router.replace('/upgrade');
     }
-  }, [
-    completed,
-    loaded,
-    themeLoaded,
-    subscriptionLoading,
-    billingConfigured,
-    hasBaseAccess,
-    segments
-  ]);
+  }, [appReady, completed, billingConfigured, hasBaseAccess, segments, router]);
 
-  if (!loaded || !themeLoaded || subscriptionLoading) {
+  useEffect(() => {
+    if (!appReady || !canOpenMemories || Platform.OS === 'web') return;
+
+    let cancelled = false;
+
+    async function openNotificationItem(response: Notifications.NotificationResponse | null) {
+      if (!response || cancelled) return;
+
+      const itemId = response.notification.request.content.data?.itemId;
+      if (typeof itemId !== 'string' || !itemId) return;
+
+      await Notifications.clearLastNotificationResponseAsync();
+      if (cancelled) return;
+
+      router.push({ pathname: '/item/[id]', params: { id: itemId } });
+    }
+
+    void Notifications.getLastNotificationResponseAsync().then(openNotificationItem);
+
+    const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
+      void openNotificationItem(response);
+    });
+
+    return () => {
+      cancelled = true;
+      subscription.remove();
+    };
+  }, [appReady, canOpenMemories, router]);
+
+  if (!appReady) {
     return (
       <View style={{ flex: 1, backgroundColor: theme.background, alignItems: 'center', justifyContent: 'center' }}>
         <ActivityIndicator />
