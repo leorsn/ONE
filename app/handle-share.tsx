@@ -26,52 +26,45 @@ export default function HandleShareScreen() {
   const [saving, setSaving] = useState(false);
   const [ocrState, setOcrState] = useState<OcrState>('idle');
   const [extractedText, setExtractedText] = useState('');
-  const [draft, setDraft] = useState<CaptureDraft | null>(null);
+  const [reviewedDraft, setReviewedDraft] = useState<CaptureDraft | null>(null);
 
   const primary = sharedPayloads[0];
   const resolved = resolvedSharedPayloads[0];
   const imageUri = resolved?.contentType === 'image' ? resolved.contentUri : null;
 
-  useEffect(() => {
-    if (!primary) {
-      setDraft(null);
-      return;
-    }
+  const automaticDraft = useMemo(
+    () => primary
+      ? createShareDraft({ payload: primary, resolved, extractedText })
+      : null,
+    [primary, resolved, extractedText]
+  );
+  const draft = reviewedDraft ?? automaticDraft;
+  const visibleOcrState: OcrState = imageUri ? ocrState : 'idle';
 
-    setDraft(createShareDraft({ payload: primary, resolved, extractedText }));
-  }, [primary, resolved?.contentType, resolved?.originalName]);
-
   useEffect(() => {
-    if (!imageUri) {
-      setOcrState('idle');
-      setExtractedText('');
-      return;
-    }
+    if (!imageUri) return;
 
     let cancelled = false;
-    setOcrState('reading');
 
-    extractTextFromImage(imageUri)
-      .then((result) => {
+    async function readImage() {
+      await Promise.resolve();
+      if (cancelled) return;
+      setOcrState('reading');
+
+      try {
+        const result = await extractTextFromImage(imageUri);
         if (cancelled) return;
         setExtractedText(result.text);
         setOcrState('ready');
-        if (primary) {
-          setDraft((current) => createShareDraft({
-            payload: primary,
-            resolved,
-            context: current?.userContext,
-            extractedText: result.text
-          }));
-        }
-      })
-      .catch((ocrError) => {
+        setReviewedDraft((current) => current ? { ...current, extractedText: result.text || undefined } : current);
+      } catch (ocrError) {
         if (cancelled) return;
         console.warn('ONE OCR failed', ocrError);
-        setExtractedText('');
         setOcrState('failed');
-      });
+      }
+    }
 
+    void readImage();
     return () => {
       cancelled = true;
     };
@@ -112,6 +105,7 @@ export default function HandleShareScreen() {
       await add(item);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       clearSharedPayloads();
+      setReviewedDraft(null);
 
       const actionable = ['appointment', 'reminder', 'task', 'event'].includes(item.type);
       router.replace(actionable ? '/(tabs)' : '/(tabs)/saved');
@@ -129,10 +123,11 @@ export default function HandleShareScreen() {
 
   function handleCancel() {
     clearSharedPayloads();
+    setReviewedDraft(null);
     router.replace('/(tabs)');
   }
 
-  const waitingForOcr = Boolean(imageUri) && ocrState === 'reading';
+  const waitingForOcr = Boolean(imageUri) && visibleOcrState === 'reading';
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
@@ -181,17 +176,17 @@ export default function HandleShareScreen() {
             </View>
 
             {imageUri ? (
-              <View style={[styles.notice, { backgroundColor: ocrState === 'failed' ? theme.fill : theme.accentSoft }]}>
-                <IconTile icon={icons.screenshot} tone={ocrState === 'ready' ? 'success' : 'neutral'} size={36} />
+              <View style={[styles.notice, { backgroundColor: visibleOcrState === 'failed' ? theme.fill : theme.accentSoft }]}>
+                <IconTile icon={icons.screenshot} tone={visibleOcrState === 'ready' ? 'success' : 'neutral'} size={36} />
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.ocrTitle, { color: theme.text }]}>{ocrHeadline(ocrState)}</Text>
-                  <Text style={[styles.ocrMeta, { color: theme.textSecondary }]}>{ocrMeta(ocrState)}</Text>
+                  <Text style={[styles.ocrTitle, { color: theme.text }]}>{ocrHeadline(visibleOcrState)}</Text>
+                  <Text style={[styles.ocrMeta, { color: theme.textSecondary }]}>{ocrMeta(visibleOcrState)}</Text>
                 </View>
-                {ocrState === 'reading' ? <ActivityIndicator size="small" /> : null}
+                {visibleOcrState === 'reading' ? <ActivityIndicator size="small" /> : null}
               </View>
             ) : null}
 
-            {draft ? <CaptureReviewEditor draft={draft} onChange={setDraft} /> : null}
+            {draft ? <CaptureReviewEditor draft={draft} onChange={setReviewedDraft} /> : null}
 
             <View style={[styles.notice, { backgroundColor: theme.accentSoft }]}>
               <OneIcon name={icons.cloud} size={17} color={theme.accent} />
