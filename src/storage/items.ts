@@ -1,14 +1,11 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import type { OneItem } from '@/src/types/item';
+import type { ItemStorageScope } from '@/src/storage/scope';
+
+export { itemStorageScope, type ItemStorageScope } from '@/src/storage/scope';
 
 const LEGACY_STORAGE_KEY = '@one/items/v1';
 const STORAGE_PREFIX = '@one/items/v2/';
-
-export type ItemStorageScope = 'anonymous' | `user:${string}`;
-
-export function itemStorageScope(userId?: string | null): ItemStorageScope {
-  return userId ? `user:${userId}` : 'anonymous';
-}
 
 export async function loadItems(scope: ItemStorageScope): Promise<OneItem[] | null> {
   const scopedKey = storageKey(scope);
