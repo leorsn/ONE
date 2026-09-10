@@ -42,7 +42,8 @@ export default function HandleShareScreen() {
   const visibleOcrState: OcrState = imageUri ? ocrState : 'idle';
 
   useEffect(() => {
-    if (!imageUri) return;
+    const ocrImageUri = imageUri;
+    if (!ocrImageUri) return;
 
     let cancelled = false;
 
@@ -52,7 +53,7 @@ export default function HandleShareScreen() {
       setOcrState('reading');
 
       try {
-        const result = await extractTextFromImage(imageUri);
+        const result = await extractTextFromImage(ocrImageUri);
         if (cancelled) return;
         setExtractedText(result.text);
         setOcrState('ready');
