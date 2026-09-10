@@ -35,6 +35,7 @@ const PlanContext = createContext<PlanContextValue | null>(null);
 
 export function PlanProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
+  const userId = session?.user.id;
   const [plan, setPlan] = useState<OnePlan>(BETA_PLAN);
   const [billingConfigured, setBillingConfigured] = useState(false);
   const [managementUrl, setManagementUrl] = useState<string | undefined>();
@@ -42,10 +43,11 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [purchasing, setPurchasing] = useState(false);
 
   const refresh = useCallback(async () => {
+    await Promise.resolve();
     setLoading(true);
 
     try {
-      const configured = await configureRevenueCat(session?.user.id);
+      const configured = await configureRevenueCat(userId);
 
       if (!configured) {
         setBillingConfigured(false);
@@ -76,10 +78,10 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, [session?.user.id]);
+  }, [userId]);
 
   useEffect(() => {
-    refresh();
+    void refresh();
   }, [refresh]);
 
   useEffect(() => {
