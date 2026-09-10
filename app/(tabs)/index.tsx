@@ -67,14 +67,16 @@ export default function InboxScreen() {
             style={[styles.input, { color: theme.text }]}
             returnKeyType="done"
             onSubmitEditing={handleSave}
+            accessibilityLabel="Quick capture"
+            accessibilityHint="Type a task, reminder, appointment, note, link or idea"
           />
           <RoundIconButton icon={icons.ask} onPress={() => router.push('/ask')} accessibilityLabel="Ask ONE" filled />
         </View>
 
-        <View style={styles.quickActions}>
-          <QuickAction label="Scan" icon={icons.scan} onPress={() => router.push('/scan')} />
-          <QuickAction label="Share" icon={icons.upload} onPress={() => router.push('/share')} />
-          <QuickAction label="Ask" icon={icons.ask} badge="AI" onPress={() => router.push('/ask')} />
+        <View style={styles.quickActions} accessibilityRole="toolbar">
+          <QuickAction label="Scan" icon={icons.scan} hint="Scan a receipt or document" onPress={() => router.push('/scan')} />
+          <QuickAction label="Share" icon={icons.upload} hint="Learn how to share content to ONE" onPress={() => router.push('/share')} />
+          <QuickAction label="Ask" icon={icons.ask} hint="Open ONE AI conversation" badge="AI" onPress={() => router.push('/ask')} />
         </View>
 
         {parsed ? (
@@ -115,7 +117,15 @@ export default function InboxScreen() {
           <SectionHeader
             title="Upcoming"
             meta={String(upcoming.length)}
-            action={<Pressable onPress={() => router.push('/(tabs)/calendar')}><Text style={[styles.textAction, { color: theme.accent }]}>Calendar</Text></Pressable>}
+            action={
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Open calendar"
+                onPress={() => router.push('/(tabs)/calendar')}
+              >
+                <Text style={[styles.textAction, { color: theme.accent }]}>Calendar</Text>
+              </Pressable>
+            }
           />
           <Surface>
             {upcoming.length
@@ -128,7 +138,15 @@ export default function InboxScreen() {
           <SectionHeader
             title="Recently saved"
             meta={String(saved.length)}
-            action={<Pressable onPress={() => router.push('/(tabs)/saved')}><Text style={[styles.textAction, { color: theme.accent }]}>View all</Text></Pressable>}
+            action={
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="View all saved items"
+                onPress={() => router.push('/(tabs)/saved')}
+              >
+                <Text style={[styles.textAction, { color: theme.accent }]}>View all</Text>
+              </Pressable>
+            }
           />
           <Surface>
             {saved.length
@@ -144,15 +162,20 @@ export default function InboxScreen() {
     label,
     icon,
     onPress,
-    badge
+    badge,
+    hint
   }: {
     label: string;
     icon: (typeof icons)[keyof typeof icons];
     onPress: () => void;
     badge?: string;
+    hint?: string;
   }) {
     return (
       <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={badge ? `${label}, ${badge}` : label}
+        accessibilityHint={hint}
         onPress={async () => {
           await Haptics.selectionAsync();
           onPress();
