@@ -48,6 +48,8 @@ export default function HandleShareScreen() {
     () => selectShareCandidate(sharedPayloads, resolvedSharedPayloads),
     [sharedPayloads, resolvedSharedPayloads]
   );
+  const selectedFingerprint = selected?.fingerprint;
+  const selectedRepresentationCount = selected?.representationCount;
   const primary = selected ? sharedPayloads[selected.index] : undefined;
   const resolved = selected ? resolvedSharedPayloads[selected.index] : undefined;
   const imageUri = resolved?.contentType === 'image' ? resolved.contentUri : null;
@@ -62,13 +64,12 @@ export default function HandleShareScreen() {
   const visibleOcrState: OcrState = imageUri ? ocrState : 'idle';
 
   useEffect(() => {
-    if (!selected) return;
+    if (!selectedFingerprint) return;
     void recordNativeAcceptanceEvent(
       'share_received',
-      `${selected.fingerprint}:${selected.representationCount} representation(s)`
+      `${selectedFingerprint}:${selectedRepresentationCount ?? 1} representation(s)`
     );
-    setAllowDuplicate(false);
-  }, [selected?.fingerprint]);
+  }, [selectedFingerprint, selectedRepresentationCount]);
 
   useEffect(() => {
     const ocrImageUri = imageUri;
