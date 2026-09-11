@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -9,13 +9,14 @@ import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
 import { interpretCapture, type CaptureDraft } from '@/src/capture/core';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
+import { notificationSaveWarning } from '@/src/notifications/status';
 import { extractTextFromImage } from '@/src/ocr/extractText';
 import { persistLocalAttachment } from '@/src/storage/attachments';
 import { IconTile, PrimaryButton, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
-type ScanState = 'empty' | 'reading' | 'ready' | 'failed';
+type ScanState = 'empty' | 'reading' | 'ready' | 'no_text' | 'failed';
 
 export default function ScanScreen() {
   const theme = useTheme();
@@ -25,6 +26,7 @@ export default function ScanScreen() {
   const [asset, setAsset] = useState<ImagePicker.ImagePickerAsset | null>(null);
   const [draft, setDraft] = useState<CaptureDraft | null>(null);
   const [saving, setSaving] = useState(false);
+  const userEditedRef = useRef(false);
 
   async function takePhoto() {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
@@ -51,6 +53,7 @@ export default function ScanScreen() {
   }
 
   async function processAsset(nextAsset: ImagePicker.ImagePickerAsset) {
+    userEditedRef.current = false;
     setAsset(nextAsset);
     setState('reading');
     setDraft(interpretCapture({
@@ -61,13 +64,24 @@ export default function ScanScreen() {
 
     try {
       const result = await extractTextFromImage(nextAsset.uri);
+      const text = result.text.trim();
+      if (!text) {
+        setState('no_text');
+        return;
+      }
+
       const interpreted = interpretCapture({
         rawText: nextAsset.fileName || 'Scanned document',
-        extractedText: result.text,
+        extractedText: text,
         sourceType: 'scan',
         isImage: true
       });
-      setDraft(interpreted);
+
+      setDraft((current) =>
+        userEditedRef.current && current
+          ? { ...current, extractedText: text }
+          : interpreted
+      );
       setState('ready');
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (error) {
@@ -95,9 +109,11 @@ export default function ScanScreen() {
         attachmentName: asset.fileName || `scan-${Date.now()}.jpg`
       });
 
-      await add(item);
+      const savedItem = await add(item);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      router.replace('/(tabs)/saved');
+      const reminderWarning = notificationSaveWarning(savedItem);
+      if (reminderWarning) Alert.alert('Saved to ONE', reminderWarning);
+      router.replace(savedItem.destination === 'saved' ? '/(tabs)/saved' : '/(tabs)');
     } catch (error) {
       Alert.alert(
         'Could not save scan',
@@ -146,31 +162,31 @@ export default function ScanScreen() {
           <>
             <Image source={{ uri: asset.uri }} style={[styles.preview, { backgroundColor: theme.fill }]} resizeMode="cover" />
 
-            <View style={[styles.notice, { backgroundColor: state === 'failed' ? theme.fill : theme.accentSoft }]}>
+            <View style={[styles.notice, { backgroundColor: ['failed', 'no_text'].includes(state) ? theme.fill : theme.accentSoft }]}>
               <IconTile icon={icons.scan} tone={state === 'ready' ? 'success' : 'neutral'} size={38} />
               <View style={{ flex: 1 }}>
-                <Text style={[styles.noticeTitle, { color: theme.text }]}>
-                  {state === 'reading' ? 'Reading document…' : state === 'ready' ? 'Document understood' : 'OCR unavailable'}
-                </Text>
-                <Text style={[styles.noticeText, { color: theme.textSecondary }]}>
-                  {state === 'reading'
-                    ? 'Private native OCR'
-                    : state === 'ready'
-                      ? 'Only explicit totals are treated as receipt totals. Review before saving.'
-                      : 'You can still classify and save the original image.'}
-                </Text>
+                <Text style={[styles.noticeTitle, { color: theme.text }]}>{scanHeadline(state)}</Text>
+                <Text style={[styles.noticeText, { color: theme.textSecondary }]}>{scanMeta(state)}</Text>
               </View>
               {state === 'reading' ? <ActivityIndicator size="small" /> : null}
             </View>
 
-            {draft ? <CaptureReviewEditor draft={draft} onChange={setDraft} /> : null}
+            {draft ? (
+              <CaptureReviewEditor
+                draft={draft}
+                onChange={(nextDraft) => {
+                  userEditedRef.current = true;
+                  setDraft(nextDraft);
+                }}
+              />
+            ) : null}
 
             <View style={[styles.notice, { backgroundColor: theme.accentSoft }]}>
               <OneIcon name={icons.cloud} size={17} color={theme.accent} />
               <Text style={[styles.noticeText, { color: theme.textSecondary }]}>
                 {session
-                  ? 'The scan is secured locally first. Cloud upload retries if the network is unavailable.'
-                  : 'The scan remains on this device until you sign in.'}
+                  ? 'The original image is secured locally first. Cloud upload retries if the network is unavailable.'
+                  : 'The original image remains on this device until you sign in.'}
               </Text>
             </View>
 
@@ -178,7 +194,7 @@ export default function ScanScreen() {
               label={saving ? 'Saving…' : 'Save to ONE'}
               icon={icons.check}
               onPress={saveScan}
-              disabled={saving || state === 'reading' || !draft?.title.trim()}
+              disabled={saving || !draft?.title.trim()}
             />
 
             <Pressable accessibilityRole="button" accessibilityLabel="Scan again" onPress={takePhoto} style={styles.rescan}>
@@ -189,6 +205,22 @@ export default function ScanScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+}
+
+function scanHeadline(state: ScanState) {
+  if (state === 'reading') return 'Reading document…';
+  if (state === 'ready') return 'Document understood';
+  if (state === 'no_text') return 'No readable text found';
+  if (state === 'failed') return 'OCR unavailable';
+  return 'Ready';
+}
+
+function scanMeta(state: ScanState) {
+  if (state === 'reading') return 'You can save immediately. OCR metadata is included only if recognition finishes first.';
+  if (state === 'ready') return 'Only explicit totals are treated as receipt totals. Review before saving.';
+  if (state === 'no_text') return 'The original image is preserved. Add details manually if useful.';
+  if (state === 'failed') return 'The original image is preserved and can still be classified and saved.';
+  return '';
 }
 
 const styles = StyleSheet.create({
