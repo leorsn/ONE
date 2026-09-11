@@ -18,7 +18,7 @@ export function resolveOneNativePath(path: string): NativeRouteResolution {
   try {
     const url = new URL(path);
 
-    if (url.hostname === 'expo-sharing') {
+    if (url.protocol === 'expo-sharing:' || url.hostname === 'expo-sharing') {
       return { route: '/handle-share', kind: 'share' };
     }
 
