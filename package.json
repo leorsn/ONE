@@ -9,10 +9,11 @@
     "android": "expo start --android",
     "web": "expo start --web",
     "web:export": "expo export --platform web --output-dir .expo-web-test",
+    "native:config": "expo config --type introspect > /tmp/one-expo-introspect.json",
     "lint": "expo lint",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit",
-    "quality": "npm run typecheck && npm run lint && npm test && npx expo install --check && npx expo-doctor@latest && npm run web:export"
+    "quality": "npm run typecheck && npm run lint && npm test && npx expo install --check && npx expo-doctor@latest && npm run native:config && npm run web:export"
   },
   "dependencies": {
     "@expo/ui": "~57.0.9",
