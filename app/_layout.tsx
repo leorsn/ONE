@@ -29,7 +29,7 @@ function RootNavigation() {
   const router = useRouter();
   const segments = useSegments();
   const { loaded, completed } = useOnboarding();
-  const { hydrated: itemsHydrated } = useItems();
+  const { hydrated: itemsHydrated, items } = useItems();
   const { theme, resolvedMode, loaded: themeLoaded } = useThemeContext();
   const { loading: subscriptionLoading, billingConfigured, hasBaseAccess } = usePlan();
   const appReady = loaded && themeLoaded && !subscriptionLoading && itemsHydrated;
@@ -41,8 +41,9 @@ function RootNavigation() {
     const inOnboarding = segments[0] === 'onboarding';
     const inUpgrade = segments[0] === 'upgrade';
     const inAuth = segments[0] === 'auth';
+    const inNativeAcceptance = __DEV__ && segments[0] === 'dev-native';
 
-    if (!completed && !inOnboarding && !inAuth) {
+    if (!completed && !inOnboarding && !inAuth && !inNativeAcceptance) {
       router.replace('/onboarding');
       return;
     }
@@ -52,7 +53,7 @@ function RootNavigation() {
       return;
     }
 
-    if (completed && billingConfigured && !hasBaseAccess && !inUpgrade && !inAuth) {
+    if (completed && billingConfigured && !hasBaseAccess && !inUpgrade && !inAuth && !inNativeAcceptance) {
       router.replace('/upgrade');
     }
   }, [appReady, completed, billingConfigured, hasBaseAccess, segments, router]);
@@ -71,6 +72,7 @@ function RootNavigation() {
       await Notifications.clearLastNotificationResponseAsync();
       if (cancelled) return;
 
+      if (!items.some((item) => item.id === itemId)) return;
       router.push({ pathname: '/item/[id]', params: { id: itemId } });
     }
 
@@ -84,7 +86,7 @@ function RootNavigation() {
       cancelled = true;
       subscription.remove();
     };
-  }, [appReady, canOpenMemories, router]);
+  }, [appReady, canOpenMemories, items, router]);
 
   if (!appReady) {
     return (
