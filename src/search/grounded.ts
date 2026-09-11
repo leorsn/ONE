@@ -89,6 +89,14 @@ export function buildGroundedRecallAnswer(
     });
 
     if (ideas.length) {
+      const single = ideas[0];
+      const detail = single
+        ? [single.title, single.summary, single.userContext]
+            .filter((value): value is string => Boolean(value))
+            .filter(uniqueText)
+            .join(' · ')
+        : '';
+
       return {
         title: ideas.length === 1
           ? ideas[0].title
@@ -96,7 +104,7 @@ export function buildGroundedRecallAnswer(
             ? `${ideas.length} gespeicherte Ideen`
             : `${ideas.length} saved ideas`,
         body: ideas.length === 1
-          ? ideas[0].summary || ideas[0].userContext || (german ? 'Gespeichert in ONE.' : 'Saved in ONE.')
+          ? detail || (german ? 'Gespeichert in ONE.' : 'Saved in ONE.')
           : ideas.slice(0, 5).map((item) => item.title).join('\n'),
         meta: german ? 'Nur aus deinen gespeicherten Erinnerungen' : 'Only from your saved memories',
         itemIds: ideas.map((item) => item.id)
@@ -120,18 +128,16 @@ export function buildGroundedRecallAnswer(
   }
 
   if (/what did i save|what have i saved|was hatte ich|was habe ich|zeig.*gespeichert|show.*saved/.test(clean) && bestMatch) {
-    const details = [
-      bestMatch.summary,
-      bestMatch.userContext,
-      bestMatch.date,
-      bestMatch.location,
-      bestMatch.merchant,
-      bestMatch.amount !== undefined ? formatMoney(bestMatch.amount, bestMatch.currency) : undefined
-    ].filter((value): value is string => Boolean(value));
-
     return {
       title: bestMatch.title,
-      body: details.filter(uniqueText).join(' · ') || (german ? 'Keine weiteren Details gespeichert.' : 'No additional details are saved.'),
+      body: [
+        bestMatch.summary,
+        bestMatch.userContext,
+        bestMatch.date,
+        bestMatch.location,
+        bestMatch.merchant,
+        bestMatch.amount !== undefined ? formatMoney(bestMatch.amount, bestMatch.currency) : undefined
+      ].filter((value): value is string => Boolean(value)).filter(uniqueText).join(' · ') || (german ? 'Keine weiteren Details gespeichert.' : 'No additional details are saved.'),
       meta: german ? 'Bester gespeicherter Treffer in ONE' : 'Best saved match in ONE',
       itemIds: [bestMatch.id]
     };
@@ -254,13 +260,13 @@ function uniqueText(value: string, index: number, values: string[]) {
   return values.indexOf(value) === index;
 }
 
+function normalize(value: string) {
+  return value.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+}
+
 function toIsoDate(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
-}
-
-function normalize(value: string) {
-  return value.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
 }
