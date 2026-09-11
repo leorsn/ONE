@@ -34,7 +34,6 @@ function userClient(req: Request) {
   )
 }
 
-
 const model = new Supabase.ai.Session('gte-small')
 
 Deno.serve(async (req: Request) => {
@@ -53,7 +52,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: item, error: readError } = await supabase
       .from('items')
-      .select('id,title,raw_input,category,notes,original_text,extracted_text,user_context,document_kind,merchant,amount,currency,tags,entities')
+      .select('id,title,summary,kind,destination,people,raw_input,category,notes,original_text,extracted_text,user_context,document_kind,merchant,amount,currency,tags,entities')
       .eq('id', itemId)
       .single()
 
@@ -66,6 +65,10 @@ Deno.serve(async (req: Request) => {
 
     const content = [
       item.title,
+      item.summary,
+      item.kind,
+      item.destination,
+      ...(item.people ?? []),
       item.user_context,
       item.category,
       item.notes,
