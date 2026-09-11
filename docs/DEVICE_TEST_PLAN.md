@@ -1,45 +1,109 @@
-# ONE — Native Device Test Plan
+# ONE — Native iOS Device Acceptance Plan
 
-This checklist is for the first real iPhone/iPad development build.
+This checklist is for the first real iPhone/iPad development build. Passing CI, web export, Expo Go, or a browser preview does **not** count as native acceptance.
 
 ## Build target
 
+- Repository: `leorsn/ONE`
 - Branch: `dev/foundation`
-- Use an Expo development build, not Expo Go.
-- Test on a physical iPhone first.
-- Test iPad layout after the iPhone smoke test.
+- Bundle identifier: `app.one.mobile`
+- URL scheme: `one`
+- Share extension bundle: `app.one.mobile.ShareExtension`
+- App Group: `group.app.one.mobile`
+- Use an Expo **development build**, not Expo Go.
+- Test on a physical iPhone first; test iPad layout after the iPhone smoke test.
 
-## 1. Launch and onboarding
+The development EAS profile is already configured with `developmentClient: true` and internal distribution.
 
+## Development-only Native Acceptance screen
+
+In a development build, open:
+
+`one://dev-native?probe=1`
+
+The route is hidden from production builds and reports device/runtime state for:
+
+- authentication
+- authenticated Supabase/RLS connectivity
+- local AsyncStorage persistence
+- item hydration
+- pending sync
+- camera permission
+- photo-library permission
+- notification permission
+- count of scheduled local notifications
+- Share-to-ONE receipt events
+- OCR outcomes
+- local attachment persistence
+- native deep-link receipt
+- latest native error
+
+It also provides actions to request permissions, schedule a five-second local notification, test the ONE URL scheme, and open Scan to ONE.
+
+Diagnostics are development-only and must not contain shared content, passwords, auth codes, or privileged credentials.
+
+## 1. Install and first launch
+
+- Install a fresh EAS development build on the iPhone.
+- iOS 16+ Developer Mode is enabled if required by the development build.
 - Fresh install opens onboarding.
 - Light and dark mode render correctly.
 - Skip and Continue work.
-- Completing onboarding routes into ONE during beta.
-- Production billing build with no entitlement routes to the plans screen.
+- Complete onboarding and enter ONE during beta.
+- Kill ONE completely, reopen it, and confirm onboarding/session state is restored correctly.
 
-## 2. Inbox capture
+## 2. Native Acceptance baseline
 
-Test these inputs:
+Open `one://dev-native?probe=1` and verify:
+
+- Platform reports iOS.
+- Local persistence reports Passed.
+- Camera/Photos/Notifications report truthful permission states.
+- Signed-in state matches reality.
+- Supabase reports authenticated RLS connectivity when signed in.
+- Sync does not remain permanently stuck.
+- `Test ONE deep link` returns to the same development route.
+
+Do not mark a native capability as passed merely because the row exists.
+
+## 3. Inbox capture
+
+Test:
 
 - `Dentist Thursday 15:00`
-- `Call Anna tomorrow`
+- `Remind me tomorrow at 18:00 to call Paul`
 - `Cancel Netflix on the 23rd`
-- `Gift idea for Dad: Rolex book`
+- `Gift idea for Dad: silver watch`
 - a normal URL
+- a plain note
 
-Verify title, type, date, time, category and saved state before and after save.
+Verify classification, ambiguity/review state, title, date, time, destination and save state. Confirm only one canonical item is created and edits appear consistently in Inbox/Calendar/Saved.
 
-## 3. Calendar and reminders
+## 4. Notifications and reminders
 
-- Dated items appear on the correct day.
-- Opening an item from Calendar works.
-- Date and time editing use native device pickers on iOS/Android.
-- Date and time remain optional and can be cleared.
-- Notification permission is requested only when needed.
-- Reminder timing follows Settings.
-- Completing/deleting an item cancels its notification.
+From Native Acceptance:
 
-## 4. Scan to ONE
+- Request notification access.
+- Schedule the five-second acceptance notification.
+- Confirm actual delivery on the physical iPhone.
+
+Then test a real ONE reminder:
+
+- Save a future reminder.
+- Confirm it has a truthful scheduled/denied state.
+- Edit title/date/time and confirm the old schedule is not left active.
+- Complete the reminder and confirm its scheduled notification is removed.
+- Reopen it where supported and confirm scheduling behavior remains coherent.
+- Delete a reminder and confirm its notification is removed.
+- Kill/restart ONE and confirm the reminder does not duplicate.
+- Sign out and confirm private reminder notifications from that account are suspended.
+- Sign in as a different user and confirm no previous-account reminder content appears.
+- Tap a notification and confirm ONE opens the corresponding existing item.
+- Delete the item before tapping an older delivered notification and confirm ONE does not route into a stale missing-item detail screen.
+
+Date/time should behave as local wall-clock time on the device. Repeat one test across a different device timezone if practical.
+
+## 5. Scan to ONE
 
 Test at least:
 
@@ -49,139 +113,188 @@ Test at least:
 - ticket/reservation
 - document with poor lighting
 
+Permission tests:
+
+- camera not requested
+- camera allowed
+- camera denied, including Open Settings recovery
+- photo library not requested
+- photo library allowed
+- photo library denied
+- user cancels camera/photo picker
+
+Flow acceptance:
+
+1. Acquire image.
+2. Confirm the original is copied into ONE's private local storage before OCR completes.
+3. Background ONE while OCR is running; return to it.
+4. Confirm the capture/review is still usable.
+5. Confirm OCR success, empty OCR and OCR-failure states are truthful.
+6. Confirm a late OCR result does not overwrite manual edits already made in Capture Review.
+7. For receipts, confirm arbitrary line-item values are never promoted to `Total`.
+8. Save and restart ONE; confirm attachment remains available.
+9. Sign in/offline/reconnect and confirm the item remains local while cloud upload is pending.
+
+Apple Vision OCR through `expo-ocr-kit` is considered accepted only after this physical-device test.
+
+## 6. Share to ONE — native Share Extension
+
+A development build is required after changes to `app.json`; Expo Go cannot validate the extension.
+
+Test from Safari, Mail, Photos and Files where available:
+
+- selected/plain text
+- URL/web page
+- screenshot
+- image
+- PDF/file
+- another supported document attachment
+
+Expected flow:
+
+**Share → ONE → main ONE app → Capture Review → Save → normal ONE destination**
+
 Verify:
 
-- camera permission
-- photo library import
-- OCR text
-- document kind
-- merchant
-- date
-- amount
-- currency
-- manual correction before save
-- image remains available after app restart
+- ONE appears in the iOS Share Sheet after the native build is installed.
+- Cold-start share opens the Capture Review path.
+- Warm-start share opens the same path.
+- Multiple iOS representations of one share resolve to one primary capture.
+- Original attachment is persisted locally before the cloud is trusted.
+- OCR runs for supported images without blocking Save indefinitely.
+- Empty/malformed share payload is not silently saved.
+- Sharing the same payload twice in quick succession triggers duplicate protection rather than creating an accidental duplicate.
+- Explicit `Save again` still allows an intentional duplicate.
+- Signed-out share remains local.
+- Offline signed-in share remains local/pending and syncs after reconnect.
+- Return to Native Acceptance and verify share/attachment/OCR events were recorded without the shared content itself being logged.
 
-## 5. Documents hub
+Current Expo SDK 57 iOS share receiving is experimental and opens the main app target. Treat physical-device behavior as mandatory acceptance evidence.
 
-- Saved > Documents opens.
-- Monthly captured total is correct.
-- Receipt/invoice counts are correct.
-- Largest purchase is correct.
-- Filters work.
-- Merchant/date/amount appear on rows.
-- Empty-state works after removing all test documents.
+## 7. Calendar and item editing
 
-## 6. Share to ONE
+- Dated ONE items appear on the correct day.
+- Opening an item from Calendar works.
+- Date/time editing uses native controls on iOS.
+- Date/time remains optional and can be cleared.
+- Edits update the same canonical item shown in all views.
+- Keyboard does not obscure important inputs or Save controls on a small iPhone.
 
-From Safari, Photos and another app:
-
-- share text
-- share URL
-- share screenshot
-- share image
-- share PDF if supported by the current native target
-
-Verify context input, OCR where relevant, attachment persistence and Saved destination.
-
-## 7. Ask ONE / ONE AI
+## 8. Ask ONE / ONE AI
 
 Test:
 
-- `How much did I spend this month?`
-- `Show me invoices over €500`
-- `Which was the largest?`
-- `How much in total?`
-- `Show me the receipts`
-- `When was the dentist appointment?`
+- `When is my dentist appointment?`
+- `Where is it?`
+- `What gift idea did I save for Dad?`
+- `How much was the receipt from IKEA?`
+- `What reminder do I have tomorrow?`
+- an intentionally unknown question
+- a query with multiple plausible appointments
 
-Verify direct answers, supporting memories and follow-up context.
+Verify concise grounded answers, tappable supporting memories, truthful no-result behavior and multiple-match behavior. Turn off network and confirm local/keyword fallback does not claim semantic cloud recall succeeded.
 
-## 8. Account and cloud sync
+## 9. Account, deep links and session restoration
 
-- Create account / sign in.
-- Confirm the account email from the same iPhone and verify the deep link returns to ONE.
-- Sign out, tap `Forgot password?`, open the reset email on the same iPhone and set a new password.
-- Sign out again and confirm the new password works and the old password no longer works.
-- Add an item while signed in.
-- Restart app and confirm persistence.
-- Confirm cloud sync status.
-- Confirm private attachment can be reopened.
-- Delete a cloud-backed item while online and confirm it stays deleted.
-- Delete a cloud-backed item while offline, restart, reconnect and confirm it does not return.
-- Confirm deferred cloud attachment cleanup completes after reconnect.
-- Confirm built-in development seed items never appear in the authenticated cloud account.
-- Delete the ONE account from Settings and confirm cloud items, attachments, local items and scheduled notifications are removed.
+Supabase Auth URL configuration must allow at minimum:
 
-### Account isolation regression test
+- `one://auth/callback`
+- `one://auth/reset-password`
 
-1. Signed out, create an anonymous capture called `Anonymous transfer test`.
-2. Sign in to user A and verify that real anonymous capture transfers into user A exactly once.
-3. Create `User A private item` while signed in.
-4. Sign out and verify `User A private item` is no longer visible.
-5. Sign in to a different user B and verify neither user A item nor user A cloud data appears.
-6. Create `User B private item`, sign out, then sign back in to user A.
-7. Verify user A sees user A data and not user B data.
-8. Sign back in to user B and verify user B data is restored independently.
-9. Confirm development seed/demo memories never migrate into either authenticated account.
-10. Repeat an offline delete under user A and verify its tombstone cannot affect user B.
+Test on the same physical iPhone:
 
-## 9. Privacy and data control
+- Create account.
+- Open confirmation email and confirm `one://auth/callback` returns to ONE.
+- Test callback while ONE is already running.
+- Test an expired/invalid confirmation link and confirm a truthful error.
+- Sign out.
+- Request Forgot Password.
+- Open reset link and confirm `one://auth/reset-password` returns to ONE.
+- Set a new password and sign in with it.
+- Kill/restart while logged in and confirm session restoration.
+- Kill/restart while logged out and confirm ONE remains logged out.
+- Temporarily disable networking and confirm existing local data remains usable.
+- Re-enable networking and confirm sync resumes without duplicate items.
 
-- Privacy screen opens.
-- `Export my data` creates a JSON export through the native share sheet.
-- Export contains the current account/scope items only.
-- Temporary export file is cleaned up after sharing.
-- Account deletion remains available in-app.
+If a session is expired/revoked server-side, confirm the authoritative Supabase auth state eventually signs ONE out rather than showing another account's cloud data.
 
-## 10. Subscription UI
+## 10. Background / foreground regression
 
-Beta build without RevenueCat keys:
+Exercise these deliberately:
 
-- ONE AI remains unlocked.
-- Plans screen clearly states beta billing is disabled.
+- background during OCR
+- background during attachment upload
+- background during cloud sync
+- background immediately after save
+- foreground after several minutes
+- cold-start from Share Sheet
+- cold-start from notification tap
+- cold-start from auth deep link
 
-Store-connected sandbox build:
+Verify no duplicate capture, duplicate reminder, lost local attachment or cross-account data appears.
 
-- no entitlement => hard paywall after onboarding
-- auth confirmation/password-reset deep links remain reachable even while the paywall is active
-- ONE purchase => base access
-- ONE AI purchase => Ask ONE access
-- Restore Purchases works
-- Manage Subscription opens the RevenueCat/App Store management destination
-- returning from background refreshes entitlement state
-- introductory offer copy does not promise eligibility to every user
-- deleting a ONE account does not falsely claim that the App Store subscription was cancelled
+## 11. Account isolation regression
 
-## 11. iPad
+1. Signed out, create an anonymous capture named `Anonymous transfer test`.
+2. Sign in to user A and verify the real anonymous capture transfers into user A exactly once.
+3. Create `User A private item`.
+4. Sign out and verify it is no longer visible and its private scheduled notifications are suspended.
+5. Sign in to user B and verify user A data does not appear.
+6. Create `User B private item`, sign out, return to user A.
+7. Verify each account restores only its own data.
+8. Confirm development seed/demo memories never migrate into authenticated cloud accounts.
+9. Perform an offline delete under user A and verify its tombstone cannot affect user B.
 
-- App installs and launches on iPad.
-- Tab bar is usable.
+## 12. Privacy / data controls
+
+- Private cloud attachments cannot be opened as public URLs.
+- `Export my data` exports only the active account/scope.
+- Delete Account removes account-scoped cloud/local data as designed.
+- Account deletion does not falsely claim an App Store subscription was cancelled.
+- No service-role secret exists in the mobile bundle.
+
+## 13. iPhone layout / keyboard
+
+Test at least one small and one larger iPhone viewport when available:
+
+- no important control under notch/Dynamic Island
+- bottom actions clear the home indicator
+- tab bar remains usable
+- Capture Review scrolls while keyboard is open
+- Share Review scrolls while keyboard is open
+- Scan Review scrolls while keyboard is open
+- password reset inputs remain visible
+- destructive confirmations are reachable
+
+Portrait is the configured primary orientation.
+
+## 14. iPad
+
+- App installs and launches.
+- Tab bar remains usable.
 - No clipped content.
-- Forms and chat composer remain readable with keyboard visible.
-- Scan and document screens remain usable in portrait.
+- Forms/chat composer remain readable with keyboard visible.
+- Scan/document screens remain usable in portrait.
 - Native date/time controls remain usable at iPad size.
 
 ## Exit criteria
 
-The first beta passes when there are no blocker crashes and the following work end-to-end on a physical iPhone:
+PO044 native acceptance is complete only after a real development build passes the critical physical-iPhone flow:
 
-- onboarding
-- capture
-- calendar
-- notifications
-- native date/time editing
-- Scan to ONE
-- Documents
-- Share to ONE
-- Ask ONE
-- account confirmation
-- password recovery
-- account/cloud persistence
-- multi-account local isolation
-- offline delete reconciliation
-- data export
-- account deletion
-- subscription management
+**Share something → ONE receives it → Capture Review → Save → optional reminder → restart/background/reconnect → retrieve through ONE**
 
-Log every issue with screen, exact action, expected result, actual result and screenshot when possible.
+At minimum physically accept:
+
+- onboarding / restart
+- camera + photo permissions
+- Scan + Apple Vision OCR
+- Share Extension from Safari and Photos
+- PDF/file share where exposed by iOS
+- notification permission + delivery + edit/cancel + tap
+- auth confirmation and password-reset deep links
+- session restoration
+- offline capture / reconnect
+- account isolation
+- safe-area / keyboard usability
+
+For every failure record: screen, exact action, expected result, actual result, device/iOS version and screenshot when useful.
