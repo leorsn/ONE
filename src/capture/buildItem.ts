@@ -1,4 +1,4 @@
-import { initialTriageStateForItem } from '@/src/inbox/triage';
+import { initialTriageStateForItem } from '../inbox/triage.ts';
 import type { CaptureDraft } from './core';
 import type { OneItem, OneSourceType } from '../types/item';
 
