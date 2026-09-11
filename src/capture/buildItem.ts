@@ -1,3 +1,4 @@
+import { initialTriageStateForItem } from '@/src/inbox/triage';
 import type { CaptureDraft } from './core';
 import type { OneItem, OneSourceType } from '../types/item';
 
@@ -33,7 +34,7 @@ export function buildItemFromCapture({
       ? 'reviewed' as const
       : 'ready' as const;
 
-  return {
+  const item: OneItem = {
     id: `${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
     title: draft.title.trim() || 'Captured in ONE',
     rawInput: rawInput?.trim() || draft.extractedText || draft.userContext || draft.title,
@@ -41,10 +42,12 @@ export function buildItemFromCapture({
     kind: draft.canonicalKind,
     summary: draft.summary?.trim() || undefined,
     people: draft.people,
-    destination: draft.needsReview.length ? 'inbox' : draft.destination,
+    destination: draft.destinationConfirmed ? draft.destination : 'inbox',
     reviewStatus,
     ambiguities: draft.ambiguities.map((ambiguity) => ambiguity.message),
     understandingConfidence: draft.overallConfidence,
+    executedActions: [],
+    processedAt: draft.destinationConfirmed ? timestamp : undefined,
     date: draft.date || undefined,
     time: draft.time || undefined,
     category: draft.category || undefined,
@@ -74,5 +77,10 @@ export function buildItemFromCapture({
     syncState: 'local',
     createdAt: timestamp,
     updatedAt: timestamp
+  };
+
+  return {
+    ...item,
+    triageState: draft.destinationConfirmed ? 'processed' : initialTriageStateForItem(item)
   };
 }

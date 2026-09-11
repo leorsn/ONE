@@ -1,3 +1,4 @@
+import { initialTriageStateForItem } from '@/src/inbox/triage';
 import type {
   OneDestination,
   OneItem,
@@ -63,8 +64,7 @@ export function ensureCanonicalItemMetadata(item: OneItem): OneItem {
   const reviewStatus: OneReviewStatus = item.reviewStatus ?? 'ready';
   const destination = item.destination ?? destinationForItem({ ...item, kind, reviewStatus });
   const understandingConfidence: OneUnderstandingConfidence = item.understandingConfidence ?? 'medium';
-
-  return {
+  const canonical: OneItem = {
     ...item,
     kind,
     summary: item.summary || summaryForItem(item),
@@ -72,7 +72,13 @@ export function ensureCanonicalItemMetadata(item: OneItem): OneItem {
     destination,
     reviewStatus,
     ambiguities: item.ambiguities ?? [],
-    understandingConfidence
+    understandingConfidence,
+    executedActions: item.executedActions ?? []
+  };
+
+  return {
+    ...canonical,
+    triageState: item.triageState ?? initialTriageStateForItem(canonical)
   };
 }
 

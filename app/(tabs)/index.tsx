@@ -7,64 +7,75 @@ import { buildItemFromCapture } from '@/src/capture/buildItem';
 import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
 import { interpretCapture, requiresStructuredReview, type CaptureDraft } from '@/src/capture/core';
 import { useItems } from '@/src/context/ItemsContext';
+import {
+  isInboxActive,
+  triageActionChanges,
+  triagePriority,
+  triageStateForItem
+} from '@/src/inbox/triage';
+import { buildTodayEntries, todayReasonLabel } from '@/src/inbox/today';
 import { notificationSaveWarning } from '@/src/notifications/status';
+import { TriageRow } from '@/src/ui/TriageRow';
 import { OneItemRow } from '@/src/ui/OneItemRow';
 import { EmptyState, IconTile, PageHeader, PrimaryButton, RoundIconButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
-import { icons } from '@/src/ui/icons';
+import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
-import type { OneItem } from '@/src/types/item';
+import type { OneInboxAction, OneItem } from '@/src/types/item';
 
 export default function InboxScreen() {
   const theme = useTheme();
   const [input, setInput] = useState('');
   const [reviewedDraft, setReviewedDraft] = useState<CaptureDraft | null>(null);
-  const { items, add, toggleCompleted } = useItems();
+  const { items, add, update, toggleCompleted } = useItems();
 
   const automaticDraft = useMemo(
-    () => input.trim()
-      ? interpretCapture({ rawText: input, sourceType: 'manual' })
-      : null,
+    () => input.trim() ? interpretCapture({ rawText: input, sourceType: 'manual' }) : null,
     [input]
   );
   const draft = reviewedDraft ?? automaticDraft;
   const structuredReview = draft ? requiresStructuredReview(draft) : false;
+  const now = new Date();
+  const todayIso = toIsoDate(now);
 
-  const todayIso = toIsoDate(new Date());
-  const active = items.filter((item) => !item.completed);
-  const newItems = active
-    .filter((item) => item.destination === 'inbox' || item.reviewStatus === 'needs_review')
-    .sort(sortUpdated)
-    .slice(0, 6);
-  const upcoming = active
-    .filter((item) => item.destination === 'calendar' && item.date && item.date >= todayIso)
+  const inboxItems = items
+    .filter((item) => !item.completed && isInboxActive(item, now))
+    .sort((a, b) => triagePriority(a) - triagePriority(b) || sortUpdated(a, b))
+    .slice(0, 10);
+  const todayEntries = buildTodayEntries(items, now).slice(0, 6);
+  const upcoming = items
+    .filter((item) => !item.completed && triageStateForItem(item) !== 'archived' && item.destination === 'calendar' && item.date && item.date >= todayIso)
     .sort(sortByDateTime)
-    .slice(0, 6);
-  const saved = active
-    .filter((item) => item.destination === 'saved')
-    .sort(sortUpdated)
     .slice(0, 5);
-  const completed = items
-    .filter((item) => item.completed)
+  const saved = items
+    .filter((item) => !item.completed && triageStateForItem(item) !== 'archived' && item.destination === 'saved')
     .sort(sortUpdated)
-    .slice(0, 3);
+    .slice(0, 4);
 
   async function handleSave() {
     if (!draft || !input.trim()) return;
-
     const item = buildItemFromCapture({
       draft,
       sourceType: 'manual',
       rawInput: input,
       originalText: input
     });
-
     const savedItem = await add(item);
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setInput('');
     setReviewedDraft(null);
-
     const reminderWarning = notificationSaveWarning(savedItem);
     if (reminderWarning) Alert.alert('Saved to ONE', reminderWarning);
+  }
+
+  async function executeAction(item: OneItem, action: OneInboxAction) {
+    const changes = triageActionChanges(item, action);
+    if (!changes) return;
+    const updated = await update(item.id, changes);
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    if (updated) {
+      const warning = notificationSaveWarning(updated);
+      if (warning) Alert.alert('Saved to ONE', warning);
+    }
   }
 
   return (
@@ -72,7 +83,7 @@ export default function InboxScreen() {
       <ScrollView contentContainerStyle={uiStyles.screenContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <PageHeader
           title="Inbox"
-          subtitle="Capture first. ONE keeps the rest organized."
+          subtitle="What came in, what matters today, and what needs a decision."
           action={<RoundIconButton icon={icons.person} onPress={() => router.push('/(tabs)/settings')} accessibilityLabel="Open settings" />}
         />
 
@@ -98,7 +109,7 @@ export default function InboxScreen() {
         <View style={styles.quickActions} accessibilityRole="toolbar">
           <QuickAction label="Scan" icon={icons.scan} hint="Scan a receipt or document" onPress={() => router.push('/scan')} />
           <QuickAction label="Share" icon={icons.upload} hint="Learn how to share content to ONE" onPress={() => router.push('/share')} />
-          <QuickAction label="Ask" icon={icons.ask} hint="Open ONE AI conversation" badge="AI" onPress={() => router.push('/ask')} />
+          <QuickAction label="Ask" icon={icons.ask} hint="Search your ONE memory" badge="AI" onPress={() => router.push('/ask')} />
         </View>
 
         {draft ? (
@@ -111,29 +122,51 @@ export default function InboxScreen() {
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.interpretationTitle, { color: theme.text }]} numberOfLines={2}>{draft.title}</Text>
                     <Text style={[styles.interpretationMeta, { color: theme.textSecondary }]}>
-                      {[labelForKind(draft.canonicalKind), destinationLabel(draft.destination)].join(' · ')}
+                      {[labelForKind(draft.canonicalKind), 'Inbox first'].join(' · ')}
                     </Text>
                   </View>
                 </View>
                 <View style={styles.saveWrap}>
-                  <PrimaryButton label="Save to ONE" icon={icons.check} onPress={handleSave} />
+                  <PrimaryButton label="Capture to Inbox" icon={icons.check} onPress={handleSave} />
                 </View>
               </Surface>
             ) : (
               <>
                 <CaptureReviewEditor draft={draft} onChange={setReviewedDraft} showExtractedText={false} />
-                <PrimaryButton label="Save to ONE" icon={icons.check} onPress={handleSave} disabled={!draft.title.trim()} />
+                <PrimaryButton label="Capture to Inbox" icon={icons.check} onPress={handleSave} disabled={!draft.title.trim()} />
               </>
             )}
           </View>
         ) : null}
 
         <View style={styles.block}>
-          <SectionHeader title="Inbox" meta={String(newItems.length)} />
+          <SectionHeader title="Today" meta={String(todayEntries.length)} />
           <Surface>
-            {newItems.length
-              ? newItems.map((item) => <OneItemRow key={item.id} item={item} onToggle={toggleCompleted} />)
-              : <EmptyState icon={icons.check} title="Inbox clear" body="New or unresolved captures appear here until ONE can organize them." />}
+            {todayEntries.length ? (
+              todayEntries.map(({ item, reason }) => (
+                <TodayRow key={item.id} item={item} reason={todayReasonLabel(reason)} />
+              ))
+            ) : (
+              <EmptyState icon={icons.check} title="Nothing needs you today" body="Today's events, reminders and Inbox decisions will appear here." />
+            )}
+          </Surface>
+        </View>
+
+        <View style={styles.block}>
+          <SectionHeader title="Inbox" meta={String(inboxItems.length)} />
+          <Surface>
+            {inboxItems.length ? (
+              inboxItems.map((item) => (
+                <TriageRow
+                  key={item.id}
+                  item={item}
+                  onOpen={() => router.push({ pathname: '/inbox/[id]', params: { id: item.id } })}
+                  onExecute={(action) => executeAction(item, action)}
+                />
+              ))
+            ) : (
+              <EmptyState icon={icons.check} title="Inbox clear" body="New captures, unresolved information and proposed actions appear here." />
+            )}
           </Surface>
         </View>
 
@@ -150,7 +183,7 @@ export default function InboxScreen() {
           <Surface>
             {upcoming.length
               ? upcoming.map((item) => <OneItemRow key={item.id} item={item} onToggle={toggleCompleted} />)
-              : <EmptyState icon={icons.calendar} title="Nothing scheduled" body="Appointments, reminders, events and dated tasks appear here." />}
+              : <EmptyState icon={icons.calendar} title="Nothing scheduled" body="Confirmed calendar items and reminders appear here." />}
           </Surface>
         </View>
 
@@ -167,29 +200,36 @@ export default function InboxScreen() {
           <Surface>
             {saved.length
               ? saved.map((item) => <OneItemRow key={item.id} item={item} />)
-              : <EmptyState icon={icons.saved} title="Your memory is empty" body="Notes, links, ideas, images and documents collect here." />}
+              : <EmptyState icon={icons.saved} title="Your memory is empty" body="Processed notes, links, ideas and documents collect here." />}
           </Surface>
         </View>
-
-        {completed.length ? (
-          <View style={styles.block}>
-            <SectionHeader title="Completed" meta={String(completed.length)} />
-            <Surface>
-              {completed.map((item) => <OneItemRow key={item.id} item={item} onToggle={toggleCompleted} />)}
-            </Surface>
-          </View>
-        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
 
-  function QuickAction({
-    label,
-    icon,
-    onPress,
-    badge,
-    hint
-  }: {
+  function TodayRow({ item, reason }: { item: OneItem; reason: string }) {
+    const activeInbox = isInboxActive(item, now);
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`${reason}. ${item.title}`}
+        onPress={() => router.push({ pathname: activeInbox ? '/inbox/[id]' : '/item/[id]', params: { id: item.id } } as never)}
+        style={({ pressed }) => [styles.todayRow, { borderBottomColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+      >
+        <View style={[styles.todayMarker, { backgroundColor: reason === 'Overdue' ? theme.warning : theme.accent }]} />
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.todayReason, { color: theme.textTertiary }]}>{reason.toUpperCase()}</Text>
+          <Text style={[styles.todayTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
+          <Text style={[styles.todayMeta, { color: theme.textSecondary }]} numberOfLines={1}>
+            {[item.time, item.location, item.summary].filter(Boolean).join(' · ')}
+          </Text>
+        </View>
+        <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />
+      </Pressable>
+    );
+  }
+
+  function QuickAction({ label, icon, onPress, badge, hint }: {
     label: string;
     icon: (typeof icons)[keyof typeof icons];
     onPress: () => void;
@@ -205,10 +245,7 @@ export default function InboxScreen() {
           await Haptics.selectionAsync();
           onPress();
         }}
-        style={({ pressed }) => [
-          styles.quickAction,
-          { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }
-        ]}
+        style={({ pressed }) => [styles.quickAction, { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
       >
         <IconTile icon={icon} tone="neutral" size={34} />
         <Text style={[styles.quickLabel, { color: theme.text }]}>{label}</Text>
@@ -233,7 +270,6 @@ function iconForDraft(draft: CaptureDraft) {
 }
 
 function labelForKind(kind: string) { return kind.charAt(0).toUpperCase() + kind.slice(1); }
-function destinationLabel(destination: string) { return destination.charAt(0).toUpperCase() + destination.slice(1); }
 function sortByDateTime(a: OneItem, b: OneItem) { return `${a.date}T${a.time || '23:59'}`.localeCompare(`${b.date}T${b.time || '23:59'}`); }
 function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(); }
 function toIsoDate(date: Date) {
@@ -257,5 +293,10 @@ const styles = StyleSheet.create({
   interpretationTitle: { fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
   interpretationMeta: { fontSize: 12.5, marginTop: 4 },
   saveWrap: { padding: 14, paddingTop: 0 },
-  textAction: { fontSize: 13, fontWeight: '700' }
+  textAction: { fontSize: 13, fontWeight: '700' },
+  todayRow: { minHeight: 68, borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  todayMarker: { width: 4, height: 34, borderRadius: 2 },
+  todayReason: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.6 },
+  todayTitle: { marginTop: 3, fontSize: 14.5, fontWeight: '700' },
+  todayMeta: { marginTop: 3, fontSize: 11.5 }
 });

@@ -10,11 +10,6 @@ export type OneItemType =
   | 'shopping'
   | 'document';
 
-/**
- * Durable product-level classification. This intentionally sits beside the
- * older behavioral `type` field so existing navigation/reminder behavior does
- * not need a destructive schema rewrite.
- */
 export type OneItemKind =
   | 'note'
   | 'event'
@@ -28,6 +23,15 @@ export type OneItemKind =
 export type OneDestination = 'inbox' | 'calendar' | 'saved';
 export type OneReviewStatus = 'ready' | 'needs_review' | 'reviewed';
 export type OneUnderstandingConfidence = 'high' | 'medium' | 'low';
+export type OneTriageState = 'new' | 'needs_review' | 'actionable' | 'processed' | 'archived';
+export type OneInboxAction =
+  | 'add_to_calendar'
+  | 'create_reminder'
+  | 'save_reference'
+  | 'save_purchase'
+  | 'save_note'
+  | 'mark_processed'
+  | 'archive';
 
 /** Device-local delivery state. Never synced as an account-wide fact. */
 export type OneNotificationStatus =
@@ -65,7 +69,6 @@ export type OneItem = {
   title: string;
   rawInput?: string;
   type: OneItemType;
-  /** PO044 canonical classification. Legacy local items are backfilled on load. */
   kind?: OneItemKind;
   summary?: string;
   people?: string[];
@@ -73,6 +76,11 @@ export type OneItem = {
   reviewStatus?: OneReviewStatus;
   ambiguities?: string[];
   understandingConfidence?: OneUnderstandingConfidence;
+  triageState?: OneTriageState;
+  executedActions?: OneInboxAction[];
+  processedAt?: string;
+  archivedAt?: string;
+  deferredUntil?: string;
   date?: string;
   time?: string;
   reminderAt?: string;
