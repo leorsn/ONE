@@ -1,5 +1,6 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
+import { recordLastNativeError, recordNativeAcceptanceEvent } from '@/src/native/acceptance';
 import { loadNotificationPreferences } from '@/src/storage/preferences';
 import type { OneItem, OneNotificationStatus } from '@/src/types/item';
 
@@ -36,6 +37,17 @@ export async function ensureNotificationPermissions() {
   return requested.granted;
 }
 
+export async function getScheduledNotificationIds() {
+  if (Platform.OS === 'web') return new Set<string>();
+  try {
+    const scheduled = await Notifications.getAllScheduledNotificationsAsync();
+    return new Set(scheduled.map((entry) => entry.identifier));
+  } catch (error) {
+    await recordLastNativeError('notifications-list', error);
+    return null;
+  }
+}
+
 export function getReminderDate(
   item: Pick<OneItem, 'date' | 'time'>,
   leadMinutes = 10
@@ -61,7 +73,10 @@ export async function scheduleItemNotification(item: OneItem): Promise<Notificat
 
   try {
     const granted = await ensureNotificationPermissions();
-    if (!granted) return { status: 'permission_denied' };
+    if (!granted) {
+      await recordNativeAcceptanceEvent('notification_denied', item.type);
+      return { status: 'permission_denied' };
+    }
 
     const preferences = await loadNotificationPreferences();
     const triggerDate = getReminderDate(item, preferences.leadMinutes);
@@ -86,9 +101,11 @@ export async function scheduleItemNotification(item: OneItem): Promise<Notificat
       }
     });
 
+    await recordNativeAcceptanceEvent('notification_scheduled', item.type);
     return { status: 'scheduled', notificationId };
   } catch (error) {
     console.warn('ONE local reminder scheduling failed', error);
+    await recordLastNativeError('notification-schedule', error);
     return { status: 'error' };
   }
 }
@@ -97,7 +114,9 @@ export async function cancelItemNotification(notificationId?: string) {
   if (!notificationId || Platform.OS === 'web') return;
   try {
     await Notifications.cancelScheduledNotificationAsync(notificationId);
+    await recordNativeAcceptanceEvent('notification_cancelled');
   } catch (error) {
     console.warn('ONE local reminder cancellation failed', error);
+    await recordLastNativeError('notification-cancel', error);
   }
 }
