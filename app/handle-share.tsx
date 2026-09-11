@@ -8,6 +8,7 @@ import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
 import type { CaptureDraft } from '@/src/capture/core';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
+import { notificationSaveWarning } from '@/src/notifications/status';
 import { extractTextFromImage } from '@/src/ocr/extractText';
 import { createItemFromShare, createShareDraft } from '@/src/sharing/ingest';
 import { persistLocalAttachment } from '@/src/storage/attachments';
@@ -15,7 +16,7 @@ import { IconTile, PrimaryButton, SectionHeader, Surface } from '@/src/ui/primit
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
-type OcrState = 'idle' | 'reading' | 'ready' | 'failed';
+type OcrState = 'idle' | 'reading' | 'ready' | 'empty' | 'failed';
 
 export default function HandleShareScreen() {
   const theme = useTheme();
@@ -55,9 +56,10 @@ export default function HandleShareScreen() {
       try {
         const result = await extractTextFromImage(uri);
         if (cancelled) return;
-        setExtractedText(result.text);
-        setOcrState('ready');
-        setReviewedDraft((current) => current ? { ...current, extractedText: result.text || undefined } : current);
+        const text = result.text.trim();
+        setExtractedText(text);
+        setOcrState(text ? 'ready' : 'empty');
+        setReviewedDraft((current) => current ? { ...current, extractedText: text || undefined } : current);
       } catch (ocrError) {
         if (cancelled) return;
         console.warn('ONE OCR failed', ocrError);
@@ -103,13 +105,15 @@ export default function HandleShareScreen() {
         draft
       });
 
-      await add(item);
+      const savedItem = await add(item);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       clearSharedPayloads();
       setReviewedDraft(null);
 
-      const actionable = ['appointment', 'reminder', 'task', 'event'].includes(item.type);
-      router.replace(actionable ? '/(tabs)' : '/(tabs)/saved');
+      const reminderWarning = notificationSaveWarning(savedItem);
+      if (reminderWarning) Alert.alert('Saved to ONE', reminderWarning);
+
+      router.replace(savedItem.destination === 'saved' ? '/(tabs)/saved' : '/(tabs)');
     } catch (saveError) {
       Alert.alert(
         'Could not save to ONE',
@@ -127,8 +131,6 @@ export default function HandleShareScreen() {
     setReviewedDraft(null);
     router.replace('/(tabs)');
   }
-
-  const waitingForOcr = Boolean(imageUri) && visibleOcrState === 'reading';
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
@@ -177,7 +179,7 @@ export default function HandleShareScreen() {
             </View>
 
             {imageUri ? (
-              <View style={[styles.notice, { backgroundColor: visibleOcrState === 'failed' ? theme.fill : theme.accentSoft }]}>
+              <View style={[styles.notice, { backgroundColor: ['failed', 'empty'].includes(visibleOcrState) ? theme.fill : theme.accentSoft }]}>
                 <IconTile icon={icons.screenshot} tone={visibleOcrState === 'ready' ? 'success' : 'neutral'} size={36} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.ocrTitle, { color: theme.text }]}>{ocrHeadline(visibleOcrState)}</Text>
@@ -199,10 +201,10 @@ export default function HandleShareScreen() {
             </View>
 
             <PrimaryButton
-              label={saving ? 'Saving…' : waitingForOcr ? 'Reading screenshot…' : 'Save to ONE'}
+              label={saving ? 'Saving…' : 'Save to ONE'}
               icon={icons.check}
               onPress={handleSave}
-              disabled={saving || waitingForOcr || !draft?.title.trim()}
+              disabled={saving || !draft?.title.trim()}
             />
           </>
         ) : !isResolving ? (
@@ -231,13 +233,15 @@ function labelFor(type?: string) {
 function ocrHeadline(state: OcrState) {
   if (state === 'reading') return 'Reading on-device';
   if (state === 'ready') return 'Text recognized';
+  if (state === 'empty') return 'No readable text found';
   if (state === 'failed') return 'OCR unavailable';
   return 'Screenshot ready';
 }
 
 function ocrMeta(state: OcrState) {
-  if (state === 'reading') return 'Private native OCR';
+  if (state === 'reading') return 'You can save now. OCR text is included only if recognition finishes first.';
   if (state === 'ready') return 'Review the recognized text before saving';
+  if (state === 'empty') return 'The original image is still preserved and can be saved.';
   if (state === 'failed') return 'The original screenshot can still be saved';
   return 'Waiting for OCR';
 }
