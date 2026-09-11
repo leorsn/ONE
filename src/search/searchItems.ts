@@ -11,6 +11,7 @@ const synonymGroups = [
   ['mama','mutter','mom','mother'],
   ['geschenk','gift','birthday','geburtstag'],
   ['termin','appointment','arzt','doctor','dentist','zahnarzt'],
+  ['erinnerung','reminder','remind'],
   ['reise','travel','trip','urlaub','vacation'],
   ['flug','flight'],
   ['rechnung','invoice','receipt','beleg'],
@@ -38,6 +39,8 @@ export function searchOneItems(query: string, items: OneItem[]): SearchResult[] 
 function scoreItem(item: OneItem, terms: string[]): SearchResult {
   const fields = {
     title: normalize(item.title),
+    summary: normalize(item.summary),
+    people: normalize(item.people?.join(' ')),
     context: normalize(item.userContext),
     original: normalize(item.originalText),
     extracted: normalize(item.extractedText),
@@ -45,7 +48,7 @@ function scoreItem(item: OneItem, terms: string[]): SearchResult {
     category: normalize(item.category),
     tags: normalize(item.tags.join(' ')),
     entities: normalize(item.entities.join(' ')),
-    type: normalize(item.type),
+    type: normalize(`${item.type} ${item.kind || ''}`),
     merchant: normalize(item.merchant),
     document: normalize(item.documentKind),
     money: normalize(item.amount !== undefined ? `${item.amount} ${item.currency || ''}` : '')
@@ -56,6 +59,14 @@ function scoreItem(item: OneItem, terms: string[]): SearchResult {
 
   for (const term of terms) {
     if (fields.title.includes(term)) {
+      score += 7;
+      matched.add(term);
+    }
+    if (fields.summary.includes(term)) {
+      score += 5;
+      matched.add(term);
+    }
+    if (fields.people.includes(term)) {
       score += 7;
       matched.add(term);
     }
