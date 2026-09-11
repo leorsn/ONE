@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -7,6 +7,7 @@ import { buildItemFromCapture } from '@/src/capture/buildItem';
 import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
 import { interpretCapture, requiresStructuredReview, type CaptureDraft } from '@/src/capture/core';
 import { useItems } from '@/src/context/ItemsContext';
+import { notificationSaveWarning } from '@/src/notifications/status';
 import { OneItemRow } from '@/src/ui/OneItemRow';
 import { EmptyState, IconTile, PageHeader, PrimaryButton, RoundIconButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { icons } from '@/src/ui/icons';
@@ -57,10 +58,13 @@ export default function InboxScreen() {
       originalText: input
     });
 
-    await add(item);
+    const savedItem = await add(item);
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setInput('');
     setReviewedDraft(null);
+
+    const reminderWarning = notificationSaveWarning(savedItem);
+    if (reminderWarning) Alert.alert('Saved to ONE', reminderWarning);
   }
 
   return (
