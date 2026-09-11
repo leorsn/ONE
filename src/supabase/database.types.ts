@@ -16,12 +16,14 @@ export type Database = {
     Tables: {
       items: {
         Row: {
+          ambiguities: string[]
           amount: number | null
           attachment_url: string | null
           category: string | null
-          currency: string | null
           completed: boolean
           created_at: string
+          currency: string | null
+          destination: string
           document_kind: string | null
           embedding: string | null
           entities: string[]
@@ -30,30 +32,37 @@ export type Database = {
           image_url: string | null
           item_date: string | null
           item_time: string | null
+          kind: string
           location: string | null
           merchant: string | null
           notes: string | null
           original_text: string | null
+          people: string[]
           raw_input: string | null
           reminder_at: string | null
+          review_status: string
           saved: boolean
           source_app: string | null
           source_type: string
+          summary: string | null
           tags: string[]
           title: string
           type: string
+          understanding_confidence: string
           updated_at: string
           url: string | null
           user_context: string | null
           user_id: string
         }
         Insert: {
+          ambiguities?: string[]
           amount?: number | null
           attachment_url?: string | null
           category?: string | null
-          currency?: string | null
           completed?: boolean
           created_at?: string
+          currency?: string | null
+          destination?: string
           document_kind?: string | null
           embedding?: string | null
           entities?: string[]
@@ -62,30 +71,37 @@ export type Database = {
           image_url?: string | null
           item_date?: string | null
           item_time?: string | null
+          kind?: string
           location?: string | null
           merchant?: string | null
           notes?: string | null
           original_text?: string | null
+          people?: string[]
           raw_input?: string | null
           reminder_at?: string | null
+          review_status?: string
           saved?: boolean
           source_app?: string | null
           source_type: string
+          summary?: string | null
           tags?: string[]
           title: string
           type: string
+          understanding_confidence?: string
           updated_at?: string
           url?: string | null
           user_context?: string | null
           user_id: string
         }
         Update: {
+          ambiguities?: string[]
           amount?: number | null
           attachment_url?: string | null
           category?: string | null
-          currency?: string | null
           completed?: boolean
           created_at?: string
+          currency?: string | null
+          destination?: string
           document_kind?: string | null
           embedding?: string | null
           entities?: string[]
@@ -94,18 +110,23 @@ export type Database = {
           image_url?: string | null
           item_date?: string | null
           item_time?: string | null
+          kind?: string
           location?: string | null
           merchant?: string | null
           notes?: string | null
           original_text?: string | null
+          people?: string[]
           raw_input?: string | null
           reminder_at?: string | null
+          review_status?: string
           saved?: boolean
           source_app?: string | null
           source_type?: string
+          summary?: string | null
           tags?: string[]
           title?: string
           type?: string
+          understanding_confidence?: string
           updated_at?: string
           url?: string | null
           user_context?: string | null
@@ -246,7 +267,7 @@ export type CompositeTypes<
   CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    ? keyof DatabaseWithoutInternals[DefaultSchemaCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
