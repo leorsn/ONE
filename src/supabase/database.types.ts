@@ -18,15 +18,18 @@ export type Database = {
         Row: {
           ambiguities: string[]
           amount: number | null
+          archived_at: string | null
           attachment_url: string | null
           category: string | null
           completed: boolean
           created_at: string
           currency: string | null
+          deferred_until: string | null
           destination: string
           document_kind: string | null
           embedding: string | null
           entities: string[]
+          executed_actions: string[]
           extracted_text: string | null
           id: string
           image_url: string | null
@@ -38,6 +41,7 @@ export type Database = {
           notes: string | null
           original_text: string | null
           people: string[]
+          processed_at: string | null
           raw_input: string | null
           reminder_at: string | null
           review_status: string
@@ -47,6 +51,7 @@ export type Database = {
           summary: string | null
           tags: string[]
           title: string
+          triage_state: string
           type: string
           understanding_confidence: string
           updated_at: string
@@ -57,15 +62,18 @@ export type Database = {
         Insert: {
           ambiguities?: string[]
           amount?: number | null
+          archived_at?: string | null
           attachment_url?: string | null
           category?: string | null
           completed?: boolean
           created_at?: string
           currency?: string | null
+          deferred_until?: string | null
           destination?: string
           document_kind?: string | null
           embedding?: string | null
           entities?: string[]
+          executed_actions?: string[]
           extracted_text?: string | null
           id: string
           image_url?: string | null
@@ -77,6 +85,7 @@ export type Database = {
           notes?: string | null
           original_text?: string | null
           people?: string[]
+          processed_at?: string | null
           raw_input?: string | null
           reminder_at?: string | null
           review_status?: string
@@ -86,6 +95,7 @@ export type Database = {
           summary?: string | null
           tags?: string[]
           title: string
+          triage_state?: string
           type: string
           understanding_confidence?: string
           updated_at?: string
@@ -96,15 +106,18 @@ export type Database = {
         Update: {
           ambiguities?: string[]
           amount?: number | null
+          archived_at?: string | null
           attachment_url?: string | null
           category?: string | null
           completed?: boolean
           created_at?: string
           currency?: string | null
+          deferred_until?: string | null
           destination?: string
           document_kind?: string | null
           embedding?: string | null
           entities?: string[]
+          executed_actions?: string[]
           extracted_text?: string | null
           id?: string
           image_url?: string | null
@@ -116,6 +129,7 @@ export type Database = {
           notes?: string | null
           original_text?: string | null
           people?: string[]
+          processed_at?: string | null
           raw_input?: string | null
           reminder_at?: string | null
           review_status?: string
@@ -125,6 +139,7 @@ export type Database = {
           summary?: string | null
           tags?: string[]
           title?: string
+          triage_state?: string
           type?: string
           understanding_confidence?: string
           updated_at?: string
