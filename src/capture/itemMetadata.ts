@@ -17,7 +17,7 @@ export function canonicalKindForItem(
   if (
     item.sourceType === 'screenshot' ||
     item.sourceType === 'photo' ||
-    (item.sourceType === 'scan' && item.type !== 'document')
+    item.sourceType === 'scan'
   ) return 'image';
   if (['note', 'idea', 'travel', 'shopping', 'task'].includes(item.type)) return 'note';
   return 'unknown';
