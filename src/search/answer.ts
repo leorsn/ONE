@@ -9,7 +9,7 @@ export type OneDirectAnswer = {
   itemIds: string[];
 };
 
-const monthNames: Array<{ index: number; names: string[] }> = [
+const monthNames: { index: number; names: string[] }[] = [
   { index: 0, names: ['january', 'januar'] },
   { index: 1, names: ['february', 'februar'] },
   { index: 2, names: ['march', 'marz', 'maerz', 'märz'] },
@@ -62,7 +62,7 @@ export function buildDirectAnswer(
     }
   }
 
-  if (mentionsSpending(normalized)) {
+  if (mentionsAggregateSpending(normalized)) {
     const window = resolveDateWindow(normalized, now);
     const matching = items
       .filter((item) => item.amount !== undefined)
@@ -99,7 +99,7 @@ export function buildDirectAnswer(
     };
   }
 
-  const grounded = buildGroundedRecallAnswer(query, items, bestMatch);
+  const grounded = buildGroundedRecallAnswer(query, items, bestMatch, now);
   if (grounded) return { kind: 'memory', ...grounded };
 
   return undefined;
@@ -111,8 +111,8 @@ function requestedDocumentKind(value: string) {
   return undefined;
 }
 
-function mentionsSpending(value: string) {
-  return /wie viel|wieviel|ausgegeben|ausgabe|bezahlt|gekostet|summe|gesamt|how much|spent|spend|paid|total/.test(value);
+function mentionsAggregateSpending(value: string) {
+  return /ausgegeben|ausgabe|gesamtausgabe|summe der|total spending|total spent|spent this|spent last|how much did i spend|how much have i spent|wie viel habe ich ausgegeben|wieviel habe ich ausgegeben/.test(value);
 }
 
 function mentionsDocuments(value: string) {
@@ -218,7 +218,7 @@ function formatWindow(window: DateWindow, german: boolean) {
 }
 
 function looksGerman(value: string) {
-  return /\b(wie|viel|wann|wo|beleg|rechnung|ausgegeben|bezahlt|monat|uber|zeigen|zeig|mir|geschenk|idee)\b/.test(value);
+  return /\b(wie|viel|wann|wo|beleg|rechnung|ausgegeben|bezahlt|monat|uber|zeigen|zeig|mir|geschenk|idee|erinnerung)\b/.test(value);
 }
 
 function normalize(value: string) {
