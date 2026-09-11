@@ -29,11 +29,15 @@
         {
           "ios": {
             "enabled": true,
+            "extensionBundleIdentifier": "app.one.mobile.ShareExtension",
+            "appGroupId": "group.app.one.mobile",
             "activationRule": {
               "supportsText": true,
               "supportsWebUrlWithMaxCount": 1,
               "supportsWebPageWithMaxCount": 1,
-              "supportsImageWithMaxCount": 5
+              "supportsImageWithMaxCount": 5,
+              "supportsFileWithMaxCount": 5,
+              "supportsAttachmentsWithMaxCount": 5
             }
           },
           "android": {
