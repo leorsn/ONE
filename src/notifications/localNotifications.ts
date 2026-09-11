@@ -1,7 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { loadNotificationPreferences } from '@/src/storage/preferences';
-import type { OneItem } from '@/src/types/item';
+import type { OneItem, OneNotificationStatus } from '@/src/types/item';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -11,6 +11,11 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false
   })
 });
+
+export type NotificationScheduleResult = {
+  status: OneNotificationStatus;
+  notificationId?: string;
+};
 
 export async function getNotificationPermissionStatus() {
   if (Platform.OS === 'web') return 'unsupported' as const;
@@ -25,6 +30,7 @@ export async function ensureNotificationPermissions() {
 
   const current = await Notifications.getPermissionsAsync();
   if (current.granted) return true;
+  if (!current.canAskAgain) return false;
 
   const requested = await Notifications.requestPermissionsAsync();
   return requested.granted;
@@ -38,6 +44,8 @@ export function getReminderDate(
 
   const [year, month, day] = item.date.split('-').map(Number);
   const [hour, minute] = (item.time || '09:00').split(':').map(Number);
+  // Deliberately uses the device's local timezone. ONE stores wall-clock date/time
+  // separately so a user's 18:00 reminder remains 18:00 in the active locale.
   const eventDate = new Date(year, month - 1, day, hour, minute, 0, 0);
 
   if (item.time && leadMinutes > 0) {
@@ -47,37 +55,49 @@ export function getReminderDate(
   return eventDate;
 }
 
-export async function scheduleItemNotification(item: OneItem) {
-  if (Platform.OS === 'web') return undefined;
+export async function scheduleItemNotification(item: OneItem): Promise<NotificationScheduleResult> {
+  if (!item.date) return { status: 'not_scheduled' };
+  if (Platform.OS === 'web') return { status: 'unsupported' };
 
-  const granted = await ensureNotificationPermissions();
-  if (!granted) return undefined;
+  try {
+    const granted = await ensureNotificationPermissions();
+    if (!granted) return { status: 'permission_denied' };
 
-  const preferences = await loadNotificationPreferences();
-  const triggerDate = getReminderDate(item, preferences.leadMinutes);
-  if (!triggerDate || triggerDate.getTime() <= Date.now()) return undefined;
+    const preferences = await loadNotificationPreferences();
+    const triggerDate = getReminderDate(item, preferences.leadMinutes);
+    if (!triggerDate || triggerDate.getTime() <= Date.now()) return { status: 'not_scheduled' };
 
-  return Notifications.scheduleNotificationAsync({
-    content: {
-      title:
-        item.time && preferences.leadMinutes > 0
-          ? `${item.title} soon`
-          : item.title,
-      body: item.time
-        ? `Starts at ${item.time}${item.location ? ` · ${item.location}` : ''}`
-        : item.location || item.category || 'Saved in ONE',
-      data: {
-        itemId: item.id
+    const notificationId = await Notifications.scheduleNotificationAsync({
+      content: {
+        title:
+          item.time && preferences.leadMinutes > 0
+            ? `${item.title} soon`
+            : item.title,
+        body: item.time
+          ? `Starts at ${item.time}${item.location ? ` · ${item.location}` : ''}`
+          : item.location || item.category || 'Saved in ONE',
+        data: {
+          itemId: item.id
+        }
+      },
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.DATE,
+        date: triggerDate
       }
-    },
-    trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.DATE,
-      date: triggerDate
-    }
-  });
+    });
+
+    return { status: 'scheduled', notificationId };
+  } catch (error) {
+    console.warn('ONE local reminder scheduling failed', error);
+    return { status: 'error' };
+  }
 }
 
 export async function cancelItemNotification(notificationId?: string) {
   if (!notificationId || Platform.OS === 'web') return;
-  await Notifications.cancelScheduledNotificationAsync(notificationId);
+  try {
+    await Notifications.cancelScheduledNotificationAsync(notificationId);
+  } catch (error) {
+    console.warn('ONE local reminder cancellation failed', error);
+  }
 }
