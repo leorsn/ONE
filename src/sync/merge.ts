@@ -51,6 +51,7 @@ export function preserveDeviceLocalState(winner: OneItem, local: OneItem): OneIt
   return {
     ...winner,
     notificationId: local.notificationId || winner.notificationId,
+    notificationStatus: local.notificationStatus || winner.notificationStatus,
     localAttachmentUri: local.localAttachmentUri || winner.localAttachmentUri,
     localAttachmentMimeType: local.localAttachmentMimeType || winner.localAttachmentMimeType,
     localAttachmentName: local.localAttachmentName || winner.localAttachmentName
