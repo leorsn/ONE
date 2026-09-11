@@ -120,16 +120,18 @@ export function buildGroundedRecallAnswer(
   }
 
   if (/what did i save|what have i saved|was hatte ich|was habe ich|zeig.*gespeichert|show.*saved/.test(clean) && bestMatch) {
+    const details = [
+      bestMatch.summary,
+      bestMatch.userContext,
+      bestMatch.date,
+      bestMatch.location,
+      bestMatch.merchant,
+      bestMatch.amount !== undefined ? formatMoney(bestMatch.amount, bestMatch.currency) : undefined
+    ].filter((value): value is string => Boolean(value));
+
     return {
       title: bestMatch.title,
-      body: [
-        bestMatch.summary,
-        bestMatch.userContext,
-        bestMatch.date,
-        bestMatch.location,
-        bestMatch.merchant,
-        bestMatch.amount !== undefined ? formatMoney(bestMatch.amount, bestMatch.currency) : undefined
-      ].filter(Boolean).filter(uniqueText).join(' · ') || (german ? 'Keine weiteren Details gespeichert.' : 'No additional details are saved.'),
+      body: details.filter(uniqueText).join(' · ') || (german ? 'Keine weiteren Details gespeichert.' : 'No additional details are saved.'),
       meta: german ? 'Bester gespeicherter Treffer in ONE' : 'Best saved match in ONE',
       itemIds: [bestMatch.id]
     };
