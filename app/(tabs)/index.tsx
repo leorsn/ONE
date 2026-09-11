@@ -3,8 +3,10 @@ import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { buildItemFromCapture } from '@/src/capture/buildItem';
+import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
+import { interpretCapture, requiresStructuredReview, type CaptureDraft } from '@/src/capture/core';
 import { useItems } from '@/src/context/ItemsContext';
-import { parseQuickCapture } from '@/src/parser/quickCapture';
 import { OneItemRow } from '@/src/ui/OneItemRow';
 import { EmptyState, IconTile, PageHeader, PrimaryButton, RoundIconButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { icons } from '@/src/ui/icons';
@@ -14,21 +16,30 @@ import type { OneItem } from '@/src/types/item';
 export default function InboxScreen() {
   const theme = useTheme();
   const [input, setInput] = useState('');
+  const [reviewedDraft, setReviewedDraft] = useState<CaptureDraft | null>(null);
   const { items, add, toggleCompleted } = useItems();
-  const parsed = useMemo(() => parseQuickCapture(input), [input]);
+
+  const automaticDraft = useMemo(
+    () => input.trim()
+      ? interpretCapture({ rawText: input, sourceType: 'manual' })
+      : null,
+    [input]
+  );
+  const draft = reviewedDraft ?? automaticDraft;
+  const structuredReview = draft ? requiresStructuredReview(draft) : false;
 
   const todayIso = toIsoDate(new Date());
   const active = items.filter((item) => !item.completed);
   const newItems = active
-    .filter((item) => item.date === todayIso || (!item.date && !item.saved))
+    .filter((item) => item.destination === 'inbox' || item.reviewStatus === 'needs_review')
     .sort(sortUpdated)
     .slice(0, 6);
   const upcoming = active
-    .filter((item) => item.date && item.date > todayIso && ['task', 'reminder', 'appointment', 'event'].includes(item.type))
+    .filter((item) => item.destination === 'calendar' && item.date && item.date >= todayIso)
     .sort(sortByDateTime)
     .slice(0, 6);
   const saved = active
-    .filter((item) => item.saved)
+    .filter((item) => item.destination === 'saved')
     .sort(sortUpdated)
     .slice(0, 5);
   const completed = items
@@ -37,28 +48,19 @@ export default function InboxScreen() {
     .slice(0, 3);
 
   async function handleSave() {
-    if (!parsed) return;
-    const now = new Date().toISOString();
-    const item: OneItem = {
-      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      title: parsed.title || input,
-      rawInput: input,
-      type: parsed.type,
-      date: parsed.date,
-      time: parsed.time,
-      category: parsed.category,
-      completed: false,
-      saved: ['link', 'idea', 'shopping', 'travel', 'note', 'document'].includes(parsed.type),
+    if (!draft || !input.trim()) return;
+
+    const item = buildItemFromCapture({
+      draft,
       sourceType: 'manual',
-      originalText: input,
-      tags: parsed.category ? [parsed.category.toLowerCase()] : [],
-      entities: [],
-      createdAt: now,
-      updatedAt: now
-    };
+      rawInput: input,
+      originalText: input
+    });
+
     await add(item);
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setInput('');
+    setReviewedDraft(null);
   }
 
   return (
@@ -70,18 +72,21 @@ export default function InboxScreen() {
           action={<RoundIconButton icon={icons.person} onPress={() => router.push('/(tabs)/settings')} accessibilityLabel="Open settings" />}
         />
 
-        <View style={[styles.capture, { backgroundColor: theme.surface, borderColor: parsed ? theme.accent : theme.border }]}>
+        <View style={[styles.capture, { backgroundColor: theme.surface, borderColor: draft ? theme.accent : theme.border }]}>
           <IconTile icon={icons.plus} size={36} />
           <TextInput
             value={input}
-            onChangeText={setInput}
+            onChangeText={(value) => {
+              setInput(value);
+              setReviewedDraft(null);
+            }}
             placeholder="What's on your mind?"
             placeholderTextColor={theme.textTertiary}
             style={[styles.input, { color: theme.text }]}
-            returnKeyType="done"
-            onSubmitEditing={handleSave}
+            returnKeyType={structuredReview ? 'default' : 'done'}
+            onSubmitEditing={structuredReview ? undefined : handleSave}
             accessibilityLabel="Quick capture"
-            accessibilityHint="Type a task, reminder, appointment, note, link or idea"
+            accessibilityHint="Type a note, reminder, appointment, link or idea"
           />
           <RoundIconButton icon={icons.ask} onPress={() => router.push('/ask')} accessibilityLabel="Ask ONE" filled />
         </View>
@@ -92,37 +97,39 @@ export default function InboxScreen() {
           <QuickAction label="Ask" icon={icons.ask} hint="Open ONE AI conversation" badge="AI" onPress={() => router.push('/ask')} />
         </View>
 
-        {parsed ? (
+        {draft ? (
           <View style={styles.block}>
-            <SectionHeader title="ONE understood" meta={`${Math.round(parsed.confidence * 100)}%`} />
-            <Surface>
-              <View style={styles.interpretationTop}>
-                <IconTile icon={iconForParsedType(parsed.type)} size={42} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.interpretationTitle, { color: theme.text }]} numberOfLines={2}>{parsed.title || input}</Text>
-                  <Text style={[styles.interpretationMeta, { color: theme.textSecondary }]}>
-                    {[labelForType(parsed.type), parsed.dateLabel, parsed.time].filter(Boolean).join(' · ')}
-                  </Text>
+            <SectionHeader title="ONE understood" meta={draft.overallConfidence.toUpperCase()} />
+            {!structuredReview ? (
+              <Surface>
+                <View style={styles.interpretationTop}>
+                  <IconTile icon={iconForDraft(draft)} size={42} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.interpretationTitle, { color: theme.text }]} numberOfLines={2}>{draft.title}</Text>
+                    <Text style={[styles.interpretationMeta, { color: theme.textSecondary }]}>
+                      {[labelForKind(draft.canonicalKind), destinationLabel(draft.destination)].join(' · ')}
+                    </Text>
+                  </View>
                 </View>
-              </View>
-              <View style={[styles.chipsRow, { borderTopColor: theme.border }]}>
-                <Chip label={parsed.category || 'General'} />
-                {parsed.dateLabel ? <Chip label={parsed.dateLabel} /> : null}
-                {parsed.time ? <Chip label={parsed.time} /> : null}
-              </View>
-              <View style={styles.saveWrap}>
-                <PrimaryButton label="Save to ONE" icon={icons.check} onPress={handleSave} />
-              </View>
-            </Surface>
+                <View style={styles.saveWrap}>
+                  <PrimaryButton label="Save to ONE" icon={icons.check} onPress={handleSave} />
+                </View>
+              </Surface>
+            ) : (
+              <>
+                <CaptureReviewEditor draft={draft} onChange={setReviewedDraft} showExtractedText={false} />
+                <PrimaryButton label="Save to ONE" icon={icons.check} onPress={handleSave} disabled={!draft.title.trim()} />
+              </>
+            )}
           </View>
         ) : null}
 
         <View style={styles.block}>
-          <SectionHeader title="New" meta={String(newItems.length)} />
+          <SectionHeader title="Inbox" meta={String(newItems.length)} />
           <Surface>
             {newItems.length
-              ? newItems.map((item) => <OneItemRow key={item.id} item={item} onToggle={toggleCompleted} showDate={item.date !== todayIso} />)
-              : <EmptyState icon={icons.check} title="Inbox clear" body="New captures without a future date appear here." />}
+              ? newItems.map((item) => <OneItemRow key={item.id} item={item} onToggle={toggleCompleted} />)
+              : <EmptyState icon={icons.check} title="Inbox clear" body="New or unresolved captures appear here until ONE can organize them." />}
           </Surface>
         </View>
 
@@ -156,7 +163,7 @@ export default function InboxScreen() {
           <Surface>
             {saved.length
               ? saved.map((item) => <OneItemRow key={item.id} item={item} />)
-              : <EmptyState icon={icons.saved} title="Your memory is empty" body="Links, ideas, screenshots, documents and reference material collect here." />}
+              : <EmptyState icon={icons.saved} title="Your memory is empty" body="Notes, links, ideas, images and documents collect here." />}
           </Surface>
         </View>
 
@@ -209,29 +216,20 @@ export default function InboxScreen() {
       </Pressable>
     );
   }
-
-  function Chip({ label }: { label: string }) {
-    return (
-      <View style={[styles.chip, { backgroundColor: theme.fill }]}>
-        <Text style={[styles.chipText, { color: theme.textSecondary }]}>{label}</Text>
-      </View>
-    );
-  }
 }
 
-function iconForParsedType(type: OneItem['type']) {
-  if (type === 'appointment') return icons.appointment;
-  if (type === 'reminder') return icons.reminder;
-  if (type === 'link') return icons.link;
-  if (type === 'idea') return icons.idea;
-  if (type === 'travel') return icons.travel;
-  if (type === 'document') return icons.document;
-  if (type === 'note') return icons.note;
-  if (type === 'event') return icons.event;
-  return icons.task;
+function iconForDraft(draft: CaptureDraft) {
+  if (draft.canonicalKind === 'event') return icons.appointment;
+  if (draft.canonicalKind === 'reminder') return icons.reminder;
+  if (draft.canonicalKind === 'link') return icons.link;
+  if (draft.canonicalKind === 'document' || draft.canonicalKind === 'receipt') return icons.document;
+  if (draft.canonicalKind === 'image') return icons.screenshot;
+  if (draft.captureKind === 'idea') return icons.idea;
+  return icons.note;
 }
 
-function labelForType(type: string) { return type.charAt(0).toUpperCase() + type.slice(1); }
+function labelForKind(kind: string) { return kind.charAt(0).toUpperCase() + kind.slice(1); }
+function destinationLabel(destination: string) { return destination.charAt(0).toUpperCase() + destination.slice(1); }
 function sortByDateTime(a: OneItem, b: OneItem) { return `${a.date}T${a.time || '23:59'}`.localeCompare(`${b.date}T${b.time || '23:59'}`); }
 function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(); }
 function toIsoDate(date: Date) {
@@ -254,9 +252,6 @@ const styles = StyleSheet.create({
   interpretationTop: { padding: 15, flexDirection: 'row', alignItems: 'center', gap: 12 },
   interpretationTitle: { fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
   interpretationMeta: { fontSize: 12.5, marginTop: 4 },
-  chipsRow: { borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingTop: 12, flexDirection: 'row', gap: 7, flexWrap: 'wrap' },
-  chip: { minHeight: 28, paddingHorizontal: 10, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  chipText: { fontSize: 11.5, fontWeight: '600' },
-  saveWrap: { padding: 14 },
+  saveWrap: { padding: 14, paddingTop: 0 },
   textAction: { fontSize: 13, fontWeight: '700' }
 });
