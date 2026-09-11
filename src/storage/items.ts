@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { ensureCanonicalItemMetadata } from '@/src/capture/itemMetadata';
 import type { OneItem } from '@/src/types/item';
 import type { ItemStorageScope } from '@/src/storage/scope';
 
@@ -50,7 +51,9 @@ function storageKey(scope: ItemStorageScope) {
 function parseItems(raw: string): OneItem[] | null {
   try {
     const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed) ? parsed as OneItem[] : null;
+    return Array.isArray(parsed)
+      ? (parsed as OneItem[]).map(ensureCanonicalItemMetadata)
+      : null;
   } catch {
     return null;
   }
