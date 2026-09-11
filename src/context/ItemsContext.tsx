@@ -1,11 +1,12 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
+import { ensureCanonicalItemMetadata } from '@/src/capture/itemMetadata';
 import { useAuth } from '@/src/context/AuthContext';
 import { mockItems } from '@/src/data/mockItems';
-import { deleteCloudItem, pullCloudItems } from '@/src/supabase/items';
-import { deleteSharedAttachment } from '@/src/supabase/attachments';
 import { cancelItemNotification, scheduleItemNotification } from '@/src/notifications/localNotifications';
 import { isRemindable, notificationTransition } from '@/src/notifications/policy';
+import { deleteCloudItem, pullCloudItems } from '@/src/supabase/items';
+import { deleteSharedAttachment } from '@/src/supabase/attachments';
 import {
   clearItems,
   itemStorageScope,
@@ -28,15 +29,15 @@ type ItemsContextValue = {
   items: OneItem[];
   hydrated: boolean;
   cloudSyncing: boolean;
-  add: (item: OneItem) => Promise<void>;
-  update: (id: string, changes: Partial<OneItem>) => Promise<void>;
+  add: (item: OneItem) => Promise<OneItem>;
+  update: (id: string, changes: Partial<OneItem>) => Promise<OneItem | undefined>;
   toggleCompleted: (id: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
   clearAll: () => Promise<void>;
 };
 
 const ItemsContext = createContext<ItemsContextValue | null>(null);
-const DEVELOPMENT_SEED_ITEMS: OneItem[] = __DEV__ ? mockItems : [];
+const DEVELOPMENT_SEED_ITEMS: OneItem[] = __DEV__ ? mockItems.map(ensureCanonicalItemMetadata) : [];
 const DEVELOPMENT_SEED_IDS = new Set(mockItems.map((item) => item.id));
 
 export function ItemsProvider({ children }: { children: React.ReactNode }) {
@@ -81,7 +82,8 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         }
 
         const stored = await loadItems(desiredScope);
-        let nextItems = stored ?? (desiredScope === 'anonymous' ? DEVELOPMENT_SEED_ITEMS : []);
+        let nextItems = (stored ?? (desiredScope === 'anonymous' ? DEVELOPMENT_SEED_ITEMS : []))
+          .map(ensureCanonicalItemMetadata);
 
         if (desiredScope === 'anonymous') {
           nextItems = nextItems.map((item) => ({ ...item, syncState: 'local' }));
@@ -94,7 +96,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         if (previousScope === 'anonymous' && desiredScope !== 'anonymous') {
           const transferable = itemsRef.current
             .filter(shouldSyncItem)
-            .map((item) => ({ ...item, syncState: 'pending' as const }));
+            .map((item) => ({ ...ensureCanonicalItemMetadata(item), syncState: 'pending' as const }));
           if (transferable.length) nextItems = mergeByUpdatedAt(transferable, nextItems);
           await clearItems('anonymous');
         }
@@ -164,14 +166,14 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
           await cleanupDeviceState(remotelyDeleted);
         }
 
-        let merged = await reconcileItemNotifications(resolution.merged);
+        let merged = await reconcileItemNotifications(resolution.merged.map(ensureCanonicalItemMetadata));
         if (cancelled || !canApplyScopedSyncResult(syncScope, activeScopeRef.current)) return;
         itemsRef.current = merged;
         setItems(merged);
 
         for (const candidate of resolution.localToUpload.filter(shouldSyncItem)) {
           try {
-            const synced = await syncItemToCloud(candidate, syncUserId);
+            const synced = await syncItemToCloud(ensureCanonicalItemMetadata(candidate), syncUserId);
             if (cancelled || !canApplyScopedSyncResult(syncScope, activeScopeRef.current)) return;
             merged = merged.map((item) =>
               item.id === synced.id ? preserveDeviceLocalState(synced, item) : item
@@ -206,69 +208,90 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   }, [session?.user.id, scopeReady, desiredScope, syncRevision]);
 
   const applySyncedItem = useCallback((synced: OneItem) => {
-    itemsRef.current = itemsRef.current.map((candidate) =>
-      candidate.id === synced.id ? preserveDeviceLocalState(synced, candidate) : candidate
-    );
+    let applied: OneItem | undefined;
+    itemsRef.current = itemsRef.current.map((candidate) => {
+      if (candidate.id !== synced.id) return candidate;
+      applied = preserveDeviceLocalState(ensureCanonicalItemMetadata(synced), candidate);
+      return applied;
+    });
     setItems(itemsRef.current);
+    return applied;
   }, []);
 
   const add = useCallback(async (item: OneItem) => {
     const userId = session?.user.id;
     const scope = itemStorageScope(userId);
-    const base: OneItem = { ...item, syncState: userId ? 'pending' : 'local' };
-    const notificationId = isRemindable(base) ? await scheduleItemNotification(base) : undefined;
-    const local = notificationId ? { ...base, notificationId } : base;
+    const base: OneItem = {
+      ...ensureCanonicalItemMetadata(item),
+      syncState: userId ? 'pending' : 'local'
+    };
+    const scheduleResult = isRemindable(base)
+      ? await scheduleItemNotification(base)
+      : { status: 'not_applicable' as const };
+    const local: OneItem = {
+      ...base,
+      notificationId: scheduleResult.notificationId,
+      notificationStatus: scheduleResult.status
+    };
 
     itemsRef.current = [local, ...itemsRef.current];
     setItems(itemsRef.current);
 
-    if (!userId || !shouldSyncItem(local)) return;
+    if (!userId || !shouldSyncItem(local)) return local;
 
     try {
       const synced = await syncItemToCloud(local, userId);
-      if (!canApplyScopedSyncResult(scope, activeScopeRef.current)) return;
-      applySyncedItem(synced);
+      if (!canApplyScopedSyncResult(scope, activeScopeRef.current)) return local;
+      return applySyncedItem(synced) ?? local;
     } catch (error) {
       console.warn('ONE cloud add deferred until reconnect', error);
+      return local;
     }
   }, [session?.user.id, applySyncedItem]);
 
   const update = useCallback(async (id: string, changes: Partial<OneItem>) => {
     const currentItem = itemsRef.current.find((item) => item.id === id);
-    if (!currentItem) return;
+    if (!currentItem) return undefined;
 
     const userId = session?.user.id;
     const scope = itemStorageScope(userId);
-    const baseUpdated: OneItem = {
+    const baseUpdated = ensureCanonicalItemMetadata({
       ...currentItem,
       ...changes,
       syncState: userId ? 'pending' : 'local',
       updatedAt: new Date().toISOString()
-    };
+    });
 
     const transition = notificationTransition(currentItem, baseUpdated);
     let notificationId = currentItem.notificationId;
+    let notificationStatus = currentItem.notificationStatus ?? (notificationId ? 'scheduled' : 'not_scheduled');
 
     if (transition === 'cancel' || transition === 'reschedule') {
       await cancelItemNotification(notificationId);
       notificationId = undefined;
+      notificationStatus = isRemindable(baseUpdated) ? 'not_scheduled' : 'not_applicable';
     }
     if (transition === 'schedule' || transition === 'reschedule') {
-      notificationId = await scheduleItemNotification(baseUpdated);
+      const result = await scheduleItemNotification(baseUpdated);
+      notificationId = result.notificationId;
+      notificationStatus = result.status;
+    } else if (!isRemindable(baseUpdated)) {
+      notificationStatus = 'not_applicable';
     }
 
-    const updated: OneItem = { ...baseUpdated, notificationId };
+    const updated: OneItem = { ...baseUpdated, notificationId, notificationStatus };
     itemsRef.current = itemsRef.current.map((item) => (item.id === id ? updated : item));
     setItems(itemsRef.current);
 
-    if (!userId || !shouldSyncItem(updated)) return;
+    if (!userId || !shouldSyncItem(updated)) return updated;
 
     try {
       const synced = await syncItemToCloud(updated, userId);
-      if (!canApplyScopedSyncResult(scope, activeScopeRef.current)) return;
-      applySyncedItem(synced);
+      if (!canApplyScopedSyncResult(scope, activeScopeRef.current)) return updated;
+      return applySyncedItem(synced) ?? updated;
     } catch (error) {
       console.warn('ONE cloud edit deferred until reconnect', error);
+      return updated;
     }
   }, [session?.user.id, applySyncedItem]);
 
@@ -282,7 +305,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     const currentItem = itemsRef.current.find((item) => item.id === id);
     if (!currentItem) return;
 
-    if (currentItem.notificationId) await cancelItemNotification(currentItem.notificationId);
+    await cancelItemNotification(currentItem.notificationId);
 
     const cloudAttachmentPaths = Array.from(new Set(
       [currentItem.attachmentUrl, currentItem.imageUrl]
@@ -363,18 +386,12 @@ async function suspendItemNotifications(items: OneItem[]) {
   const next: OneItem[] = [];
 
   for (const item of items) {
-    if (!item.notificationId) {
-      next.push(item);
-      continue;
-    }
-
-    try {
-      await cancelItemNotification(item.notificationId);
-    } catch (error) {
-      console.warn('ONE notification privacy suspension failed', error);
-    }
-
-    next.push({ ...item, notificationId: undefined });
+    await cancelItemNotification(item.notificationId);
+    next.push({
+      ...item,
+      notificationId: undefined,
+      notificationStatus: isRemindable(item) ? 'not_scheduled' : 'not_applicable'
+    });
   }
 
   return next;
@@ -385,42 +402,29 @@ async function reconcileItemNotifications(items: OneItem[]) {
 
   for (const item of items) {
     if (!isRemindable(item)) {
-      if (item.notificationId) {
-        try {
-          await cancelItemNotification(item.notificationId);
-        } catch (error) {
-          console.warn('ONE stale notification cleanup failed', error);
-        }
-      }
-      next.push(item.notificationId ? { ...item, notificationId: undefined } : item);
+      await cancelItemNotification(item.notificationId);
+      next.push({ ...item, notificationId: undefined, notificationStatus: 'not_applicable' });
       continue;
     }
 
     if (item.notificationId) {
-      next.push(item);
+      next.push({ ...item, notificationStatus: 'scheduled' });
       continue;
     }
 
-    try {
-      const notificationId = await scheduleItemNotification(item);
-      next.push(notificationId ? { ...item, notificationId } : item);
-    } catch (error) {
-      console.warn('ONE notification reconciliation failed', error);
-      next.push(item);
-    }
+    const result = await scheduleItemNotification(item);
+    next.push({
+      ...item,
+      notificationId: result.notificationId,
+      notificationStatus: result.status
+    });
   }
 
   return next;
 }
 
 async function cleanupDeviceState(item: OneItem) {
-  if (item.notificationId) {
-    try {
-      await cancelItemNotification(item.notificationId);
-    } catch (error) {
-      console.warn('ONE notification cleanup failed', error);
-    }
-  }
+  await cancelItemNotification(item.notificationId);
 
   const localPaths = Array.from(new Set(
     [item.localAttachmentUri, item.attachmentUrl, item.imageUrl]
@@ -449,7 +453,7 @@ function mergeByUpdatedAt(local: OneItem[], cloud: OneItem[]) {
   for (const item of [...local, ...cloud]) {
     const existing = merged.get(item.id);
     if (!existing || new Date(item.updatedAt).getTime() >= new Date(existing.updatedAt).getTime()) {
-      merged.set(item.id, existing ? preserveDeviceLocalState(item, existing) : item);
+      merged.set(item.id, ensureCanonicalItemMetadata(existing ? preserveDeviceLocalState(item, existing) : item));
     }
   }
 
