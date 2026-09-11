@@ -23,13 +23,28 @@ export function buildItemFromCapture({
   now?: Date;
 }): OneItem {
   const timestamp = now.toISOString();
-  const isImage = sourceType === 'screenshot' || sourceType === 'photo' || Boolean(localAttachmentUri && attachmentMimeType?.startsWith('image/'));
+  const isImage =
+    sourceType === 'screenshot' ||
+    sourceType === 'photo' ||
+    Boolean(localAttachmentUri && attachmentMimeType?.startsWith('image/'));
+  const reviewStatus = draft.needsReview.length
+    ? 'needs_review' as const
+    : draft.confirmedFields.length || draft.destinationConfirmed
+      ? 'reviewed' as const
+      : 'ready' as const;
 
   return {
     id: `${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
     title: draft.title.trim() || 'Captured in ONE',
     rawInput: rawInput?.trim() || draft.extractedText || draft.userContext || draft.title,
     type: draft.itemType,
+    kind: draft.canonicalKind,
+    summary: draft.summary?.trim() || undefined,
+    people: draft.people,
+    destination: draft.needsReview.length ? 'inbox' : draft.destination,
+    reviewStatus,
+    ambiguities: draft.ambiguities.map((ambiguity) => ambiguity.message),
+    understandingConfidence: draft.overallConfidence,
     date: draft.date || undefined,
     time: draft.time || undefined,
     category: draft.category || undefined,
@@ -53,6 +68,9 @@ export function buildItemFromCapture({
     currency: draft.currency?.trim().toUpperCase() || undefined,
     tags: Array.from(new Set(draft.tags.map((value) => value.trim()).filter(Boolean))),
     entities: Array.from(new Set(draft.entities.map((value) => value.trim()).filter(Boolean))),
+    notificationStatus: ['task', 'reminder', 'appointment', 'event'].includes(draft.itemType) && Boolean(draft.date)
+      ? 'not_scheduled'
+      : 'not_applicable',
     syncState: 'local',
     createdAt: timestamp,
     updatedAt: timestamp
