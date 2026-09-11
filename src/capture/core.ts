@@ -1,3 +1,9 @@
+import type {
+  OneDestination,
+  OneItemKind,
+  OneItemType
+} from '@/src/types/item';
+
 export type CaptureConfidence = 'high' | 'medium' | 'low';
 
 export type CaptureKind =
@@ -8,21 +14,13 @@ export type CaptureKind =
   | 'event'
   | 'link'
   | 'screenshot'
+  | 'image'
   | 'document'
   | 'receipt'
-  | 'idea';
-
-export type CaptureItemType =
-  | 'task'
-  | 'reminder'
-  | 'appointment'
-  | 'event'
-  | 'note'
-  | 'link'
   | 'idea'
-  | 'travel'
-  | 'shopping'
-  | 'document';
+  | 'unknown';
+
+export type CaptureItemType = OneItemType;
 
 export type CaptureDocumentKind =
   | 'receipt'
@@ -40,14 +38,35 @@ export type CaptureField =
   | 'date'
   | 'time'
   | 'location'
+  | 'category'
   | 'merchant'
   | 'amount'
   | 'currency';
 
+export type CaptureAmbiguityCode =
+  | 'confirm_title'
+  | 'confirm_type'
+  | 'confirm_date'
+  | 'missing_date'
+  | 'missing_time'
+  | 'confirm_merchant'
+  | 'missing_merchant'
+  | 'confirm_amount'
+  | 'missing_amount'
+  | 'confirm_currency';
+
+export type CaptureAmbiguity = {
+  code: CaptureAmbiguityCode;
+  field: CaptureField;
+  message: string;
+};
+
 export type CaptureDraft = {
   title: string;
+  summary?: string;
   captureKind: CaptureKind;
   itemType: CaptureItemType;
+  canonicalKind: OneItemKind;
   date?: string;
   time?: string;
   location?: string;
@@ -59,11 +78,17 @@ export type CaptureDraft = {
   merchant?: string;
   amount?: number;
   currency?: string;
+  people: string[];
   tags: string[];
   entities: string[];
   saved: boolean;
+  destination: OneDestination;
+  destinationConfirmed: boolean;
+  overallConfidence: CaptureConfidence;
   fieldConfidence: Partial<Record<CaptureField, CaptureConfidence>>;
   needsReview: CaptureField[];
+  ambiguities: CaptureAmbiguity[];
+  confirmedFields: CaptureField[];
 };
 
 export type InterpretCaptureInput = {
@@ -125,6 +150,7 @@ export function interpretCapture(input: InterpretCaptureInput): CaptureDraft {
   });
   const captureKind = explicitKind ?? automaticKind.kind;
   const itemType = itemTypeForCaptureKind(captureKind);
+  const canonicalKind = canonicalKindForCaptureKind(captureKind);
 
   const date = extractDate(combined, now);
   const time = extractTime(combined);
@@ -135,6 +161,7 @@ export function interpretCapture(input: InterpretCaptureInput): CaptureDraft {
   const merchant = documentKind === 'receipt' || documentKind === 'invoice'
     ? inferMerchant(sourceText)
     : undefined;
+  const people = extractPeople(combined);
 
   const title = inferTitle({
     raw,
@@ -145,8 +172,9 @@ export function interpretCapture(input: InterpretCaptureInput): CaptureDraft {
     merchant
   });
 
+  const genericTitle = title === 'Shared to ONE' || title === 'Captured in ONE' || title === 'Image' || title === 'Document';
   const fieldConfidence: CaptureDraft['fieldConfidence'] = {
-    title: context ? 'high' : title === 'Shared to ONE' || title === 'Captured in ONE' ? 'low' : 'medium',
+    title: genericTitle ? 'low' : input.sourceType === 'manual' && raw ? 'high' : merchant ? 'medium' : 'medium',
     type: explicitKind ? 'high' : automaticKind.confidence,
     ...(date ? { date: date.confidence } : {}),
     ...(time ? { time: time.confidence } : {}),
@@ -158,14 +186,22 @@ export function interpretCapture(input: InterpretCaptureInput): CaptureDraft {
     } : {})
   };
 
+  addExpectedFieldConfidence(fieldConfidence, captureKind, {
+    hasDate: Boolean(date),
+    hasTime: Boolean(time),
+    hasMerchant: Boolean(merchant),
+    hasAmount: Boolean(money)
+  });
+
   const tags = unique([
     ...tagsFromText(context),
     ...tagsFromText(sourceText),
     ...(documentKind ? ['document', documentKind] : []),
-    captureKind === 'screenshot' ? 'screenshot' : '',
+    captureKind === 'screenshot' || captureKind === 'image' ? 'image' : '',
     captureKind === 'receipt' ? 'receipt' : '',
     captureKind === 'idea' ? 'idea' : '',
     captureKind === 'appointment' ? 'appointment' : '',
+    captureKind === 'event' ? 'event' : '',
     captureKind === 'reminder' ? 'reminder' : ''
   ]);
 
@@ -174,18 +210,17 @@ export function interpretCapture(input: InterpretCaptureInput): CaptureDraft {
     ...extractEmails(sourceText).map((value) => `email:${value}`),
     ...extractPhones(sourceText).map((value) => `phone:${value}`),
     ...extractReferences(sourceText).map((value) => `reference:${value}`),
+    ...people.map((value) => `person:${value}`),
     ...(merchant ? [`merchant:${merchant}`] : []),
     ...(money ? [`amount:${money.amount}${money.currency ? ` ${money.currency}` : ''}`] : [])
   ]);
 
-  const needsReview = (Object.entries(fieldConfidence) as Array<[CaptureField, CaptureConfidence]>)
-    .filter(([, confidence]) => confidence !== 'high')
-    .map(([field]) => field);
-
-  return {
+  const base: CaptureDraft = {
     title,
+    summary: buildSummary({ title, context, ocr, date: date?.value, time: time?.value, location, merchant, money }),
     captureKind,
     itemType,
+    canonicalKind,
     date: date?.value,
     time: time?.value,
     location,
@@ -197,12 +232,20 @@ export function interpretCapture(input: InterpretCaptureInput): CaptureDraft {
     merchant,
     amount: money?.amount,
     currency: money?.currency,
+    people,
     tags,
     entities,
     saved: shouldSaveByDefault(captureKind),
+    destination: suggestedDestination(captureKind),
+    destinationConfirmed: false,
+    overallConfidence: automaticKind.confidence,
     fieldConfidence,
-    needsReview
+    needsReview: [],
+    ambiguities: [],
+    confirmedFields: []
   };
+
+  return refreshReviewMetadata(base);
 }
 
 export function applyUserContextPriority(draft: CaptureDraft, userContext: string): CaptureDraft {
@@ -210,45 +253,94 @@ export function applyUserContextPriority(draft: CaptureDraft, userContext: strin
   const explicitKind = classifyExplicitContext(clean);
   const tags = unique([...draft.tags, ...tagsFromText(clean)]);
 
-  if (!explicitKind) {
-    return { ...draft, userContext: clean || undefined, tags };
-  }
+  const next = explicitKind
+    ? {
+        ...draft,
+        userContext: clean || undefined,
+        captureKind: explicitKind,
+        itemType: itemTypeForCaptureKind(explicitKind),
+        canonicalKind: canonicalKindForCaptureKind(explicitKind),
+        category: categoryFor(explicitKind, draft.documentKind),
+        saved: shouldSaveByDefault(explicitKind),
+        tags: unique([
+          ...tags,
+          explicitKind === 'idea' ? 'idea' : '',
+          explicitKind === 'appointment' ? 'appointment' : '',
+          explicitKind === 'reminder' ? 'reminder' : ''
+        ]),
+        fieldConfidence: { ...draft.fieldConfidence, type: 'high' as const },
+        confirmedFields: uniqueFields([...draft.confirmedFields, 'type'])
+      }
+    : { ...draft, userContext: clean || undefined, tags };
 
-  const itemType = itemTypeForCaptureKind(explicitKind);
-  return {
-    ...draft,
-    userContext: clean || undefined,
-    captureKind: explicitKind,
-    itemType,
-    category: categoryFor(explicitKind, draft.documentKind),
-    saved: shouldSaveByDefault(explicitKind),
-    tags: unique([
-      ...tags,
-      explicitKind === 'idea' ? 'idea' : '',
-      explicitKind === 'appointment' ? 'appointment' : '',
-      explicitKind === 'reminder' ? 'reminder' : ''
-    ]),
-    fieldConfidence: { ...draft.fieldConfidence, type: 'high' },
-    needsReview: draft.needsReview.filter((field) => field !== 'type')
-  };
+  return refreshReviewMetadata({
+    ...next,
+    summary: buildSummary({
+      title: next.title,
+      context: clean,
+      ocr: next.extractedText || '',
+      date: next.date,
+      time: next.time,
+      location: next.location,
+      merchant: next.merchant,
+      money: next.amount !== undefined
+        ? { amount: next.amount, currency: next.currency, confidence: next.fieldConfidence.amount || 'medium' }
+        : undefined
+    })
+  });
 }
 
 export function setCaptureKind(draft: CaptureDraft, captureKind: CaptureKind): CaptureDraft {
-  return {
+  const nextDocumentKind =
+    captureKind === 'receipt'
+      ? 'receipt'
+      : captureKind === 'document'
+        ? draft.documentKind || 'other'
+        : draft.documentKind;
+
+  const next: CaptureDraft = {
     ...draft,
     captureKind,
     itemType: itemTypeForCaptureKind(captureKind),
-    documentKind:
-      captureKind === 'receipt'
-        ? 'receipt'
-        : captureKind === 'document'
-          ? draft.documentKind || 'other'
-          : draft.documentKind,
-    category: categoryFor(captureKind, captureKind === 'receipt' ? 'receipt' : draft.documentKind),
+    canonicalKind: canonicalKindForCaptureKind(captureKind),
+    documentKind: nextDocumentKind,
+    category: categoryFor(captureKind, nextDocumentKind),
     saved: shouldSaveByDefault(captureKind),
     fieldConfidence: { ...draft.fieldConfidence, type: 'high' },
-    needsReview: draft.needsReview.filter((field) => field !== 'type')
+    confirmedFields: uniqueFields([...draft.confirmedFields, 'type'])
   };
+
+  return refreshReviewMetadata(next);
+}
+
+export function setCaptureDestination(draft: CaptureDraft, destination: OneDestination): CaptureDraft {
+  return { ...draft, destination, destinationConfirmed: true };
+}
+
+export function confirmCaptureField(draft: CaptureDraft, field: CaptureField): CaptureDraft {
+  return refreshReviewMetadata({
+    ...draft,
+    fieldConfidence: { ...draft.fieldConfidence, [field]: 'high' },
+    confirmedFields: uniqueFields([...draft.confirmedFields, field])
+  });
+}
+
+export function requiresStructuredReview(draft: CaptureDraft) {
+  return (
+    ['appointment', 'event', 'reminder', 'receipt', 'document', 'unknown'].includes(draft.captureKind) ||
+    draft.needsReview.length > 0
+  );
+}
+
+export function canonicalKindForCaptureKind(kind: CaptureKind): OneItemKind {
+  if (kind === 'appointment' || kind === 'event') return 'event';
+  if (kind === 'reminder') return 'reminder';
+  if (kind === 'receipt') return 'receipt';
+  if (kind === 'document') return 'document';
+  if (kind === 'screenshot' || kind === 'image') return 'image';
+  if (kind === 'link') return 'link';
+  if (kind === 'unknown') return 'unknown';
+  return 'note';
 }
 
 export function extractDate(text: string, now = new Date()): DateExtraction | undefined {
@@ -273,7 +365,9 @@ export function extractDate(text: string, now = new Date()): DateExtraction | un
   for (const [name, target] of Object.entries(weekdays)) {
     if (new RegExp(`\\b${escapeRegExp(normalize(name))}\\b`).test(input)) {
       const date = nextWeekday(now, target);
-      return { value: toIsoDate(date), confidence: 'high' };
+      // A bare weekday is intentionally reviewable: "Friday" can mean different
+      // things to different users even though ONE chooses the next occurrence.
+      return { value: toIsoDate(date), confidence: 'medium' };
     }
   }
 
@@ -383,7 +477,7 @@ export function inferDocumentKind(text: string): CaptureDocumentKind | undefined
 
 export function itemTypeForCaptureKind(kind: CaptureKind): CaptureItemType {
   if (kind === 'receipt' || kind === 'document') return 'document';
-  if (kind === 'screenshot') return 'note';
+  if (kind === 'screenshot' || kind === 'image' || kind === 'unknown') return 'note';
   return kind;
 }
 
@@ -416,10 +510,12 @@ function classifyAutomatic({
   if (/appointment|termin|dentist|zahnarzt|doctor|arzt|clinic|praxis/.test(text)) return { kind: 'appointment', confidence: 'high' };
   if (/remind|erinner|cancel|kundig|kuendig/.test(text)) return { kind: 'reminder', confidence: 'high' };
   if (/gift|geschenk|birthday|geburtstag|\bidea\b|idee/.test(text)) return { kind: 'idea', confidence: 'high' };
-  if (/\bevent\b|veranstaltung|konzert|concert/.test(text)) return { kind: 'event', confidence: 'medium' };
-  if (isImage || sourceType === 'screenshot' || sourceType === 'photo') return { kind: 'screenshot', confidence: 'high' };
+  if (/\b(meet|meeting|meet with|treffe|treffen)\b|\bevent\b|veranstaltung|konzert|concert/.test(text)) return { kind: 'event', confidence: 'medium' };
+  if (/^(call|buy|pick up|send|email|finish|pay|book|anrufen|kaufen|abholen|senden|bezahlen|buchen)\b/.test(text)) return { kind: 'task', confidence: 'medium' };
   if (sourceType === 'scan') return { kind: 'document', confidence: 'medium' };
-  if (sourceType === 'manual') return { kind: 'task', confidence: 'medium' };
+  if (isImage || sourceType === 'screenshot' || sourceType === 'photo') return { kind: 'image', confidence: 'high' };
+  if (!text.trim()) return { kind: 'unknown', confidence: 'low' };
+  if (sourceType === 'manual') return { kind: 'note', confidence: 'high' };
   return { kind: 'note', confidence: 'medium' };
 }
 
@@ -438,7 +534,6 @@ function inferTitle({
   documentKind?: CaptureDocumentKind;
   merchant?: string;
 }) {
-  if (context) return truncate(context, 100);
   if (merchant) {
     if (documentKind === 'invoice') return `${merchant} invoice`;
     if (documentKind === 'receipt') return `${merchant} receipt`;
@@ -453,17 +548,22 @@ function inferTitle({
 
   const keywordLine = lines.find((line) => {
     const value = normalize(line);
-    return line.length <= 100 && (
-      /appointment|termin|dentist|zahnarzt|doctor|arzt|cancel|kundig|kuendig|remind|gift|geschenk|birthday/.test(value)
+    return line.length <= 120 && (
+      /appointment|termin|dentist|zahnarzt|doctor|arzt|cancel|kundig|kuendig|remind|gift|geschenk|birthday|meet|meeting/.test(value)
     );
   });
 
   const meaningful = keywordLine || lines.find((line) => !/^(subject|from|to|date|time|location|ort|address|reference|confirmation|total|gesamt)\s*:/i.test(line));
-  if (meaningful) return truncate(cleanTitle(meaningful), 100);
+  if (meaningful) {
+    const cleaned = cleanTitle(meaningful, captureKind);
+    if (cleaned) return truncate(cleaned, 100);
+  }
 
-  if (captureKind === 'screenshot') return 'Screenshot';
+  if (context) return truncate(context, 100);
+  if (captureKind === 'screenshot' || captureKind === 'image') return 'Image';
   if (captureKind === 'document' || captureKind === 'receipt') return 'Document';
-  return raw ? truncate(cleanTitle(raw), 100) : 'Captured in ONE';
+  if (captureKind === 'unknown') return 'Captured in ONE';
+  return raw ? truncate(cleanTitle(raw, captureKind), 100) : 'Captured in ONE';
 }
 
 function inferMerchant(text: string) {
@@ -483,6 +583,147 @@ function inferMerchant(text: string) {
 function extractLocation(text: string) {
   const match = text.match(/^(?:location|ort|address|adresse|place|where)\s*[:\-]\s*(.+)$/im);
   return match?.[1]?.trim() || undefined;
+}
+
+function extractPeople(text: string) {
+  const matches = [...text.matchAll(/(?:\bcall\b|\bmeet\b|\bwith\b|\bsee\b|\banrufen\b|\btreffe\b|\bmit\b)\s+([A-ZÄÖÜ][A-Za-zÀ-ÖØ-öø-ÿÄÖÜäöüß'’-]{1,40})/g)];
+  return unique(matches.map((match) => match[1]));
+}
+
+function addExpectedFieldConfidence(
+  confidence: CaptureDraft['fieldConfidence'],
+  kind: CaptureKind,
+  state: { hasDate: boolean; hasTime: boolean; hasMerchant: boolean; hasAmount: boolean }
+) {
+  if (['appointment', 'event', 'reminder'].includes(kind)) {
+    if (!state.hasDate) confidence.date = 'low';
+    if (!state.hasTime) confidence.time = 'low';
+  }
+  if (kind === 'receipt') {
+    if (!state.hasMerchant) confidence.merchant = 'low';
+    if (!state.hasAmount) confidence.amount = 'low';
+  }
+  if (kind === 'unknown') confidence.type = 'low';
+}
+
+function refreshReviewMetadata(draft: CaptureDraft): CaptureDraft {
+  const confirmed = new Set(draft.confirmedFields);
+  const structured = ['appointment', 'event', 'reminder', 'receipt', 'document'].includes(draft.captureKind);
+
+  const uncertain = (Object.entries(draft.fieldConfidence) as [CaptureField, CaptureConfidence][])
+    .filter(([field, confidence]) => !confirmed.has(field) && confidence !== 'high')
+    .map(([field]) => field);
+
+  let needsReview = structured || draft.captureKind === 'unknown'
+    ? uncertain
+    : uncertain.filter((field) => field === 'type' && draft.fieldConfidence.type === 'low');
+
+  if (draft.captureKind === 'receipt') {
+    if (!draft.merchant && !confirmed.has('merchant')) needsReview = uniqueFields([...needsReview, 'merchant']);
+    if (draft.amount === undefined && !confirmed.has('amount')) needsReview = uniqueFields([...needsReview, 'amount']);
+  }
+  if (['appointment', 'event', 'reminder'].includes(draft.captureKind)) {
+    if (!draft.date && !confirmed.has('date')) needsReview = uniqueFields([...needsReview, 'date']);
+    if (!draft.time && !confirmed.has('time')) needsReview = uniqueFields([...needsReview, 'time']);
+  }
+
+  const ambiguities = needsReview.map((field) => ambiguityFor(field, draft));
+  const overallConfidence: CaptureConfidence = needsReview.some((field) => draft.fieldConfidence[field] === 'low')
+    ? 'low'
+    : needsReview.length
+      ? 'medium'
+      : 'high';
+
+  const destination = needsReview.length
+    ? 'inbox'
+    : draft.destinationConfirmed
+      ? draft.destination
+      : suggestedDestination(draft.captureKind);
+
+  return {
+    ...draft,
+    canonicalKind: canonicalKindForCaptureKind(draft.captureKind),
+    destination,
+    overallConfidence,
+    needsReview,
+    ambiguities,
+    summary: buildSummary({
+      title: draft.title,
+      context: draft.userContext || '',
+      ocr: draft.extractedText || '',
+      date: draft.date,
+      time: draft.time,
+      location: draft.location,
+      merchant: draft.merchant,
+      money: draft.amount !== undefined
+        ? { amount: draft.amount, currency: draft.currency, confidence: draft.fieldConfidence.amount || 'medium' }
+        : undefined
+    })
+  };
+}
+
+function ambiguityFor(field: CaptureField, draft: CaptureDraft): CaptureAmbiguity {
+  if (field === 'date') {
+    return draft.date
+      ? { code: 'confirm_date', field, message: 'Confirm the inferred date.' }
+      : { code: 'missing_date', field, message: 'A date is still missing.' };
+  }
+  if (field === 'time') return { code: 'missing_time', field, message: 'A time is still missing.' };
+  if (field === 'merchant') {
+    return draft.merchant
+      ? { code: 'confirm_merchant', field, message: 'Confirm the detected merchant.' }
+      : { code: 'missing_merchant', field, message: 'Merchant could not be confirmed.' };
+  }
+  if (field === 'amount') {
+    return draft.amount !== undefined
+      ? { code: 'confirm_amount', field, message: 'Confirm the detected total.' }
+      : { code: 'missing_amount', field, message: 'No explicit receipt total was found.' };
+  }
+  if (field === 'currency') return { code: 'confirm_currency', field, message: 'Confirm the detected currency.' };
+  if (field === 'title') return { code: 'confirm_title', field, message: 'Confirm the suggested title.' };
+  return { code: 'confirm_type', field: 'type', message: 'Confirm what this capture is.' };
+}
+
+function suggestedDestination(kind: CaptureKind): OneDestination {
+  if (['appointment', 'event', 'reminder'].includes(kind)) return 'calendar';
+  if (kind === 'task') return 'inbox';
+  if (kind === 'unknown') return 'inbox';
+  return 'saved';
+}
+
+function buildSummary({
+  title,
+  context,
+  ocr,
+  date,
+  time,
+  location,
+  merchant,
+  money
+}: {
+  title: string;
+  context: string;
+  ocr: string;
+  date?: string;
+  time?: string;
+  location?: string;
+  merchant?: string;
+  money?: AmountExtraction;
+}) {
+  const structured = [
+    merchant && merchant !== title ? merchant : undefined,
+    money ? `${money.amount}${money.currency ? ` ${money.currency}` : ''}` : undefined,
+    date,
+    time,
+    location
+  ].filter(Boolean);
+  if (structured.length) return truncate(`${title} · ${structured.join(' · ')}`, 220);
+
+  const contextLine = context.split(/\r?\n/).map((line) => line.trim()).find(Boolean);
+  if (contextLine && contextLine !== title) return truncate(contextLine, 220);
+  const ocrLine = ocr.split(/\r?\n/).map((line) => line.trim()).find(Boolean);
+  if (ocrLine && ocrLine !== title) return truncate(ocrLine, 220);
+  return truncate(title, 220);
 }
 
 function parseMoneyFromLine(line: string) {
@@ -528,13 +769,13 @@ function categoryFor(kind: CaptureKind, documentKind?: CaptureDocumentKind) {
   if (kind === 'link') return 'Links';
   if (kind === 'receipt' || documentKind === 'receipt' || documentKind === 'invoice') return 'Receipts';
   if (kind === 'document') return 'Documents';
-  if (kind === 'screenshot') return 'Screenshots';
+  if (kind === 'screenshot' || kind === 'image') return 'Images';
   if (kind === 'event') return 'Events';
   return undefined;
 }
 
 function shouldSaveByDefault(kind: CaptureKind) {
-  return ['note', 'link', 'screenshot', 'document', 'receipt', 'idea'].includes(kind);
+  return ['note', 'link', 'screenshot', 'image', 'document', 'receipt', 'idea'].includes(kind);
 }
 
 function tagsFromText(text: string) {
@@ -573,13 +814,26 @@ function extractReferences(text: string) {
   return matches.map((match) => match[1]);
 }
 
-function cleanTitle(value: string) {
-  return value
+function cleanTitle(value: string, kind: CaptureKind) {
+  const weekdayNames = Object.keys(weekdays).join('|');
+  let next = value
     .replace(/\b(day after tomorrow|today|tomorrow|heute|morgen|uebermorgen|übermorgen)\b/gi, '')
+    .replace(new RegExp(`\\b(${weekdayNames})\\b`, 'gi'), '')
     .replace(/(?:\bon(?:\s+the)?\b|\bam\b)\s*([1-9]|[12]\d|3[01])(?:st|nd|rd|th)?\.?/gi, '')
     .replace(/\b([01]?\d|2[0-3])[:.]([0-5]\d)\b/g, '')
+    .replace(/\b(?:at|um)\s+(?=to\b|$)/gi, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
+
+  if (kind === 'reminder') {
+    next = next
+      .replace(/^remind me\s*(?:at\s*)?(?:to\s*)?/i, '')
+      .replace(/^erinnere mich\s*(?:daran\s*)?(?:zu\s*)?/i, '')
+      .replace(/^to\s+/i, '')
+      .trim();
+  }
+
+  return next.replace(/^[,;:\-–—\s]+|[,;:\-–—\s]+$/g, '').trim();
 }
 
 function validCalendarDate(year: number, month: number, day: number) {
@@ -613,6 +867,10 @@ function truncate(value: string, max: number) {
 
 function unique(values: string[]) {
   return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
+}
+
+function uniqueFields(values: CaptureField[]) {
+  return Array.from(new Set(values));
 }
 
 function normalize(value: string) {
