@@ -1,4 +1,4 @@
-import { searchOneItems } from './searchItems';
+import { searchOneItems } from './searchItems.ts';
 import type { OneItem } from '../types/item';
 
 export type GroundedRecallAnswer = {
