@@ -1,3 +1,5 @@
+import { fingerprintSharedCapture } from '../sharing/contract.ts';
+
 export type SharePayloadLike = {
   shareType?: string | null;
   value?: string | null;
@@ -47,22 +49,14 @@ export function selectShareCandidate(
 }
 
 export function fingerprintShare(payload: SharePayloadLike, resolved?: ResolvedShareLike) {
-  const value = [
-    payload.shareType || '',
-    payload.value?.trim() || '',
-    resolved?.contentType || '',
-    resolved?.contentUri || '',
-    resolved?.contentMimeType || '',
-    resolved?.originalName || ''
-  ].join('|');
-
-  let hash = 2166136261;
-  for (let index = 0; index < value.length; index += 1) {
-    hash ^= value.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-
-  return `share-${(hash >>> 0).toString(16).padStart(8, '0')}`;
+  return fingerprintSharedCapture({
+    sharedText: payload.shareType === 'text' ? payload.value || undefined : undefined,
+    sharedUrl: payload.shareType === 'url' ? payload.value || undefined : undefined,
+    fileUri: resolved?.contentUri || undefined,
+    mimeType: resolved?.contentMimeType || undefined,
+    contentType: resolved?.contentType || payload.shareType || undefined,
+    originalName: resolved?.originalName || undefined
+  });
 }
 
 export function shouldPreventDuplicateShare({

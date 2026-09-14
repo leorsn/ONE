@@ -5,6 +5,7 @@ import { useTheme } from '@/src/theme/useTheme';
 
 const tabIcon = {
   index: icons.inbox,
+  search: icons.search,
   calendar: icons.calendar,
   saved: icons.saved,
   settings: icons.settings
@@ -44,6 +45,7 @@ export default function TabsLayout() {
       })}
     >
       <Tabs.Screen name="index" options={{ title: 'Inbox' }} />
+      <Tabs.Screen name="search" options={{ title: 'Search' }} />
       <Tabs.Screen name="calendar" options={{ title: 'Calendar' }} />
       <Tabs.Screen name="saved" options={{ title: 'Saved' }} />
       <Tabs.Screen name="settings" options={{ title: 'Settings' }} />

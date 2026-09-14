@@ -1,35 +1,34 @@
 import type { ResolvedSharePayload, SharePayload } from 'expo-sharing';
 import { buildItemFromCapture } from '@/src/capture/buildItem';
 import { interpretCapture, type CaptureDraft } from '@/src/capture/core';
-import type { OneItem, OneSourceType } from '@/src/types/item';
+import { normalizeSharedCapture, type SharedCaptureEnvelope } from './contract';
+import type { OneItem } from '@/src/types/item';
 
 export function createShareDraft({
   payload,
   resolved,
   context,
-  extractedText
+  extractedText,
+  sourceApplication,
+  now = new Date()
 }: {
   payload: SharePayload;
   resolved?: ResolvedSharePayload;
   context?: string;
   extractedText?: string;
+  sourceApplication?: string;
+  now?: Date;
 }): CaptureDraft {
-  const rawValue = payload.value?.trim() || '';
-  const resolvedType = resolved?.contentType ?? null;
-  const sourceType: OneSourceType =
-    resolvedType === 'image' || payload.shareType === 'image'
-      ? 'screenshot'
-      : payload.shareType === 'url'
-        ? 'link'
-        : 'share';
+  const envelope = createSharedCaptureEnvelope({ payload, resolved, sourceApplication, now });
 
   return interpretCapture({
-    rawText: rawValue || resolved?.originalName || '',
+    rawText: envelope.sharedText || envelope.normalizedUrl || envelope.originalName || '',
     extractedText,
     userContext: context,
-    sourceType,
-    isImage: sourceType === 'screenshot',
-    url: payload.shareType === 'url' || resolvedType === 'website' ? rawValue : undefined
+    sourceType: 'share',
+    isImage: envelope.kind === 'image',
+    url: envelope.normalizedUrl,
+    now
   });
 }
 
@@ -39,7 +38,9 @@ export function createItemFromShare({
   context,
   storedAttachmentPath,
   extractedText,
-  draft
+  draft,
+  sourceApplication,
+  now = new Date()
 }: {
   payload: SharePayload;
   resolved?: ResolvedSharePayload;
@@ -47,25 +48,65 @@ export function createItemFromShare({
   storedAttachmentPath?: string;
   extractedText?: string;
   draft?: CaptureDraft;
+  sourceApplication?: string;
+  now?: Date;
 }): OneItem {
-  const rawValue = payload.value?.trim() || '';
-  const resolvedType = resolved?.contentType ?? null;
-  const sourceType: OneSourceType =
-    resolvedType === 'image' || payload.shareType === 'image'
-      ? 'screenshot'
-      : payload.shareType === 'url'
-        ? 'link'
-        : 'share';
-
-  const reviewed = draft || createShareDraft({ payload, resolved, context, extractedText });
+  const envelope = createSharedCaptureEnvelope({ payload, resolved, sourceApplication, now });
+  const reviewed = draft || createShareDraft({
+    payload,
+    resolved,
+    context,
+    extractedText,
+    sourceApplication,
+    now
+  });
 
   return buildItemFromCapture({
     draft: reviewed,
-    sourceType,
-    rawInput: [rawValue, reviewed.extractedText].filter(Boolean).join('\n'),
-    originalText: payload.shareType === 'text' ? rawValue : undefined,
+    sourceType: 'share',
+    rawInput: [
+      envelope.sharedText,
+      envelope.normalizedUrl,
+      envelope.originalName,
+      reviewed.extractedText
+    ].filter(Boolean).join('\n'),
+    originalText: envelope.sharedText,
+    sourceApp: envelope.sourceApplication,
     localAttachmentUri: storedAttachmentPath,
-    attachmentMimeType: resolved?.contentMimeType || undefined,
-    attachmentName: resolved?.originalName || undefined
+    attachmentMimeType: envelope.mimeType,
+    attachmentName: envelope.originalName,
+    now: new Date(envelope.captureTimestamp)
   });
+}
+
+export function createSharedCaptureEnvelope({
+  payload,
+  resolved,
+  sourceApplication,
+  now = new Date()
+}: {
+  payload: SharePayload;
+  resolved?: ResolvedSharePayload;
+  sourceApplication?: string;
+  now?: Date;
+}): SharedCaptureEnvelope {
+  const rawValue = payload.value?.trim() || '';
+  const contentUri = resolved && 'contentUri' in resolved ? resolved.contentUri || undefined : undefined;
+  const isUrl = payload.shareType === 'url' || resolved?.contentType === 'website';
+  const isText = payload.shareType === 'text';
+
+  return normalizeSharedCapture({
+    sourceApplication,
+    sharedText: isText ? rawValue : undefined,
+    sharedUrl: isUrl ? rawValue : undefined,
+    fileUri: contentUri,
+    mimeType: resolved?.contentMimeType || undefined,
+    contentType: resolved?.contentType || payload.shareType || undefined,
+    originalName: resolved?.originalName || undefined,
+    captureTimestamp: now.toISOString(),
+    rawPayload: {
+      shareType: payload.shareType,
+      value: rawValue || undefined
+    }
+  }, now);
 }
