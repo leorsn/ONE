@@ -7,8 +7,6 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instantiate createClient with right options
-  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.5"
   }
@@ -16,12 +14,15 @@ export type Database = {
     Tables: {
       items: {
         Row: {
+          ai_metadata: Json | null
           ambiguities: string[]
           amount: number | null
           archived_at: string | null
           attachment_url: string | null
+          captured_at: string
           category: string | null
           completed: boolean
+          confidence_metadata: Json
           created_at: string
           currency: string | null
           deferred_until: string | null
@@ -29,8 +30,12 @@ export type Database = {
           document_kind: string | null
           embedding: string | null
           entities: string[]
+          event_intent: boolean
           executed_actions: string[]
+          extracted_dates: string[]
           extracted_text: string | null
+          extracted_times: string[]
+          extracted_urls: string[]
           id: string
           image_url: string | null
           item_date: string | null
@@ -42,6 +47,7 @@ export type Database = {
           original_text: string | null
           people: string[]
           processed_at: string | null
+          processing_status: string
           raw_input: string | null
           reminder_at: string | null
           review_status: string
@@ -50,6 +56,8 @@ export type Database = {
           source_type: string
           summary: string | null
           tags: string[]
+          task_due_at: string | null
+          task_intent: boolean
           title: string
           triage_state: string
           type: string
@@ -60,12 +68,15 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_metadata?: Json | null
           ambiguities?: string[]
           amount?: number | null
           archived_at?: string | null
           attachment_url?: string | null
+          captured_at?: string
           category?: string | null
           completed?: boolean
+          confidence_metadata?: Json
           created_at?: string
           currency?: string | null
           deferred_until?: string | null
@@ -73,8 +84,12 @@ export type Database = {
           document_kind?: string | null
           embedding?: string | null
           entities?: string[]
+          event_intent?: boolean
           executed_actions?: string[]
+          extracted_dates?: string[]
           extracted_text?: string | null
+          extracted_times?: string[]
+          extracted_urls?: string[]
           id: string
           image_url?: string | null
           item_date?: string | null
@@ -86,6 +101,7 @@ export type Database = {
           original_text?: string | null
           people?: string[]
           processed_at?: string | null
+          processing_status?: string
           raw_input?: string | null
           reminder_at?: string | null
           review_status?: string
@@ -94,6 +110,8 @@ export type Database = {
           source_type: string
           summary?: string | null
           tags?: string[]
+          task_due_at?: string | null
+          task_intent?: boolean
           title: string
           triage_state?: string
           type: string
@@ -104,12 +122,15 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_metadata?: Json | null
           ambiguities?: string[]
           amount?: number | null
           archived_at?: string | null
           attachment_url?: string | null
+          captured_at?: string
           category?: string | null
           completed?: boolean
+          confidence_metadata?: Json
           created_at?: string
           currency?: string | null
           deferred_until?: string | null
@@ -117,8 +138,12 @@ export type Database = {
           document_kind?: string | null
           embedding?: string | null
           entities?: string[]
+          event_intent?: boolean
           executed_actions?: string[]
+          extracted_dates?: string[]
           extracted_text?: string | null
+          extracted_times?: string[]
+          extracted_urls?: string[]
           id?: string
           image_url?: string | null
           item_date?: string | null
@@ -130,6 +155,7 @@ export type Database = {
           original_text?: string | null
           people?: string[]
           processed_at?: string | null
+          processing_status?: string
           raw_input?: string | null
           reminder_at?: string | null
           review_status?: string
@@ -138,6 +164,8 @@ export type Database = {
           source_type?: string
           summary?: string | null
           tags?: string[]
+          task_due_at?: string | null
+          task_intent?: boolean
           title?: string
           triage_state?: string
           type?: string
