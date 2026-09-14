@@ -64,6 +64,13 @@ export function ensureCanonicalItemMetadata(item: OneItem): OneItem {
   const reviewStatus: OneReviewStatus = item.reviewStatus ?? 'ready';
   const destination = item.destination ?? destinationForItem({ ...item, kind, reviewStatus });
   const understandingConfidence: OneUnderstandingConfidence = item.understandingConfidence ?? 'medium';
+  const capturedAt = item.capturedAt ?? item.createdAt;
+  const extractedDates = item.extractedDates ?? (item.date ? [item.date] : []);
+  const extractedTimes = item.extractedTimes ?? (item.time ? [item.time] : []);
+  const extractedUrls = item.extractedUrls ?? Array.from(new Set([
+    ...(item.url ? [item.url] : []),
+    ...item.entities.filter((entity) => entity.startsWith('url:')).map((entity) => entity.slice(4)).filter(Boolean)
+  ]));
   const canonical: OneItem = {
     ...item,
     kind,
@@ -73,6 +80,15 @@ export function ensureCanonicalItemMetadata(item: OneItem): OneItem {
     reviewStatus,
     ambiguities: item.ambiguities ?? [],
     understandingConfidence,
+    processingStatus: item.processingStatus ?? (reviewStatus === 'needs_review' ? 'needs_attention' : 'ready'),
+    confidenceMetadata: item.confidenceMetadata ?? { overall: understandingConfidence },
+    aiMetadata: item.aiMetadata ?? { origin: 'none' },
+    capturedAt,
+    extractedDates,
+    extractedTimes,
+    extractedUrls,
+    taskIntent: item.taskIntent ?? ['task', 'reminder'].includes(item.type),
+    eventIntent: item.eventIntent ?? ['appointment', 'event'].includes(item.type),
     executedActions: item.executedActions ?? []
   };
 
@@ -84,7 +100,7 @@ export function ensureCanonicalItemMetadata(item: OneItem): OneItem {
 
 export function reviewedItemMetadata(item: OneItem): Pick<
   OneItem,
-  'kind' | 'destination' | 'reviewStatus' | 'ambiguities' | 'summary' | 'understandingConfidence'
+  'kind' | 'destination' | 'reviewStatus' | 'ambiguities' | 'summary' | 'understandingConfidence' | 'processingStatus'
 > {
   const kind = item.kind ?? canonicalKindForItem(item);
   const reviewStatus: OneReviewStatus = 'reviewed';
@@ -94,7 +110,8 @@ export function reviewedItemMetadata(item: OneItem): Pick<
     reviewStatus,
     ambiguities: [],
     summary: summaryForItem(item),
-    understandingConfidence: 'high'
+    understandingConfidence: 'high',
+    processingStatus: 'ready'
   };
 }
 
