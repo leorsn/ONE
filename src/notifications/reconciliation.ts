@@ -1,5 +1,5 @@
-import { isRemindable } from './policy';
-import type { OneItem } from '../types/item';
+import { isRemindable } from './policy.ts';
+import type { OneItem } from '../types/item.ts';
 
 export type ReminderReconciliationAction = 'clear' | 'keep' | 'schedule';
 
