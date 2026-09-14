@@ -26,8 +26,9 @@ test('event-like text yields structured date/time and event intent on the saved 
 });
 
 test('task-like capture remains lightweight and records task intent', () => {
-  const draft = interpretCapture({ rawText: 'Papa Geschenk bestellen', sourceType: 'manual', now: NOW });
-  const item = buildItemFromCapture({ draft, sourceType: 'manual', rawInput: 'Papa Geschenk bestellen', now: NOW });
+  const rawInput = 'Erinnere mich daran, Papa Geschenk zu bestellen';
+  const draft = interpretCapture({ rawText: rawInput, sourceType: 'manual', now: NOW });
+  const item = buildItemFromCapture({ draft, sourceType: 'manual', rawInput, now: NOW });
   assert.equal(item.taskIntent, true);
   assert.equal(item.eventIntent, false);
   assert.equal(item.processingStatus === 'ready' || item.processingStatus === 'needs_attention', true);
