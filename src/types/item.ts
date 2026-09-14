@@ -87,7 +87,7 @@ export type OneDocumentKind =
   | 'business_card'
   | 'other';
 
-export type OneSyncState = 'local' | 'pending' | 'synced';
+export type OneSyncState = 'local' | 'pending' | 'synced' | 'error';
 
 export type OneItem = {
   id: string;
@@ -144,7 +144,12 @@ export type OneItem = {
   currency?: string;
   tags: string[];
   entities: string[];
+  /** Device-local cloud synchronization state. */
   syncState?: OneSyncState;
+  syncAttemptCount?: number;
+  syncErrorAt?: string;
+  syncRetryAt?: string;
+  syncConflictDetected?: boolean;
   createdAt: string;
   updatedAt: string;
 };

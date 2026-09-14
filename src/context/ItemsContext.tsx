@@ -3,6 +3,7 @@ import { AppState } from 'react-native';
 import { ensureCanonicalItemMetadata } from '@/src/capture/itemMetadata';
 import { useAuth } from '@/src/context/AuthContext';
 import { mockItems } from '@/src/data/mockItems';
+import { completeMigration, planAnonymousMigration } from '@/src/migration/policy';
 import { recordLastNativeError, recordNativeAcceptanceEvent } from '@/src/native/acceptance';
 import {
   cancelItemNotification,
@@ -14,8 +15,17 @@ import {
   orphanedScheduledNotificationIds,
   reminderReconciliationAction
 } from '@/src/notifications/reconciliation';
-import { deleteCloudItem, pullCloudItems } from '@/src/supabase/items';
 import { deleteSharedAttachment } from '@/src/supabase/attachments';
+import { deleteCloudItem, pullCloudItems } from '@/src/supabase/items';
+import { markProfileSynced } from '@/src/supabase/profile';
+import { removeLocalAttachment } from '@/src/storage/attachments';
+import {
+  clearDeletionTombstones,
+  loadDeletionTombstones,
+  removeDeletionTombstone,
+  saveDeletionTombstone,
+  type DeletionTombstone
+} from '@/src/storage/deletions';
 import {
   clearItems,
   itemStorageScope,
@@ -23,25 +33,35 @@ import {
   saveItems,
   type ItemStorageScope
 } from '@/src/storage/items';
-import { removeLocalAttachment } from '@/src/storage/attachments';
 import {
-  clearDeletionTombstones,
-  loadDeletionTombstones,
-  removeDeletionTombstone,
-  saveDeletionTombstone
-} from '@/src/storage/deletions';
-import { syncItemToCloud } from '@/src/sync/cloudItem';
+  clearLocalMigrationState,
+  loadLocalMigrationState,
+  saveLocalMigrationState
+} from '@/src/storage/migration';
+import { cloudAttachmentPath, syncItemToCloud } from '@/src/sync/cloudItem';
 import { canApplyScopedSyncResult, preserveDeviceLocalState, resolveCloudSnapshot } from '@/src/sync/merge';
+import {
+  buildSyncQueue,
+  canAutoRetry,
+  markDeletionFailure,
+  markSyncFailure,
+  markSyncPending,
+  syncPresentationState
+} from '@/src/sync/queue';
 import type { OneItem } from '@/src/types/item';
+
+type SyncStatus = ReturnType<typeof syncPresentationState>;
 
 type ItemsContextValue = {
   items: OneItem[];
   hydrated: boolean;
   cloudSyncing: boolean;
+  syncStatus: SyncStatus;
   add: (item: OneItem) => Promise<OneItem>;
   update: (id: string, changes: Partial<OneItem>) => Promise<OneItem | undefined>;
   toggleCompleted: (id: string) => Promise<void>;
   remove: (id: string) => Promise<void>;
+  retrySync: () => Promise<void>;
   clearAll: () => Promise<void>;
 };
 
@@ -56,14 +76,35 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = useState(false);
   const [hydratedScope, setHydratedScope] = useState<ItemStorageScope | null>(null);
   const [cloudSyncing, setCloudSyncing] = useState(false);
+  const [syncProblem, setSyncProblem] = useState(false);
   const [syncRevision, setSyncRevision] = useState(0);
   const activeScopeRef = useRef<ItemStorageScope | null>(null);
   const itemsRef = useRef<OneItem[]>([]);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const retryWakeAtRef = useRef<number | null>(null);
   const scopeReady = hydrated && !authLoading && hydratedScope === desiredScope;
+
+  const scheduleSyncRetry = useCallback((retryAt?: string) => {
+    const parsed = retryAt ? new Date(retryAt).getTime() : Number.NaN;
+    const target = Number.isFinite(parsed) ? Math.max(Date.now() + 250, parsed) : Date.now() + 5_000;
+    if (retryWakeAtRef.current && retryWakeAtRef.current <= target) return;
+
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    retryWakeAtRef.current = target;
+    retryTimerRef.current = setTimeout(() => {
+      retryTimerRef.current = null;
+      retryWakeAtRef.current = null;
+      setSyncRevision((value) => value + 1);
+    }, Math.max(250, target - Date.now()));
+  }, []);
 
   useEffect(() => {
     itemsRef.current = items;
   }, [items]);
+
+  useEffect(() => () => {
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+  }, []);
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
@@ -81,11 +122,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     async function hydrateScope() {
       try {
-        if (
-          previousScope &&
-          previousScope !== desiredScope &&
-          previousScope !== 'anonymous'
-        ) {
+        if (previousScope && previousScope !== desiredScope && previousScope !== 'anonymous') {
           const suspended = await suspendItemNotifications(itemsRef.current);
           await saveItems(previousScope, suspended);
           itemsRef.current = suspended;
@@ -101,14 +138,30 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
           nextItems = nextItems
             .filter(shouldSyncItem)
             .map((item) => ({ ...item, syncState: item.syncState || 'pending' }));
-        }
 
-        if (previousScope === 'anonymous' && desiredScope !== 'anonymous') {
-          const transferable = itemsRef.current
-            .filter(shouldSyncItem)
-            .map((item) => ({ ...ensureCanonicalItemMetadata(item), syncState: 'pending' as const }));
-          if (transferable.length) nextItems = mergeByUpdatedAt(transferable, nextItems);
-          await clearItems('anonymous');
+          const userId = session?.user.id;
+          if (userId) {
+            const anonymousStored = previousScope === 'anonymous'
+              ? itemsRef.current
+              : (await loadItems('anonymous')) ?? [];
+            const migrationState = await loadLocalMigrationState();
+            const migration = planAnonymousMigration({
+              userId,
+              anonymousItems: anonymousStored.filter(shouldSyncItem).map(ensureCanonicalItemMetadata),
+              destinationItems: nextItems,
+              state: migrationState
+            });
+
+            if (migration.blocked) {
+              await recordNativeAcceptanceEvent('local_migration_blocked', 'different-account-owner');
+            } else {
+              nextItems = migration.items;
+              if (migration.nextState) await saveLocalMigrationState(migration.nextState);
+              if (migration.copied) {
+                await recordNativeAcceptanceEvent('local_migration_copied', `${migration.nextState?.sourceItemCount ?? 0} item(s)`);
+              }
+            }
+          }
         }
 
         if (desiredScope !== 'anonymous') {
@@ -122,6 +175,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         activeScopeRef.current = desiredScope;
         itemsRef.current = nextItems;
         setItems(nextItems);
+        setSyncProblem(nextItems.some((item) => item.syncState === 'error'));
         setHydratedScope(desiredScope);
         setHydrated(true);
       } catch (error) {
@@ -135,6 +189,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         activeScopeRef.current = desiredScope;
         itemsRef.current = fallback;
         setItems(fallback);
+        setSyncProblem(true);
         setHydratedScope(desiredScope);
         setHydrated(true);
       }
@@ -144,7 +199,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, desiredScope]);
+  }, [authLoading, desiredScope, session?.user.id]);
 
   useEffect(() => {
     if (!scopeReady) return;
@@ -164,10 +219,13 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     async function syncFromCloud() {
       setCloudSyncing(true);
+      let hadSyncError = false;
+
       try {
-        const [cloud, activeTombstones] = await Promise.all([
+        const [cloud, activeTombstones, migrationState] = await Promise.all([
           pullCloudItems(),
-          loadDeletionTombstones(syncUserId)
+          loadDeletionTombstones(syncUserId),
+          loadLocalMigrationState()
         ]);
         if (cancelled || !canApplyScopedSyncResult(syncScope, activeScopeRef.current)) return;
 
@@ -185,34 +243,92 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         itemsRef.current = merged;
         setItems(merged);
 
-        for (const candidate of resolution.localToUpload.filter(shouldSyncItem)) {
-          try {
-            const synced = await syncItemToCloud(ensureCanonicalItemMetadata(candidate), syncUserId);
-            if (cancelled || !canApplyScopedSyncResult(syncScope, activeScopeRef.current)) return;
-            merged = merged.map((item) =>
-              item.id === synced.id ? preserveDeviceLocalState(synced, item) : item
-            );
-            itemsRef.current = merged;
-            setItems(merged);
-          } catch (error) {
-            console.warn('ONE deferred item sync failed; capture remains local', error);
-            await recordLastNativeError('item-sync', error);
-          }
-        }
+        const queue = buildSyncQueue(
+          resolution.localToUpload.filter(shouldSyncItem),
+          activeTombstones
+        );
 
-        for (const tombstone of activeTombstones) {
+        for (const operation of queue) {
+          if (cancelled || !canApplyScopedSyncResult(syncScope, activeScopeRef.current)) return;
+
+          if (operation.kind === 'upsert') {
+            const candidate = merged.find((item) => item.id === operation.itemId);
+            if (!candidate || !shouldSyncItem(candidate)) continue;
+
+            try {
+              const synced = await syncItemToCloud(ensureCanonicalItemMetadata(candidate), syncUserId);
+              merged = merged.map((item) =>
+                item.id === synced.id ? preserveDeviceLocalState(synced, item) : item
+              );
+              itemsRef.current = merged;
+              setItems(merged);
+            } catch (error) {
+              hadSyncError = true;
+              const failed = markSyncFailure(candidate);
+              merged = merged.map((item) => item.id === candidate.id ? failed : item);
+              itemsRef.current = merged;
+              setItems(merged);
+              if (canAutoRetry(failed.syncAttemptCount ?? 0)) scheduleSyncRetry(failed.syncRetryAt);
+              console.warn('ONE deferred item sync failed; capture remains local', error);
+              await recordLastNativeError('item-sync', error);
+            }
+            continue;
+          }
+
+          const tombstone = activeTombstones.find((entry) => entry.id === operation.itemId);
+          if (!tombstone) continue;
           try {
             await deleteCloudItem(tombstone.id);
             await removeCloudAttachments(tombstone.attachmentPaths, syncUserId);
             await removeDeletionTombstone(tombstone.id, syncUserId);
           } catch (error) {
+            hadSyncError = true;
+            const failed = markDeletionFailure(tombstone);
+            await saveDeletionTombstone(failed);
+            if (canAutoRetry(failed.attemptCount ?? 0)) scheduleSyncRetry(failed.retryAt);
             console.warn('ONE deferred delete cleanup failed', error);
             await recordLastNativeError('delete-sync', error);
           }
         }
 
+        await saveItems(syncScope, merged);
+        const remainingTombstones = await loadDeletionTombstones(syncUserId);
+        const remainingUnsynced = merged.filter(
+          (item) => shouldSyncItem(item) && item.syncState !== 'synced'
+        ).length + remainingTombstones.length;
+
+        const completedMigration = completeMigration(migrationState, syncUserId, remainingUnsynced);
+        if (completedMigration && completedMigration.status !== migrationState?.status) {
+          await saveLocalMigrationState(completedMigration);
+          await recordNativeAcceptanceEvent('local_migration_complete', `${completedMigration.sourceItemCount} item(s)`);
+        }
+
+        const hasPersistedProblems = merged.some((item) => item.syncState === 'error') ||
+          remainingTombstones.some((entry) => Boolean(entry.errorAt));
+        setSyncProblem(hadSyncError || hasPersistedProblems);
+
+        if (!hadSyncError && !hasPersistedProblems) {
+          try {
+            await markProfileSynced(syncUserId);
+          } catch (profileError) {
+            console.warn('ONE profile sync timestamp update deferred', profileError);
+          }
+        }
+
         await recordNativeAcceptanceEvent('sync_success', `${merged.length} item(s)`);
       } catch (error) {
+        hadSyncError = true;
+        setSyncProblem(true);
+        const failedItems = itemsRef.current.map((item) =>
+          item.syncState === 'pending' && shouldSyncItem(item) ? markSyncFailure(item) : item
+        );
+        itemsRef.current = failedItems;
+        setItems(failedItems);
+        await saveItems(syncScope, failedItems);
+        const retryable = failedItems.find(
+          (item) => item.syncState === 'error' && canAutoRetry(item.syncAttemptCount ?? 0)
+        );
+        scheduleSyncRetry(retryable?.syncRetryAt);
         console.warn('ONE cloud sync failed; local data preserved', error);
         await recordLastNativeError('cloud-sync', error);
         await recordNativeAcceptanceEvent('sync_failed', 'local-data-preserved');
@@ -225,7 +341,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [session?.user.id, scopeReady, desiredScope, syncRevision]);
+  }, [session?.user.id, scopeReady, desiredScope, syncRevision, scheduleSyncRetry]);
 
   const applySyncedItem = useCallback((synced: OneItem) => {
     let applied: OneItem | undefined;
@@ -241,10 +357,8 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
   const add = useCallback(async (item: OneItem) => {
     const userId = session?.user.id;
     const scope = itemStorageScope(userId);
-    const base: OneItem = {
-      ...ensureCanonicalItemMetadata(item),
-      syncState: userId ? 'pending' : 'local'
-    };
+    const canonical = ensureCanonicalItemMetadata(item);
+    const base = userId ? markSyncPending(canonical) : { ...canonical, syncState: 'local' as const };
     const scheduleResult = isRemindable(base)
       ? await scheduleItemNotification(base)
       : { status: 'not_applicable' as const };
@@ -256,19 +370,28 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     itemsRef.current = [local, ...itemsRef.current];
     setItems(itemsRef.current);
+    await saveItems(scope, itemsRef.current);
 
     if (!userId || !shouldSyncItem(local)) return local;
 
     try {
       const synced = await syncItemToCloud(local, userId);
       if (!canApplyScopedSyncResult(scope, activeScopeRef.current)) return local;
-      return applySyncedItem(synced) ?? local;
+      const applied = applySyncedItem(synced) ?? local;
+      await saveItems(scope, itemsRef.current);
+      return applied;
     } catch (error) {
+      const failed = markSyncFailure(local);
+      itemsRef.current = itemsRef.current.map((candidate) => candidate.id === local.id ? failed : candidate);
+      setItems(itemsRef.current);
+      setSyncProblem(true);
+      await saveItems(scope, itemsRef.current);
+      if (canAutoRetry(failed.syncAttemptCount ?? 0)) scheduleSyncRetry(failed.syncRetryAt);
       console.warn('ONE cloud add deferred until reconnect', error);
       await recordLastNativeError('cloud-add', error);
-      return local;
+      return failed;
     }
-  }, [session?.user.id, applySyncedItem]);
+  }, [session?.user.id, applySyncedItem, scheduleSyncRetry]);
 
   const update = useCallback(async (id: string, changes: Partial<OneItem>) => {
     const currentItem = itemsRef.current.find((item) => item.id === id);
@@ -276,12 +399,12 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     const userId = session?.user.id;
     const scope = itemStorageScope(userId);
-    const baseUpdated = ensureCanonicalItemMetadata({
+    const canonical = ensureCanonicalItemMetadata({
       ...currentItem,
       ...changes,
-      syncState: userId ? 'pending' : 'local',
       updatedAt: new Date().toISOString()
     });
+    const baseUpdated = userId ? markSyncPending(canonical) : { ...canonical, syncState: 'local' as const };
 
     const transition = notificationTransition(currentItem, baseUpdated);
     let notificationId = currentItem.notificationId;
@@ -303,19 +426,28 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     const updated: OneItem = { ...baseUpdated, notificationId, notificationStatus };
     itemsRef.current = itemsRef.current.map((item) => (item.id === id ? updated : item));
     setItems(itemsRef.current);
+    await saveItems(scope, itemsRef.current);
 
     if (!userId || !shouldSyncItem(updated)) return updated;
 
     try {
       const synced = await syncItemToCloud(updated, userId);
       if (!canApplyScopedSyncResult(scope, activeScopeRef.current)) return updated;
-      return applySyncedItem(synced) ?? updated;
+      const applied = applySyncedItem(synced) ?? updated;
+      await saveItems(scope, itemsRef.current);
+      return applied;
     } catch (error) {
+      const failed = markSyncFailure(updated);
+      itemsRef.current = itemsRef.current.map((candidate) => candidate.id === id ? failed : candidate);
+      setItems(itemsRef.current);
+      setSyncProblem(true);
+      await saveItems(scope, itemsRef.current);
+      if (canAutoRetry(failed.syncAttemptCount ?? 0)) scheduleSyncRetry(failed.syncRetryAt);
       console.warn('ONE cloud edit deferred until reconnect', error);
       await recordLastNativeError('cloud-edit', error);
-      return updated;
+      return failed;
     }
-  }, [session?.user.id, applySyncedItem]);
+  }, [session?.user.id, applySyncedItem, scheduleSyncRetry]);
 
   const toggleCompleted = useCallback(async (id: string) => {
     const currentItem = itemsRef.current.find((item) => item.id === id);
@@ -329,27 +461,33 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     await cancelItemNotification(currentItem.notificationId);
 
+    const userId = session?.user.id;
     const cloudAttachmentPaths = Array.from(new Set(
-      [currentItem.attachmentUrl, currentItem.imageUrl]
-        .filter((value): value is string => Boolean(value && !/^(file|content|ph):\/\//i.test(value)))
+      [
+        currentItem.attachmentUrl,
+        currentItem.imageUrl,
+        userId ? cloudAttachmentPath(currentItem.id, userId) : undefined
+      ].filter((value): value is string => Boolean(value && !/^(file|content|ph):\/\//i.test(value)))
     ));
     const localAttachmentPaths = Array.from(new Set(
       [currentItem.localAttachmentUri, currentItem.attachmentUrl, currentItem.imageUrl]
         .filter((value): value is string => Boolean(value && /^(file|content|ph):\/\//i.test(value)))
     ));
-    const userId = session?.user.id;
 
+    let tombstone: DeletionTombstone | undefined;
     if (userId) {
-      await saveDeletionTombstone({
+      tombstone = {
         id,
         deletedAt: new Date().toISOString(),
         userId,
         attachmentPaths: cloudAttachmentPaths
-      });
+      };
+      await saveDeletionTombstone(tombstone);
     }
 
     itemsRef.current = itemsRef.current.filter((item) => item.id !== id);
     setItems(itemsRef.current);
+    await saveItems(itemStorageScope(userId), itemsRef.current);
 
     for (const path of localAttachmentPaths) {
       try {
@@ -360,16 +498,45 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       }
     }
 
-    if (!userId) return;
+    if (!userId || !tombstone) return;
 
     try {
       await deleteCloudItem(id);
       await removeCloudAttachments(cloudAttachmentPaths, userId);
       await removeDeletionTombstone(id, userId);
     } catch (error) {
+      const failed = markDeletionFailure(tombstone);
+      await saveDeletionTombstone(failed);
+      setSyncProblem(true);
+      if (canAutoRetry(failed.attemptCount ?? 0)) scheduleSyncRetry(failed.retryAt);
       console.warn('ONE cloud delete deferred until reconnect', error);
       await recordLastNativeError('cloud-delete', error);
     }
+  }, [session?.user.id, scheduleSyncRetry]);
+
+  const retrySync = useCallback(async () => {
+    const userId = session?.user.id;
+    if (!userId) return;
+    const scope = itemStorageScope(userId);
+    const nextItems = itemsRef.current.map((item) =>
+      item.syncState === 'error' && !item.syncConflictDetected ? markSyncPending(item) : item
+    );
+    itemsRef.current = nextItems;
+    setItems(nextItems);
+    await saveItems(scope, nextItems);
+
+    const tombstones = await loadDeletionTombstones(userId);
+    for (const tombstone of tombstones) {
+      await saveDeletionTombstone({
+        ...tombstone,
+        attemptCount: 0,
+        retryAt: undefined,
+        errorAt: undefined
+      });
+    }
+
+    setSyncProblem(nextItems.some((item) => Boolean(item.syncConflictDetected)));
+    setSyncRevision((value) => value + 1);
   }, [session?.user.id]);
 
   const clearAll = useCallback(async () => {
@@ -379,24 +546,38 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     for (const item of itemsRef.current) await cleanupDeviceState(item);
 
     await clearItems(currentScope);
-    if (currentUserId) await clearDeletionTombstones(currentUserId);
+    if (currentUserId) {
+      await clearDeletionTombstones(currentUserId);
+      await clearItems('anonymous');
+      await clearLocalMigrationState();
+    }
 
     itemsRef.current = [];
     setItems([]);
+    setSyncProblem(false);
   }, [desiredScope, session?.user.id]);
+
+  const presentedSyncStatus = useMemo<SyncStatus>(() => {
+    if (!scopeReady) return 'saved_local';
+    const derived = syncPresentationState(items, cloudSyncing);
+    if (!cloudSyncing && syncProblem) return 'problem';
+    return derived;
+  }, [items, scopeReady, cloudSyncing, syncProblem]);
 
   const value = useMemo(
     () => ({
       items: scopeReady ? items : [],
       hydrated: scopeReady,
       cloudSyncing: scopeReady ? cloudSyncing : false,
+      syncStatus: presentedSyncStatus,
       add,
       update,
       toggleCompleted,
       remove,
+      retrySync,
       clearAll
     }),
-    [items, scopeReady, cloudSyncing, add, update, toggleCompleted, remove, clearAll]
+    [items, scopeReady, cloudSyncing, presentedSyncStatus, add, update, toggleCompleted, remove, retrySync, clearAll]
   );
 
   return <ItemsContext.Provider value={value}>{children}</ItemsContext.Provider>;
@@ -491,21 +672,6 @@ async function removeCloudAttachments(paths: string[], userId: string) {
     if (!path.startsWith(userId + '/')) continue;
     await deleteSharedAttachment(path, userId);
   }
-}
-
-function mergeByUpdatedAt(local: OneItem[], cloud: OneItem[]) {
-  const merged = new Map<string, OneItem>();
-
-  for (const item of [...local, ...cloud]) {
-    const existing = merged.get(item.id);
-    if (!existing || new Date(item.updatedAt).getTime() >= new Date(existing.updatedAt).getTime()) {
-      merged.set(item.id, ensureCanonicalItemMetadata(existing ? preserveDeviceLocalState(item, existing) : item));
-    }
-  }
-
-  return Array.from(merged.values()).sort(
-    (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-  );
 }
 
 export function useItems() {

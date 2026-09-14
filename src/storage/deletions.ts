@@ -7,6 +7,9 @@ export type DeletionTombstone = {
   deletedAt: string;
   userId: string;
   attachmentPaths: string[];
+  attemptCount?: number;
+  retryAt?: string;
+  errorAt?: string;
 };
 
 export async function loadDeletionTombstones(userId?: string): Promise<DeletionTombstone[]> {

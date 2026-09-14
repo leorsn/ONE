@@ -1,5 +1,6 @@
 import { uploadSharedAttachment } from '@/src/supabase/attachments';
 import { upsertCloudItem } from '@/src/supabase/items';
+import { markSyncSuccess } from '@/src/sync/queue';
 import type { OneItem } from '@/src/types/item';
 
 export async function syncItemToCloud(item: OneItem, userId: string): Promise<OneItem> {
@@ -17,7 +18,8 @@ export async function syncItemToCloud(item: OneItem, userId: string): Promise<On
       uri: localUri,
       mimeType: next.localAttachmentMimeType,
       originalName: next.localAttachmentName,
-      userId
+      userId,
+      storageKey: cloudAttachmentKey(next.id)
     });
 
     next = {
@@ -27,9 +29,17 @@ export async function syncItemToCloud(item: OneItem, userId: string): Promise<On
     };
   }
 
-  const synced: OneItem = { ...next, syncState: 'synced' };
+  const synced = markSyncSuccess(next);
   await upsertCloudItem(synced, userId);
   return synced;
+}
+
+export function cloudAttachmentKey(itemId: string) {
+  return `item-${itemId}`.replace(/[^a-zA-Z0-9._-]/g, '-').slice(-120);
+}
+
+export function cloudAttachmentPath(itemId: string, userId: string) {
+  return `${userId}/${cloudAttachmentKey(itemId)}`;
 }
 
 export function isDeviceUri(value?: string | null) {

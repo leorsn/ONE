@@ -3,6 +3,7 @@ import { ActivityIndicator, Platform, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
+import { authGateTarget, type OneRouteGroup } from '@/src/auth/policy';
 import { AuthProvider, useAuth } from '@/src/context/AuthContext';
 import { ItemsProvider, useItems } from '@/src/context/ItemsContext';
 import { OnboardingProvider, useOnboarding } from '@/src/context/OnboardingContext';
@@ -30,14 +31,14 @@ function RootNavigation() {
   const router = useRouter();
   const segments = useSegments();
   const { loaded, completed } = useOnboarding();
-  const { loading: authLoading } = useAuth();
+  const { loading: authLoading, session, configured } = useAuth();
   const { hydrated: itemsHydrated, items } = useItems();
   const { theme, resolvedMode, loaded: themeLoaded } = useThemeContext();
   const { loading: subscriptionLoading, billingConfigured, hasBaseAccess } = usePlan();
   const itemsRef = useRef(items);
   const handledNotificationResponsesRef = useRef(new Set<string>());
   const appReady = loaded && themeLoaded && !authLoading && !subscriptionLoading && itemsHydrated;
-  const canOpenMemories = completed && (!billingConfigured || hasBaseAccess);
+  const canOpenMemories = completed && (!configured || Boolean(session)) && (!billingConfigured || hasBaseAccess);
 
   useEffect(() => {
     itemsRef.current = items;
@@ -46,25 +47,27 @@ function RootNavigation() {
   useEffect(() => {
     if (!appReady) return;
 
-    const inOnboarding = segments[0] === 'onboarding';
-    const inUpgrade = segments[0] === 'upgrade';
-    const inAuth = segments[0] === 'auth';
-    const inNativeAcceptance = __DEV__ && segments[0] === 'dev-native';
+    const routeGroup = routeGroupFor(segments);
+    const authTarget = authGateTarget({
+      configured,
+      sessionPresent: Boolean(session),
+      onboardingComplete: completed,
+      routeGroup
+    });
 
-    if (!completed && !inOnboarding && !inAuth && !inNativeAcceptance) {
-      router.replace('/onboarding');
+    if (authTarget) {
+      router.replace(authTarget);
       return;
     }
 
-    if (completed && inOnboarding) {
-      router.replace(billingConfigured && !hasBaseAccess ? '/upgrade' : '/(tabs)');
-      return;
-    }
+    const inUpgrade = routeGroup === 'upgrade';
+    const inAuth = routeGroup === 'auth_signin' || routeGroup === 'auth_flow';
+    const inNativeAcceptance = routeGroup === 'dev-native';
 
     if (completed && billingConfigured && !hasBaseAccess && !inUpgrade && !inAuth && !inNativeAcceptance) {
       router.replace('/upgrade');
     }
-  }, [appReady, completed, billingConfigured, hasBaseAccess, segments, router]);
+  }, [appReady, completed, configured, session, billingConfigured, hasBaseAccess, segments, router]);
 
   useEffect(() => {
     if (!appReady || !canOpenMemories || Platform.OS === 'web') return;
@@ -136,4 +139,13 @@ function RootNavigation() {
       />
     </>
   );
+}
+
+function routeGroupFor(segments: readonly string[]): OneRouteGroup {
+  const first = segments[0];
+  if (first === 'onboarding') return 'onboarding';
+  if (first === 'upgrade') return 'upgrade';
+  if (first === 'dev-native') return 'dev-native';
+  if (first === 'auth') return segments[1] === 'sign-in' ? 'auth_signin' : 'auth_flow';
+  return 'app';
 }

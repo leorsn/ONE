@@ -6,24 +6,29 @@ export async function uploadSharedAttachment({
   uri,
   mimeType,
   originalName,
-  userId
+  userId,
+  storageKey
 }: {
   uri: string;
   mimeType?: string | null;
   originalName?: string | null;
   userId: string;
+  storageKey?: string;
 }) {
   const response = await fetch(uri);
+  if (!response.ok) throw new Error(`Attachment read failed (${response.status})`);
   const bytes = await response.arrayBuffer();
 
-  const cleanName = sanitizeName(originalName || `share-${Date.now()}.${extensionForMime(mimeType)}`);
-  const path = `${userId}/${Date.now()}-${cleanName}`;
+  const cleanName = storageKey
+    ? sanitizeName(storageKey)
+    : sanitizeName(originalName || `share-${Date.now()}.${extensionForMime(mimeType)}`);
+  const path = `${userId}/${cleanName}`;
 
   const { data, error } = await supabase.storage
     .from(BUCKET)
     .upload(path, bytes, {
       contentType: mimeType || 'application/octet-stream',
-      upsert: false
+      upsert: Boolean(storageKey)
     });
 
   if (error) throw error;

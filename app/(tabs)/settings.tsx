@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
 import Constants from 'expo-constants';
-import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
@@ -9,7 +9,7 @@ import { useItems } from '@/src/context/ItemsContext';
 import { useOnboarding } from '@/src/context/OnboardingContext';
 import { usePlan } from '@/src/context/PlanContext';
 import { deleteOneAccount } from '@/src/supabase/account';
-import { IconTile, PageHeader, PrimaryButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { IconTile, PageHeader, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 
@@ -17,60 +17,12 @@ const APP_VERSION = Constants.expoConfig?.version || '0.1.0';
 
 export default function SettingsScreen() {
   const theme = useTheme();
-  const { session, configured, signIn, signUp, requestPasswordReset, signOut } = useAuth();
-  const { cloudSyncing, items, clearAll } = useItems();
+  const { session, signOut } = useAuth();
+  const { syncStatus, items, retrySync, clearAll } = useItems();
   const { reset: resetOnboarding } = useOnboarding();
   const { preference } = useThemePreference();
   const { plan, isBetaAccess, hasAi, billingConfigured, managementUrl } = usePlan();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [sendingReset, setSendingReset] = useState(false);
   const [deletingAccount, setDeletingAccount] = useState(false);
-
-  async function runAuth(action: 'signin' | 'signup') {
-    const cleanEmail = email.trim();
-    if (!isValidEmail(cleanEmail)) {
-      Alert.alert('ONE Account', 'Enter a valid email address.');
-      return;
-    }
-    if (!password) {
-      Alert.alert('ONE Account', 'Enter your password.');
-      return;
-    }
-
-    await Haptics.selectionAsync();
-    const error = action === 'signin'
-      ? await signIn(cleanEmail, password)
-      : await signUp(cleanEmail, password);
-
-    if (error) Alert.alert('ONE Account', error);
-    else if (action === 'signup') Alert.alert('ONE Account', 'Account created. Check your email to confirm the account.');
-  }
-
-  async function runPasswordReset() {
-    const cleanEmail = email.trim();
-    if (!isValidEmail(cleanEmail)) {
-      Alert.alert('Reset password', 'Enter the email address for your ONE account first.');
-      return;
-    }
-
-    setSendingReset(true);
-    await Haptics.selectionAsync();
-    try {
-      const error = await requestPasswordReset(cleanEmail);
-      if (error) {
-        Alert.alert('Reset password', error);
-        return;
-      }
-
-      Alert.alert(
-        'Check your email',
-        'If an account exists for that address, ONE sent a secure password reset link. Open it on this device to choose a new password.'
-      );
-    } finally {
-      setSendingReset(false);
-    }
-  }
 
   async function openSubscriptionManagement() {
     if (!managementUrl) return;
@@ -144,9 +96,23 @@ export default function SettingsScreen() {
     }
   }
 
+  async function runSignOut() {
+    await Haptics.selectionAsync();
+    const error = await signOut();
+    if (error) Alert.alert('Could not sign out', error);
+  }
+
+  async function runRetrySync() {
+    await Haptics.selectionAsync();
+    await retrySync();
+  }
+
+  const syncLabel = syncStatusLabel(syncStatus);
+  const syncTone = syncStatus === 'problem' ? theme.danger : syncStatus === 'saved_local' ? theme.textSecondary : theme.success;
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
-      <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false}>
         <PageHeader title="Settings" subtitle="Keep ONE quiet, private and in sync." />
 
         {session ? (
@@ -158,8 +124,8 @@ export default function SettingsScreen() {
                 <Text style={[styles.accountEmail, { color: theme.textSecondary }]} numberOfLines={1}>{session.user.email}</Text>
               </View>
               <View style={[styles.statusPill, { backgroundColor: theme.accentSoft }]}>
-                <View style={[styles.statusDot, { backgroundColor: theme.success }]} />
-                <Text style={[styles.statusText, { color: theme.accent }]}>{cloudSyncing ? 'Syncing' : 'Synced'}</Text>
+                <View style={[styles.statusDot, { backgroundColor: syncTone }]} />
+                <Text style={[styles.statusText, { color: syncStatus === 'problem' ? theme.danger : theme.accent }]}>{syncLabel}</Text>
               </View>
             </View>
             <View style={[styles.accountStats, { borderTopColor: theme.border }]}>
@@ -207,7 +173,12 @@ export default function SettingsScreen() {
               value="Per item"
               onPress={() => router.push('/settings/notifications')}
             />
-            <SettingsRow icon={icons.cloud} label="Cloud sync" value={cloudSyncing ? 'Syncing…' : session ? 'Connected' : 'Sign in'} />
+            <SettingsRow
+              icon={icons.cloud}
+              label="Cloud sync"
+              value={syncStatusPreferenceLabel(syncStatus)}
+              onPress={syncStatus === 'problem' ? runRetrySync : undefined}
+            />
             <SettingsRow
               icon={icons.shield}
               label="Privacy"
@@ -217,54 +188,6 @@ export default function SettingsScreen() {
             />
           </Surface>
         </View>
-
-        {!session && configured ? (
-          <View style={styles.block}>
-            <SectionHeader title="ONE Account" meta="Optional" />
-            <Surface padded>
-              <Text style={[styles.authLead, { color: theme.text }]}>Your memory, on every device.</Text>
-              <Text style={[styles.authBody, { color: theme.textSecondary }]}>Sign in to sync items, screenshots and semantic recall securely.</Text>
-              <View style={styles.form}>
-                <TextInput
-                  value={email}
-                  onChangeText={setEmail}
-                  placeholder="Email"
-                  placeholderTextColor={theme.textTertiary}
-                  autoCapitalize="none"
-                  keyboardType="email-address"
-                  textContentType="emailAddress"
-                  accessibilityLabel="Email address"
-                  style={[styles.input, { color: theme.text, backgroundColor: theme.fill, borderColor: theme.border }]}
-                />
-                <TextInput
-                  value={password}
-                  onChangeText={setPassword}
-                  placeholder="Password"
-                  placeholderTextColor={theme.textTertiary}
-                  secureTextEntry
-                  textContentType="password"
-                  accessibilityLabel="Password"
-                  onSubmitEditing={() => void runAuth('signin')}
-                  style={[styles.input, { color: theme.text, backgroundColor: theme.fill, borderColor: theme.border }]}
-                />
-                <PrimaryButton label="Sign in" icon={icons.lock} onPress={() => runAuth('signin')} />
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Reset forgotten ONE password"
-                  disabled={sendingReset}
-                  onPress={() => void runPasswordReset()}
-                  style={({ pressed }) => [styles.textAction, { opacity: pressed || sendingReset ? 0.55 : 1 }]}
-                >
-                  {sendingReset ? <ActivityIndicator size="small" /> : null}
-                  <Text style={[styles.textActionLabel, { color: theme.textSecondary }]}>Forgot password?</Text>
-                </Pressable>
-                <Pressable accessibilityRole="button" accessibilityLabel="Create ONE account" onPress={() => runAuth('signup')} style={styles.createAccount}>
-                  <Text style={[styles.createAccountText, { color: theme.accent }]}>Create an account</Text>
-                </Pressable>
-              </View>
-            </Surface>
-          </View>
-        ) : null}
 
         <View style={styles.block}>
           <SectionHeader title="About" />
@@ -290,10 +213,7 @@ export default function SettingsScreen() {
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Sign out of ONE"
-                onPress={async () => {
-                  await Haptics.selectionAsync();
-                  await signOut();
-                }}
+                onPress={() => void runSignOut()}
                 style={({ pressed }) => [styles.accountActionRow, { borderBottomColor: theme.border, opacity: pressed ? 0.6 : 1 }]}
               >
                 <IconTile icon={icons.logout} tone="danger" size={36} />
@@ -395,19 +315,25 @@ const styles = StyleSheet.create({
   row: { minHeight: 62, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
   rowLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
   rowValue: { fontSize: 12.5 },
-  authLead: { fontSize: 18, fontWeight: '800', letterSpacing: -0.25 },
-  authBody: { marginTop: 6, fontSize: 13, lineHeight: 19 },
-  form: { marginTop: 16, gap: 10 },
-  input: { minHeight: 50, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 14, fontSize: 15 },
-  textAction: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  textActionLabel: { fontSize: 13, fontWeight: '700' },
-  createAccount: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
-  createAccountText: { fontSize: 13.5, fontWeight: '700' },
   accountActionRow: { minHeight: 64, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11, borderBottomWidth: StyleSheet.hairlineWidth },
   accountActionText: { fontSize: 15, fontWeight: '700' },
   deleteMeta: { marginTop: 3, fontSize: 11.5 },
   footer: { textAlign: 'center', fontSize: 11.5, marginTop: -4 }
 });
+
+function syncStatusLabel(status: 'saved' | 'syncing' | 'saved_local' | 'problem') {
+  if (status === 'syncing') return 'Syncing';
+  if (status === 'saved_local') return 'Saved';
+  if (status === 'problem') return 'Sync problem';
+  return 'Synced';
+}
+
+function syncStatusPreferenceLabel(status: 'saved' | 'syncing' | 'saved_local' | 'problem') {
+  if (status === 'syncing') return 'Syncing…';
+  if (status === 'saved_local') return 'Saved on device';
+  if (status === 'problem') return 'Tap to retry';
+  return 'Up to date';
+}
 
 function membershipLabel(plan: 'none' | 'one' | 'one_ai') {
   if (plan === 'one_ai') return 'ONE AI';
@@ -425,8 +351,4 @@ function appearanceLabel(value: 'system' | 'light' | 'dark') {
   if (value === 'light') return 'Light';
   if (value === 'dark') return 'Dark';
   return 'System';
-}
-
-function isValidEmail(value: string) {
-  return /^\S+@\S+\.\S+$/.test(value);
 }

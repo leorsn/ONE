@@ -3,6 +3,7 @@ import { Dimensions, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollV
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useAuth } from '@/src/context/AuthContext';
 import { useOnboarding } from '@/src/context/OnboardingContext';
 import { IconTile, PrimaryButton } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
@@ -33,6 +34,7 @@ const slides = [
 
 export default function OnboardingScreen() {
   const theme = useTheme();
+  const { configured, session } = useAuth();
   const { complete } = useOnboarding();
   const scrollRef = useRef<ScrollView>(null);
   const [index, setIndex] = useState(0);
@@ -45,7 +47,7 @@ export default function OnboardingScreen() {
   async function finish() {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     await complete();
-    router.replace('/(tabs)');
+    router.replace(configured && !session ? '/auth/sign-in' : '/(tabs)');
   }
 
   async function next() {
@@ -62,7 +64,7 @@ export default function OnboardingScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <View style={styles.top}>
         <Text style={[styles.brand, { color: theme.text }]}>ONE</Text>
-        <Pressable onPress={finish} hitSlop={10}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Skip introduction" onPress={finish} hitSlop={10}>
           <Text style={[styles.skip, { color: theme.textSecondary }]}>Skip</Text>
         </Pressable>
       </View>
@@ -128,7 +130,7 @@ export default function OnboardingScreen() {
         </View>
 
         <PrimaryButton
-          label={index === slides.length - 1 ? 'Start using ONE' : 'Continue'}
+          label={index === slides.length - 1 ? 'Continue to ONE' : 'Continue'}
           icon={index === slides.length - 1 ? icons.check : icons.chevron}
           onPress={next}
         />
