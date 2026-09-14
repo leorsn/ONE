@@ -23,6 +23,9 @@ export type NativeAcceptanceEventKind =
   | 'app_state'
   | 'sync_success'
   | 'sync_failed'
+  | 'local_migration_blocked'
+  | 'local_migration_copied'
+  | 'local_migration_complete'
   | 'native_error';
 
 export type NativeAcceptanceEvent = {
