@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
   results: { borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
   row: { minHeight: 86, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
   rowText: { flex: 1, gap: 3 },
-  rowTitle: { fontSize: 15.5, fontWeight: '750' },
+  rowTitle: { fontSize: 15.5, fontWeight: '700' },
   preview: { fontSize: 13, lineHeight: 18 },
-  meta: { fontSize: 11.5, fontWeight: '650' }
+  meta: { fontSize: 11.5, fontWeight: '600' }
 });
