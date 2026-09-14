@@ -328,7 +328,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         const retryable = failedItems.find(
           (item) => item.syncState === 'error' && canAutoRetry(item.syncAttemptCount ?? 0)
         );
-        scheduleSyncRetry(retryable?.syncRetryAt);
+        if (retryable) scheduleSyncRetry(retryable.syncRetryAt);
         console.warn('ONE cloud sync failed; local data preserved', error);
         await recordLastNativeError('cloud-sync', error);
         await recordNativeAcceptanceEvent('sync_failed', 'local-data-preserved');
