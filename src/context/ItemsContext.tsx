@@ -3,8 +3,17 @@ import { AppState } from 'react-native';
 import { ensureCanonicalItemMetadata } from '@/src/capture/itemMetadata';
 import { useAuth } from '@/src/context/AuthContext';
 import { mockItems } from '@/src/data/mockItems';
-import { cancelItemNotification, scheduleItemNotification } from '@/src/notifications/localNotifications';
+import { recordLastNativeError, recordNativeAcceptanceEvent } from '@/src/native/acceptance';
+import {
+  cancelItemNotification,
+  getScheduledItemNotifications,
+  scheduleItemNotification
+} from '@/src/notifications/localNotifications';
 import { isRemindable, notificationTransition } from '@/src/notifications/policy';
+import {
+  orphanedScheduledNotificationIds,
+  reminderReconciliationAction
+} from '@/src/notifications/reconciliation';
 import { deleteCloudItem, pullCloudItems } from '@/src/supabase/items';
 import { deleteSharedAttachment } from '@/src/supabase/attachments';
 import {
@@ -58,6 +67,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
+      void recordNativeAcceptanceEvent('app_state', state);
       if (state === 'active') setSyncRevision((value) => value + 1);
     });
     return () => subscription.remove();
@@ -104,6 +114,8 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         if (desiredScope !== 'anonymous') {
           nextItems = await reconcileItemNotifications(nextItems);
           await saveItems(desiredScope, nextItems);
+        } else {
+          await cancelOrphanedItemNotifications(nextItems);
         }
 
         if (cancelled) return;
@@ -114,6 +126,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         setHydrated(true);
       } catch (error) {
         console.warn('ONE local storage hydration failed', error);
+        await recordLastNativeError('local-hydration', error);
         if (cancelled) return;
 
         const fallback = desiredScope === 'anonymous'
@@ -138,6 +151,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
 
     saveItems(desiredScope, items).catch((error) => {
       console.warn('ONE local storage save failed', error);
+      void recordLastNativeError('local-save', error);
     });
   }, [items, scopeReady, desiredScope]);
 
@@ -182,6 +196,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
             setItems(merged);
           } catch (error) {
             console.warn('ONE deferred item sync failed; capture remains local', error);
+            await recordLastNativeError('item-sync', error);
           }
         }
 
@@ -192,10 +207,15 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
             await removeDeletionTombstone(tombstone.id, syncUserId);
           } catch (error) {
             console.warn('ONE deferred delete cleanup failed', error);
+            await recordLastNativeError('delete-sync', error);
           }
         }
+
+        await recordNativeAcceptanceEvent('sync_success', `${merged.length} item(s)`);
       } catch (error) {
         console.warn('ONE cloud sync failed; local data preserved', error);
+        await recordLastNativeError('cloud-sync', error);
+        await recordNativeAcceptanceEvent('sync_failed', 'local-data-preserved');
       } finally {
         if (!cancelled) setCloudSyncing(false);
       }
@@ -245,6 +265,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       return applySyncedItem(synced) ?? local;
     } catch (error) {
       console.warn('ONE cloud add deferred until reconnect', error);
+      await recordLastNativeError('cloud-add', error);
       return local;
     }
   }, [session?.user.id, applySyncedItem]);
@@ -291,6 +312,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       return applySyncedItem(synced) ?? updated;
     } catch (error) {
       console.warn('ONE cloud edit deferred until reconnect', error);
+      await recordLastNativeError('cloud-edit', error);
       return updated;
     }
   }, [session?.user.id, applySyncedItem]);
@@ -334,6 +356,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
         await removeLocalAttachment(path);
       } catch (error) {
         console.warn('ONE local attachment cleanup failed', error);
+        await recordLastNativeError('local-attachment-cleanup', error);
       }
     }
 
@@ -345,6 +368,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       await removeDeletionTombstone(id, userId);
     } catch (error) {
       console.warn('ONE cloud delete deferred until reconnect', error);
+      await recordLastNativeError('cloud-delete', error);
     }
   }, [session?.user.id]);
 
@@ -398,21 +422,29 @@ async function suspendItemNotifications(items: OneItem[]) {
 }
 
 async function reconcileItemNotifications(items: OneItem[]) {
+  const scheduled = await getScheduledItemNotifications();
+  const scheduledIds = scheduled ? new Set(scheduled.map((entry) => entry.identifier)) : null;
   const next: OneItem[] = [];
 
   for (const item of items) {
-    if (!isRemindable(item)) {
+    const action = reminderReconciliationAction(item, scheduledIds);
+
+    if (action === 'clear') {
       await cancelItemNotification(item.notificationId);
       next.push({ ...item, notificationId: undefined, notificationStatus: 'not_applicable' });
       continue;
     }
 
-    if (item.notificationId) {
-      next.push({ ...item, notificationStatus: 'scheduled' });
+    if (action === 'keep') {
+      next.push({
+        ...item,
+        notificationStatus: item.notificationStatus ?? (item.notificationId ? 'scheduled' : 'not_scheduled')
+      });
       continue;
     }
 
-    const result = await scheduleItemNotification(item);
+    if (item.notificationId) await cancelItemNotification(item.notificationId);
+    const result = await scheduleItemNotification({ ...item, notificationId: undefined });
     next.push({
       ...item,
       notificationId: result.notificationId,
@@ -420,7 +452,20 @@ async function reconcileItemNotifications(items: OneItem[]) {
     });
   }
 
+  if (scheduled) {
+    const orphaned = orphanedScheduledNotificationIds(scheduled, next);
+    for (const identifier of orphaned) await cancelItemNotification(identifier);
+  }
+
   return next;
+}
+
+async function cancelOrphanedItemNotifications(items: OneItem[]) {
+  const scheduled = await getScheduledItemNotifications();
+  if (!scheduled) return;
+
+  const orphaned = orphanedScheduledNotificationIds(scheduled, items);
+  for (const identifier of orphaned) await cancelItemNotification(identifier);
 }
 
 async function cleanupDeviceState(item: OneItem) {
@@ -436,6 +481,7 @@ async function cleanupDeviceState(item: OneItem) {
       await removeLocalAttachment(path);
     } catch (error) {
       console.warn('ONE local attachment cleanup failed', error);
+      await recordLastNativeError('local-attachment-cleanup', error);
     }
   }
 }

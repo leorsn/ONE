@@ -1,6 +1,7 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { recordLastNativeError, recordNativeAcceptanceEvent } from '@/src/native/acceptance';
+import type { ScheduledItemNotificationSnapshot } from '@/src/notifications/reconciliation';
 import { loadNotificationPreferences } from '@/src/storage/preferences';
 import type { OneItem, OneNotificationStatus } from '@/src/types/item';
 
@@ -37,15 +38,26 @@ export async function ensureNotificationPermissions() {
   return requested.granted;
 }
 
-export async function getScheduledNotificationIds() {
-  if (Platform.OS === 'web') return new Set<string>();
+export async function getScheduledItemNotifications(): Promise<ScheduledItemNotificationSnapshot[] | null> {
+  if (Platform.OS === 'web') return [];
   try {
     const scheduled = await Notifications.getAllScheduledNotificationsAsync();
-    return new Set(scheduled.map((entry) => entry.identifier));
+    return scheduled.map((entry) => ({
+      identifier: entry.identifier,
+      itemId:
+        typeof entry.content.data?.itemId === 'string' && entry.content.data.itemId
+          ? entry.content.data.itemId
+          : undefined
+    }));
   } catch (error) {
     await recordLastNativeError('notifications-list', error);
     return null;
   }
+}
+
+export async function getScheduledNotificationIds() {
+  const scheduled = await getScheduledItemNotifications();
+  return scheduled ? new Set(scheduled.map((entry) => entry.identifier)) : null;
 }
 
 export function getReminderDate(

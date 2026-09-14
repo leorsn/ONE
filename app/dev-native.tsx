@@ -37,6 +37,7 @@ type Diagnostics = {
   photos: string;
   notifications: string;
   scheduledNotifications: number;
+  scheduledItemNotifications: number;
   localPersistence: string;
   cloud: string;
   lastError: string | null;
@@ -90,6 +91,9 @@ export default function NativeAcceptanceScreen() {
           ? permissionStateLabel(mapNativePermissionState(notificationPermission))
           : 'Unsupported',
         scheduledNotifications: scheduled.length,
+        scheduledItemNotifications: scheduled.filter(
+          (entry) => typeof entry.content.data?.itemId === 'string' && Boolean(entry.content.data.itemId)
+        ).length,
         localPersistence: localPersistence === marker ? 'Passed' : 'Failed',
         cloud,
         lastError,
@@ -192,7 +196,8 @@ export default function NativeAcceptanceScreen() {
           <DiagnosticRow label="Camera" value={diagnostics?.camera || 'Checking…'} />
           <DiagnosticRow label="Photos" value={diagnostics?.photos || 'Checking…'} />
           <DiagnosticRow label="Notifications" value={diagnostics?.notifications || 'Checking…'} />
-          <DiagnosticRow label="Scheduled" value={String(diagnostics?.scheduledNotifications ?? 0)} last />
+          <DiagnosticRow label="Scheduled total" value={String(diagnostics?.scheduledNotifications ?? 0)} />
+          <DiagnosticRow label="Scheduled ONE items" value={String(diagnostics?.scheduledItemNotifications ?? 0)} last />
         </Surface>
 
         <View style={styles.actions}>

@@ -1,13 +1,14 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { ActivityIndicator, Platform, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
-import { AuthProvider } from '@/src/context/AuthContext';
+import { AuthProvider, useAuth } from '@/src/context/AuthContext';
 import { ItemsProvider, useItems } from '@/src/context/ItemsContext';
 import { OnboardingProvider, useOnboarding } from '@/src/context/OnboardingContext';
 import { ThemeProvider, useThemeContext } from '@/src/context/ThemeContext';
 import { PlanProvider, usePlan } from '@/src/context/PlanContext';
+import { recordNativeAcceptanceEvent } from '@/src/native/acceptance';
 
 export default function RootLayout() {
   return (
@@ -29,11 +30,18 @@ function RootNavigation() {
   const router = useRouter();
   const segments = useSegments();
   const { loaded, completed } = useOnboarding();
+  const { loading: authLoading } = useAuth();
   const { hydrated: itemsHydrated, items } = useItems();
   const { theme, resolvedMode, loaded: themeLoaded } = useThemeContext();
   const { loading: subscriptionLoading, billingConfigured, hasBaseAccess } = usePlan();
-  const appReady = loaded && themeLoaded && !subscriptionLoading && itemsHydrated;
+  const itemsRef = useRef(items);
+  const handledNotificationResponsesRef = useRef(new Set<string>());
+  const appReady = loaded && themeLoaded && !authLoading && !subscriptionLoading && itemsHydrated;
   const canOpenMemories = completed && (!billingConfigured || hasBaseAccess);
+
+  useEffect(() => {
+    itemsRef.current = items;
+  }, [items]);
 
   useEffect(() => {
     if (!appReady) return;
@@ -66,13 +74,33 @@ function RootNavigation() {
     async function openNotificationItem(response: Notifications.NotificationResponse | null) {
       if (!response || cancelled) return;
 
-      const itemId = response.notification.request.content.data?.itemId;
-      if (typeof itemId !== 'string' || !itemId) return;
+      const responseKey = `${response.notification.request.identifier}:${response.actionIdentifier}`;
+      if (handledNotificationResponsesRef.current.has(responseKey)) return;
+      handledNotificationResponsesRef.current.add(responseKey);
+      if (handledNotificationResponsesRef.current.size > 32) {
+        handledNotificationResponsesRef.current = new Set([responseKey]);
+      }
 
       await Notifications.clearLastNotificationResponseAsync();
       if (cancelled) return;
 
-      if (!items.some((item) => item.id === itemId)) return;
+      const data = response.notification.request.content.data;
+      const itemId = data?.itemId;
+      if (typeof itemId !== 'string' || !itemId) {
+        if (data?.acceptanceTest) {
+          await recordNativeAcceptanceEvent('notification_opened', 'acceptance-test');
+        }
+        return;
+      }
+
+      const exists = itemsRef.current.some((item) => item.id === itemId);
+      if (!exists) {
+        await recordNativeAcceptanceEvent('notification_stale', 'missing-item');
+        router.replace('/(tabs)');
+        return;
+      }
+
+      await recordNativeAcceptanceEvent('notification_opened', 'item');
       router.push({ pathname: '/item/[id]', params: { id: itemId } });
     }
 
@@ -86,7 +114,7 @@ function RootNavigation() {
       cancelled = true;
       subscription.remove();
     };
-  }, [appReady, canOpenMemories, items, router]);
+  }, [appReady, canOpenMemories, router]);
 
   if (!appReady) {
     return (

@@ -44,8 +44,10 @@ export default function ScanScreen() {
   const userEditedRef = useRef(false);
   const localAttachmentRef = useRef<string | null>(null);
   const attachmentCommittedRef = useRef(false);
+  const processingRevisionRef = useRef(0);
 
   useEffect(() => () => {
+    processingRevisionRef.current += 1;
     if (localAttachmentRef.current && !attachmentCommittedRef.current) {
       void removeLocalAttachment(localAttachmentRef.current);
     }
@@ -103,6 +105,7 @@ export default function ScanScreen() {
   }
 
   async function processAsset(nextAsset: ImagePicker.ImagePickerAsset) {
+    const revision = ++processingRevisionRef.current;
     userEditedRef.current = false;
     attachmentCommittedRef.current = false;
 
@@ -110,11 +113,18 @@ export default function ScanScreen() {
       if (localAttachmentRef.current) {
         await removeLocalAttachment(localAttachmentRef.current);
       }
+      if (revision !== processingRevisionRef.current) return;
 
       const persisted = await persistLocalAttachment({
         uri: nextAsset.uri,
         originalName: nextAsset.fileName || `scan-${Date.now()}.jpg`
       });
+
+      if (revision !== processingRevisionRef.current) {
+        await removeLocalAttachment(persisted);
+        return;
+      }
+
       localAttachmentRef.current = persisted;
       setLocalAttachmentUri(persisted);
       await recordNativeAcceptanceEvent('attachment_persisted', 'scan');
@@ -130,6 +140,8 @@ export default function ScanScreen() {
 
       try {
         const result = await extractTextFromImage(persisted);
+        if (revision !== processingRevisionRef.current) return;
+
         const text = result.text.trim();
         if (!text) {
           setState('no_text');
@@ -144,6 +156,7 @@ export default function ScanScreen() {
           isImage: true
         });
 
+        if (revision !== processingRevisionRef.current) return;
         setDraft((current) =>
           userEditedRef.current && current
             ? { ...current, extractedText: text }
@@ -153,13 +166,16 @@ export default function ScanScreen() {
         await recordNativeAcceptanceEvent('ocr_success', 'scan');
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       } catch (ocrError) {
+        if (revision !== processingRevisionRef.current) return;
         console.warn('ONE scan OCR failed', ocrError);
         setState('failed');
         await recordLastNativeError('scan-ocr', ocrError);
         await recordNativeAcceptanceEvent('ocr_failed', 'scan');
       }
     } catch (error) {
+      if (revision !== processingRevisionRef.current) return;
       await recordLastNativeError('scan-attachment', error);
+      await recordNativeAcceptanceEvent('attachment_failed', 'scan');
       setAsset(null);
       setLocalAttachmentUri(null);
       localAttachmentRef.current = null;
@@ -184,6 +200,7 @@ export default function ScanScreen() {
 
       const savedItem = await add(item);
       attachmentCommittedRef.current = true;
+      processingRevisionRef.current += 1;
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       const reminderWarning = notificationSaveWarning(savedItem);
       if (reminderWarning) Alert.alert('Saved to ONE', reminderWarning);

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -25,12 +25,13 @@ import { selectShareCandidate } from '@/src/native/sharePayload';
 import { notificationSaveWarning } from '@/src/notifications/status';
 import { extractTextFromImage } from '@/src/ocr/extractText';
 import { createItemFromShare, createShareDraft } from '@/src/sharing/ingest';
-import { persistLocalAttachment } from '@/src/storage/attachments';
+import { persistLocalAttachment, removeLocalAttachment } from '@/src/storage/attachments';
 import { IconTile, PrimaryButton, SectionHeader, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
 type OcrState = 'idle' | 'reading' | 'ready' | 'empty' | 'failed';
+type AttachmentState = 'idle' | 'securing' | 'ready' | 'failed';
 
 export default function HandleShareScreen() {
   const theme = useTheme();
@@ -43,6 +44,11 @@ export default function HandleShareScreen() {
   const [ocrState, setOcrState] = useState<OcrState>('idle');
   const [extractedText, setExtractedText] = useState('');
   const [reviewedDraft, setReviewedDraft] = useState<CaptureDraft | null>(null);
+  const [attachmentState, setAttachmentState] = useState<AttachmentState>('idle');
+  const [localAttachmentUri, setLocalAttachmentUri] = useState<string | null>(null);
+  const attachmentRef = useRef<string | null>(null);
+  const attachmentCommittedRef = useRef(false);
+  const attachmentRevisionRef = useRef(0);
 
   const selected = useMemo(
     () => selectShareCandidate(sharedPayloads, resolvedSharedPayloads),
@@ -52,7 +58,12 @@ export default function HandleShareScreen() {
   const selectedRepresentationCount = selected?.representationCount;
   const primary = selected ? sharedPayloads[selected.index] : undefined;
   const resolved = selected ? resolvedSharedPayloads[selected.index] : undefined;
-  const imageUri = resolved?.contentType === 'image' ? resolved.contentUri : null;
+  const contentUri = resolved && 'contentUri' in resolved ? resolved.contentUri : null;
+  const isImage = resolved?.contentType === 'image' || primary?.shareType === 'image';
+  const isAttachment = Boolean(contentUri) && Boolean(
+    primary && ['image', 'file', 'video', 'audio'].includes(primary.shareType || '')
+  );
+  const imageUri = isImage ? localAttachmentUri : null;
 
   const automaticDraft = useMemo(
     () => primary
@@ -70,6 +81,83 @@ export default function HandleShareScreen() {
       `${selectedFingerprint}:${selectedRepresentationCount ?? 1} representation(s)`
     );
   }, [selectedFingerprint, selectedRepresentationCount]);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function resetReviewForNewShare() {
+      await Promise.resolve();
+      if (cancelled) return;
+      setExtractedText('');
+      setReviewedDraft(null);
+      setOcrState('idle');
+      setAllowDuplicate(false);
+    }
+    void resetReviewForNewShare();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedFingerprint]);
+
+  useEffect(() => {
+    const revision = ++attachmentRevisionRef.current;
+    const previous = attachmentRef.current;
+    const previousCommitted = attachmentCommittedRef.current;
+    let cancelled = false;
+    attachmentCommittedRef.current = false;
+
+    async function secureAttachment() {
+      await Promise.resolve();
+
+      if (previous && !previousCommitted) {
+        await removeLocalAttachment(previous);
+      }
+      if (attachmentRef.current === previous) attachmentRef.current = null;
+      if (cancelled || revision !== attachmentRevisionRef.current) return;
+
+      setLocalAttachmentUri(null);
+
+      if (!isAttachment || !contentUri) {
+        setAttachmentState('idle');
+        return;
+      }
+
+      setAttachmentState('securing');
+      try {
+        const persisted = await persistLocalAttachment({
+          uri: contentUri,
+          originalName: resolved?.originalName
+        });
+
+        if (cancelled || revision !== attachmentRevisionRef.current) {
+          await removeLocalAttachment(persisted);
+          return;
+        }
+
+        attachmentRef.current = persisted;
+        setLocalAttachmentUri(persisted);
+        setAttachmentState('ready');
+        await recordNativeAcceptanceEvent('attachment_persisted', resolved?.contentType || primary?.shareType || 'share');
+      } catch (attachmentError) {
+        if (cancelled || revision !== attachmentRevisionRef.current) return;
+        setAttachmentState('failed');
+        await recordLastNativeError('share-attachment', attachmentError);
+        await recordNativeAcceptanceEvent('attachment_failed', 'share');
+      }
+    }
+
+    void secureAttachment();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedFingerprint, isAttachment, contentUri, resolved?.originalName, resolved?.contentType, primary?.shareType]);
+
+  useEffect(() => () => {
+    attachmentRevisionRef.current += 1;
+    const local = attachmentRef.current;
+    if (local && !attachmentCommittedRef.current) {
+      void removeLocalAttachment(local);
+    }
+  }, []);
 
   useEffect(() => {
     const ocrImageUri = imageUri;
@@ -115,6 +203,16 @@ export default function HandleShareScreen() {
   async function handleSave() {
     if (!primary || !draft || !selected || saving) return;
 
+    if (isAttachment && attachmentState !== 'ready') {
+      Alert.alert(
+        attachmentState === 'failed' ? 'Attachment not secured' : 'Securing attachment',
+        attachmentState === 'failed'
+          ? 'ONE did not save this attachment because its private local copy could not be created. Try sharing it again.'
+          : 'Wait a moment while ONE secures the original file locally.'
+      );
+      return;
+    }
+
     setSaving(true);
     try {
       if (!allowDuplicate && await isRecentlyHandledShare(selected.fingerprint)) {
@@ -130,28 +228,17 @@ export default function HandleShareScreen() {
         return;
       }
 
-      const contentUri = resolved && 'contentUri' in resolved ? resolved.contentUri : null;
-      const isAttachment = Boolean(contentUri) && ['image', 'file', 'video', 'audio'].includes(primary.shareType || '');
-      let localAttachmentUri: string | undefined;
-
-      if (isAttachment && contentUri) {
-        localAttachmentUri = await persistLocalAttachment({
-          uri: contentUri,
-          originalName: resolved?.originalName
-        });
-        await recordNativeAcceptanceEvent('attachment_persisted', resolved?.contentType || primary.shareType || 'share');
-      }
-
       const item = createItemFromShare({
         payload: primary,
         resolved,
         context: draft.userContext || '',
-        storedAttachmentPath: localAttachmentUri,
+        storedAttachmentPath: localAttachmentUri || undefined,
         extractedText: draft.extractedText || extractedText,
         draft
       });
 
       const savedItem = await add(item);
+      attachmentCommittedRef.current = true;
       await markShareHandled(selected.fingerprint);
       await recordNativeAcceptanceEvent('share_saved', selected.fingerprint);
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -176,7 +263,11 @@ export default function HandleShareScreen() {
     }
   }
 
-  function handleCancel() {
+  async function handleCancel() {
+    attachmentRevisionRef.current += 1;
+    const local = attachmentRef.current;
+    attachmentRef.current = null;
+    if (local && !attachmentCommittedRef.current) await removeLocalAttachment(local);
     clearSharedPayloads();
     setReviewedDraft(null);
     setAllowDuplicate(false);
@@ -192,7 +283,7 @@ export default function HandleShareScreen() {
       >
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.nav}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Cancel share" onPress={handleCancel} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Cancel share" onPress={() => void handleCancel()} style={[styles.navButton, { backgroundColor: theme.fill }]}>
               <OneIcon name={icons.close} size={17} color={theme.text} />
             </Pressable>
             <Text style={[styles.navTitle, { color: theme.text }]}>Save to ONE</Text>
@@ -211,7 +302,7 @@ export default function HandleShareScreen() {
           {error ? (
             <View style={[styles.notice, { backgroundColor: theme.fill }]}>
               <OneIcon name={icons.more} size={17} color={theme.warning} />
-              <Text style={[styles.noticeText, { color: theme.textSecondary }]}>ONE could not fully resolve this share. The raw content can still be reviewed and saved.</Text>
+              <Text style={[styles.noticeText, { color: theme.textSecondary }]}>ONE could not fully resolve this share. The raw content can still be reviewed where available.</Text>
             </View>
           ) : null}
 
@@ -234,7 +325,15 @@ export default function HandleShareScreen() {
                 </Surface>
               </View>
 
-              {imageUri ? (
+              {isAttachment ? (
+                <View style={[styles.notice, { backgroundColor: attachmentState === 'failed' ? theme.fill : theme.accentSoft }]}>
+                  <OneIcon name={attachmentState === 'failed' ? icons.more : icons.saved} size={17} color={attachmentState === 'failed' ? theme.warning : theme.accent} />
+                  <Text style={[styles.noticeText, { color: theme.textSecondary }]}>{attachmentMessage(attachmentState)}</Text>
+                  {attachmentState === 'securing' ? <ActivityIndicator size="small" /> : null}
+                </View>
+              ) : null}
+
+              {isImage ? (
                 <View style={[styles.notice, { backgroundColor: ['failed', 'empty'].includes(visibleOcrState) ? theme.fill : theme.accentSoft }]}>
                   <IconTile icon={icons.screenshot} tone={visibleOcrState === 'ready' ? 'success' : 'neutral'} size={36} />
                   <View style={{ flex: 1 }}>
@@ -260,7 +359,7 @@ export default function HandleShareScreen() {
                 label={saving ? 'Saving…' : allowDuplicate ? 'Save again' : 'Save to ONE'}
                 icon={icons.check}
                 onPress={handleSave}
-                disabled={saving || !draft?.title.trim()}
+                disabled={saving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')}
               />
             </>
           ) : !isResolving ? (
@@ -285,6 +384,13 @@ function labelFor(type?: string) {
   if (type === 'video') return 'VIDEO';
   if (type === 'audio') return 'AUDIO';
   return 'TEXT';
+}
+
+function attachmentMessage(state: AttachmentState) {
+  if (state === 'securing') return 'Securing the original in ONE private local storage…';
+  if (state === 'ready') return 'Original secured locally before OCR or cloud sync.';
+  if (state === 'failed') return 'The original could not be secured. ONE will not claim this attachment as saved.';
+  return 'Preparing attachment…';
 }
 
 function ocrHeadline(state: OcrState) {
