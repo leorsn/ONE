@@ -111,6 +111,7 @@ function mergeAIInterpretation(draft: CaptureDraft, ai: OneAIInterpretationPaylo
     summary: ai.summary || draft.summary,
     captureKind: mappedKind,
     itemType: itemTypeFor(mappedKind, draft.itemType),
+    canonicalKind: canonicalKindFor(mappedKind, draft.canonicalKind),
     userContext: context,
     tags: normalizeTags([...(draft.tags || []), ...(ai.tags || [])]),
     people: unique([...(draft.people || []), ...(ai.people || [])]),
@@ -135,6 +136,17 @@ function captureKindForClassification(value: NonNullable<OneAIInterpretationPayl
 function itemTypeFor(kind: CaptureKind, fallback: CaptureDraft['itemType']): CaptureDraft['itemType'] {
   if (['task','note','reminder','appointment','event','link','idea','document'].includes(kind)) return kind as CaptureDraft['itemType'];
   if (kind === 'image' || kind === 'screenshot') return 'note';
+  return fallback;
+}
+
+function canonicalKindFor(kind: CaptureKind, fallback: CaptureDraft['canonicalKind']): CaptureDraft['canonicalKind'] {
+  if (kind === 'event' || kind === 'appointment') return 'event';
+  if (kind === 'reminder') return 'reminder';
+  if (kind === 'link') return 'link';
+  if (kind === 'document') return 'document';
+  if (kind === 'receipt') return 'receipt';
+  if (kind === 'image' || kind === 'screenshot') return 'image';
+  if (kind === 'note' || kind === 'idea' || kind === 'task') return 'note';
   return fallback;
 }
 
