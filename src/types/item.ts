@@ -24,6 +24,31 @@ export type OneDestination = 'inbox' | 'calendar' | 'saved';
 export type OneReviewStatus = 'ready' | 'needs_review' | 'reviewed';
 export type OneUnderstandingConfidence = 'high' | 'medium' | 'low';
 export type OneTriageState = 'new' | 'needs_review' | 'actionable' | 'processed' | 'archived';
+export type OneProcessingStatus =
+  | 'received'
+  | 'normalized'
+  | 'classified'
+  | 'enriched'
+  | 'stored'
+  | 'ready'
+  | 'needs_attention'
+  | 'failed_enrichment';
+export type OneInterpretationOrigin = 'deterministic' | 'ai' | 'hybrid' | 'none';
+
+export type OneConfidenceMetadata = {
+  overall?: OneUnderstandingConfidence;
+  fields?: Record<string, OneUnderstandingConfidence>;
+};
+
+export type OneAIMetadata = {
+  origin?: OneInterpretationOrigin;
+  provider?: string;
+  model?: string;
+  version?: string;
+  interpretedAt?: string;
+  failureCode?: string;
+};
+
 export type OneInboxAction =
   | 'add_to_calendar'
   | 'create_reminder'
@@ -76,6 +101,9 @@ export type OneItem = {
   reviewStatus?: OneReviewStatus;
   ambiguities?: string[];
   understandingConfidence?: OneUnderstandingConfidence;
+  processingStatus?: OneProcessingStatus;
+  confidenceMetadata?: OneConfidenceMetadata;
+  aiMetadata?: OneAIMetadata;
   triageState?: OneTriageState;
   executedActions?: OneInboxAction[];
   processedAt?: string;
@@ -84,6 +112,13 @@ export type OneItem = {
   date?: string;
   time?: string;
   reminderAt?: string;
+  capturedAt?: string;
+  extractedDates?: string[];
+  extractedTimes?: string[];
+  extractedUrls?: string[];
+  taskIntent?: boolean;
+  eventIntent?: boolean;
+  taskDueAt?: string;
   /** Device-local notification identifier and status. */
   notificationId?: string;
   notificationStatus?: OneNotificationStatus;
