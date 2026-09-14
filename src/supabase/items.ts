@@ -1,6 +1,7 @@
 import { ensureCanonicalItemMetadata } from '@/src/capture/itemMetadata';
 import { refreshItemEmbedding } from '@/src/search/semantic';
 import { supabase } from '@/src/supabase/client';
+import type { Json } from '@/src/supabase/database.types';
 import type { OneItem } from '@/src/types/item';
 
 type CloudItemRow = {
@@ -16,11 +17,21 @@ type CloudItemRow = {
   review_status: NonNullable<OneItem['reviewStatus']>;
   ambiguities: string[];
   understanding_confidence: NonNullable<OneItem['understandingConfidence']>;
+  processing_status: NonNullable<OneItem['processingStatus']>;
+  confidence_metadata: Json;
+  ai_metadata: Json | null;
   triage_state: NonNullable<OneItem['triageState']>;
   executed_actions: NonNullable<OneItem['executedActions']>;
   processed_at: string | null;
   archived_at: string | null;
   deferred_until: string | null;
+  captured_at: string;
+  extracted_dates: string[];
+  extracted_times: string[];
+  extracted_urls: string[];
+  task_intent: boolean;
+  event_intent: boolean;
+  task_due_at: string | null;
   item_date: string | null;
   item_time: string | null;
   reminder_at: string | null;
@@ -49,7 +60,8 @@ type CloudItemRow = {
 
 const CLOUD_SELECT = [
   'id,user_id,title,raw_input,type,kind,summary,people,destination,review_status,ambiguities,understanding_confidence',
-  'triage_state,executed_actions,processed_at,archived_at,deferred_until',
+  'processing_status,confidence_metadata,ai_metadata,triage_state,executed_actions,processed_at,archived_at,deferred_until',
+  'captured_at,extracted_dates,extracted_times,extracted_urls,task_intent,event_intent,task_due_at',
   'item_date,item_time,reminder_at,category,location,url,notes,completed,saved',
   'source_type,source_app,original_text,attachment_url,image_url,extracted_text,user_context',
   'document_kind,merchant,amount,currency,tags,entities,created_at,updated_at'
@@ -105,11 +117,21 @@ function toRow(item: OneItem, userId: string): CloudItemRow {
     review_status: canonical.reviewStatus!,
     ambiguities: canonical.ambiguities ?? [],
     understanding_confidence: canonical.understandingConfidence!,
+    processing_status: canonical.processingStatus!,
+    confidence_metadata: canonical.confidenceMetadata as unknown as Json,
+    ai_metadata: canonical.aiMetadata ? canonical.aiMetadata as unknown as Json : null,
     triage_state: canonical.triageState!,
     executed_actions: canonical.executedActions ?? [],
     processed_at: canonical.processedAt ?? null,
     archived_at: canonical.archivedAt ?? null,
     deferred_until: canonical.deferredUntil ?? null,
+    captured_at: canonical.capturedAt!,
+    extracted_dates: canonical.extractedDates ?? [],
+    extracted_times: canonical.extractedTimes ?? [],
+    extracted_urls: canonical.extractedUrls ?? [],
+    task_intent: Boolean(canonical.taskIntent),
+    event_intent: Boolean(canonical.eventIntent),
+    task_due_at: canonical.taskDueAt ?? null,
     item_date: canonical.date ?? null,
     item_time: canonical.time ?? null,
     reminder_at: canonical.reminderAt ?? null,
@@ -150,11 +172,21 @@ function fromRow(row: CloudItemRow): OneItem {
     reviewStatus: row.review_status,
     ambiguities: row.ambiguities ?? [],
     understandingConfidence: row.understanding_confidence,
+    processingStatus: row.processing_status,
+    confidenceMetadata: row.confidence_metadata as unknown as OneItem['confidenceMetadata'],
+    aiMetadata: row.ai_metadata as unknown as OneItem['aiMetadata'],
     triageState: row.triage_state,
     executedActions: row.executed_actions ?? [],
     processedAt: row.processed_at ?? undefined,
     archivedAt: row.archived_at ?? undefined,
     deferredUntil: row.deferred_until ?? undefined,
+    capturedAt: row.captured_at,
+    extractedDates: row.extracted_dates ?? [],
+    extractedTimes: row.extracted_times ?? [],
+    extractedUrls: row.extracted_urls ?? [],
+    taskIntent: row.task_intent,
+    eventIntent: row.event_intent,
+    taskDueAt: row.task_due_at ?? undefined,
     date: row.item_date ?? undefined,
     time: row.item_time ?? undefined,
     reminderAt: row.reminder_at ?? undefined,
