@@ -22,11 +22,11 @@ assert(!envExample.includes('EXPO_PUBLIC_OPENAI'), 'OpenAI secrets must never be
 
 const requiredPackages = {
   'expo-sharing': '~57.0.18',
-  'expo-notifications': '~57.0.18',
-  'expo-image-picker': '~57.0.10',
-  'expo-file-system': '~57.0.8',
+  'expo-notifications': '~57.0.17',
+  'expo-image-picker': '~57.0.16',
+  'expo-file-system': '~57.0.6',
   'expo-ocr-kit': '0.1.4',
-  'react-native-purchases': '9.9.3'
+  'react-native-purchases': '10.9.0'
 };
 
 for (const [name, version] of Object.entries(requiredPackages)) {
