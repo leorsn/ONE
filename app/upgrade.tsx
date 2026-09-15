@@ -13,7 +13,7 @@ const aiFeatures = ['Everything in ONE', 'Ask ONE', 'Meaning-based semantic reca
 export default function UpgradeScreen() {
   const theme = useTheme();
   const { plan, isBetaAccess, billingConfigured, purchasing, purchase, restore } = usePlan();
-  const hardPaywall = billingConfigured && plan === 'none';
+  const hardPaywall = plan === 'none' && !isBetaAccess;
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
@@ -66,6 +66,11 @@ export default function UpgradeScreen() {
           <View style={[styles.beta, { backgroundColor: theme.accentSoft }]}>
             <OneIcon name={icons.ask} size={18} color={theme.accent} />
             <Text style={[styles.betaText, { color: theme.textSecondary }]}>ONE AI is enabled during beta so Ask ONE and semantic recall can be tested end-to-end. App Store purchases are not active yet.</Text>
+          </View>
+        ) : !billingConfigured ? (
+          <View style={[styles.beta, { backgroundColor: theme.fill }]}>
+            <OneIcon name={icons.more} size={18} color={theme.warning} />
+            <Text style={[styles.betaText, { color: theme.textSecondary }]}>App Store billing is unavailable in this release build. Paid access is not unlocked. Configure RevenueCat before distribution.</Text>
           </View>
         ) : null}
 
