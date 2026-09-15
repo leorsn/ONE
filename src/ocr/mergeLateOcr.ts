@@ -1,4 +1,4 @@
-import type { CaptureDraft } from '../capture/core.ts';
+import type { CaptureDraft } from '../capture/core';
 
 export function mergeLateOcrDraft({
   current,
