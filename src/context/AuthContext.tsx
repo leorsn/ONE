@@ -34,10 +34,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    if (!isSupabaseConfigured) {
-      setLoading(false);
-      return;
-    }
+    // The initial state already resolves loading=false when cloud auth is not
+    // configured. Avoid a synchronous effect state update that can introduce a
+    // render cascade in fallback builds.
+    if (!isSupabaseConfigured) return;
 
     void restoreAuthSession().then(async (result) => {
       if (!mounted) return;

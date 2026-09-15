@@ -1,8 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { AppState } from 'react-native';
 import { useAuth } from '@/src/context/AuthContext';
+import { fallbackPlanForRuntime, isDevelopmentBetaAccess } from '@/src/subscription/access';
 import {
-  BETA_PLAN,
   hasPlanFeature,
   type OnePlan,
   type PaidOnePlan
@@ -36,7 +36,8 @@ const PlanContext = createContext<PlanContextValue | null>(null);
 export function PlanProvider({ children }: { children: React.ReactNode }) {
   const { session } = useAuth();
   const userId = session?.user.id;
-  const [plan, setPlan] = useState<OnePlan>(BETA_PLAN);
+  const runtimeFallbackPlan = fallbackPlanForRuntime(__DEV__);
+  const [plan, setPlan] = useState<OnePlan>(runtimeFallbackPlan);
   const [billingConfigured, setBillingConfigured] = useState(false);
   const [managementUrl, setManagementUrl] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
@@ -50,7 +51,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
 
       if (!configured) {
         setBillingConfigured(false);
-        setPlan(BETA_PLAN);
+        setPlan(runtimeFallbackPlan);
         setManagementUrl(undefined);
         return;
       }
@@ -71,13 +72,13 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         setManagementUrl(undefined);
       } else {
         setBillingConfigured(false);
-        setPlan(BETA_PLAN);
+        setPlan(runtimeFallbackPlan);
         setManagementUrl(undefined);
       }
     } finally {
       setLoading(false);
     }
-  }, [userId]);
+  }, [userId, runtimeFallbackPlan]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -142,7 +143,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       plan,
       hasBaseAccess: plan === 'one' || plan === 'one_ai',
       hasAi: hasPlanFeature(plan, 'ask_one'),
-      isBetaAccess: !billingConfigured,
+      isBetaAccess: isDevelopmentBetaAccess(__DEV__, billingConfigured),
       billingConfigured,
       managementUrl,
       loading,

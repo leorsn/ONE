@@ -34,11 +34,11 @@ function RootNavigation() {
   const { loading: authLoading, session, configured } = useAuth();
   const { hydrated: itemsHydrated, items } = useItems();
   const { theme, resolvedMode, loaded: themeLoaded } = useThemeContext();
-  const { loading: subscriptionLoading, billingConfigured, hasBaseAccess } = usePlan();
+  const { loading: subscriptionLoading, hasBaseAccess } = usePlan();
   const itemsRef = useRef(items);
   const handledNotificationResponsesRef = useRef(new Set<string>());
   const appReady = loaded && themeLoaded && !authLoading && !subscriptionLoading && itemsHydrated;
-  const canOpenMemories = completed && (!configured || Boolean(session)) && (!billingConfigured || hasBaseAccess);
+  const canOpenMemories = completed && (!configured || Boolean(session)) && hasBaseAccess;
 
   useEffect(() => {
     itemsRef.current = items;
@@ -64,10 +64,10 @@ function RootNavigation() {
     const inAuth = routeGroup === 'auth_signin' || routeGroup === 'auth_flow';
     const inNativeAcceptance = routeGroup === 'dev-native';
 
-    if (completed && billingConfigured && !hasBaseAccess && !inUpgrade && !inAuth && !inNativeAcceptance) {
+    if (completed && !hasBaseAccess && !inUpgrade && !inAuth && !inNativeAcceptance) {
       router.replace('/upgrade');
     }
-  }, [appReady, completed, configured, session, billingConfigured, hasBaseAccess, segments, router]);
+  }, [appReady, completed, configured, session, hasBaseAccess, segments, router]);
 
   useEffect(() => {
     if (!appReady || !canOpenMemories || Platform.OS === 'web') return;

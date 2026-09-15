@@ -32,15 +32,13 @@ A move from ONE AI down to ONE should take effect at the next renewal boundary.
 
 ## Purchase stack
 
-Recommended production architecture:
+Production architecture:
 
 1. App Store Connect defines the actual products, prices, free trial and subscription group.
 2. StoreKit performs the purchase and Apple payment sheet.
-3. RevenueCat can be used as the entitlement/subscription-state layer to simplify receipt validation, restore purchases, trial eligibility and cross-platform billing logic.
-4. ONE reads the active entitlement and maps it to:
-   - `one`
-   - `one_ai`
-5. Existing feature gates then enable or disable Ask ONE / semantic AI capabilities.
+3. RevenueCat is the entitlement/subscription-state layer used by the mobile client.
+4. ONE reads the active entitlement and maps it to `one` or `one_ai`.
+5. Existing feature gates enable or disable Ask ONE / semantic AI capabilities.
 
 ## Trial rules
 
@@ -48,12 +46,13 @@ The seven-day trial belongs only to ONE.
 
 ONE AI deliberately has no trial.
 
-The UI must never hard-code trial eligibility as guaranteed. It should read eligibility from StoreKit/RevenueCat because Apple determines whether the App Store account is eligible for an introductory offer.
+The UI must never hard-code trial eligibility as guaranteed. Eligibility must come from StoreKit/RevenueCat because Apple determines whether the App Store account can receive an introductory offer.
 
-## Beta
+## Development beta
 
-During development, `BETA_PLAN` remains set to `one_ai` so all features can be tested without live App Store purchases.
+`BETA_PLAN` remains `one_ai` so development clients can exercise the complete product without live App Store purchases.
 
+This fallback is development-only. A preview or production bundle without RevenueCat configuration resolves to no paid entitlement and is routed to the upgrade surface. Missing billing configuration must never silently unlock ONE or ONE AI in a release build.
 
 ## RevenueCat mobile integration
 
@@ -72,6 +71,4 @@ RevenueCat configuration expected:
 - Package `one_monthly` -> `app.one.mobile.one.monthly`
 - Package `one_ai_monthly` -> `app.one.mobile.oneai.monthly`
 
-If no platform RevenueCat key is present, ONE stays in beta mode with ONE AI enabled for development.
-
-Real purchase testing still requires a native Expo development build and correctly configured App Store/RevenueCat products.
+Real purchase testing still requires a native Expo development/TestFlight build and correctly configured App Store/RevenueCat products. Restore and management state must be accepted against the real App Store environment before release.
