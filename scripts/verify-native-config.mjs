@@ -65,6 +65,8 @@ assert(
 assert(easConfig.build?.development?.developmentClient === true, 'Development profile must use a development client');
 assert(easConfig.build?.development?.distribution === 'internal', 'Development build must use internal distribution');
 assert(easConfig.build?.development?.environment === 'development', 'Development profile must use the development EAS environment');
+assert(easConfig.build?.['development-simulator']?.extends === 'development', 'Simulator profile must extend development');
+assert(easConfig.build?.['development-simulator']?.ios?.simulator === true, 'Simulator profile must remain simulator-only');
 assert(easConfig.build?.preview?.distribution === 'internal', 'Preview build must use internal distribution');
 assert(easConfig.build?.preview?.environment === 'preview', 'Preview profile must use the preview EAS environment');
 assert(easConfig.build?.preview?.developmentClient !== true, 'Preview profile must not include development client tooling');
