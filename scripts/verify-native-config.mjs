@@ -14,6 +14,7 @@ const plugins = expo.plugins ?? [];
 
 assert(expo.scheme === 'one', 'Expo scheme must remain one');
 assert(ios.bundleIdentifier === 'app.one.mobile', 'Unexpected iOS bundle identifier');
+assert(ios.supportsTablet === true, 'iPad support must remain enabled');
 assert(android.package === 'app.one.mobile', 'Unexpected Android package identifier');
 assert(envExample.includes('EXPO_PUBLIC_SUPABASE_URL'), 'Supabase URL example is missing');
 assert(envExample.includes('EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY'), 'Supabase publishable key example is missing');
@@ -44,6 +45,9 @@ assert(
   sharingPlugin[1]?.ios?.appGroupId === 'group.app.one.mobile',
   'Share Extension App Group is incorrect'
 );
+assert(sharingPlugin[1]?.ios?.activationRule?.supportsText === true, 'Share Extension must accept text');
+assert((sharingPlugin[1]?.ios?.activationRule?.supportsImageWithMaxCount || 0) >= 1, 'Share Extension must accept images');
+assert((sharingPlugin[1]?.ios?.activationRule?.supportsFileWithMaxCount || 0) >= 1, 'Share Extension must accept files');
 assert(sharingPlugin[1]?.android?.enabled === true, 'Android incoming sharing is not enabled');
 
 const notificationsPlugin = plugins.find(
