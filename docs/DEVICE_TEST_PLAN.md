@@ -1,300 +1,378 @@
-# ONE — Native iOS Device Acceptance Plan
+# ONE — Physical iPhone V1 Acceptance Plan
 
-This checklist is for the first real iPhone/iPad development build. Passing CI, web export, Expo Go, or a browser preview does **not** count as native acceptance.
+This is the sequential acceptance package for the first real ONE V1 iPhone build. CI, web export, Expo Go, simulator-only behavior and static config inspection do **not** count as physical-device acceptance.
 
-## Build target
+## Test target
 
 - Repository: `leorsn/ONE`
 - Branch: `dev/foundation`
+- Test SHA: record the exact accepted SHA before building.
 - Bundle identifier: `app.one.mobile`
-- URL scheme: `one`
-- Share extension bundle: `app.one.mobile.ShareExtension`
+- Share Extension: `app.one.mobile.ShareExtension`
 - App Group: `group.app.one.mobile`
-- Use an Expo **development build**, not Expo Go.
-- Test on a physical iPhone first; test iPad layout after the iPhone smoke test.
+- URL scheme: `one`
+- Primary orientation: portrait
+- First target: physical iPhone; iPad follows the critical iPhone smoke test.
 
-The development EAS profile is already configured with `developmentClient: true` and internal distribution.
+Record for every run: device model, iOS version, build profile, build number, Git SHA, account used, network state and tester.
 
-## Development-only Native Acceptance screen
+## 0 — Prerequisites and installation
 
-In a development build, open:
+From a clean checkout:
+
+```bash
+npm ci --no-audit --no-fund
+npm run quality
+npx eas-cli@latest build --platform ios --profile development
+```
+
+Install the resulting signed development build on the registered iPhone. Then start Metro for the development client when needed:
+
+```bash
+npx expo start --dev-client
+```
+
+**Expected:** build signs successfully, installs, launches and reports the intended app/version. The Share Extension target is included in the signed build.
+
+**Failure:** signing/capability error, wrong bundle ID, missing extension target, app cannot install/launch, or build SHA cannot be identified.
+
+**Diagnostic:** EAS build log plus `npm run native:release-check`. Apple/EAS configuration issues belong in `docs/V1_RELEASE_BLOCKERS.md`.
+
+## 1 — Development-only diagnostics baseline
+
+Open:
 
 `one://dev-native?probe=1`
 
-The route is hidden from production builds and reports device/runtime state for:
+**Expected:** only a development build shows Native Acceptance. Platform is iOS; local persistence passes; auth state is truthful; permission states are truthful; sync is not permanently stuck. No captured memory text, passwords, auth codes or credentials appear in the event log.
 
-- authentication
-- authenticated Supabase/RLS connectivity
-- local AsyncStorage persistence
-- item hydration
-- pending sync
-- camera permission
-- photo-library permission
-- notification permission
-- count of scheduled local notifications
-- Share-to-ONE receipt events
-- OCR outcomes
-- local attachment persistence
-- native deep-link receipt
-- latest native error
+**Failure:** production/preview binary exposes diagnostics, diagnostics contain private captured content/credentials, persistence fails, or the screen reports a capability as passed without actually exercising it.
 
-It also provides actions to request permissions, schedule a five-second local notification, test the ONE URL scheme, and open Scan to ONE.
+**Diagnostic:** refresh the Native Acceptance screen and preserve the event/error summary without copying user memory contents.
 
-Diagnostics are development-only and must not contain shared content, passwords, auth codes, or privileged credentials.
+## 2 — Onboarding and authentication
 
-## 1. Install and first launch
+### 2.1 Fresh launch
 
-- Install a fresh EAS development build on the iPhone.
-- iOS 16+ Developer Mode is enabled if required by the development build.
-- Fresh install opens onboarding.
-- Light and dark mode render correctly.
-- Skip and Continue work.
-- Complete onboarding and enter ONE during beta.
-- Kill ONE completely, reopen it, and confirm onboarding/session state is restored correctly.
+Fresh-install ONE and complete/skip onboarding as offered.
 
-## 2. Native Acceptance baseline
+**Expected:** deterministic onboarding → auth/app route; no stale prior-account content flashes.
 
-Open `one://dev-native?probe=1` and verify:
+**Failure:** route loop, blank screen, previous-account data flash, or onboarding cannot complete.
 
-- Platform reports iOS.
-- Local persistence reports Passed.
-- Camera/Photos/Notifications report truthful permission states.
-- Signed-in state matches reality.
-- Supabase reports authenticated RLS connectivity when signed in.
-- Sync does not remain permanently stuck.
-- `Test ONE deep link` returns to the same development route.
+**Diagnostic:** Native Acceptance auth/hydration rows.
 
-Do not mark a native capability as passed merely because the row exists.
+### 2.2 Sign-up and confirmation
 
-## 3. Inbox capture
+Create a new test account and open its confirmation email on the same iPhone.
 
-Test:
+**Expected:** `one://auth/callback` opens ONE, PKCE exchange completes, authenticated state appears, and no auth code is logged.
+
+**Failure:** browser dead-end, wrong route, raw code displayed/logged, indefinite spinner, or wrong account appears.
+
+**Diagnostic:** Native Acceptance deep-link event plus Supabase Auth logs/dashboard.
+
+### 2.3 Login, logout and restore
+
+Sign in, force-quit, reopen, sign out, force-quit again and reopen.
+
+**Expected:** signed-in session restores after force quit; signed-out state remains signed out; user content disappears immediately on logout.
+
+**Failure:** session oscillation, account data visible while signed out, or route guard trap.
+
+**Diagnostic:** Native Acceptance Authentication, Item hydration and Sync rows.
+
+### 2.4 Password reset
+
+Request reset, open the email, return through `one://auth/reset-password`, set a new password, then sign in with it.
+
+**Expected:** reset route opens, password update succeeds, new password works.
+
+**Failure:** reset link cannot return to ONE, code/session error is hidden, or wrong route/account appears.
+
+**Diagnostic:** deep-link event plus Supabase Auth logs.
+
+## 3 — Manual capture and canonical identity
+
+Create at least:
 
 - `Dentist Thursday 15:00`
 - `Remind me tomorrow at 18:00 to call Paul`
-- `Cancel Netflix on the 23rd`
 - `Gift idea for Dad: silver watch`
-- a normal URL
+- a normal HTTPS URL
 - a plain note
 
-Verify classification, ambiguity/review state, title, date, time, destination and save state. Confirm only one canonical item is created and edits appear consistently in Inbox/Calendar/Saved.
+**Expected:** capture saves locally first; classification/date/time remain reviewable where uncertain; one logical capture produces one `OneItem`; edits are reflected consistently in Inbox, Calendar, Saved, Search and Ask ONE where applicable.
 
-## 4. Notifications and reminders
+**Failure:** capture disappears because enrichment/network fails, duplicate logical objects appear across surfaces, or unsupported details are fabricated.
 
-From Native Acceptance:
+**Diagnostic:** item detail plus Native Acceptance sync state.
 
-- Request notification access.
-- Schedule the five-second acceptance notification.
-- Confirm actual delivery on the physical iPhone.
+## 4 — Camera, Photos and Scan to ONE
 
-Then test a real ONE reminder:
+### 4.1 Permission matrix
 
-- Save a future reminder.
-- Confirm it has a truthful scheduled/denied state.
-- Edit title/date/time and confirm the old schedule is not left active.
-- Complete the reminder and confirm its scheduled notification is removed.
-- Reopen it where supported and confirm scheduling behavior remains coherent.
-- Delete a reminder and confirm its notification is removed.
-- Kill/restart ONE and confirm the reminder does not duplicate.
-- Sign out and confirm private reminder notifications from that account are suspended.
-- Sign in as a different user and confirm no previous-account reminder content appears.
-- Tap a notification and confirm ONE opens the corresponding existing item.
-- Delete the item before tapping an older delivered notification and confirm ONE does not route into a stale missing-item detail screen.
+Test Camera and Photos from not-determined → allow, then repeat after denying in iOS Settings.
 
-Date/time should behave as local wall-clock time on the device. Repeat one test across a different device timezone if practical.
+**Expected:** truthful permission state, clear recovery path, cancellation changes nothing.
 
-## 5. Scan to ONE
+**Failure:** blank screen, crash, success claim after denial, or existing data changes.
 
-Test at least:
+**Diagnostic:** Native Acceptance Camera/Photos rows.
 
-- supermarket receipt
-- clothing receipt
-- invoice
-- ticket/reservation
-- document with poor lighting
+### 4.2 OCR matrix
 
-Permission tests:
+Test screenshot/photo/document/receipt, including poor lighting and an image with no readable text.
 
-- camera not requested
-- camera allowed
-- camera denied, including Open Settings recovery
-- photo library not requested
-- photo library allowed
-- photo library denied
-- user cancels camera/photo picker
+**Expected:** original attachment is copied into ONE private local storage before OCR is trusted; success/empty/failure states are distinct; raw OCR evidence is preserved where applicable; OCR failure does not destroy the image.
 
-Flow acceptance:
+**Failure:** image lost, empty OCR presented as success, or OCR error blocks manual save indefinitely.
 
-1. Acquire image.
-2. Confirm the original is copied into ONE's private local storage before OCR completes.
-3. Background ONE while OCR is running; return to it.
-4. Confirm the capture/review is still usable.
-5. Confirm OCR success, empty OCR and OCR-failure states are truthful.
-6. Confirm a late OCR result does not overwrite manual edits already made in Capture Review.
-7. For receipts, confirm arbitrary line-item values are never promoted to `Total`.
-8. Save and restart ONE; confirm attachment remains available.
-9. Sign in/offline/reconnect and confirm the item remains local while cloud upload is pending.
+**Diagnostic:** `attachment_persisted`, `ocr_success`, `ocr_empty`, `ocr_failed` events.
 
-Apple Vision OCR through `expo-ocr-kit` is considered accepted only after this physical-device test.
+### 4.3 Late OCR race
 
-## 6. Share to ONE — native Share Extension
+Start OCR and immediately edit title and recognized-text fields before OCR completes. Background/foreground once during the run.
 
-A development build is required after changes to `app.json`; Expo Go cannot validate the extension.
+**Expected:** late OCR never overwrites newer manual edits. If recognized text itself was manually edited, the late OCR result must not replace it.
 
-Test from Safari, Mail, Photos and Files where available:
+**Failure:** any manual correction is reverted by a late asynchronous result.
+
+**Diagnostic:** reproduce with the same image and record screen/video; no memory text in diagnostic log.
+
+### 4.4 Receipt safety
+
+Use a receipt with multiple line-item prices and one explicit `Total/Gesamt/Amount due`.
+
+**Expected:** only an explicitly labelled supported total is promoted; ambiguous/no-total receipts remain reviewable; currency is not invented without evidence.
+
+**Failure:** arbitrary line-item price becomes confirmed total.
+
+**Diagnostic:** Capture Review fields and confidence/review state.
+
+## 5 — Share Sheet
+
+Use Safari, Photos, Files and another text-capable app where available. Test:
 
 - selected/plain text
 - URL/web page
 - screenshot
 - image
 - PDF/file
-- another supported document attachment
 
-Expected flow:
+Run both cold-start and warm-start shares.
 
-**Share → ONE → main ONE app → Capture Review → Save → normal ONE destination**
+**Expected:** ONE appears in the iOS Share Sheet; share opens the main ONE Capture Review path; multiple iOS representations resolve to one primary capture; attachment is secured locally before temporary OS URLs can disappear; malformed/empty payloads are not silently saved; signed-out/offline shares remain local.
 
-Verify:
+**Failure:** ONE missing from Share Sheet, duplicate captures from one handoff, temporary attachment lost, unsupported payload silently saved, or share requires network to preserve the capture.
 
-- ONE appears in the iOS Share Sheet after the native build is installed.
-- Cold-start share opens the Capture Review path.
-- Warm-start share opens the same path.
-- Multiple iOS representations of one share resolve to one primary capture.
-- Original attachment is persisted locally before the cloud is trusted.
-- OCR runs for supported images without blocking Save indefinitely.
-- Empty/malformed share payload is not silently saved.
-- Sharing the same payload twice in quick succession triggers duplicate protection rather than creating an accidental duplicate.
-- Explicit `Save again` still allows an intentional duplicate.
-- Signed-out share remains local.
-- Offline signed-in share remains local/pending and syncs after reconnect.
-- Return to Native Acceptance and verify share/attachment/OCR events were recorded without the shared content itself being logged.
+**Diagnostic:** Native Acceptance `share_intent`, `share_received`, attachment and OCR events. Current Expo incoming sharing is experimental, so this physical result is mandatory evidence.
 
-Current Expo SDK 57 iOS share receiving is experimental and opens the main app target. Treat physical-device behavior as mandatory acceptance evidence.
+### 5.1 Duplicate protection
 
-## 7. Calendar and item editing
+Share the same payload twice quickly.
 
-- Dated ONE items appear on the correct day.
-- Opening an item from Calendar works.
-- Date/time editing uses native controls on iOS.
-- Date/time remains optional and can be cleared.
-- Edits update the same canonical item shown in all views.
-- Keyboard does not obscure important inputs or Save controls on a small iPhone.
+**Expected:** accidental replay is blocked; explicit `Save again` still permits an intentional duplicate.
 
-## 8. Ask ONE / ONE AI
+**Failure:** replay silently creates a second item or intentional duplicate cannot be saved.
 
-Test:
+**Diagnostic:** `share_duplicate_blocked` event.
 
-- `When is my dentist appointment?`
-- `Where is it?`
-- `What gift idea did I save for Dad?`
-- `How much was the receipt from IKEA?`
-- `What reminder do I have tomorrow?`
-- an intentionally unknown question
-- a query with multiple plausible appointments
+## 6 — Inbox and triage
 
-Verify concise grounded answers, tappable supporting memories, truthful no-result behavior and multiple-match behavior. Turn off network and confirm local/keyword fallback does not claim semantic cloud recall succeeded.
+Exercise open, edit, save/process, schedule, reminder, delete and undo where the UI supports it. Rapidly tap an action twice.
 
-## 9. Account, deep links and session restoration
+**Expected:** one canonical item changes state; double taps do not create duplicate reminders/items; destructive actions are clear.
 
-Supabase Auth URL configuration must allow at minimum:
+**Failure:** duplicate object, duplicate action, stale item route, or UI claims save after failure.
 
-- `one://auth/callback`
-- `one://auth/reset-password`
+**Diagnostic:** compare the same item ID across Inbox/Calendar/Saved/Search.
 
-Test on the same physical iPhone:
+## 7 — Calendar
 
-- Create account.
-- Open confirmation email and confirm `one://auth/callback` returns to ONE.
-- Test callback while ONE is already running.
-- Test an expired/invalid confirmation link and confirm a truthful error.
-- Sign out.
-- Request Forgot Password.
-- Open reset link and confirm `one://auth/reset-password` returns to ONE.
-- Set a new password and sign in with it.
-- Kill/restart while logged in and confirm session restoration.
-- Kill/restart while logged out and confirm ONE remains logged out.
-- Temporarily disable networking and confirm existing local data remains usable.
-- Re-enable networking and confirm sync resumes without duplicate items.
+Schedule a dated item, add/remove time, move date, clear date, complete it and reopen from Calendar.
 
-If a session is expired/revoked server-side, confirm the authoritative Supabase auth state eventually signs ONE out rather than showing another account's cloud data.
+**Expected:** correct local wall-clock day; time optional; edits update immediately; clearing date removes Calendar placement; Calendar opens the same canonical item.
 
-## 10. Background / foreground regression
+**Failure:** wrong day/timezone drift, stale duplicate event, or Calendar opens a different logical copy.
 
-Exercise these deliberately:
+**Diagnostic:** item detail date/time and Calendar day.
 
-- background during OCR
-- background during attachment upload
-- background during cloud sync
-- background immediately after save
-- foreground after several minutes
-- cold-start from Share Sheet
-- cold-start from notification tap
-- cold-start from auth deep link
+## 8 — Notifications and reminders
 
-Verify no duplicate capture, duplicate reminder, lost local attachment or cross-account data appears.
+### 8.1 Permission and delivery
 
-## 11. Account isolation regression
+From Native Acceptance request notification permission and schedule the five-second test notification.
 
-1. Signed out, create an anonymous capture named `Anonymous transfer test`.
-2. Sign in to user A and verify the real anonymous capture transfers into user A exactly once.
-3. Create `User A private item`.
-4. Sign out and verify it is no longer visible and its private scheduled notifications are suspended.
-5. Sign in to user B and verify user A data does not appear.
-6. Create `User B private item`, sign out, return to user A.
-7. Verify each account restores only its own data.
-8. Confirm development seed/demo memories never migrate into authenticated cloud accounts.
-9. Perform an offline delete under user A and verify its tombstone cannot affect user B.
+**Expected:** permission state is truthful and the notification physically arrives when allowed.
 
-## 12. Privacy / data controls
+**Failure:** app claims delivery merely because scheduling API returned, or denial is shown as success.
 
-- Private cloud attachments cannot be opened as public URLs.
-- `Export my data` exports only the active account/scope.
-- Delete Account removes account-scoped cloud/local data as designed.
-- Account deletion does not falsely claim an App Store subscription was cancelled.
-- No service-role secret exists in the mobile bundle.
+**Diagnostic:** Notifications row and scheduled counts.
 
-## 13. iPhone layout / keyboard
+### 8.2 Reminder lifecycle
 
-Test at least one small and one larger iPhone viewport when available:
+Create a future reminder, edit title/date/time, reschedule, complete, create another and delete it. Restart after each major state.
 
-- no important control under notch/Dynamic Island
-- bottom actions clear the home indicator
-- tab bar remains usable
-- Capture Review scrolls while keyboard is open
-- Share Review scrolls while keyboard is open
-- Scan Review scrolls while keyboard is open
-- password reset inputs remain visible
-- destructive confirmations are reachable
+**Expected:** one active native notification per applicable item; edits replace the old schedule; completion/deletion cancels; restart does not duplicate.
 
-Portrait is the configured primary orientation.
+**Failure:** duplicate schedules, stale notification after completion/delete, or incorrect content/time.
 
-## 14. iPad
+**Diagnostic:** Scheduled ONE items count plus item notification status.
 
-- App installs and launches.
-- Tab bar remains usable.
-- No clipped content.
-- Forms/chat composer remain readable with keyboard visible.
-- Scan/document screens remain usable in portrait.
-- Native date/time controls remain usable at iPad size.
+### 8.3 Tap routing and privacy
 
-## Exit criteria
+Tap a live reminder notification. Then test a delivered notification after deleting its item. Finally sign out from account A and sign into account B.
 
-PO044 native acceptance is complete only after a real development build passes the critical physical-iPhone flow:
+**Expected:** live tap opens the accessible item; stale tap never opens a missing/foreign item detail; account A private reminder content is not left active for account B.
 
-**Share something → ONE receives it → Capture Review → Save → optional reminder → restart/background/reconnect → retrieve through ONE**
+**Failure:** cross-account content, stale item route, or another user's reminder remains scheduled/visible.
 
-At minimum physically accept:
+**Diagnostic:** `notification_opened` / `notification_stale` events and scheduled counts.
 
-- onboarding / restart
-- camera + photo permissions
-- Scan + Apple Vision OCR
-- Share Extension from Safari and Photos
-- PDF/file share where exposed by iOS
-- notification permission + delivery + edit/cancel + tap
-- auth confirmation and password-reset deep links
-- session restoration
-- offline capture / reconnect
-- account isolation
-- safe-area / keyboard usability
+## 9 — Search
 
-For every failure record: screen, exact action, expected result, actual result, device/iOS version and screenshot when useful.
+Test exact title, OCR text, URL, tag/context, person/entity, date, receipt merchant/amount and multiple matches. Then disable network.
+
+**Expected:** relevant exact results rank strongly; pending local items are discoverable; empty query intentionally shows recent items; offline lexical search remains usable; deleted items do not appear.
+
+**Failure:** network loss disables ordinary search, foreign/deleted item appears, or exact match is buried without reason.
+
+**Diagnostic:** compare Search results with active account item list.
+
+## 10 — Ask ONE / ONE AI
+
+With known test memories ask:
+
+- a question with one clear answer;
+- a question requiring two saved items;
+- an ambiguous question;
+- a nonexistent-memory question.
+
+Open every source card.
+
+**Expected:** answer uses only accessible saved memories; source IDs open real accessible items; insufficient evidence returns uncertainty/no result; multiple-item answer remains source-backed.
+
+**Failure:** fabricated memory/source, deleted/foreign item source, generic factual answer presented as user memory, or AI/network failure masquerades as successful recall.
+
+**Diagnostic:** source cards plus local Search comparison. Turn network off and confirm safe fallback/no-result behavior.
+
+## 11 — Local-first sync
+
+### 11.1 Offline create/update/delete
+
+Disable network. Create, edit and delete separate items; force-quit and reopen while still offline.
+
+**Expected:** local state survives restart; pending state/tombstone survives; normal capture never waits for cloud.
+
+**Failure:** local item disappears, deleted item resurrects immediately, or capture blocks on network.
+
+**Diagnostic:** Native Acceptance Sync row and item state.
+
+### 11.2 Reconnect
+
+Re-enable network and wait for bounded retry/sync.
+
+**Expected:** pending changes converge; no duplicate IDs; offline delete remains deleted; failure is retryable and truthful.
+
+**Failure:** silent overwrite of newer local edit, item resurrection, endless retry loop or duplicate capture.
+
+**Diagnostic:** Sync row/events and second authenticated session when available.
+
+### 11.3 Large cloud set
+
+If practical in a staging/test account, exceed 1,000 cloud items using generated non-sensitive test data and reopen/sync.
+
+**Expected:** the client retrieves the complete paginated cloud set; items beyond the service's default response cap are not treated as remotely deleted.
+
+**Failure:** item count truncates near a server page limit or local items disappear after pull.
+
+**Diagnostic:** compare server count with local count; do not use production personal data for load generation.
+
+## 12 — Account isolation and migration
+
+1. Signed out, create `Anonymous transfer test`.
+2. Sign in as account A; verify migration exactly once.
+3. Create `User A private item` and a future reminder.
+4. Sign out.
+5. Sign in as account B.
+6. Create `User B private item`.
+7. Return to account A.
+
+**Expected:** A and B never see each other's items; A notifications are suspended outside A; anonymous migration does not duplicate or silently migrate to two accounts; development seed content never becomes cloud user data.
+
+**Failure:** any cross-account item/notification/attachment, duplicate migration, or stale account flash.
+
+**Diagnostic:** Native Acceptance auth/scheduled rows plus account-specific Search.
+
+## 13 — Attachments and privacy controls
+
+Save an image/document, restart, go offline, reconnect, then delete the item. Exercise Export My Data and Delete Account on dedicated test accounts.
+
+**Expected:** local attachment survives restart; cloud object is private/user-scoped; retry path is safe; deletion cleans associated data as designed; export contains only active scope; account deletion does not claim App Store subscription cancellation.
+
+**Failure:** public attachment URL, foreign-account access, missing attachment after normal restart, export leakage or false cancellation claim.
+
+**Diagnostic:** Supabase Storage under the test user path plus app UI. Never use a service-role key in the mobile client.
+
+## 14 — Billing gates
+
+### Development build without RevenueCat configuration
+
+**Expected:** explicit development beta behavior may unlock ONE AI for internal acceptance only.
+
+**Failure:** UI misrepresents this as a real App Store purchase.
+
+### Preview/production-like build without RevenueCat configuration
+
+**Expected:** paid entitlement fails closed; billing-unavailable state is truthful; no back-navigation loop; paid/AI access is not granted.
+
+**Failure:** unrestricted paid access, navigation loop, false purchase state or false cancellation state.
+
+### Configured sandbox billing
+
+When App Store Connect/RevenueCat is ready, test purchase, cancel sheet, failed purchase, restore and entitlement refresh.
+
+**Expected:** cancellation is not an error purchase; restore reflects RevenueCat/App Store truth; ONE remains usable according to the real entitlement; ONE AI gate matches entitlement.
+
+**Failure:** entitlement granted on missing config, cancelled purchase reported as success, or restore invents state.
+
+**Diagnostic:** RevenueCat sandbox dashboard/logs plus paywall state. Do not print customer secrets.
+
+## 15 — Layout, keyboard and accessibility
+
+Test light/dark mode, a small iPhone and a larger iPhone where available. Enable larger text and VoiceOver for a smoke pass.
+
+**Expected:** important controls clear safe areas/home indicator; Capture/Share/Scan review scrolls with keyboard; tappable controls have usable labels/targets; destructive actions remain reachable; disabled/error states remain distinguishable.
+
+**Failure:** clipped primary action, keyboard trap, unlabeled critical control, unreadable state or layout prevents completion.
+
+**Diagnostic:** screenshot/screen recording with device model and text-size setting.
+
+## 16 — iPad follow-up
+
+After iPhone critical acceptance, install the same accepted SHA on iPad.
+
+**Expected:** no clipped content; tab bar/forms/chat composer/Scan remain usable; keyboard and native date/time controls remain workable in supported orientation.
+
+**Failure:** layout blocks a V1 critical flow.
+
+## 17 — Exit criteria
+
+Mark **READY FOR TESTFLIGHT** only after all critical physical-device rows above pass or have an explicitly accepted non-blocking disposition, required external configuration for the TestFlight build is complete, and the exact tested SHA has a green repository quality gate.
+
+Critical iPhone acceptance chain:
+
+**Share or capture → local preservation → Capture Review → canonical item → optional Calendar/reminder → restart/offline/reconnect → Search/Ask ONE retrieval → logout/account switch privacy**
+
+For every failure record:
+
+- Git SHA/build number
+- device/iOS
+- exact action
+- expected result
+- actual result
+- network/auth state
+- relevant diagnostic event (without private memory content)
+- screenshot/video when useful
+- blocker classification from `docs/V1_RELEASE_BLOCKERS.md`
