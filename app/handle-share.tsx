@@ -24,6 +24,7 @@ import { isRecentlyHandledShare, markShareHandled } from '@/src/native/shareGuar
 import { selectShareCandidate } from '@/src/native/sharePayload';
 import { notificationSaveWarning } from '@/src/notifications/status';
 import { extractTextFromImage } from '@/src/ocr/extractText';
+import { mergeLateOcrDraft } from '@/src/ocr/mergeLateOcr';
 import { createItemFromShare, createShareDraft } from '@/src/sharing/ingest';
 import { persistLocalAttachment, removeLocalAttachment } from '@/src/storage/attachments';
 import { IconTile, PrimaryButton, SectionHeader, Surface } from '@/src/ui/primitives';
@@ -46,6 +47,8 @@ export default function HandleShareScreen() {
   const [reviewedDraft, setReviewedDraft] = useState<CaptureDraft | null>(null);
   const [attachmentState, setAttachmentState] = useState<AttachmentState>('idle');
   const [localAttachmentUri, setLocalAttachmentUri] = useState<string | null>(null);
+  const userEditedRef = useRef(false);
+  const extractedTextEditedRef = useRef(false);
   const attachmentRef = useRef<string | null>(null);
   const attachmentCommittedRef = useRef(false);
   const attachmentRevisionRef = useRef(0);
@@ -87,6 +90,8 @@ export default function HandleShareScreen() {
     async function resetReviewForNewShare() {
       await Promise.resolve();
       if (cancelled) return;
+      userEditedRef.current = false;
+      extractedTextEditedRef.current = false;
       setExtractedText('');
       setReviewedDraft(null);
       setOcrState('idle');
@@ -176,7 +181,25 @@ export default function HandleShareScreen() {
         const text = result.text.trim();
         setExtractedText(text);
         setOcrState(text ? 'ready' : 'empty');
-        setReviewedDraft((current) => current ? { ...current, extractedText: text || undefined } : current);
+
+        if (text) {
+          const interpreted = primary
+            ? createShareDraft({ payload: primary, resolved, extractedText: text })
+            : null;
+          if (interpreted) {
+            setReviewedDraft((current) => current
+              ? mergeLateOcrDraft({
+                  current,
+                  interpreted,
+                  extractedText: text,
+                  userEdited: userEditedRef.current,
+                  extractedTextEdited: extractedTextEditedRef.current
+                })
+              : current
+            );
+          }
+        }
+
         await recordNativeAcceptanceEvent(text ? 'ocr_success' : 'ocr_empty', 'share-image');
       } catch (ocrError) {
         if (cancelled) return;
@@ -191,7 +214,7 @@ export default function HandleShareScreen() {
     return () => {
       cancelled = true;
     };
-  }, [imageUri]);
+  }, [imageUri, primary, resolved]);
 
   const preview = useMemo(() => {
     if (!primary) return 'Waiting for shared content…';
@@ -254,9 +277,7 @@ export default function HandleShareScreen() {
       await recordLastNativeError('share-save', saveError);
       Alert.alert(
         'Could not save to ONE',
-        saveError instanceof Error
-          ? saveError.message
-          : 'The shared content was not discarded. Try saving again.'
+        'The shared content was not discarded. Try saving again.'
       );
     } finally {
       setSaving(false);
@@ -344,7 +365,18 @@ export default function HandleShareScreen() {
                 </View>
               ) : null}
 
-              {draft ? <CaptureReviewEditor draft={draft} onChange={setReviewedDraft} /> : null}
+              {draft ? (
+                <CaptureReviewEditor
+                  draft={draft}
+                  onChange={(nextDraft) => {
+                    userEditedRef.current = true;
+                    if (nextDraft.extractedText !== draft.extractedText) {
+                      extractedTextEditedRef.current = true;
+                    }
+                    setReviewedDraft(nextDraft);
+                  }}
+                />
+              ) : null}
 
               <View style={[styles.notice, { backgroundColor: theme.accentSoft }]}>
                 <OneIcon name={icons.cloud} size={17} color={theme.accent} />

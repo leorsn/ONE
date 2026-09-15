@@ -25,6 +25,7 @@ import { recordLastNativeError, recordNativeAcceptanceEvent } from '@/src/native
 import { mapNativePermissionState } from '@/src/native/permissions';
 import { notificationSaveWarning } from '@/src/notifications/status';
 import { extractTextFromImage } from '@/src/ocr/extractText';
+import { mergeLateOcrDraft } from '@/src/ocr/mergeLateOcr';
 import { persistLocalAttachment, removeLocalAttachment } from '@/src/storage/attachments';
 import { IconTile, PrimaryButton, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
@@ -42,6 +43,7 @@ export default function ScanScreen() {
   const [draft, setDraft] = useState<CaptureDraft | null>(null);
   const [saving, setSaving] = useState(false);
   const userEditedRef = useRef(false);
+  const extractedTextEditedRef = useRef(false);
   const localAttachmentRef = useRef<string | null>(null);
   const attachmentCommittedRef = useRef(false);
   const processingRevisionRef = useRef(0);
@@ -107,6 +109,7 @@ export default function ScanScreen() {
   async function processAsset(nextAsset: ImagePicker.ImagePickerAsset) {
     const revision = ++processingRevisionRef.current;
     userEditedRef.current = false;
+    extractedTextEditedRef.current = false;
     attachmentCommittedRef.current = false;
 
     try {
@@ -157,11 +160,13 @@ export default function ScanScreen() {
         });
 
         if (revision !== processingRevisionRef.current) return;
-        setDraft((current) =>
-          userEditedRef.current && current
-            ? { ...current, extractedText: text }
-            : interpreted
-        );
+        setDraft((current) => mergeLateOcrDraft({
+          current,
+          interpreted,
+          extractedText: text,
+          userEdited: userEditedRef.current,
+          extractedTextEdited: extractedTextEditedRef.current
+        }));
         setState('ready');
         await recordNativeAcceptanceEvent('ocr_success', 'scan');
         await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
@@ -209,7 +214,7 @@ export default function ScanScreen() {
       await recordLastNativeError('scan-save', error);
       Alert.alert(
         'Could not save scan',
-        error instanceof Error ? error.message : 'The private local image is still available while this screen remains open. Try again.'
+        'ONE could not save this scan. The private local image remains available while this screen is open. Try again.'
       );
     } finally {
       setSaving(false);
@@ -285,6 +290,9 @@ export default function ScanScreen() {
                   draft={draft}
                   onChange={(nextDraft) => {
                     userEditedRef.current = true;
+                    if (nextDraft.extractedText !== draft.extractedText) {
+                      extractedTextEditedRef.current = true;
+                    }
                     setDraft(nextDraft);
                   }}
                 />

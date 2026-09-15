@@ -2,6 +2,7 @@ import { ensureCanonicalItemMetadata } from '@/src/capture/itemMetadata';
 import { refreshItemEmbedding } from '@/src/search/semantic';
 import { supabase } from '@/src/supabase/client';
 import type { Json } from '@/src/supabase/database.types';
+import { collectPagedRows } from '@/src/sync/pagination';
 import type { OneItem } from '@/src/types/item';
 
 type CloudItemRow = {
@@ -68,13 +69,19 @@ const CLOUD_SELECT = [
 ].join(',');
 
 export async function pullCloudItems(): Promise<OneItem[]> {
-  const { data, error } = await supabase
-    .from('items')
-    .select(CLOUD_SELECT)
-    .order('updated_at', { ascending: false });
+  const rows = await collectPagedRows<CloudItemRow>(async (from, to) => {
+    const { data, error } = await supabase
+      .from('items')
+      .select(CLOUD_SELECT)
+      .order('updated_at', { ascending: false })
+      .order('id', { ascending: true })
+      .range(from, to);
 
-  if (error) throw error;
-  return (data as unknown as CloudItemRow[]).map(fromRow);
+    if (error) throw error;
+    return data as unknown as CloudItemRow[];
+  });
+
+  return rows.map(fromRow);
 }
 
 export async function upsertCloudItem(

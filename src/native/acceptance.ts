@@ -1,4 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { sanitizeNativeDiagnosticDetail } from '@/src/native/diagnosticSanitization';
 
 const EVENTS_KEY = '@one/native-acceptance/events-v1';
 const LAST_ERROR_KEY = '@one/native-acceptance/last-error-v1';
@@ -47,7 +48,7 @@ export async function recordNativeAcceptanceEvent(
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       kind,
       at: new Date().toISOString(),
-      detail: sanitizeDetail(detail)
+      detail: sanitizeNativeDiagnosticDetail(detail)
     };
     await AsyncStorage.setItem(EVENTS_KEY, JSON.stringify([next, ...events].slice(0, MAX_EVENTS)));
   } catch {
@@ -58,7 +59,7 @@ export async function recordNativeAcceptanceEvent(
 export async function recordLastNativeError(scope: string, error: unknown) {
   if (!__DEV__) return;
   const message = error instanceof Error ? error.message : String(error || 'Unknown native error');
-  const value = `${scope}: ${message}`.slice(0, 500);
+  const value = sanitizeNativeDiagnosticDetail(`${scope}: ${message}`, 500) || `${scope}: [redacted]`;
 
   try {
     await AsyncStorage.setItem(LAST_ERROR_KEY, value);
@@ -92,11 +93,4 @@ export async function loadLastNativeError() {
 export async function clearNativeAcceptanceLog() {
   if (!__DEV__) return;
   await AsyncStorage.multiRemove([EVENTS_KEY, LAST_ERROR_KEY]);
-}
-
-function sanitizeDetail(value?: string) {
-  if (!value) return undefined;
-  return value
-    .replace(/([?&](?:code|token|access_token|refresh_token)=)[^&#\s]+/gi, '$1[redacted]')
-    .slice(0, 300);
 }

@@ -57,6 +57,8 @@ export default function NativeAcceptanceScreen() {
   const pending = useMemo(() => items.filter((item) => item.syncState === 'pending').length, [items]);
 
   const refresh = useCallback(async () => {
+    if (!__DEV__) return;
+
     setLoading(true);
     try {
       const [camera, photos, notificationPermission, scheduled, lastError, events] = await Promise.all([
@@ -108,6 +110,7 @@ export default function NativeAcceptanceScreen() {
   }, [configured, session?.user.id]);
 
   useEffect(() => {
+    if (!__DEV__) return;
     if (probe) void recordNativeAcceptanceEvent('deep_link_received', 'acceptance-probe');
     void refresh();
   }, [probe, refresh]);
