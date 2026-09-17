@@ -43,6 +43,14 @@ test('subscription surfaces prefer localized RevenueCat storefront prices and av
   assert.match(settings, /billingConfigured \? 'Active · App Store'/);
 });
 
+test('subscription purchase buttons fail closed when the current RevenueCat offering does not expose the plan', async () => {
+  const upgrade = await text('app/upgrade.tsx');
+  assert.match(upgrade, /const availableInStorefront = Boolean\(localizedPrices\[planKey\]\)/);
+  assert.match(upgrade, /const canPurchase = billingConfigured && availableInStorefront && !purchasing/);
+  assert.match(upgrade, /disabled=\{!canPurchase\}/);
+  assert.match(upgrade, /Unavailable in App Store/);
+});
+
 test('App Store release environment requires both billing and Terms configuration', async () => {
   const releaseEnv = await text('scripts/verify-release-env.mjs');
   assert.match(releaseEnv, /required\.push\('EXPO_PUBLIC_REVENUECAT_IOS_KEY', 'EXPO_PUBLIC_TERMS_URL'\)/);
