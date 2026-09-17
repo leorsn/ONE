@@ -18,6 +18,19 @@ test('privacy surface reads release legal URLs from public environment configura
   assert.doesNotMatch(privacy, /example\.com|localhost|127\.0\.0\.1/i);
 });
 
+test('subscription paywall exposes Privacy Policy and Terms of Use from release URLs', async () => {
+  const upgrade = await text('app/upgrade.tsx');
+  assert.match(upgrade, /EXPO_PUBLIC_PRIVACY_POLICY_URL/);
+  assert.match(upgrade, /EXPO_PUBLIC_TERMS_URL/);
+  assert.match(upgrade, />Terms of Use</);
+  assert.match(upgrade, />Privacy Policy</);
+});
+
+test('App Store release environment requires both billing and Terms configuration', async () => {
+  const releaseEnv = await text('scripts/verify-release-env.mjs');
+  assert.match(releaseEnv, /required\.push\('EXPO_PUBLIC_REVENUECAT_IOS_KEY', 'EXPO_PUBLIC_TERMS_URL'\)/);
+});
+
 test('manual NEVER release gates remain exposed without running production-only checks in normal CI', async () => {
   const pkg = JSON.parse(await text('package.json'));
   assert.equal(pkg.scripts['release:env-check'], 'node scripts/verify-release-env.mjs');
