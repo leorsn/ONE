@@ -52,6 +52,25 @@ for (const [name, version] of Object.entries(requiredPackages)) {
   assert(pkg.dependencies?.[name] === version, `${name} must remain pinned at ${version}`);
 }
 
+const alternateIconPlugin = plugins.find((entry) => entry === './plugins/with-never-app-icons');
+assert(alternateIconPlugin, 'NEVER alternate app icon config plugin is missing');
+assert(expo.icon === './assets/icons/never-nature.png', 'Default NEVER app icon must remain the Nature asset');
+assert(fs.existsSync(path.join(root, 'assets/icons/never-nature.png')), 'Default NEVER app icon asset is missing');
+assert(fs.existsSync(path.join(root, 'assets/icons/never-wordmark.png')), 'Alternate NEVER wordmark icon asset is missing');
+assert(fs.existsSync(path.join(root, 'plugins/with-never-app-icons.js')), 'NEVER alternate app icon config plugin file is missing');
+assert(fs.existsSync(path.join(root, 'modules/never-app-icon/expo-module.config.json')), 'NEVER app icon Expo module config is missing');
+assert(fs.existsSync(path.join(root, 'modules/never-app-icon/ios/NeverAppIconModule.swift')), 'NEVER app icon native iOS module is missing');
+
+const appIconModuleConfig = JSON.parse(
+  fs.readFileSync(path.join(root, 'modules/never-app-icon/expo-module.config.json'), 'utf8')
+);
+const appIconSwift = fs.readFileSync(path.join(root, 'modules/never-app-icon/ios/NeverAppIconModule.swift'), 'utf8');
+assert(appIconModuleConfig.platforms?.includes('apple'), 'NEVER app icon Expo module must support Apple platforms');
+assert(appIconModuleConfig.apple?.modules?.includes('NeverAppIconModule'), 'NeverAppIconModule must remain registered for iOS autolinking');
+assert(appIconSwift.includes('supportsAlternateIcons'), 'NEVER app icon native module must check alternate-icon support');
+assert(appIconSwift.includes('setAlternateIconName'), 'NEVER app icon native module must call UIApplication.setAlternateIconName');
+assert(appIconSwift.includes('.runOnQueue(.main)'), 'NEVER app icon mutation must remain on the main queue');
+
 const sharingPlugin = plugins.find((entry) => Array.isArray(entry) && entry[0] === 'expo-sharing');
 assert(sharingPlugin, 'expo-sharing config plugin is missing');
 assert(sharingPlugin[1]?.ios?.enabled === true, 'iOS incoming sharing is not enabled');
