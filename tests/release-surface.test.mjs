@@ -57,6 +57,28 @@ test('manual NEVER release gates remain exposed without running production-only 
   assert.doesNotMatch(pkg.scripts.quality, /release:env-check|release:asset-check|release:privacy-check/);
 });
 
+test('EAS distribution profiles keep development tooling out of preview and production', async () => {
+  const eas = JSON.parse(await text('eas.json'));
+  const development = eas.build?.development;
+  const preview = eas.build?.preview;
+  const production = eas.build?.production;
+
+  assert.equal(development?.developmentClient, true);
+  assert.equal(development?.distribution, 'internal');
+  assert.equal(development?.environment, 'development');
+
+  assert.equal(preview?.environment, 'preview');
+  assert.equal(preview?.distribution, 'internal');
+  assert.notEqual(preview?.developmentClient, true);
+  assert.notEqual(preview?.extends, 'development');
+
+  assert.equal(production?.environment, 'production');
+  assert.equal(production?.autoIncrement, true);
+  assert.notEqual(production?.developmentClient, true);
+  assert.notEqual(production?.distribution, 'internal');
+  assert.notEqual(production?.extends, 'development');
+});
+
 test('consumer display name stays NEVER while technical V1 identifiers remain stable', async () => {
   const config = JSON.parse(await text('app.json'));
   assert.equal(config.expo.name, 'NEVER');
