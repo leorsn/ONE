@@ -13,10 +13,11 @@
     "native:config": "expo config --type introspect > /tmp/one-expo-introspect.json",
     "release:env-check": "node scripts/verify-release-env.mjs",
     "release:asset-check": "node scripts/verify-store-assets.mjs",
+    "release:script-check": "node --check scripts/verify-release-env.mjs && node --check scripts/verify-store-assets.mjs",
     "lint": "expo lint",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit",
-    "quality": "npm run typecheck && npm run lint && npm test && npx expo install --check && npx expo-doctor@latest && npm run native:release-check && npm run native:config && npm run web:export"
+    "quality": "npm run typecheck && npm run lint && npm test && npm run release:script-check && npx expo install --check && npx expo-doctor@latest && npm run native:release-check && npm run native:config && npm run web:export"
   },
   "dependencies": {
     "@expo/ui": "~57.0.9",
