@@ -1,4 +1,4 @@
-export const SUBSCRIPTION_GROUP = 'ONE Membership';
+export const SUBSCRIPTION_GROUP = 'NEVER Membership';
 export const REVENUECAT_OFFERING_ID = 'default';
 
 export const revenueCatEntitlements = {
@@ -12,7 +12,7 @@ export const subscriptionProducts = {
     revenueCatPackageId: 'one_monthly',
     entitlementId: revenueCatEntitlements.one,
     plan: 'one' as const,
-    displayName: 'ONE',
+    displayName: 'NEVER',
     priceEUR: 2.99,
     period: 'month' as const,
     trialDays: 7,
@@ -24,7 +24,7 @@ export const subscriptionProducts = {
     revenueCatPackageId: 'one_ai_monthly',
     entitlementId: revenueCatEntitlements.oneAi,
     plan: 'one_ai' as const,
-    displayName: 'ONE AI',
+    displayName: 'NEVER AI',
     priceEUR: 4.99,
     period: 'month' as const,
     trialDays: 0,
