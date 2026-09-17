@@ -1,4 +1,4 @@
-# ONE — PO046 Native iOS Release Candidate Hardening
+# NEVER — PO046 Native iOS Release Candidate Hardening
 
 `docs/DEVICE_TEST_PLAN.md` remains the authoritative physical-device acceptance checklist. PO046 does not mark any physical iPhone requirement as passed.
 
@@ -11,15 +11,17 @@ The release-candidate hardening in PO046 covers these code-level risks before de
 - duplicate notification responses are suppressed during one runtime;
 - stale notification taps no longer navigate to a deleted item;
 - persisted notification IDs are reconciled against the actual native scheduler after hydration/restart;
-- stale and duplicate ONE item notifications are cancelled when they are no longer the active schedule;
+- stale and duplicate NEVER item notifications are cancelled when they are no longer the active schedule;
 - account-scope transitions remove orphaned item notifications left by an older scope;
 - cloud/local sync failures remain local-first and are recorded safely in development diagnostics;
-- Share-to-ONE attachments are copied into ONE private local storage before image OCR or final save;
+- Share-to-NEVER attachments are copied into NEVER private local storage before image OCR or final save;
 - an attachment that could not be secured is never represented as successfully saved;
-- Scan-to-ONE ignores late OCR results from an older scan operation;
+- Scan-to-NEVER ignores late OCR results from an older scan operation;
 - release configuration is automatically checked for bundle identifier, URL scheme, Share Extension identifier, App Group, native plugins and EAS development-client settings.
 
 ## Native identifiers guarded by CI
+
+The following are legacy technical identifiers and intentionally remain unchanged during the NEVER rebrand:
 
 - Main app: `app.one.mobile`
 - Share Extension: `app.one.mobile.ShareExtension`
@@ -30,13 +32,13 @@ The release-config check is intentionally static and credential-free. Expo confi
 
 ## Data-safety invariants retained
 
-- ONE continues to use one canonical `OneItem` identity.
+- NEVER continues to use one canonical `OneItem` identity (`OneItem` is a legacy technical type name).
 - Triage actions mutate the canonical item rather than creating view-specific copies.
 - Local changes remain scoped by account storage scope.
 - Stale scoped cloud work cannot apply after an account switch.
 - Notification IDs remain device-local state and are not treated as cloud truth.
 - Attachment cloud paths remain private/account-scoped; PO046 does not weaken RLS or storage ownership.
-- Ask ONE behavior remains grounded in stored accessible items.
+- Ask NEVER behavior remains grounded in stored accessible items.
 
 ## REQUIRES PHYSICAL DEVICE ACCEPTANCE
 
