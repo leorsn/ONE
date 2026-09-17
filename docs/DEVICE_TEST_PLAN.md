@@ -1,12 +1,13 @@
-# ONE — Physical iPhone V1 Acceptance Plan
+# NEVER — Physical iPhone & iPad V1 Acceptance Plan
 
-This is the sequential acceptance package for the first real ONE V1 iPhone build. CI, web export, Expo Go, simulator-only behavior and static config inspection do **not** count as physical-device acceptance.
+This is the sequential physical-device acceptance package for NEVER V1. CI, web export, Expo Go, simulator-only behavior and static config inspection do **not** count as physical-device acceptance.
 
 ## Test target
 
 - Repository: `leorsn/ONE`
 - Branch: `dev/foundation`
 - Test SHA: record the exact accepted SHA before building.
+- Consumer display name: `NEVER`
 - Bundle identifier: `app.one.mobile`
 - Share Extension: `app.one.mobile.ShareExtension`
 - App Group: `group.app.one.mobile`
@@ -14,27 +15,40 @@ This is the sequential acceptance package for the first real ONE V1 iPhone build
 - Primary orientation: portrait
 - First target: physical iPhone; iPad follows the critical iPhone smoke test.
 
-Record for every run: device model, iOS version, build profile, build number, Git SHA, account used, network state and tester.
+The technical `one` identifiers are intentionally retained for native compatibility. They are not the consumer-facing brand.
+
+Record for every run: device model, iOS/iPadOS version, build profile, build number, Git SHA, account used, network state and tester.
 
 ## 0 — Prerequisites and installation
 
-From a clean checkout:
+Before creating a signed acceptance build:
 
 ```bash
 npm ci --no-audit --no-fund
 npm run quality
+npm run release:env-check
+npm run release:asset-check
+```
+
+`release:env-check` must use the intended production-like environment. `release:asset-check` is expected to block until the final NEVER App Store icon/assets are configured.
+
+For a signed physical-device build, the Apple Developer configuration, identifiers, App Group and signing credentials must be available externally.
+
+Then build:
+
+```bash
 npx eas-cli@latest build --platform ios --profile development
 ```
 
-Install the resulting signed development build on the registered iPhone. Then start Metro for the development client when needed:
+Install the resulting signed development build on the registered iPhone. Start Metro for the development client when needed:
 
 ```bash
 npx expo start --dev-client
 ```
 
-**Expected:** build signs successfully, installs, launches and reports the intended app/version. The Share Extension target is included in the signed build.
+**Expected:** build signs successfully, installs, launches as NEVER and reports the intended app/version. The Share Extension target is included in the signed build.
 
-**Failure:** signing/capability error, wrong bundle ID, missing extension target, app cannot install/launch, or build SHA cannot be identified.
+**Failure:** signing/capability error, wrong bundle ID, wrong display name, missing extension target, app cannot install/launch, release gate failure, or build SHA cannot be identified.
 
 **Diagnostic:** EAS build log plus `npm run native:release-check`. Apple/EAS configuration issues belong in `docs/V1_RELEASE_BLOCKERS.md`.
 
@@ -54,19 +68,19 @@ Open:
 
 ### 2.1 Fresh launch
 
-Fresh-install ONE and complete/skip onboarding as offered.
+Fresh-install NEVER and complete/skip onboarding as offered.
 
-**Expected:** deterministic onboarding → auth/app route; no stale prior-account content flashes.
+**Expected:** deterministic onboarding → auth/app route; no stale prior-account content flashes; platinum/chrome visual language is consistent; paging remains correct after device rotation/resize where the platform changes the available window size.
 
-**Failure:** route loop, blank screen, previous-account data flash, or onboarding cannot complete.
+**Failure:** route loop, blank screen, previous-account data flash, broken paging, clipped content or onboarding cannot complete.
 
-**Diagnostic:** Native Acceptance auth/hydration rows.
+**Diagnostic:** Native Acceptance auth/hydration rows plus screen recording if layout-related.
 
 ### 2.2 Sign-up and confirmation
 
 Create a new test account and open its confirmation email on the same iPhone.
 
-**Expected:** `one://auth/callback` opens ONE, PKCE exchange completes, authenticated state appears, and no auth code is logged.
+**Expected:** `one://auth/callback` opens NEVER, PKCE exchange completes, authenticated state appears, and no auth code is logged.
 
 **Failure:** browser dead-end, wrong route, raw code displayed/logged, indefinite spinner, or wrong account appears.
 
@@ -86,9 +100,9 @@ Sign in, force-quit, reopen, sign out, force-quit again and reopen.
 
 Request reset, open the email, return through `one://auth/reset-password`, set a new password, then sign in with it.
 
-**Expected:** reset route opens, password update succeeds, new password works.
+**Expected:** reset route opens as NEVER, password update succeeds, new password works.
 
-**Failure:** reset link cannot return to ONE, code/session error is hidden, or wrong route/account appears.
+**Failure:** reset link cannot return to NEVER, code/session error is hidden, or wrong route/account appears.
 
 **Diagnostic:** deep-link event plus Supabase Auth logs.
 
@@ -102,21 +116,21 @@ Create at least:
 - a normal HTTPS URL
 - a plain note
 
-**Expected:** capture saves locally first; classification/date/time remain reviewable where uncertain; one logical capture produces one `OneItem`; edits are reflected consistently in Inbox, Calendar, Saved, Search and Ask ONE where applicable.
+**Expected:** capture saves locally first; classification/date/time remain reviewable where uncertain; one logical capture produces one `OneItem`; edits are reflected consistently in Inbox, Calendar, Saved, Search and Ask NEVER where applicable.
 
 **Failure:** capture disappears because enrichment/network fails, duplicate logical objects appear across surfaces, or unsupported details are fabricated.
 
 **Diagnostic:** item detail plus Native Acceptance sync state.
 
-## 4 — Camera, Photos and Scan to ONE
+## 4 — Camera, Photos and Scan to NEVER
 
 ### 4.1 Permission matrix
 
 Test Camera and Photos from not-determined → allow, then repeat after denying in iOS Settings.
 
-**Expected:** truthful permission state, clear recovery path, cancellation changes nothing.
+**Expected:** truthful permission state, clear recovery path, cancellation changes nothing. Permanently denied access offers an Open Settings recovery path.
 
-**Failure:** blank screen, crash, success claim after denial, or existing data changes.
+**Failure:** blank screen, crash, success claim after denial, dead-end permission state, or existing data changes.
 
 **Diagnostic:** Native Acceptance Camera/Photos rows.
 
@@ -124,7 +138,7 @@ Test Camera and Photos from not-determined → allow, then repeat after denying 
 
 Test screenshot/photo/document/receipt, including poor lighting and an image with no readable text.
 
-**Expected:** original attachment is copied into ONE private local storage before OCR is trusted; success/empty/failure states are distinct; raw OCR evidence is preserved where applicable; OCR failure does not destroy the image.
+**Expected:** original attachment is copied into NEVER private local storage before OCR is trusted; success/empty/failure states are distinct; raw OCR evidence is preserved where applicable; OCR failure does not destroy the image.
 
 **Failure:** image lost, empty OCR presented as success, or OCR error blocks manual save indefinitely.
 
@@ -162,11 +176,11 @@ Use Safari, Photos, Files and another text-capable app where available. Test:
 
 Run both cold-start and warm-start shares.
 
-**Expected:** ONE appears in the iOS Share Sheet; share opens the main ONE Capture Review path; multiple iOS representations resolve to one primary capture; attachment is secured locally before temporary OS URLs can disappear; malformed/empty payloads are not silently saved; signed-out/offline shares remain local.
+**Expected:** NEVER appears in the iOS Share Sheet; share opens the main NEVER Capture Review path; multiple iOS representations resolve to one primary capture; attachment is secured locally before temporary OS URLs can disappear; malformed/empty payloads are not silently saved; signed-out/offline shares remain local.
 
-**Failure:** ONE missing from Share Sheet, duplicate captures from one handoff, temporary attachment lost, unsupported payload silently saved, or share requires network to preserve the capture.
+**Failure:** NEVER missing from Share Sheet, duplicate captures from one handoff, temporary attachment lost, unsupported payload silently saved, or share requires network to preserve the capture.
 
-**Diagnostic:** Native Acceptance `share_intent`, `share_received`, attachment and OCR events. Current Expo incoming sharing is experimental, so this physical result is mandatory evidence.
+**Diagnostic:** Native Acceptance `share_intent`, `share_received`, attachment and OCR events. Incoming sharing must be accepted on the signed physical build.
 
 ### 5.1 Duplicate protection
 
@@ -200,7 +214,15 @@ Schedule a dated item, add/remove time, move date, clear date, complete it and r
 
 ## 8 — Notifications and reminders
 
-### 8.1 Permission and delivery
+### 8.1 Permission and recovery
+
+Open Settings → Notifications with permission initially undetermined, allow it, then disable notifications from iOS Settings and return to NEVER.
+
+**Expected:** permission state refreshes when the app becomes active again. When permanently denied, the control says `Open Settings` and opens the system settings page rather than re-requesting an impossible prompt.
+
+**Failure:** stale permission status, repeated dead permission prompt, misleading `On` state or no recovery path.
+
+### 8.2 Physical delivery
 
 From Native Acceptance request notification permission and schedule the five-second test notification.
 
@@ -210,17 +232,17 @@ From Native Acceptance request notification permission and schedule the five-sec
 
 **Diagnostic:** Notifications row and scheduled counts.
 
-### 8.2 Reminder lifecycle
+### 8.3 Reminder lifecycle
 
-Create a future reminder, edit title/date/time, reschedule, complete, create another and delete it. Restart after each major state.
+Create a future reminder, edit title/date/time, reschedule, complete, create another and delete it. Restart after each major state. Also test an imported/corrupt invalid date/time fixture in a non-production test account if available.
 
-**Expected:** one active native notification per applicable item; edits replace the old schedule; completion/deletion cancels; restart does not duplicate.
+**Expected:** one active native notification per applicable item; edits replace the old schedule; completion/deletion cancels; restart does not duplicate; invalid calendar/time data is treated as not schedulable rather than repeatedly retried.
 
-**Failure:** duplicate schedules, stale notification after completion/delete, or incorrect content/time.
+**Failure:** duplicate schedules, stale notification after completion/delete, incorrect content/time or repeated schedule errors from invalid stored dates.
 
-**Diagnostic:** Scheduled ONE items count plus item notification status.
+**Diagnostic:** Scheduled NEVER items count plus item notification status.
 
-### 8.3 Tap routing and privacy
+### 8.4 Tap routing and privacy
 
 Tap a live reminder notification. Then test a delivered notification after deleting its item. Finally sign out from account A and sign into account B.
 
@@ -240,7 +262,7 @@ Test exact title, OCR text, URL, tag/context, person/entity, date, receipt merch
 
 **Diagnostic:** compare Search results with active account item list.
 
-## 10 — Ask ONE / ONE AI
+## 10 — Ask NEVER / NEVER AI
 
 With known test memories ask:
 
@@ -251,9 +273,9 @@ With known test memories ask:
 
 Open every source card.
 
-**Expected:** answer uses only accessible saved memories; source IDs open real accessible items; insufficient evidence returns uncertainty/no result; multiple-item answer remains source-backed.
+**Expected:** answer uses only accessible saved memories; source IDs open real accessible items; insufficient evidence returns uncertainty/no result; multiple-item answer remains source-backed. Consumer-visible AI identity is NEVER, not ONE.
 
-**Failure:** fabricated memory/source, deleted/foreign item source, generic factual answer presented as user memory, or AI/network failure masquerades as successful recall.
+**Failure:** fabricated memory/source, deleted/foreign item source, generic factual answer presented as user memory, old consumer branding or AI/network failure masquerades as successful recall.
 
 **Diagnostic:** source cards plus local Search comparison. Turn network off and confirm safe fallback/no-result behavior.
 
@@ -305,13 +327,19 @@ If practical in a staging/test account, exceed 1,000 cloud items using generated
 
 **Diagnostic:** Native Acceptance auth/scheduled rows plus account-specific Search.
 
-## 13 — Attachments and privacy controls
+## 13 — Attachments, privacy and legal links
 
 Save an image/document, restart, go offline, reconnect, then delete the item. Exercise Export My Data and Delete Account on dedicated test accounts.
 
-**Expected:** local attachment survives restart; cloud object is private/user-scoped; retry path is safe; deletion cleans associated data as designed; export contains only active scope; account deletion does not claim App Store subscription cancellation.
+Then open Settings → Privacy and test:
 
-**Failure:** public attachment URL, foreign-account access, missing attachment after normal restart, export leakage or false cancellation claim.
+- Privacy Policy
+- Terms of Use
+- Support
+
+**Expected:** local attachment survives restart; cloud object is private/user-scoped; retry path is safe; deletion cleans associated data as designed; export contains only active scope; account deletion does not claim App Store subscription cancellation; configured public legal/support links open successfully.
+
+**Failure:** public attachment URL, foreign-account access, missing attachment after normal restart, export leakage, false cancellation claim, placeholder/missing production legal URL or broken external link.
 
 **Diagnostic:** Supabase Storage under the test user path plus app UI. Never use a service-role key in the mobile client.
 
@@ -319,7 +347,7 @@ Save an image/document, restart, go offline, reconnect, then delete the item. Ex
 
 ### Development build without RevenueCat configuration
 
-**Expected:** explicit development beta behavior may unlock ONE AI for internal acceptance only.
+**Expected:** explicit development beta behavior may unlock NEVER AI for internal acceptance only.
 
 **Failure:** UI misrepresents this as a real App Store purchase.
 
@@ -333,13 +361,53 @@ Save an image/document, restart, go offline, reconnect, then delete the item. Ex
 
 When App Store Connect/RevenueCat is ready, test purchase, cancel sheet, failed purchase, restore and entitlement refresh.
 
-**Expected:** cancellation is not an error purchase; restore reflects RevenueCat/App Store truth; ONE remains usable according to the real entitlement; ONE AI gate matches entitlement.
+**Expected:** cancellation is not an error purchase; restore reflects RevenueCat/App Store truth; NEVER remains usable according to the real entitlement; NEVER AI gate matches entitlement.
 
 **Failure:** entitlement granted on missing config, cancelled purchase reported as success, or restore invents state.
 
 **Diagnostic:** RevenueCat sandbox dashboard/logs plus paywall state. Do not print customer secrets.
 
-## 15 — Layout, keyboard and accessibility
+## 15 — Premium visual acceptance
+
+Do this separately from functional acceptance. A screen may be functionally correct and still fail visual acceptance.
+
+Test in both Light and Dark mode on at least one modern iPhone. Review these screens deliberately:
+
+1. Onboarding
+2. Sign in
+3. Inbox/Home
+4. Search
+5. Calendar
+6. Saved
+7. Ask NEVER
+8. Scan
+9. Incoming Share Review
+10. Inbox Detail
+11. Item Detail
+12. Settings
+13. Appearance
+14. Notifications
+15. Privacy
+16. NEVER Plans
+
+For each screen check:
+
+- platinum/chrome/graphite hierarchy is consistent;
+- no legacy blue brand accents remain;
+- no visible `ONE`, `Ask ONE`, `Saved to ONE` or similar consumer branding remains;
+- typography feels deliberate rather than template-generated;
+- cards, radii and shadows are restrained;
+- active/inactive states have enough contrast in both modes;
+- loading, empty, permission-denied and error states look intentional;
+- no debug/development copy appears in release-facing screens;
+- haptics are subtle and attached to meaningful actions;
+- navigation does not jump visually between old and new design systems.
+
+**Failure:** any screen feels visually from a different app, legacy brand/color is visible, content is clipped, controls look like generic generated UI, or critical hierarchy is unclear.
+
+Use `docs/NEVER_VISUAL_QA.md` as the visual design authority where applicable.
+
+## 16 — Layout, keyboard and accessibility
 
 Test light/dark mode, a small iPhone and a larger iPhone where available. Enable larger text and VoiceOver for a smoke pass.
 
@@ -349,26 +417,40 @@ Test light/dark mode, a small iPhone and a larger iPhone where available. Enable
 
 **Diagnostic:** screenshot/screen recording with device model and text-size setting.
 
-## 16 — iPad follow-up
+## 17 — iPad and resize acceptance
 
-After iPhone critical acceptance, install the same accepted SHA on iPad.
+After iPhone critical acceptance, install the exact same accepted SHA on a supported iPad. Test full-screen and at least one narrower multitasking/window size where available.
 
-**Expected:** no clipped content; tab bar/forms/chat composer/Scan remain usable; keyboard and native date/time controls remain workable in supported orientation.
+**Expected:** primary content stays centered and bounded rather than stretching edge-to-edge; onboarding paging follows the current window width; tab bar, forms, Ask composer, Scan, Privacy, Notifications, Paywall, Item Detail and incoming Share Review remain usable; native date/time controls remain workable.
 
-**Failure:** layout blocks a V1 critical flow.
+**Failure:** stretched phone UI, clipped content, wrong onboarding page width after resize, keyboard trap, unusable composer or any V1 critical flow blocked by tablet layout.
 
-## 17 — Exit criteria
+For App Store screenshot acceptance, capture the required iPad screenshot set only after this section passes visually.
 
-Mark **READY FOR TESTFLIGHT** only after all critical physical-device rows above pass or have an explicitly accepted non-blocking disposition, required external configuration for the TestFlight build is complete, and the exact tested SHA has a green repository quality gate.
+## 18 — Store/release asset acceptance
 
-Critical iPhone acceptance chain:
+Before TestFlight candidate promotion:
 
-**Share or capture → local preservation → Capture Review → canonical item → optional Calendar/reminder → restart/offline/reconnect → Search/Ask ONE retrieval → logout/account switch privacy**
+- run `npm run release:asset-check`;
+- verify the installed icon is the approved NEVER icon at all relevant system surfaces;
+- verify launch/start state uses NEVER branding;
+- verify App Store screenshots use the accepted production UI and no development diagnostics;
+- verify display name is NEVER on Home Screen, Settings and system share surfaces.
+
+**Failure:** placeholder/default icon, old ONE branding, debug screenshot, wrong display name or asset gate failure.
+
+## 19 — Exit criteria
+
+Mark **READY FOR TESTFLIGHT** only after all critical physical-device rows above pass or have an explicitly accepted non-blocking disposition, required external configuration for the TestFlight build is complete, both manual release gates pass, and the exact tested SHA has a green repository quality gate.
+
+Critical acceptance chain:
+
+**Share or capture → local preservation → Capture Review → canonical item → optional Calendar/reminder → restart/offline/reconnect → Search/Ask NEVER retrieval → logout/account switch privacy → visual acceptance → iPad acceptance**
 
 For every failure record:
 
 - Git SHA/build number
-- device/iOS
+- device/iOS or iPadOS version
 - exact action
 - expected result
 - actual result
