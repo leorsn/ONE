@@ -10,11 +10,13 @@ import {
 import {
   configureRevenueCat,
   getRevenueCatPlan,
+  getRevenueCatPriceStrings,
   getSubscriptionManagementURL,
   isRevenueCatConfigured,
   purchaseRevenueCatPlan,
   restoreRevenueCatPurchases,
-  type PurchaseOutcome
+  type PurchaseOutcome,
+  type RevenueCatPriceStrings
 } from '@/src/subscription/revenueCat';
 
 type PlanContextValue = {
@@ -23,6 +25,7 @@ type PlanContextValue = {
   hasAi: boolean;
   isBetaAccess: boolean;
   billingConfigured: boolean;
+  localizedPrices: RevenueCatPriceStrings;
   managementUrl?: string;
   loading: boolean;
   purchasing: boolean;
@@ -39,6 +42,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const runtimeFallbackPlan = fallbackPlanForRuntime(__DEV__);
   const [plan, setPlan] = useState<OnePlan>(runtimeFallbackPlan);
   const [billingConfigured, setBillingConfigured] = useState(false);
+  const [localizedPrices, setLocalizedPrices] = useState<RevenueCatPriceStrings>({});
   const [managementUrl, setManagementUrl] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
@@ -52,27 +56,35 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       if (!configured) {
         setBillingConfigured(false);
         setPlan(runtimeFallbackPlan);
+        setLocalizedPrices({});
         setManagementUrl(undefined);
         return;
       }
 
-      const [nextPlan, nextManagementUrl] = await Promise.all([
+      const [nextPlan, nextManagementUrl, nextLocalizedPrices] = await Promise.all([
         getRevenueCatPlan(),
-        getSubscriptionManagementURL()
+        getSubscriptionManagementURL(),
+        getRevenueCatPriceStrings().catch((error) => {
+          console.warn('NEVER localized subscription pricing refresh failed', error);
+          return {};
+        })
       ]);
       setBillingConfigured(true);
       setPlan(nextPlan);
+      setLocalizedPrices(nextLocalizedPrices);
       setManagementUrl(nextManagementUrl);
     } catch (error) {
-      console.warn('ONE subscription refresh failed', error);
+      console.warn('NEVER subscription refresh failed', error);
 
       if (isRevenueCatConfigured()) {
         setBillingConfigured(true);
         setPlan('none');
+        setLocalizedPrices({});
         setManagementUrl(undefined);
       } else {
         setBillingConfigured(false);
         setPlan(runtimeFallbackPlan);
+        setLocalizedPrices({});
         setManagementUrl(undefined);
       }
     } finally {
@@ -145,6 +157,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       hasAi: hasPlanFeature(plan, 'ask_one'),
       isBetaAccess: isDevelopmentBetaAccess(__DEV__, billingConfigured),
       billingConfigured,
+      localizedPrices,
       managementUrl,
       loading,
       purchasing,
@@ -152,7 +165,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       restore,
       refresh
     }),
-    [plan, billingConfigured, managementUrl, loading, purchasing, purchase, restore, refresh]
+    [plan, billingConfigured, localizedPrices, managementUrl, loading, purchasing, purchase, restore, refresh]
   );
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;
