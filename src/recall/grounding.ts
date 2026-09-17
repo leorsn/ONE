@@ -51,7 +51,7 @@ export function buildGroundedFallback(
       sourceIds: grounded.itemIds.filter((id) => retrievedItems.some((item) => item.id === id)),
       evidence: 'saved',
       mode: 'deterministic',
-      meta: grounded.meta || 'From your saved ONE memories'
+      meta: grounded.meta || 'From your saved NEVER memories'
     };
   }
 
@@ -64,14 +64,14 @@ export function buildGroundedFallback(
     sourceIds: visible.map((item) => item.id),
     evidence: 'saved',
     mode: 'deterministic',
-    meta: 'Grounded in saved ONE items'
+    meta: 'Grounded in saved NEVER items'
   };
 }
 
 export function noEvidenceAnswer(): GroundedRecallAnswer {
   return {
-    title: "I couldn't find that in ONE.",
-    body: "I couldn't find anything saved in ONE that answers that.",
+    title: "I couldn't find that in NEVER.",
+    body: "I couldn't find anything saved in NEVER that answers that.",
     sourceIds: [],
     evidence: 'saved',
     mode: 'deterministic'
