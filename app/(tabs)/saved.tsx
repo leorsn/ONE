@@ -80,14 +80,19 @@ export default function SavedScreen() {
           subtitle={filter === 'Documents' ? 'Receipts, invoices and documents in one place.' : 'Links, ideas and moments worth keeping.'}
           action={
             filter === 'Documents'
-              ? <Pressable onPress={() => router.push('/scan')} style={[styles.scanButton, { backgroundColor: theme.accentSoft }]}>
-                  <OneIcon name={icons.scan} size={17} color={theme.accent} />
+              ? <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Scan a document"
+                  onPress={() => router.push('/scan')}
+                  style={({ pressed }) => [styles.scanButton, { backgroundColor: theme.chromeSoft, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+                >
+                  <OneIcon name={icons.scan} size={17} color={theme.chrome} />
                 </Pressable>
               : undefined
           }
         />
 
-        <View style={[styles.search, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={[styles.search, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
           <OneIcon name={icons.search} size={18} color={theme.textTertiary} />
           <TextInput
             value={query}
@@ -97,7 +102,7 @@ export default function SavedScreen() {
             style={[styles.searchInput, { color: theme.text }]}
           />
           {query ? (
-            <Pressable onPress={() => setQuery('')}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Clear search" onPress={() => setQuery('')}>
               <OneIcon name={icons.close} size={15} color={theme.textTertiary} />
             </Pressable>
           ) : null}
@@ -116,12 +121,12 @@ export default function SavedScreen() {
                 style={[
                   styles.filter,
                   {
-                    backgroundColor: active ? theme.text : theme.fill,
-                    borderColor: active ? theme.text : theme.fill
+                    backgroundColor: active ? theme.accent : theme.fill,
+                    borderColor: active ? theme.accent : theme.border
                   }
                 ]}
               >
-                <Text style={[styles.filterText, { color: active ? theme.background : theme.textSecondary }]}>
+                <Text style={[styles.filterText, { color: active ? theme.onAccent : theme.textSecondary }]}>
                   {name}
                 </Text>
               </Pressable>
@@ -144,7 +149,7 @@ export default function SavedScreen() {
               {savedItems.length ? (
                 savedItems.map((item) => <OneItemRow key={item.id} item={item} />)
               ) : (
-                <EmptyState icon={icons.saved} title="Nothing here yet" body="Share something to ONE or save an idea from your inbox." />
+                <EmptyState icon={icons.saved} title="Nothing here yet" body="Share something to NEVER or save an idea from your inbox." />
               )}
             </Surface>
           </View>
@@ -170,10 +175,10 @@ export default function SavedScreen() {
 
     return (
       <View style={styles.documents}>
-        <View style={[styles.summaryCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View style={[styles.summaryCard, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>
           <View style={styles.summaryTop}>
             <View>
-              <Text style={[styles.summaryEyebrow, { color: theme.textTertiary }]}>{summary.monthLabel.toUpperCase()}</Text>
+              <Text style={[styles.summaryEyebrow, { color: theme.chrome }]}>{summary.monthLabel.toUpperCase()}</Text>
               <Text style={[styles.summaryAmount, { color: theme.text }]}>
                 {primaryTotal ? formatCurrencyTotal(primaryTotal, 'de-DE') : '€0.00'}
               </Text>
@@ -222,21 +227,21 @@ export default function SavedScreen() {
             onPress={() => router.push('/scan')}
             style={({ pressed }) => [
               styles.actionButton,
-              { backgroundColor: theme.accent, opacity: pressed ? 0.72 : 1 }
+              { backgroundColor: theme.accent, borderColor: theme.accent, opacity: pressed ? 0.72 : 1 }
             ]}
           >
-            <OneIcon name={icons.scan} size={17} color="#FFFFFF" />
-            <Text style={styles.actionButtonText}>Scan document</Text>
+            <OneIcon name={icons.scan} size={17} color={theme.onAccent} />
+            <Text style={[styles.actionButtonText, { color: theme.onAccent }]}>Scan document</Text>
           </Pressable>
           <Pressable
             onPress={() => router.push({ pathname: '/ask', params: { q: 'How much did I spend this month?' } })}
             style={({ pressed }) => [
               styles.actionButton,
-              { backgroundColor: theme.fill, opacity: pressed ? 0.62 : 1 }
+              { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }
             ]}
           >
             <OneIcon name={icons.ask} size={17} color={theme.text} />
-            <Text style={[styles.actionButtonText, { color: theme.text }]}>Ask ONE</Text>
+            <Text style={[styles.actionButtonText, { color: theme.text }]}>Ask NEVER</Text>
           </Pressable>
         </View>
 
@@ -253,12 +258,12 @@ export default function SavedScreen() {
                 style={[
                   styles.documentFilter,
                   {
-                    backgroundColor: active ? theme.accentSoft : theme.fill,
-                    borderColor: active ? theme.accent : 'transparent'
+                    backgroundColor: active ? theme.chromeSoft : theme.fill,
+                    borderColor: active ? theme.chrome : theme.border
                   }
                 ]}
               >
-                <Text style={[styles.documentFilterText, { color: active ? theme.accent : theme.textSecondary }]}>
+                <Text style={[styles.documentFilterText, { color: active ? theme.chrome : theme.textSecondary }]}>
                   {entry.label}
                 </Text>
               </Pressable>
@@ -326,13 +331,13 @@ export default function SavedScreen() {
         onPress={onPress}
         style={({ pressed }) => [
           styles.insightCard,
-          { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.65 : 1 }
+          { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow, opacity: pressed ? 0.6 : 1 }
         ]}
       >
         {content}
       </Pressable>
     ) : (
-      <View style={[styles.insightCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <View style={[styles.insightCard, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>
         {content}
       </View>
     );
@@ -347,7 +352,7 @@ export default function SavedScreen() {
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
         style={({ pressed }) => [
           styles.documentRow,
-          { borderBottomColor: theme.border, opacity: pressed ? 0.62 : 1 }
+          { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }
         ]}
       >
         <IconTile icon={iconForDocument(item.documentKind)} size={40} />
@@ -391,44 +396,48 @@ function prettyDate(iso?: string) {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   search: {
-    minHeight: 52,
-    borderRadius: 17,
+    minHeight: 54,
+    borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 14,
+    paddingHorizontal: 15,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10
+    gap: 10,
+    shadowOpacity: 0.05,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 7 },
+    elevation: 1
   },
-  searchInput: { flex: 1, fontSize: 15 },
+  searchInput: { flex: 1, fontSize: 14.75, letterSpacing: -0.08 },
   filters: { gap: 8, paddingRight: 20 },
-  filter: { minHeight: 34, paddingHorizontal: 14, borderRadius: 14, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  filterText: { fontSize: 12.5, fontWeight: '700' },
+  filter: { minHeight: 34, paddingHorizontal: 14, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  filterText: { fontSize: 12, fontWeight: '700' },
   block: { gap: 10 },
-  scanButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  documents: { gap: 16 },
-  summaryCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 24, padding: 18 },
+  scanButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  documents: { gap: 17 },
+  summaryCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 20, padding: 18, shadowOpacity: 0.06, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 1 },
   summaryTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 },
-  summaryEyebrow: { fontSize: 10.5, fontWeight: '900', letterSpacing: 1 },
-  summaryAmount: { marginTop: 7, fontSize: 32, lineHeight: 38, fontWeight: '900', letterSpacing: -1 },
-  summaryCaption: { marginTop: 2, fontSize: 12.5 },
-  multiCurrency: { marginTop: 7, fontSize: 11.5 },
-  metrics: { marginTop: 17, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
+  summaryEyebrow: { fontSize: 10, fontWeight: '700', letterSpacing: 1.25 },
+  summaryAmount: { marginTop: 8, fontSize: 31, lineHeight: 37, fontWeight: '700', letterSpacing: -1.05 },
+  summaryCaption: { marginTop: 3, fontSize: 12 },
+  multiCurrency: { marginTop: 7, fontSize: 11 },
+  metrics: { marginTop: 18, paddingTop: 15, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
   metric: { flex: 1 },
-  metricValue: { fontSize: 16, fontWeight: '800' },
-  metricLabel: { marginTop: 3, fontSize: 11.5 },
+  metricValue: { fontSize: 15.5, fontWeight: '700' },
+  metricLabel: { marginTop: 4, fontSize: 11 },
   insights: { flexDirection: 'row', gap: 10 },
-  insightCard: { flex: 1, minWidth: 0, borderWidth: StyleSheet.hairlineWidth, borderRadius: 19, padding: 13 },
-  insightLabel: { marginTop: 11, fontSize: 10.5, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.6 },
-  insightValue: { marginTop: 5, fontSize: 15, fontWeight: '800' },
-  insightMeta: { marginTop: 3, fontSize: 11.5 },
+  insightCard: { flex: 1, minWidth: 0, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 14, shadowOpacity: 0.045, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 1 },
+  insightLabel: { marginTop: 11, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.7 },
+  insightValue: { marginTop: 5, fontSize: 14.5, fontWeight: '700' },
+  insightMeta: { marginTop: 4, fontSize: 11 },
   documentActions: { flexDirection: 'row', gap: 9 },
-  actionButton: { flex: 1, minHeight: 48, borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  actionButtonText: { color: '#FFFFFF', fontSize: 13, fontWeight: '800' },
-  documentFilter: { minHeight: 34, paddingHorizontal: 13, borderRadius: 13, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
-  documentFilterText: { fontSize: 12, fontWeight: '700' },
-  documentRow: { minHeight: 76, paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  actionButton: { flex: 1, minHeight: 48, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  actionButtonText: { fontSize: 12.75, fontWeight: '700' },
+  documentFilter: { minHeight: 34, paddingHorizontal: 13, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  documentFilterText: { fontSize: 11.75, fontWeight: '700' },
+  documentRow: { minHeight: 78, paddingHorizontal: 15, paddingVertical: 11, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
   documentContent: { flex: 1, minWidth: 0 },
-  documentTitle: { fontSize: 15, fontWeight: '700' },
-  documentMeta: { marginTop: 4, fontSize: 11.5 },
-  documentAmount: { fontSize: 13.5, fontWeight: '800' }
+  documentTitle: { fontSize: 14.75, fontWeight: '700', letterSpacing: -0.1 },
+  documentMeta: { marginTop: 4, fontSize: 11.25 },
+  documentAmount: { fontSize: 13.25, fontWeight: '700' }
 });
