@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -36,7 +36,14 @@ export default function OnboardingScreen() {
   const { configured, session } = useAuth();
   const { complete } = useOnboarding();
   const scrollRef = useRef<ScrollView>(null);
+  const previousWidthRef = useRef(width);
   const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (previousWidthRef.current === width) return;
+    previousWidthRef.current = width;
+    scrollRef.current?.scrollTo({ x: width * index, animated: false });
+  }, [width, index]);
 
   function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
     const next = Math.round(event.nativeEvent.contentOffset.x / width);
