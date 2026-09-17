@@ -60,7 +60,7 @@ test('editing reminder wall-clock data reschedules while completion cancels the 
   assert.equal(notificationTransition(previous, { ...previous, completed: true }), 'cancel');
 });
 
-test('orphan cleanup removes stale, duplicate and previous-scope ONE notifications only', () => {
+test('orphan cleanup removes stale, duplicate and previous-scope NEVER notifications only', () => {
   const scheduled = [
     { identifier: 'native-1', itemId: 'reminder-1' },
     { identifier: 'native-duplicate', itemId: 'reminder-1' },
@@ -81,7 +81,7 @@ test('account-scoped async work cannot apply after the active scope changes', ()
   assert.equal(canApplyScopedSyncResult('user:user-a', null), false);
 });
 
-test('missing RevenueCat configuration unlocks ONE AI only in development clients', () => {
+test('missing RevenueCat configuration unlocks NEVER AI only in development clients', () => {
   assert.equal(fallbackPlanForRuntime(true), 'one_ai');
   assert.equal(isDevelopmentBetaAccess(true, false), true);
   assert.equal(fallbackPlanForRuntime(false), 'none');
