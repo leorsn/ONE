@@ -46,9 +46,19 @@ test('subscription surfaces prefer localized RevenueCat storefront prices and av
 test('subscription purchase buttons fail closed when the current RevenueCat offering does not expose the plan', async () => {
   const upgrade = await text('app/upgrade.tsx');
   assert.match(upgrade, /const availableInStorefront = Boolean\(localizedPrices\[planKey\]\)/);
-  assert.match(upgrade, /const canPurchase = billingConfigured && availableInStorefront && !purchasing/);
+  assert.match(upgrade, /const purchaseReady = billingConfigured && availableInStorefront/);
+  assert.match(upgrade, /const canPurchase = purchaseReady && !purchasing/);
   assert.match(upgrade, /disabled=\{!canPurchase\}/);
   assert.match(upgrade, /Unavailable in App Store/);
+});
+
+test('subscription purchase loading is scoped to the selected NEVER plan', async () => {
+  const upgrade = await text('app/upgrade.tsx');
+  assert.match(upgrade, /useState<PurchasePlan \| null>\(null\)/);
+  assert.match(upgrade, /const isThisPlanPurchasing = purchasing && purchasingPlan === planKey/);
+  assert.match(upgrade, /setPurchasingPlan\(planKey\)/);
+  assert.match(upgrade, /setPurchasingPlan\(null\)/);
+  assert.match(upgrade, /purchasing && !purchasingPlan/);
 });
 
 test('App Store release environment requires both billing and Terms configuration', async () => {
