@@ -14,7 +14,7 @@ const boundedScreens = [
   ['app/settings/notifications.tsx', /content:[\s\S]*maxWidth:\s*760/],
   ['app/settings/appearance.tsx', /content:[\s\S]*maxWidth:\s*760/],
   ['app/share.tsx', /content:[\s\S]*maxWidth:\s*760/],
-  ['app/upgrade.tsx', /content:[\s\S]*maxWidth:\s*760/],
+  ['app/upgrade.tsx', /content:[\s\S]*maxWidth:\s*680/],
   ['app/handle-share.tsx', /content:[\s\S]*maxWidth:\s*760/],
   ['app/item/[id].tsx', /content:[\s\S]*maxWidth:\s*760/],
   ['app/inbox/[id].tsx', /content:[\s\S]*maxWidth:\s*760/],
