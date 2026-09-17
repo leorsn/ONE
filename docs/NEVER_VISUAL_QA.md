@@ -1,8 +1,14 @@
 # NEVER — Visual QA & Premium iPhone Acceptance
 
-This document is the visual acceptance contract for NEVER. It complements the functional device test plan. A screen is not visually accepted because it merely works; it must feel coherent, native, restrained and premium on a real iPhone.
+This document is the visual acceptance contract for NEVER. It complements `docs/NEVER_DESIGN_BIBLE.md` and the functional device test plan. A screen is not visually accepted because it merely works; it must feel coherent, native, restrained and premium on a real iPhone.
 
 ## 1. Design canon
+
+`docs/NEVER_DESIGN_BIBLE.md` is the canonical visual specification. The approved NEVER App Store mockup campaign is the visual reference for atmosphere, hierarchy, platinum treatment, whitespace and restraint.
+
+The core comparison question for every device screenshot is:
+
+> Would this screen look natural inside the App Store campaign we approved?
 
 NEVER should read as a private, high-end personal memory product — not as a template, dashboard generator or generic AI application.
 
@@ -10,13 +16,13 @@ NEVER should read as a private, high-end personal memory product — not as a te
 - Platinum, titanium, graphite, gunmetal and chrome are the primary visual language.
 - Blue is not a brand color.
 - Chrome is an accent, not a fill applied everywhere.
-- Light mode should feel mineral and softly metallic rather than pure white.
+- Light mode should feel mineral and softly metallic rather than sterile white.
 - Dark mode should feel black/graphite rather than navy.
 - Success, warning and danger colors are functional only.
 
 ### Typography
-- Prefer calm iOS-like hierarchy over oversized dashboard typography.
-- Headlines should be strong but not excessively heavy.
+- Prefer calm iOS-like editorial hierarchy over dashboard typography.
+- Headlines should be confident but not excessively heavy.
 - Avoid unnecessary all-caps except compact status/eyebrow labels.
 - Body copy must remain readable at native device scale.
 - No text should clip at standard Dynamic Type settings.
@@ -39,29 +45,31 @@ Run the following sequence on a real iPhone after pulling the latest `dev/founda
 
 ### A. Launch / root loading
 - Cold launch from terminated state.
-- NEVER loader is centered, stable and visually quiet.
+- NEVER wordmark loader is centered, stable and visually quiet.
 - No white or blue flash before the theme loads.
 - Status bar matches light/dark mode.
 - Transition from loader to destination has no layout jump.
 
 ### B. Onboarding
 - Review all three slides in light and dark mode.
-- Brand mark, rings and mini-cards should feel metallic, not cartoonish.
+- CAPTURE, SHARE and RECALL product vignettes must feel like miniature NEVER interfaces, not abstract illustrations.
+- The vignettes must match the platinum/card language used in the real app.
 - Copy hierarchy remains readable without looking like a landing page.
-- Swipe paging feels native.
+- Swipe paging feels native and remains aligned after orientation/window-size changes.
 - Active pagination indicator is visible but restrained.
 - Final CTA is clearly primary without looking oversized.
 
 ### C. Authentication
 - Sign in and create-account states.
+- NEVER wordmark, editorial headline and form surface feel like the same product as onboarding.
 - Keyboard does not cover the active field or CTA.
-- Inputs, card and brand mark align visually.
 - Error messages are readable and not visually dominant.
 - Password-reset and auth-callback states use the same design language.
 
 ### D. Inbox / Home
 - This is the primary product-quality checkpoint.
-- Capture field must immediately read as the main action.
+- NEVER wordmark header and capture field establish the hierarchy immediately.
+- Capture field must read as the main action.
 - Scan / Share / Ask actions must not compete with capture.
 - Today, Inbox, Upcoming and Saved sections have clear but calm hierarchy.
 - Empty states look intentional rather than unfinished.
@@ -70,9 +78,9 @@ Run the following sequence on a real iPhone after pulling the latest `dev/founda
 
 ### E. Manual capture & review
 - Test a simple note, reminder, appointment and ambiguous capture.
-- NEVER understood/review state should feel like an intelligent assistant, not a form generator.
-- Type and destination chips remain legible in both themes.
-- Active chips use theme tokens; no hard-coded white/blue artifacts.
+- “Recognized and organized” / review state should feel like an intelligent assistant, not a form generator.
+- Type options and destination controls remain restrained; selected states should use elevation/neutral contrast rather than loud dark pills.
+- Confidence should read as supporting evidence, not as a gamified score.
 - Review warnings are noticeable without feeling alarming.
 - Keyboard navigation and scrolling remain smooth.
 
@@ -94,7 +102,8 @@ Run the following sequence on a real iPhone after pulling the latest `dev/founda
 
 ### H. Saved / Documents
 - Saved memory should feel like a private archive, not a file-manager template.
-- Filters/chips are restrained and consistent.
+- The “Document memory” summary must read as context, not a finance dashboard.
+- Filters use quiet neutral selected states.
 - Document totals, merchant, date and metadata remain aligned.
 - Image/document previews crop correctly.
 - Empty Saved and Documents states share the same visual grammar.
@@ -105,56 +114,70 @@ Run the following sequence on a real iPhone after pulling the latest `dev/founda
 - Dense days do not feel cramped.
 - Event rows align with Inbox/Saved row language.
 
-### J. Item detail
-- Navigation controls, icon tile, metadata and editable title have one clear hierarchy.
+### J. Memory / Item detail
+- The screen reads first as a memory object and second as an editor.
+- Identity, editable title and structured sections have one clear hierarchy.
 - Date/time native controls fit the NEVER styling around them.
 - Context, notes and recognized text are visually separated.
 - Saved/completed controls are easy to understand.
-- Delete action is clearly destructive but not visually overemphasized.
+- Delete action is clearly destructive but not visually overemphasized or duplicated.
 
 ### K. Scan / OCR
 - Camera and Photos permission flows are tested on real hardware.
-- Empty scanner state feels purposeful.
+- Empty state communicates “paper into memory,” not a generic scanner utility.
 - Preview image radius and crop are correct.
 - OCR reading/ready/no-text/failed states do not cause layout jumps.
-- Capture Review remains visually identical to manual/share review.
+- “Recognized and organized” Capture Review matches manual/share review.
 - Original-file security message remains secondary.
 
-### L. Native Share Extension
+### L. Native Share Extension / Incoming Share Review
 - Test from Safari, Mail and Photos.
 - Share-to-NEVER entry uses correct visible app name in the OS.
 - Share flow opens once and does not duplicate.
+- Incoming review follows the visual story Original → NEVER recognition → Review → Save.
 - Attachment securing, OCR and save states are visually coherent.
 - No old ONE wording appears in alerts, labels or fallback states.
 
 ### M. Settings
-- Account, plan, appearance, notifications and privacy rows use consistent spacing.
+- Account summary, membership, preferences and account controls use consistent spacing.
+- Settings should feel designed, not like an unmodified system table.
 - Secondary settings do not look like disconnected mini-apps.
-- Sign-out/destructive actions are correctly de-emphasized/emphasized.
+- Sign-out and destructive actions are correctly de-emphasized/emphasized.
 
 ### N. Appearance
 - System, Light and Dark previews clearly communicate the choice.
+- Nature and Wordmark app icons appear sharp, correctly rounded and visually balanced.
 - Switching mode does not produce flashes or stale colors.
 - Verify all core screens after changing mode while the app is running.
+- Test native alternate-icon switching on the installed iOS build.
 
 ### O. Notifications
 - Permission status is accurate.
-- Enable state and reminder timing selection are visually clear.
+- Enable/open-settings state and reminder timing selection are visually clear.
 - Test a real local notification.
 - Notification fallback text must say NEVER where the product is named.
 
 ### P. Privacy / Export
-- Privacy page feels credible and restrained.
+- Privacy page feels credible, editorial and restrained.
+- User-facing copy must avoid internal architecture jargon and unverified security claims.
 - Export action is understandable.
 - Exported JSON filename and share-sheet title use NEVER.
-- Legal pre-release notice is visually secondary.
+- Privacy Policy, Terms and Support rows open the configured production URLs.
+- Missing URL configuration may be shown only in development; distributed consumer builds must not expose release-engineering instructions.
 
 ### Q. Plans
-- NEVER and NEVER AI cards are clearly differentiated without a loud pricing-page aesthetic.
-- Highlighting uses chrome rather than blue.
+- NEVER and NEVER AI use the same premium visual system; AI must not become a purple/blue “featured SaaS card.”
+- Storefront price and introductory-offer truth remain readable and secondary to plan value.
 - Disabled billing states look intentionally unavailable, not broken.
 - Restore purchase and beta messaging are readable.
+- Consumer builds must not expose RevenueCat/configuration instructions.
 - Visible product names are NEVER and NEVER AI; technical product IDs may remain legacy-compatible internally.
+
+### R. Rotation / iPad width sanity
+- Rotate iPhone where supported and verify no clipped titles, broken previews or stale pager positions.
+- On iPad / Split View, primary content stays bounded rather than stretching edge-to-edge.
+- Onboarding paging realigns after width changes.
+- No “desktop dashboard” layout appears simply because more width is available.
 
 ## 3. Cross-screen visual defect checklist
 
@@ -174,39 +197,45 @@ For every screen inspect:
 - inconsistent icon sizes;
 - excessive shadows;
 - abrupt loading-state layout changes;
-- old ONE product wording.
+- excessive pills/badges;
+- dashboard-like KPI blocks;
+- old ONE product wording;
+- internal engineering or release-configuration copy visible to consumers.
 
 ## 4. Premium acceptance threshold
 
 A screen is accepted only when all of the following are true:
-1. It looks coherent with the rest of NEVER without explanation.
+1. It looks coherent with the approved NEVER App Store campaign without explanation.
 2. No element immediately reads as a default template component.
-3. The primary action is obvious within roughly one second.
+3. The primary action or primary information is obvious within roughly one second.
 4. Secondary information is visually quieter than primary content.
 5. Light and dark modes both look intentionally designed.
 6. No legacy blue or visible ONE branding remains.
 7. Native controls do not visually clash with custom components.
 8. Touch targets feel comfortable on-device.
 9. Long/empty/error/loading states still look finished.
-10. The screen would be acceptable in a private TestFlight beta without a redesign disclaimer.
+10. Product copy is truthful and contains no internal implementation language.
+11. The screen would be acceptable in a private TestFlight beta without a redesign disclaimer.
 
 ## 5. Device-test capture protocol
 
 During the next physical iPhone session, capture screenshots of:
 - cold-launch loader;
-- each onboarding slide;
-- sign-in;
+- each onboarding product vignette;
+- sign-in and create-account;
+- password reset / callback if practical;
 - Inbox with data and empty Inbox;
 - Capture Review with a confident and ambiguous item;
+- Inbox review / proposed action state;
 - Ask NEVER empty, loading and answered states;
 - Search results and no-results;
-- Saved/Documents;
+- Saved and Documents;
 - Calendar;
-- Item Detail;
+- Memory / Item Detail;
 - Scan empty, reading and result;
-- native Share flow;
+- native Share flow and incoming review;
 - Settings;
-- Appearance in light/dark;
+- Appearance in light/dark and both app icons;
 - Notifications permission state;
 - Privacy;
 - Plans.
