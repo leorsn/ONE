@@ -1,5 +1,9 @@
 import type { OneItem } from '@/src/types/item';
 
+export function isValidReminderSchedule(item: Pick<OneItem, 'date' | 'time'>) {
+  return getReminderDate(item, 0) !== null;
+}
+
 export function getReminderDate(
   item: Pick<OneItem, 'date' | 'time'>,
   leadMinutes = 10
