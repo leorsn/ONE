@@ -1,19 +1,19 @@
-# ONE Capture → Recall Flow
+# NEVER Capture → Recall Flow
 
 ## Product invariant
 
-ONE follows one core path:
+NEVER follows one core path:
 
 **Capture → Understand → Review → Save locally → Sync when possible → Recall from stored data**
 
-The basic app must remain useful without ONE AI and without a network connection.
+The basic app must remain useful without NEVER AI and without a network connection.
 
 ## 1. Capture sources
 
-ONE currently accepts:
+NEVER currently accepts:
 
 - manual quick capture
-- native Share to ONE text and URLs
+- native Share to NEVER text and URLs
 - shared screenshots/images
 - document/receipt scans from camera or photo library
 
@@ -38,7 +38,7 @@ Supported capture classifications include:
 
 The persisted cloud `type` model remains intentionally small. `receipt` persists as a `document`; `screenshot` can persist as a `note` with `sourceType=screenshot`. This avoids unnecessary database-type expansion while preserving source and document semantics.
 
-ONE Basic uses deterministic rules first. ONE AI may enhance recall/organization later, but Basic capture must not depend on an AI response.
+NEVER Basic uses deterministic rules first. NEVER AI may enhance recall/organization later, but Basic capture must not depend on an AI response.
 
 ## 3. User context priority
 
@@ -52,7 +52,7 @@ Example:
 - `gift` and `dad` become durable recall context
 - the original screenshot and OCR text are preserved
 
-This does not mean ONE invents additional details. User context only changes what the user explicitly indicated.
+This does not mean NEVER invents additional details. User context only changes what the user explicitly indicated.
 
 ## 4. Confidence and no-fabrication rules
 
@@ -70,7 +70,7 @@ Current rules include:
 - currency remains blank when it was not explicit
 - uncertain fields remain editable in review
 
-Review is designed around: **correct only what ONE got wrong**.
+Review is designed around: **correct only what NEVER got wrong**.
 
 ## 5. Share review
 
@@ -96,11 +96,11 @@ Malformed or partially resolved share payloads show a truthful fallback state in
 
 ## 6. Scan review
 
-Camera/photo scans use the same interpretation and review rules as Share to ONE.
+Camera/photo scans use the same interpretation and review rules as Share to NEVER.
 
-The original image is preserved locally before ONE attempts cloud synchronization.
+The original image is preserved locally before NEVER attempts cloud synchronization.
 
-For receipts/invoices, ONE may prefill merchant/date/amount/currency where deterministic extraction supports it. Missing or uncertain values stay blank/reviewable.
+For receipts/invoices, NEVER may prefill merchant/date/amount/currency where deterministic extraction supports it. Missing or uncertain values stay blank/reviewable.
 
 ## 7. Local-first persistence
 
@@ -119,7 +119,7 @@ When Supabase is unavailable:
 1. capture remains stored locally
 2. item remains visible
 3. sync state remains pending for an authenticated user
-4. foregrounding ONE retries synchronization
+4. foregrounding NEVER retries synchronization
 
 A cloud error must not erase the local capture.
 
@@ -133,6 +133,8 @@ For authenticated users:
 2. sync uploads it to the private `one-attachments` bucket
 3. only the private storage path is written to the cloud item
 4. the local URI remains device-only for local preview/fallback
+
+`one-attachments` is a legacy technical resource name and is intentionally not renamed during release hardening.
 
 Attachment upload failure leaves the item pending rather than discarding it.
 
@@ -186,7 +188,7 @@ Inbox expresses lifecycle rather than acting as a generic database list:
 
 Future appointments/reminders/events/dated tasks remain visible under Upcoming even if the capture is also marked saved.
 
-ONE Calendar shows ONE's own dated items. **No Apple Calendar or Google Calendar synchronization is claimed.** External calendar integrations remain future architecture only.
+NEVER Calendar shows NEVER's own dated items. **No Apple Calendar or Google Calendar synchronization is claimed.** External calendar integrations remain future architecture only.
 
 ## 13. Saved / durable memory
 
@@ -199,11 +201,11 @@ Saved is the durable memory layer for content such as:
 - receipts
 - reference material
 
-ONE preserves user context, extracted text, structured document fields, created/updated timestamps and attachment references where available.
+NEVER preserves user context, extracted text, structured document fields, created/updated timestamps and attachment references where available.
 
-## 14. Ask ONE grounding
+## 14. Ask NEVER grounding
 
-Ask ONE searches ONE's stored items. Semantic search may augment lexical retrieval for ONE AI, but the answer layer must use actual stored fields.
+Ask NEVER searches NEVER's stored items. Semantic search may augment lexical retrieval for NEVER AI, but the answer layer must use actual stored fields.
 
 Grounded direct-answer examples include:
 
@@ -213,7 +215,7 @@ Grounded direct-answer examples include:
 - `Which receipt was from IKEA?`
 - `What did I save about the hotel in Paris?`
 
-If the best stored item has no requested location/date, ONE says that the field is not stored. If retrieval returns no item, ONE says it could not find that in ONE. Generic chatbot knowledge must not be presented as personal memory.
+If the best stored item has no requested location/date, NEVER says that the field is not stored. If retrieval returns no item, NEVER says it could not find that in NEVER. Generic chatbot knowledge must not be presented as personal memory.
 
 ## 15. Error behavior
 
