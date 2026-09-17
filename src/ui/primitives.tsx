@@ -179,6 +179,9 @@ export function PrimaryButton({
 
 export const uiStyles = StyleSheet.create({
   screenContent: {
+    width: '100%',
+    maxWidth: 760,
+    alignSelf: 'center',
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 124,
@@ -190,7 +193,7 @@ const styles = StyleSheet.create({
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 18, paddingTop: 2 },
   eyebrow: { fontSize: 10.5, fontWeight: '700', letterSpacing: 2.1, marginBottom: 9 },
   pageTitle: { fontSize: 35, lineHeight: 39, fontWeight: '700', letterSpacing: -1.25 },
-  pageSubtitle: { marginTop: 8, maxWidth: 330, fontSize: 13.5, lineHeight: 20 },
+  pageSubtitle: { marginTop: 8, maxWidth: 420, fontSize: 13.5, lineHeight: 20 },
   sectionHeader: { minHeight: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'baseline', gap: 9 },
   sectionTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.25 },
