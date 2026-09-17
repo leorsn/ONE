@@ -10,12 +10,13 @@ import {
 import {
   configureRevenueCat,
   getRevenueCatPlan,
-  getRevenueCatPriceStrings,
+  getRevenueCatStorefront,
   getSubscriptionManagementURL,
   isRevenueCatConfigured,
   purchaseRevenueCatPlan,
   restoreRevenueCatPurchases,
   type PurchaseOutcome,
+  type RevenueCatIntroOffer,
   type RevenueCatPriceStrings
 } from '@/src/subscription/revenueCat';
 
@@ -26,6 +27,7 @@ type PlanContextValue = {
   isBetaAccess: boolean;
   billingConfigured: boolean;
   localizedPrices: RevenueCatPriceStrings;
+  introOffers: Partial<Record<PaidOnePlan, RevenueCatIntroOffer>>;
   managementUrl?: string;
   loading: boolean;
   purchasing: boolean;
@@ -43,6 +45,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [plan, setPlan] = useState<OnePlan>(runtimeFallbackPlan);
   const [billingConfigured, setBillingConfigured] = useState(false);
   const [localizedPrices, setLocalizedPrices] = useState<RevenueCatPriceStrings>({});
+  const [introOffers, setIntroOffers] = useState<Partial<Record<PaidOnePlan, RevenueCatIntroOffer>>>({});
   const [managementUrl, setManagementUrl] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
@@ -57,21 +60,23 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         setBillingConfigured(false);
         setPlan(runtimeFallbackPlan);
         setLocalizedPrices({});
+        setIntroOffers({});
         setManagementUrl(undefined);
         return;
       }
 
-      const [nextPlan, nextManagementUrl, nextLocalizedPrices] = await Promise.all([
+      const [nextPlan, nextManagementUrl, storefront] = await Promise.all([
         getRevenueCatPlan(),
         getSubscriptionManagementURL(),
-        getRevenueCatPriceStrings().catch((error) => {
-          console.warn('NEVER localized subscription pricing refresh failed', error);
-          return {};
+        getRevenueCatStorefront().catch((error) => {
+          console.warn('NEVER subscription storefront refresh failed', error);
+          return { prices: {}, introOffers: {} };
         })
       ]);
       setBillingConfigured(true);
       setPlan(nextPlan);
-      setLocalizedPrices(nextLocalizedPrices);
+      setLocalizedPrices(storefront.prices);
+      setIntroOffers(storefront.introOffers);
       setManagementUrl(nextManagementUrl);
     } catch (error) {
       console.warn('NEVER subscription refresh failed', error);
@@ -80,11 +85,13 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         setBillingConfigured(true);
         setPlan('none');
         setLocalizedPrices({});
+        setIntroOffers({});
         setManagementUrl(undefined);
       } else {
         setBillingConfigured(false);
         setPlan(runtimeFallbackPlan);
         setLocalizedPrices({});
+        setIntroOffers({});
         setManagementUrl(undefined);
       }
     } finally {
@@ -158,6 +165,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       isBetaAccess: isDevelopmentBetaAccess(__DEV__, billingConfigured),
       billingConfigured,
       localizedPrices,
+      introOffers,
       managementUrl,
       loading,
       purchasing,
@@ -165,7 +173,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       restore,
       refresh
     }),
-    [plan, billingConfigured, localizedPrices, managementUrl, loading, purchasing, purchase, restore, refresh]
+    [plan, billingConfigured, localizedPrices, introOffers, managementUrl, loading, purchasing, purchase, restore, refresh]
   );
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;
