@@ -1,12 +1,12 @@
-# ONE PO003 — Share Extension, Search & Grounded Recall
+# NEVER PO003 — Share Extension, Search & Grounded Recall
 
 ## Product loop
 
-PO003 extends the existing ONE foundation without creating parallel item models:
+PO003 extends the existing NEVER foundation without creating parallel item models:
 
 `share / capture → normalize → understand → store → retrieve → answer`
 
-The same `OneItem` model and PO002 capture interpretation remain authoritative.
+The same `OneItem` model and PO002 capture interpretation remain authoritative. `OneItem` is a legacy technical type name and is intentionally preserved.
 
 ## Share ingestion
 
@@ -29,12 +29,14 @@ The existing native handoff route (`+native-intent.ts` → `/handle-share`) and 
 
 ## iOS Share Extension boundary
 
-The current Expo config already declares:
+The current Expo config already declares these legacy technical identifiers:
 
 - app bundle: `app.one.mobile`
 - extension bundle: `app.one.mobile.ShareExtension`
 - App Group: `group.app.one.mobile`
 - text, web URL/page, image, file and attachment activation rules
+
+These identifiers are intentionally not renamed during the NEVER release hardening.
 
 `expo-sharing` generates the native target through Continuous Native Generation/prebuild. A new native binary is therefore required after config/plugin changes; Expo Go is not a substitute for final Share Sheet acceptance.
 
@@ -44,7 +46,7 @@ No signing certificates, provisioning profiles or secrets are committed.
 
 ## Search
 
-`src/search/searchItems.ts` remains the deterministic lexical scorer and now indexes:
+`src/search/searchItems.ts` remains the deterministic lexical scorer and indexes:
 
 - title
 - summary
@@ -59,7 +61,7 @@ No signing certificates, provisioning profiles or secrets are committed.
 
 Ranking prioritizes exact title, context/person/entity matches, then summary/raw text and recency. Lightweight German/English plural normalization is included.
 
-`src/search/retrieve.ts` is the authoritative retrieval combiner for Search and Ask ONE. It provides:
+`src/search/retrieve.ts` is the authoritative retrieval combiner for Search and Ask NEVER. It provides:
 
 - local-first retrieval
 - recent items for empty Search
@@ -71,9 +73,9 @@ Ranking prioritizes exact title, context/person/entity matches, then summary/raw
 
 The Search tab never depends on network access.
 
-## Ask ONE / AI recall
+## Ask NEVER / AI recall
 
-Ask ONE uses retrieval first. The client sends only the top retrieved item IDs to `answer-one-recall`.
+Ask NEVER uses retrieval first. The client sends only the top retrieved item IDs to the legacy-named `answer-one-recall` Edge Function.
 
 The Edge Function:
 
@@ -96,7 +98,7 @@ The mobile application contains no model secret.
 Configure these as Supabase Edge Function secrets, never `EXPO_PUBLIC_*` variables:
 
 - `OPENAI_API_KEY`
-- optional `ONE_RECALL_MODEL` (defaults to `gpt-5.6-luna`)
+- optional `ONE_RECALL_MODEL` (legacy technical env name; defaults to `gpt-5.6-luna`)
 
 Without `OPENAI_API_KEY`, `answer-one-recall` returns `ai_not_configured`; the app falls back to grounded deterministic recall instead of hiding sources or fabricating an answer.
 
