@@ -325,12 +325,12 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     shadowOffset: { width: 0, height: 4 }
   },
-  quickLabel: { flex: 1, fontSize: 11.25, lineHeight: 14, fontWeight: '650', letterSpacing: -0.05 },
+  quickLabel: { flex: 1, fontSize: 11.25, lineHeight: 14, fontWeight: '600', letterSpacing: -0.05 },
   interpretationTop: { padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  interpretationTitle: { fontSize: 15, lineHeight: 19, fontWeight: '650', letterSpacing: -0.16 },
+  interpretationTitle: { fontSize: 15, lineHeight: 19, fontWeight: '600', letterSpacing: -0.16 },
   interpretationMeta: { fontSize: 11.5, lineHeight: 15.5, marginTop: 4 },
   saveWrap: { padding: 14, paddingTop: 0 },
-  textAction: { fontSize: 11.75, fontWeight: '650' },
+  textAction: { fontSize: 11.75, fontWeight: '600' },
   todayRow: {
     minHeight: 74,
     borderBottomWidth: StyleSheet.hairlineWidth,
@@ -342,6 +342,6 @@ const styles = StyleSheet.create({
   },
   todayMarker: { width: 3, height: 32, borderRadius: 2 },
   todayReason: { fontSize: 8.75, lineHeight: 11, fontWeight: '700', letterSpacing: 0.9 },
-  todayTitle: { marginTop: 4, fontSize: 14.5, lineHeight: 18, fontWeight: '650', letterSpacing: -0.14 },
+  todayTitle: { marginTop: 4, fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.14 },
   todayMeta: { marginTop: 4, fontSize: 11.25, lineHeight: 15 }
 });
