@@ -7,11 +7,11 @@ const EXPORT_SCHEMA_VERSION = 1;
 
 export async function exportOneData(items: OneItem[]): Promise<string | null> {
   if (Platform.OS === 'web') {
-    return 'Data export is currently available in the native ONE app.';
+    return 'Data export is currently available in the native NEVER app.';
   }
 
   if (!FileSystem.cacheDirectory) {
-    return 'ONE could not access temporary device storage for the export.';
+    return 'NEVER could not access temporary device storage for the export.';
   }
 
   const sharingAvailable = await Sharing.isAvailableAsync();
@@ -21,7 +21,7 @@ export async function exportOneData(items: OneItem[]): Promise<string | null> {
 
   const exportedAt = new Date().toISOString();
   const payload = {
-    app: 'ONE',
+    app: 'NEVER',
     schemaVersion: EXPORT_SCHEMA_VERSION,
     exportedAt,
     itemCount: items.length,
@@ -29,7 +29,7 @@ export async function exportOneData(items: OneItem[]): Promise<string | null> {
   };
 
   const stamp = exportedAt.replace(/[:.]/g, '-');
-  const path = `${FileSystem.cacheDirectory}ONE-export-${stamp}.json`;
+  const path = `${FileSystem.cacheDirectory}NEVER-export-${stamp}.json`;
 
   try {
     await FileSystem.writeAsStringAsync(path, JSON.stringify(payload, null, 2), {
@@ -38,13 +38,13 @@ export async function exportOneData(items: OneItem[]): Promise<string | null> {
 
     await Sharing.shareAsync(path, {
       mimeType: 'application/json',
-      dialogTitle: 'Export ONE data',
+      dialogTitle: 'Export NEVER data',
       UTI: 'public.json'
     });
 
     return null;
   } catch (error) {
-    return error instanceof Error ? error.message : 'ONE could not export your data.';
+    return error instanceof Error ? error.message : 'NEVER could not export your data.';
   } finally {
     try {
       await FileSystem.deleteAsync(path, { idempotent: true });
