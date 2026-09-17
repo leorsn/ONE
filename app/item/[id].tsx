@@ -470,7 +470,7 @@ function toTime(value: Date) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 21 },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 21 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.15 },
@@ -501,5 +501,5 @@ const styles = StyleSheet.create({
   linkText: { flex: 1, fontSize: 12.75, fontWeight: '600' },
   deleteAction: { minHeight: 44, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center' },
   deleteText: { fontSize: 13, fontWeight: '700' },
-  missing: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }
+  missing: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }
 });
