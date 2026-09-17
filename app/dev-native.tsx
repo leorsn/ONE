@@ -144,7 +144,7 @@ export default function NativeAcceptanceScreen() {
 
     await Notifications.scheduleNotificationAsync({
       content: {
-        title: 'ONE native acceptance',
+        title: 'NEVER native acceptance',
         body: 'Local notification delivery is working on this device.',
         data: { acceptanceTest: true }
       },
@@ -162,7 +162,7 @@ export default function NativeAcceptanceScreen() {
     const url = `one://dev-native?probe=${Date.now()}`;
     const supported = await Linking.canOpenURL(url);
     if (!supported) {
-      Alert.alert('Scheme unavailable', 'This build did not report the ONE URL scheme as available.');
+      Alert.alert('Scheme unavailable', 'This build did not report the NEVER URL scheme as available.');
       return;
     }
     await Linking.openURL(url);
@@ -200,7 +200,7 @@ export default function NativeAcceptanceScreen() {
           <DiagnosticRow label="Photos" value={diagnostics?.photos || 'Checking…'} />
           <DiagnosticRow label="Notifications" value={diagnostics?.notifications || 'Checking…'} />
           <DiagnosticRow label="Scheduled total" value={String(diagnostics?.scheduledNotifications ?? 0)} />
-          <DiagnosticRow label="Scheduled ONE items" value={String(diagnostics?.scheduledItemNotifications ?? 0)} last />
+          <DiagnosticRow label="Scheduled NEVER items" value={String(diagnostics?.scheduledItemNotifications ?? 0)} last />
         </Surface>
 
         <View style={styles.actions}>
@@ -208,13 +208,13 @@ export default function NativeAcceptanceScreen() {
           <PrimaryButton label="Request photo access" icon={icons.screenshot} onPress={requestPhotos} />
           <PrimaryButton label="Request notification access" icon={icons.bell} onPress={requestNotifications} />
           <PrimaryButton label="Schedule 5s notification" icon={icons.reminder} onPress={scheduleTestNotification} />
-          <PrimaryButton label="Test ONE deep link" icon={icons.link} onPress={openDeepLinkProbe} />
+          <PrimaryButton label="Test NEVER deep link" icon={icons.link} onPress={openDeepLinkProbe} />
           <PrimaryButton label="Open scan flow" icon={icons.scan} onPress={() => router.push('/scan')} />
         </View>
 
         <Surface padded>
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>Share-to-ONE acceptance</Text>
-          <Text style={[styles.body, { color: theme.textSecondary }]}>From Safari, Mail or Photos: Share → ONE. Confirm that Capture Review opens once, the original attachment is preserved, then return here and inspect the latest events.</Text>
+          <Text style={[styles.sectionTitle, { color: theme.text }]}>Share-to-NEVER acceptance</Text>
+          <Text style={[styles.body, { color: theme.textSecondary }]}>From Safari, Mail or Photos: Share → NEVER. Confirm that Capture Review opens once, the original attachment is preserved, then return here and inspect the latest events.</Text>
         </Surface>
 
         <Surface padded>
@@ -225,7 +225,7 @@ export default function NativeAcceptanceScreen() {
         <View style={styles.eventHeader}>
           <Text style={[styles.sectionTitle, { color: theme.text }]}>Recent native events</Text>
           <Pressable onPress={() => void clearLog()} accessibilityRole="button" accessibilityLabel="Clear native acceptance log">
-            <Text style={[styles.clear, { color: theme.accent }]}>Clear</Text>
+            <Text style={[styles.clear, { color: theme.chrome }]}>Clear</Text>
           </Pressable>
         </View>
         <Surface>
