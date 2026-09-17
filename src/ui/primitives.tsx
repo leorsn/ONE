@@ -209,11 +209,11 @@ const styles = StyleSheet.create({
   brandLine: { marginTop: 9, fontSize: 8.75, lineHeight: 12.5, fontWeight: '600', letterSpacing: 1.55 },
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 18, paddingTop: 2 },
   eyebrow: { fontSize: 9.5, fontWeight: '700', letterSpacing: 2.35, marginBottom: 10 },
-  pageTitle: { fontSize: 31, lineHeight: 35, fontWeight: '650', letterSpacing: -1.05 },
+  pageTitle: { fontSize: 31, lineHeight: 35, fontWeight: '600', letterSpacing: -1.05 },
   pageSubtitle: { marginTop: 8, maxWidth: 420, fontSize: 13, lineHeight: 19 },
   sectionHeader: { minHeight: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'baseline', gap: 9 },
-  sectionTitle: { fontSize: 17, lineHeight: 21, fontWeight: '650', letterSpacing: -0.28 },
+  sectionTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.28 },
   sectionMeta: { fontSize: 10.5, fontWeight: '600', letterSpacing: 0.18 },
   surface: {
     borderWidth: StyleSheet.hairlineWidth,
@@ -238,8 +238,8 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 }
   },
   emptyState: { minHeight: 146, paddingHorizontal: 28, paddingVertical: 28, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { marginTop: 13, fontSize: 14.5, fontWeight: '650', letterSpacing: -0.12 },
+  emptyTitle: { marginTop: 13, fontSize: 14.5, fontWeight: '600', letterSpacing: -0.12 },
   emptyBody: { marginTop: 6, maxWidth: 260, fontSize: 12.25, lineHeight: 18, textAlign: 'center' },
   primaryButton: { minHeight: 50, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  primaryButtonText: { fontSize: 14, fontWeight: '650', letterSpacing: -0.05 }
+  primaryButtonText: { fontSize: 14, fontWeight: '600', letterSpacing: -0.05 }
 });
