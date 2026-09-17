@@ -76,7 +76,7 @@ export default function UpgradeScreen() {
         </View>
 
         <View style={styles.hero}>
-          <View style={[styles.heroMark, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}> 
+          <View style={[styles.heroMark, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
             <OneIcon name={icons.crown} size={24} color={theme.chrome} />
           </View>
           <Text style={[styles.title, { color: theme.text }]}>Simple plans. No clutter.</Text>
@@ -105,12 +105,12 @@ export default function UpgradeScreen() {
         />
 
         {isBetaAccess ? (
-          <View style={[styles.beta, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}> 
+          <View style={[styles.beta, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
             <OneIcon name={icons.ask} size={18} color={theme.chrome} />
             <Text style={[styles.betaText, { color: theme.textSecondary }]}>NEVER AI is enabled during beta so Ask NEVER and semantic recall can be tested end-to-end. App Store purchases are not active yet.</Text>
           </View>
         ) : !billingConfigured ? (
-          <View style={[styles.beta, { backgroundColor: theme.fill, borderColor: theme.border }]}> 
+          <View style={[styles.beta, { backgroundColor: theme.fill, borderColor: theme.border }]}>
             <OneIcon name={icons.more} size={18} color={theme.warning} />
             <Text style={[styles.betaText, { color: theme.textSecondary }]}>App Store billing is unavailable in this release build. Paid access is not unlocked. Configure RevenueCat before distribution.</Text>
           </View>
@@ -135,7 +135,7 @@ export default function UpgradeScreen() {
 
         {!hardPaywall ? <PrimaryButton label="Back to NEVER" icon={icons.check} onPress={() => router.back()} /> : null}
 
-        <Text style={[styles.legal, { color: theme.textTertiary }]}> 
+        <Text style={[styles.legal, { color: theme.textTertiary }]}>
           {isBetaAccess
             ? 'Beta billing is disabled. NEVER AI remains unlocked for development testing.'
             : 'Subscriptions renew automatically unless cancelled. Prices and introductory offers shown above come from the current App Store storefront when available. Apple determines introductory-offer eligibility at purchase time.'}
@@ -189,14 +189,14 @@ export default function UpgradeScreen() {
     const isThisPlanPurchasing = purchasing && purchasingPlan === planKey;
 
     return (
-      <View style={[styles.planWrap, { borderColor: highlighted ? theme.chrome : 'transparent' }]}> 
+      <View style={[styles.planWrap, { borderColor: highlighted ? theme.chrome : 'transparent' }]}>
         <Surface padded>
           <View style={styles.planTop}>
             <View>
               <View style={styles.nameRow}>
                 <Text style={[styles.planName, { color: theme.text }]}>{name}</Text>
                 {current ? (
-                  <View style={[styles.currentPill, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}> 
+                  <View style={[styles.currentPill, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
                     <Text style={[styles.currentText, { color: theme.chrome }]}>{isBetaAccess ? 'CURRENT BETA' : 'CURRENT'}</Text>
                   </View>
                 ) : null}
@@ -209,7 +209,7 @@ export default function UpgradeScreen() {
             </View>
           </View>
 
-          <View style={[styles.featureList, { borderTopColor: theme.border }]}> 
+          <View style={[styles.featureList, { borderTopColor: theme.border }]}>
             {features.map((feature) => (
               <View key={feature} style={styles.featureRow}>
                 <OneIcon name={icons.check} size={14} color={highlighted ? theme.chrome : theme.success} />
@@ -242,7 +242,7 @@ export default function UpgradeScreen() {
               ]}
             >
               {isThisPlanPurchasing ? <ActivityIndicator size="small" color={theme.onAccent} /> : null}
-              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? theme.onAccent : theme.textTertiary }]}> 
+              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? theme.onAccent : theme.textTertiary }]}>
                 {purchaseReady
                   ? purchaseLabel(planKey, plan)
                   : !billingConfigured && isBetaAccess
