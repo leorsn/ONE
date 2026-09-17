@@ -61,15 +61,15 @@ export function CaptureReviewEditor({
       <View style={styles.headingRow}>
         <View style={{ flex: 1 }}>
           <Text style={[styles.heading, { color: theme.text }]}>Review capture</Text>
-          <Text style={[styles.subheading, { color: theme.textSecondary }]}>Correct only what ONE got wrong.</Text>
+          <Text style={[styles.subheading, { color: theme.textSecondary }]}>Correct only what NEVER got wrong.</Text>
         </View>
         {draft.needsReview.length ? (
-          <View style={[styles.reviewBadge, { backgroundColor: theme.fill }]}>
+          <View style={[styles.reviewBadge, { backgroundColor: theme.fill, borderColor: theme.border }]}>
             <Text style={[styles.reviewBadgeText, { color: theme.warning }]}>{draft.needsReview.length} to review</Text>
           </View>
         ) : (
-          <View style={[styles.reviewBadge, { backgroundColor: theme.accentSoft }]}>
-            <Text style={[styles.reviewBadgeText, { color: theme.accent }]}>Ready</Text>
+          <View style={[styles.reviewBadge, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+            <Text style={[styles.reviewBadgeText, { color: theme.chrome }]}>Ready</Text>
           </View>
         )}
       </View>
@@ -102,7 +102,7 @@ export function CaptureReviewEditor({
                   }
                 ]}
               >
-                <Text style={[styles.kindText, { color: active ? '#FFFFFF' : theme.textSecondary }]}>{kind.label}</Text>
+                <Text style={[styles.kindText, { color: active ? theme.onAccent : theme.textSecondary }]}>{kind.label}</Text>
               </Pressable>
             );
           })}
@@ -110,63 +110,16 @@ export function CaptureReviewEditor({
       </Surface>
 
       <Surface>
-        <ReviewField
-          label="Title"
-          field="title"
-          value={draft.title}
-          confidence={draft.fieldConfidence.title}
-          onChange={(value) => updateTextField('title', 'title', value)}
-          onConfirm={() => onChange(confirmCaptureField(draft, 'title'))}
-          placeholder="Title"
-        />
-        <ReviewField
-          label="Date"
-          field="date"
-          value={draft.date || ''}
-          confidence={draft.fieldConfidence.date}
-          onChange={(value) => updateTextField('date', 'date', value)}
-          onConfirm={() => onChange(confirmCaptureField(draft, 'date'))}
-          placeholder="YYYY-MM-DD"
-        />
-        <ReviewField
-          label="Time"
-          field="time"
-          value={draft.time || ''}
-          confidence={draft.fieldConfidence.time}
-          onChange={(value) => updateTextField('time', 'time', value)}
-          onConfirm={() => onChange(confirmCaptureField(draft, 'time'))}
-          placeholder="HH:MM"
-        />
-        <ReviewField
-          label="Location"
-          field="location"
-          value={draft.location || ''}
-          confidence={draft.fieldConfidence.location}
-          onChange={(value) => updateTextField('location', 'location', value)}
-          onConfirm={() => onChange(confirmCaptureField(draft, 'location'))}
-          placeholder="Optional"
-        />
-        <ReviewField
-          label="Category"
-          field="category"
-          value={draft.category || ''}
-          onChange={(value) => updateTextField('category', 'category', value)}
-          placeholder="Optional"
-          last
-        />
+        <ReviewField label="Title" field="title" value={draft.title} confidence={draft.fieldConfidence.title} onChange={(value) => updateTextField('title', 'title', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'title'))} placeholder="Title" />
+        <ReviewField label="Date" field="date" value={draft.date || ''} confidence={draft.fieldConfidence.date} onChange={(value) => updateTextField('date', 'date', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'date'))} placeholder="YYYY-MM-DD" />
+        <ReviewField label="Time" field="time" value={draft.time || ''} confidence={draft.fieldConfidence.time} onChange={(value) => updateTextField('time', 'time', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'time'))} placeholder="HH:MM" />
+        <ReviewField label="Location" field="location" value={draft.location || ''} confidence={draft.fieldConfidence.location} onChange={(value) => updateTextField('location', 'location', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'location'))} placeholder="Optional" />
+        <ReviewField label="Category" field="category" value={draft.category || ''} onChange={(value) => updateTextField('category', 'category', value)} placeholder="Optional" last />
       </Surface>
 
       {(draft.captureKind === 'receipt' || draft.captureKind === 'document' || draft.documentKind) ? (
         <Surface>
-          <ReviewField
-            label="Merchant"
-            field="merchant"
-            value={draft.merchant || ''}
-            confidence={draft.fieldConfidence.merchant}
-            onChange={(value) => updateTextField('merchant', 'merchant', value)}
-            onConfirm={() => onChange(confirmCaptureField(draft, 'merchant'))}
-            placeholder="Unknown"
-          />
+          <ReviewField label="Merchant" field="merchant" value={draft.merchant || ''} confidence={draft.fieldConfidence.merchant} onChange={(value) => updateTextField('merchant', 'merchant', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'merchant'))} placeholder="Unknown" />
           <ReviewField
             label="Amount"
             field="amount"
@@ -180,16 +133,7 @@ export function CaptureReviewEditor({
             placeholder="Leave blank if unknown"
             keyboardType="decimal-pad"
           />
-          <ReviewField
-            label="Currency"
-            field="currency"
-            value={draft.currency || ''}
-            confidence={draft.fieldConfidence.currency}
-            onChange={(value) => updateTextField('currency', 'currency', value.toUpperCase().slice(0, 3))}
-            onConfirm={() => onChange(confirmCaptureField(draft, 'currency'))}
-            placeholder="EUR"
-            last
-          />
+          <ReviewField label="Currency" field="currency" value={draft.currency || ''} confidence={draft.fieldConfidence.currency} onChange={(value) => updateTextField('currency', 'currency', value.toUpperCase().slice(0, 3))} onConfirm={() => onChange(confirmCaptureField(draft, 'currency'))} placeholder="EUR" last />
         </Surface>
       ) : null}
 
@@ -200,7 +144,7 @@ export function CaptureReviewEditor({
           onChangeText={(value) => onChange(applyUserContextPriority(draft, value))}
           placeholder="Gift Dad, Barcelona, Tax 2026…"
           placeholderTextColor={theme.textTertiary}
-          style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
+          style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
           multiline
           accessibilityLabel="Your context"
         />
@@ -221,19 +165,17 @@ export function CaptureReviewEditor({
                 style={[
                   styles.destinationChip,
                   {
-                    backgroundColor: active ? theme.accentSoft : theme.fill,
-                    borderColor: active ? theme.accent : theme.border
+                    backgroundColor: active ? theme.chromeSoft : theme.fill,
+                    borderColor: active ? theme.chrome : theme.border
                   }
                 ]}
               >
-                <Text style={[styles.destinationText, { color: active ? theme.accent : theme.textSecondary }]}>{destination.label}</Text>
+                <Text style={[styles.destinationText, { color: active ? theme.chrome : theme.textSecondary }]}>{destination.label}</Text>
               </Pressable>
             );
           })}
         </View>
-        {draft.needsReview.length ? (
-          <Text style={[styles.help, { color: theme.textTertiary }]}>Unresolved details default to Inbox until you confirm them.</Text>
-        ) : null}
+        {draft.needsReview.length ? <Text style={[styles.help, { color: theme.textTertiary }]}>Unresolved details default to Inbox until you confirm them.</Text> : null}
       </Surface>
 
       <View style={styles.textBlock}>
@@ -243,7 +185,7 @@ export function CaptureReviewEditor({
           onChangeText={(value) => setField('tags', splitTags(value))}
           placeholder="gift, dad, travel"
           placeholderTextColor={theme.textTertiary}
-          style={[styles.singleInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
+          style={[styles.singleInput, { color: theme.text, backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
           autoCapitalize="none"
           accessibilityLabel="Tags"
         />
@@ -257,7 +199,7 @@ export function CaptureReviewEditor({
             onChangeText={(value) => setField('extractedText', value || undefined)}
             placeholder="No text recognized"
             placeholderTextColor={theme.textTertiary}
-            style={[styles.extractedInput, { color: theme.textSecondary, backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[styles.extractedInput, { color: theme.textSecondary, backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
             multiline
             textAlignVertical="top"
             accessibilityLabel="Extracted text"
@@ -314,7 +256,7 @@ export function CaptureReviewEditor({
           {confidence ? <Text style={[styles.inlineConfidence, { color: confidenceColor(confidence) }]}>{confidence}</Text> : null}
           {unresolved && onConfirm ? (
             <Pressable accessibilityRole="button" accessibilityLabel={`Confirm ${label}`} onPress={onConfirm} hitSlop={8}>
-              <Text style={[styles.confirmText, { color: theme.accent }]}>{value ? 'Confirm' : 'Keep blank'}</Text>
+              <Text style={[styles.confirmText, { color: theme.chrome }]}>{value ? 'Confirm' : 'Keep blank'}</Text>
             </Pressable>
           ) : null}
         </View>
@@ -357,33 +299,33 @@ function parseAmount(value: string) {
 }
 
 const styles = StyleSheet.create({
-  wrapper: { gap: 14 },
+  wrapper: { gap: 15 },
   headingRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  heading: { fontSize: 18, fontWeight: '800', letterSpacing: -0.3 },
-  subheading: { marginTop: 3, fontSize: 12.5 },
-  reviewBadge: { minHeight: 28, borderRadius: 10, paddingHorizontal: 9, alignItems: 'center', justifyContent: 'center' },
-  reviewBadgeText: { fontSize: 10.5, fontWeight: '800' },
+  heading: { fontSize: 18, fontWeight: '700', letterSpacing: -0.25 },
+  subheading: { marginTop: 3, fontSize: 12.25 },
+  reviewBadge: { minHeight: 28, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
+  reviewBadgeText: { fontSize: 10.5, fontWeight: '700' },
   ambiguityCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, padding: 13, gap: 5 },
-  ambiguityTitle: { fontSize: 12.5, fontWeight: '800', marginBottom: 2 },
+  ambiguityTitle: { fontSize: 12.5, fontWeight: '700', marginBottom: 2 },
   ambiguityText: { fontSize: 11.5, lineHeight: 17 },
   fieldLabelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 9 },
   fieldLabel: { fontSize: 11.5, fontWeight: '700' },
-  confidence: { fontSize: 9.5, fontWeight: '900', letterSpacing: 0.6 },
+  confidence: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.65 },
   kindRow: { gap: 7 },
-  kindChip: { minHeight: 34, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 11, alignItems: 'center', justifyContent: 'center' },
+  kindChip: { minHeight: 34, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
   kindText: { fontSize: 11.5, fontWeight: '700' },
   fieldRow: { minHeight: 62, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
   fieldNameWrap: { width: 90 },
   rowLabel: { fontSize: 12, fontWeight: '700' },
-  inlineConfidence: { marginTop: 2, fontSize: 9.5, textTransform: 'uppercase', fontWeight: '800' },
-  confirmText: { marginTop: 3, fontSize: 9.5, fontWeight: '800' },
+  inlineConfidence: { marginTop: 2, fontSize: 9.5, textTransform: 'uppercase', fontWeight: '700' },
+  confirmText: { marginTop: 3, fontSize: 9.5, fontWeight: '700' },
   rowInput: { flex: 1, minHeight: 44, fontSize: 14, textAlign: 'right' },
   textBlock: { gap: 0 },
-  largeInput: { minHeight: 88, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, padding: 13, fontSize: 14, lineHeight: 20, textAlignVertical: 'top' },
-  singleInput: { minHeight: 50, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, fontSize: 14 },
-  extractedInput: { minHeight: 128, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, padding: 13, fontSize: 12.5, lineHeight: 18 },
+  largeInput: { minHeight: 88, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, padding: 13, fontSize: 14, lineHeight: 20, textAlignVertical: 'top' },
+  singleInput: { minHeight: 50, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, fontSize: 14 },
+  extractedInput: { minHeight: 128, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, padding: 13, fontSize: 12.5, lineHeight: 18 },
   destinationRow: { flexDirection: 'row', gap: 8 },
-  destinationChip: { flex: 1, minHeight: 38, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  destinationText: { fontSize: 11.5, fontWeight: '800' },
+  destinationChip: { flex: 1, minHeight: 38, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  destinationText: { fontSize: 11.5, fontWeight: '700' },
   help: { marginTop: 6, marginLeft: 2, fontSize: 10.5, lineHeight: 15 }
 });
