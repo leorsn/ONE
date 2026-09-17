@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { getReminderDate } from '../src/notifications/reminderDate.ts';
+import { isRemindable } from '../src/notifications/policy.ts';
 
 test('timed reminder keeps local wall-clock time and subtracts lead minutes', () => {
   const reminder = getReminderDate({ date: '2026-09-23', time: '18:00' }, 30);
@@ -41,4 +42,12 @@ test('invalid lead values never move a reminder into an unexpected direction', (
   assert.equal(negative.getMinutes(), 0);
   assert.equal(nonFinite.getHours(), 18);
   assert.equal(nonFinite.getMinutes(), 0);
+});
+
+test('notification policy rejects invalid date and time values before reconciliation', () => {
+  assert.equal(isRemindable({ type: 'reminder', date: '2026-09-23', time: '18:00', completed: false }), true);
+  assert.equal(isRemindable({ type: 'reminder', date: '2026-02-31', time: '18:00', completed: false }), false);
+  assert.equal(isRemindable({ type: 'reminder', date: '2026-09-23', time: '25:00', completed: false }), false);
+  assert.equal(isRemindable({ type: 'note', date: '2026-09-23', time: '18:00', completed: false }), false);
+  assert.equal(isRemindable({ type: 'reminder', date: '2026-09-23', time: '18:00', completed: true }), false);
 });
