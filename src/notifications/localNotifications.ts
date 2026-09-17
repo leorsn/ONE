@@ -68,7 +68,7 @@ export function getReminderDate(
 
   const [year, month, day] = item.date.split('-').map(Number);
   const [hour, minute] = (item.time || '09:00').split(':').map(Number);
-  // Deliberately uses the device's local timezone. ONE stores wall-clock date/time
+  // Deliberately uses the device's local timezone. NEVER stores wall-clock date/time
   // separately so a user's 18:00 reminder remains 18:00 in the active locale.
   const eventDate = new Date(year, month - 1, day, hour, minute, 0, 0);
 
@@ -102,7 +102,7 @@ export async function scheduleItemNotification(item: OneItem): Promise<Notificat
             : item.title,
         body: item.time
           ? `Starts at ${item.time}${item.location ? ` · ${item.location}` : ''}`
-          : item.location || item.category || 'Saved in ONE',
+          : item.location || item.category || 'Saved in NEVER',
         data: {
           itemId: item.id
         }
@@ -116,7 +116,7 @@ export async function scheduleItemNotification(item: OneItem): Promise<Notificat
     await recordNativeAcceptanceEvent('notification_scheduled', item.type);
     return { status: 'scheduled', notificationId };
   } catch (error) {
-    console.warn('ONE local reminder scheduling failed', error);
+    console.warn('NEVER local reminder scheduling failed', error);
     await recordLastNativeError('notification-schedule', error);
     return { status: 'error' };
   }
@@ -128,7 +128,7 @@ export async function cancelItemNotification(notificationId?: string) {
     await Notifications.cancelScheduledNotificationAsync(notificationId);
     await recordNativeAcceptanceEvent('notification_cancelled');
   } catch (error) {
-    console.warn('ONE local reminder cancellation failed', error);
+    console.warn('NEVER local reminder cancellation failed', error);
     await recordLastNativeError('notification-cancel', error);
   }
 }
