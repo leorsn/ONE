@@ -50,24 +50,21 @@ export default function AuthCallbackScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <View style={styles.content}>
+        <Text style={[styles.brand, { color: theme.chrome }]}>NEVER</Text>
         <IconTile icon={errorMessage ? icons.close : icons.person} size={54} tone={errorMessage ? 'danger' : 'neutral'} />
-        <Text style={[styles.title, { color: theme.text }]}>
-          {errorMessage ? 'Could not confirm account' : 'Confirming your ONE account…'}
-        </Text>
-        <Text style={[styles.body, { color: theme.textSecondary }]}>
-          {errorMessage || 'ONE is securely completing the sign-in on this device.'}
-        </Text>
+        <Text style={[styles.title, { color: theme.text }]}>{errorMessage ? 'Could not confirm account' : 'Confirming your NEVER account…'}</Text>
+        <Text style={[styles.body, { color: theme.textSecondary }]}>{errorMessage || 'NEVER is securely completing the sign-in on this device.'}</Text>
 
-        {!errorMessage ? <ActivityIndicator style={styles.spinner} /> : null}
+        {!errorMessage ? <ActivityIndicator style={styles.spinner} color={theme.chrome} /> : null}
 
         {errorMessage ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Return to ONE settings"
+            accessibilityLabel="Return to NEVER settings"
             onPress={() => router.replace('/(tabs)/settings')}
             style={[styles.button, { backgroundColor: theme.accent }]}
           >
-            <Text style={styles.buttonText}>Return to ONE</Text>
+            <Text style={[styles.buttonText, { color: theme.onAccent }]}>Return to NEVER</Text>
           </Pressable>
         ) : null}
       </View>
@@ -78,9 +75,10 @@ export default function AuthCallbackScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { flex: 1, paddingHorizontal: 28, alignItems: 'center', justifyContent: 'center' },
-  title: { marginTop: 18, maxWidth: 340, textAlign: 'center', fontSize: 25, lineHeight: 30, fontWeight: '800', letterSpacing: -0.5 },
-  body: { marginTop: 9, maxWidth: 340, textAlign: 'center', fontSize: 13.5, lineHeight: 20 },
+  brand: { marginBottom: 20, fontSize: 10.5, fontWeight: '700', letterSpacing: 2.4 },
+  title: { marginTop: 18, maxWidth: 340, textAlign: 'center', fontSize: 25, lineHeight: 30, fontWeight: '700', letterSpacing: -0.55 },
+  body: { marginTop: 9, maxWidth: 340, textAlign: 'center', fontSize: 13, lineHeight: 20 },
   spinner: { marginTop: 22 },
-  button: { marginTop: 24, minHeight: 50, minWidth: 180, paddingHorizontal: 18, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  buttonText: { color: '#FFFFFF', fontSize: 14, fontWeight: '800' }
+  button: { marginTop: 24, minHeight: 50, minWidth: 180, paddingHorizontal: 18, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  buttonText: { fontSize: 14, fontWeight: '700' }
 });
