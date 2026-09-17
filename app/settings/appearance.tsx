@@ -12,7 +12,7 @@ const options: Array<{
   title: string;
   body: string;
 }> = [
-  { value: 'system', title: 'System', body: 'Follow your iPhone appearance automatically.' },
+  { value: 'system', title: 'System', body: 'Follow your device appearance automatically.' },
   { value: 'light', title: 'Light', body: 'Always use NEVER in light mode.' },
   { value: 'dark', title: 'Dark', body: 'Always use NEVER in dark mode.' }
 ];
@@ -30,7 +30,12 @@ export default function AppearanceScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <View style={styles.content}>
         <View style={styles.nav}>
-          <Pressable onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => router.back()}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+          >
             <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
           </Pressable>
           <Text style={[styles.navTitle, { color: theme.text }]}>Appearance</Text>
@@ -40,7 +45,7 @@ export default function AppearanceScreen() {
         <View style={styles.hero}>
           <IconTile icon={icons.appearance} size={50} />
           <Text style={[styles.title, { color: theme.text }]}>Choose how NEVER looks.</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>System is the default and follows your iPhone automatically.</Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>System is the default and follows your device automatically.</Text>
         </View>
 
         <Surface>
@@ -49,6 +54,8 @@ export default function AppearanceScreen() {
             return (
               <Pressable
                 key={option.value}
+                accessibilityRole="button"
+                accessibilityLabel={`${option.title} appearance${active ? ', selected' : ''}`}
                 onPress={() => select(option.value)}
                 style={({ pressed }) => [
                   styles.row,
@@ -96,7 +103,7 @@ function previewText(mode: ThemePreference, current: string) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 20, paddingTop: 10, gap: 26 },
+  content: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, gap: 26 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.1 },
