@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "ONE",
+    "name": "NEVER",
     "slug": "one-app",
     "scheme": "one",
     "version": "0.1.0",
@@ -57,8 +57,8 @@
       [
         "expo-image-picker",
         {
-          "cameraPermission": "Allow ONE to scan receipts and documents.",
-          "photosPermission": "Allow ONE to import receipts and documents from your photo library.",
+          "cameraPermission": "Allow NEVER to scan receipts and documents.",
+          "photosPermission": "Allow NEVER to import receipts and documents from your photo library.",
           "microphonePermission": false
         }
       ]
