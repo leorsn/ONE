@@ -1,8 +1,8 @@
-# ONE PO005 — V1 Integration Audit, Native Readiness & Defect Closure
+# NEVER PO005 — V1 Integration Audit, Native Readiness & Defect Closure
 
 ## Starting point
 
-- Repository: `leorsn/ONE`
+- Repository: `leorsn/ONE` (legacy repository name)
 - Branch: `dev/foundation`
 - Actual starting SHA: `e5b9b191e869924077af8b6a0dbb6b16de7ca95a`
 - Starting commit: `fix(sync): register migration acceptance events`
@@ -12,7 +12,7 @@ Historical PO045/PO046 documents were treated only as technical context. `docs/D
 
 ## Audit summary
 
-PO005 audited the existing V1 path rather than replacing it. The authoritative `OneItem` continues to flow through Inbox, Calendar, Saved, Search, Ask ONE, notifications and cloud sync. No second event, task, document or recall database was introduced.
+PO005 audited the existing V1 path rather than replacing it. The authoritative `OneItem` continues to flow through Inbox, Calendar, Saved, Search, Ask NEVER, notifications and cloud sync. `OneItem` is a legacy technical type name; no second event, task, document or recall database was introduced.
 
 ### Capture and understanding
 
@@ -20,8 +20,8 @@ Verified code paths:
 
 - manual capture uses the shared deterministic capture interpreter and canonical item builder;
 - native sharing normalizes text, URL, image and file metadata into one ingestion contract;
-- share attachments are copied into ONE local document storage before the temporary OS URI is relied upon;
-- Scan to ONE persists the original image locally before OCR;
+- share attachments are copied into NEVER local document storage before the temporary OS URI is relied upon;
+- Scan to NEVER persists the original image locally before OCR;
 - stale scan OCR work is revision-guarded and cannot replace a newer scan;
 - manually reviewed share fields are preserved when late OCR text arrives;
 - receipt/invoice amount extraction accepts only explicitly labelled totals such as Total/Gesamt/Summe/Amount Due rather than arbitrary monetary lines;
@@ -43,14 +43,14 @@ Verified:
 
 Physical notification delivery, taps and permission recovery remain native acceptance work.
 
-### Search and Ask ONE
+### Search and Ask NEVER
 
 Verified:
 
 - local search covers title, summary, people, context, raw/original/OCR text, category, tags, entities, type/kind/document kind, merchant, URL, extracted dates/times and amount/currency;
 - pending local items remain searchable and empty search intentionally returns recent memories;
 - semantic results are merged only when the returned item ID exists in the currently loaded local/account scope;
-- Ask ONE retrieves first, sends at most six item IDs to the server boundary, and validates returned source IDs;
+- Ask NEVER retrieves first, sends at most six item IDs to the server boundary, and validates returned source IDs;
 - the recall Edge Function re-fetches those IDs under the authenticated caller JWT/RLS context and sends bounded fields to the model;
 - AI failure falls back to grounded local recall; no evidence returns an explicit no-result answer.
 
@@ -78,6 +78,8 @@ Live project verification during PO005 confirmed:
 - Storage SELECT/INSERT/UPDATE/DELETE policies require the first path component to equal the authenticated user ID;
 - Supabase Security Advisor returned zero findings.
 
+`one-attachments` remains a legacy technical resource name and is intentionally preserved.
+
 The 2026 Supabase Data API change makes explicit grants important for public-schema tables. PO004 already established explicit authenticated access and removed anonymous private-table CRUD; PO005 preserves that model.
 
 Server-only OpenAI and service-role credentials remain in Supabase Edge Function secrets. The client environment example contains only public Supabase and RevenueCat SDK configuration.
@@ -98,11 +100,11 @@ PO005 makes the fallback explicit:
 - preview/production runtime: `none` when RevenueCat is unavailable;
 - root navigation requires an actual base entitlement (or the development beta plan) before opening private memory surfaces.
 
-This prevents a missing production RevenueCat key from silently shipping unrestricted ONE AI access.
+This prevents a missing production RevenueCat key from silently shipping unrestricted NEVER AI access.
 
 ### 3. Billing documentation implied the unsafe fallback was universal
 
-`.env.example` and `docs/BILLING.md` now state that the beta fallback is development-only and that release builds without billing configuration do not unlock paid access.
+`.env.example` and `docs/BILLING.md` state that the beta fallback is development-only and that release builds without billing configuration do not unlock paid access.
 
 ## Architecture preserved
 
@@ -118,7 +120,7 @@ PO005 intentionally did not replace:
 - private attachment storage;
 - development-only native diagnostics.
 
-The `one://dev-native?probe=1` diagnostics route remains guarded by `__DEV__` and records only bounded diagnostic metadata, not saved memory bodies or credentials.
+The legacy technical `one://dev-native?probe=1` diagnostics route remains guarded by `__DEV__` and records only bounded diagnostic metadata, not saved memory bodies or credentials.
 
 ## Automated regression coverage
 
@@ -141,7 +143,7 @@ PO005 adds regression assertions for:
 
 ## Native configuration preserved
 
-Static release configuration continues to require:
+Static release configuration continues to require these legacy technical identifiers:
 
 - URL scheme `one`;
 - main bundle identifier `app.one.mobile`;
@@ -177,9 +179,9 @@ PO005 does **not** mark these passed:
 Before App Store release:
 
 - configure real RevenueCat public SDK keys and matching App Store products/entitlements;
-- verify App Store Connect trial eligibility behavior for ONE;
+- verify App Store Connect trial eligibility behavior for NEVER;
 - configure/verify production Supabase Auth email delivery and deep-link redirects;
-- set the server-side `OPENAI_API_KEY`/model configuration if ONE AI synthesis is enabled;
+- set the server-side `OPENAI_API_KEY`/legacy `ONE_RECALL_MODEL` configuration if NEVER AI synthesis is enabled;
 - complete the consumer privacy policy/legal disclosures referenced by the Privacy screen;
 - perform the full `docs/DEVICE_TEST_PLAN.md` matrix on physical iOS hardware.
 
