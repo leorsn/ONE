@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { router } from 'expo-router';
 import Constants from 'expo-constants';
-import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
@@ -14,6 +14,7 @@ import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 
 const APP_VERSION = Constants.expoConfig?.version || '0.1.0';
+const APPLE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
 
 export default function SettingsScreen() {
   const theme = useTheme();
@@ -23,19 +24,23 @@ export default function SettingsScreen() {
   const { preference } = useThemePreference();
   const { plan, isBetaAccess, hasAi, billingConfigured, localizedPrices, managementUrl } = usePlan();
   const [deletingAccount, setDeletingAccount] = useState(false);
+  const hasStoreSubscription = billingConfigured && plan !== 'none';
+  const subscriptionManagementUrl = managementUrl || (
+    hasStoreSubscription && Platform.OS === 'ios' ? APPLE_SUBSCRIPTIONS_URL : undefined
+  );
 
   async function openSubscriptionManagement() {
-    if (!managementUrl) return;
+    if (!subscriptionManagementUrl) return;
 
     await Haptics.selectionAsync();
     try {
-      const supported = await Linking.canOpenURL(managementUrl);
+      const supported = await Linking.canOpenURL(subscriptionManagementUrl);
       if (!supported) {
         Alert.alert('Manage Subscription', 'NEVER could not open your subscription management page on this device.');
         return;
       }
 
-      await Linking.openURL(managementUrl);
+      await Linking.openURL(subscriptionManagementUrl);
     } catch {
       Alert.alert('Manage Subscription', 'NEVER could not open your subscription management page on this device.');
     }
@@ -44,28 +49,36 @@ export default function SettingsScreen() {
   function confirmDeleteAccount() {
     if (deletingAccount) return;
 
+    if (hasStoreSubscription) {
+      const actions = [
+        { text: 'Cancel', style: 'cancel' as const },
+        ...(subscriptionManagementUrl
+          ? [{ text: 'Manage Subscription', onPress: () => void openSubscriptionManagement() }]
+          : []),
+        { text: 'Delete Anyway', style: 'destructive' as const, onPress: confirmPermanentDelete }
+      ];
+
+      Alert.alert(
+        'Subscription continues after deletion',
+        'Deleting your NEVER account does not cancel your store subscription. Billing can continue until you cancel it. You can manage the subscription first or delete the account immediately.',
+        actions
+      );
+      return;
+    }
+
+    confirmPermanentDelete();
+  }
+
+  function confirmPermanentDelete() {
     Alert.alert(
       'Delete NEVER Account?',
-      'This permanently deletes your cloud memories, documents, attachments and NEVER account. This cannot be undone.\n\nImportant: deleting your NEVER account does not cancel an App Store subscription. Any active NEVER or NEVER AI subscription must be cancelled separately in your Apple subscriptions.',
+      'This permanently deletes your cloud memories, documents, attachments and NEVER account. This cannot be undone.',
       [
-        { text: 'Cancel', style: 'cancel' },
+        { text: 'Keep Account', style: 'cancel' },
         {
-          text: 'Delete Account',
+          text: 'Delete Permanently',
           style: 'destructive',
-          onPress: () => {
-            Alert.alert(
-              'Delete permanently?',
-              'Your NEVER account and synced data will be permanently removed.',
-              [
-                { text: 'Keep Account', style: 'cancel' },
-                {
-                  text: 'Delete Permanently',
-                  style: 'destructive',
-                  onPress: () => void runDeleteAccount()
-                }
-              ]
-            );
-          }
+          onPress: () => void runDeleteAccount()
         }
       ]
     );
@@ -88,7 +101,9 @@ export default function SettingsScreen() {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(
         'NEVER Account Deleted',
-        'Your NEVER account and synced data have been deleted. If you have an active App Store subscription, manage it separately in your Apple subscription settings.'
+        hasStoreSubscription
+          ? 'Your NEVER account and synced data have been deleted. Your store subscription is separate and may continue until you cancel it.'
+          : 'Your NEVER account and synced data have been deleted.'
       );
     } catch (error) {
       Alert.alert(
@@ -148,13 +163,13 @@ export default function SettingsScreen() {
               label={membershipLabel(plan)}
               value={isBetaAccess ? 'Beta access' : membershipValue(plan, localizedPrices, billingConfigured)}
               onPress={() => router.push('/upgrade')}
-              last={!billingConfigured || !managementUrl}
+              last={!subscriptionManagementUrl}
             />
-            {billingConfigured && managementUrl ? (
+            {subscriptionManagementUrl ? (
               <SettingsRow
                 icon={icons.settings}
                 label="Manage Subscription"
-                value="App Store"
+                value={Platform.OS === 'ios' ? 'App Store' : 'Store'}
                 onPress={openSubscriptionManagement}
                 last
               />
