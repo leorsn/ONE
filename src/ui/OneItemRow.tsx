@@ -27,10 +27,7 @@ export function OneItemRow({
       accessibilityLabel={`${item.title}. ${meta}`}
       accessibilityHint="Opens item details"
       onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-      style={({ pressed }) => [
-        styles.row,
-        { borderBottomColor: theme.border, opacity: pressed ? 0.62 : 1 }
-      ]}
+      style={({ pressed }) => [styles.row, { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
     >
       {onToggle && !item.saved ? (
         <Pressable
@@ -46,12 +43,12 @@ export function OneItemRow({
           style={[
             styles.check,
             {
-              borderColor: item.completed ? theme.accent : theme.fillStrong,
-              backgroundColor: item.completed ? theme.accent : 'transparent'
+              borderColor: item.completed ? theme.chrome : theme.fillStrong,
+              backgroundColor: item.completed ? theme.chrome : 'transparent'
             }
           ]}
         >
-          {item.completed ? <OneIcon name={icons.check} size={12} color="#FFFFFF" /> : null}
+          {item.completed ? <OneIcon name={icons.check} size={12} color={theme.background} /> : null}
         </Pressable>
       ) : previewUri ? (
         <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill }]} resizeMode="cover" />
@@ -76,7 +73,7 @@ export function OneItemRow({
       </View>
 
       {item.time ? (
-        <View style={[styles.timePill, { backgroundColor: theme.fill }]}>
+        <View style={[styles.timePill, { backgroundColor: theme.fill, borderColor: theme.border }]}>
           <Text style={[styles.time, { color: theme.textSecondary }]}>{item.time}</Text>
         </View>
       ) : null}
@@ -151,8 +148,8 @@ const styles = StyleSheet.create({
   check: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
   preview: { width: 40, height: 40, borderRadius: 11 },
   content: { flex: 1, minWidth: 0 },
-  title: { fontSize: 15.5, fontWeight: '600', letterSpacing: -0.18 },
-  meta: { fontSize: 12.5, marginTop: 4 },
-  timePill: { minHeight: 28, paddingHorizontal: 9, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  title: { fontSize: 15.25, fontWeight: '600', letterSpacing: -0.16 },
+  meta: { fontSize: 12.25, marginTop: 4 },
+  timePill: { minHeight: 28, paddingHorizontal: 9, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   time: { fontSize: 11.5, fontWeight: '700' }
 });
