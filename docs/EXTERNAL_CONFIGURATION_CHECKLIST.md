@@ -20,8 +20,12 @@ Status vocabulary:
 | Photos permission copy | CODE COMPLETE | Generated through Expo image-picker config | Photos allow/deny/recovery shows NEVER copy |
 | Notifications integration | CODE COMPLETE | Verify signed native build configuration | Local delivery/tap/cancel |
 | URL scheme `one` | CODE COMPLETE | Included in signed binary | Auth/reset/native diagnostic links |
+| iPad support | CODE COMPLETE | Keep App Store device support aligned with `supportsTablet` | Critical flows + resize/layout pass |
+| Privacy manifest | VERIFY GENERATED ARCHIVE | Inspect `PrivacyInfo.xcprivacy` aggregation and Required-Reason API warnings; add only verified approved reasons when necessary | No unresolved archive/App Store privacy-manifest warning |
 
 The current V1 auth flow uses the legacy technical custom `one://` scheme. Associated Domains/Universal Links are not required by the current repository contract and must not be treated as configured merely because a web domain exists. If Universal Links are adopted later, add the entitlement and hosted AASA deliberately and test them separately.
+
+The repository does not currently invent an app-level `ios.privacyManifests` declaration. Verify the actual generated/archive manifests first. If Expo/React Native/CocoaPods aggregation is incomplete for APIs that the shipped binary uses, add only the Apple-approved reasons that accurately describe that use.
 
 EAS can synchronize supported iOS capabilities during signing, but the Apple account must still have authority and valid credentials. Static config introspection is not proof that Apple accepted capability assignment.
 
@@ -39,6 +43,7 @@ EAS can synchronize supported iOS capabilities during signing, but the Apple acc
   - `EXPO_PUBLIC_SUPPORT_URL`
 - [ ] Produce a signed iOS development build for physical acceptance.
 - [ ] After acceptance, produce a production/TestFlight build from the accepted SHA.
+- [ ] Inspect the generated iOS archive for privacy manifests and Required-Reason API diagnostics before TestFlight promotion.
 
 Recommended verification commands from a clean checkout:
 
@@ -132,9 +137,11 @@ Before TestFlight/App Store release:
 - [ ] The same Privacy/Support URLs are entered in App Store Connect.
 - [ ] Settings → Privacy opens the production URLs on a physical device.
 - [ ] App Store privacy disclosures match actual production data handling and third-party SDK/service behavior.
+- [ ] Generated/archive privacy manifests satisfy Apple Required-Reason API requirements with accurate reasons only.
 - [ ] Subscription metadata and required legal text are complete.
 - [ ] Screenshots, description, age rating, review information and release metadata are complete.
 - [ ] Final app icon is configured and `npm run release:asset-check` passes.
+- [ ] Because iPad support is enabled, the accepted iPad layout and required iPad screenshot set are complete before submission.
 
 See `docs/APP_STORE_SUBMISSION.md` for the working metadata/review/screenshot dossier.
 
