@@ -295,7 +295,12 @@ export default function HandleShareScreen() {
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={4}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.nav}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Cancel share" onPress={() => void handleCancel()} style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Cancel share"
+              onPress={() => void handleCancel()}
+              style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+            >
               <OneIcon name={icons.close} size={17} color={theme.text} />
             </Pressable>
             <Text style={[styles.navTitle, { color: theme.text }]}>Save to NEVER</Text>
@@ -426,15 +431,15 @@ function ocrHeadline(state: OcrState) {
 
 function ocrMeta(state: OcrState) {
   if (state === 'reading') return 'You can save now. OCR text is included only if recognition finishes first.';
-  if (state === 'ready') return 'Review the recognized text before saving';
+  if (state === 'ready') return 'Review the recognized text before saving.';
   if (state === 'empty') return 'The original image is still preserved and can be saved.';
-  if (state === 'failed') return 'The original screenshot can still be saved';
-  return 'Waiting for OCR';
+  if (state === 'failed') return 'The original screenshot can still be saved.';
+  return 'Waiting for OCR.';
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 48, gap: 20 },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 48, gap: 20 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.1 },
