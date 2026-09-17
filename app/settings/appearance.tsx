@@ -7,11 +7,11 @@ import { IconTile, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import type { ThemePreference } from '@/src/context/ThemeContext';
 
-const options: Array<{
+const options: {
   value: ThemePreference;
   title: string;
   body: string;
-}> = [
+}[] = [
   { value: 'system', title: 'System', body: 'Follow your device appearance automatically.' },
   { value: 'light', title: 'Light', body: 'Always use NEVER in light mode.' },
   { value: 'dark', title: 'Dark', body: 'Always use NEVER in dark mode.' }
