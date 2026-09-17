@@ -79,7 +79,7 @@ The repository currently declares both iPhone and iPad support.
 
 ### iPhone — primary set
 
-Use a current 6.9-inch accepted portrait size, preferably **1320 × 2868 px**.
+Use a current accepted 6.9-inch portrait size, preferably **1320 × 2868 px**.
 
 Target set: **6 screenshots**
 
@@ -103,7 +103,7 @@ Target set: **3–5 screenshots** using the same product story as iPhone but val
 - No clipped text, keyboard overlap or accidental system alerts.
 - Light and dark screenshots may be mixed only if the sequence remains visually coherent.
 - No transparency/alpha in final uploaded screenshot files.
-- Run the visual checklist in `docs/NEVER_VISUAL_IPHONE_ACCEPTANCE.md` before capturing store assets.
+- Run `docs/NEVER_VISUAL_QA.md` and the iPad section of `docs/DEVICE_TEST_PLAN.md` before capturing store assets.
 
 ## 5. App Review information
 
@@ -132,7 +132,7 @@ Recommended review path:
 6. From Safari, Photos or Files, use the iOS Share Sheet and choose NEVER to test the Share Extension.
 7. Open Settings → Notifications to test local reminder permission and scheduling.
 8. Open Settings → Privacy to view privacy/support links, data export and privacy controls.
-9. Open Settings → Account → Delete Account to verify in-app account deletion.
+9. In Settings → Account, choose Delete Account to verify in-app account deletion.
 
 Important implementation notes:
 - Core data is scoped to the authenticated Supabase user.
@@ -163,6 +163,18 @@ This section is a technical inventory, not legal advice and not a substitute for
 ### Current package-manifest observation
 
 No dedicated advertising SDK is present in the current dependency manifest. No dedicated analytics SDK is obvious in the current dependency manifest. Re-check the final release lockfile and native dependency graph before answering App Store privacy questions.
+
+### iOS privacy-manifest verification
+
+The repository intentionally does not guess Apple Required-Reason API declarations before inspecting the shipped native archive.
+
+For the actual production-like `.xcarchive`, run:
+
+```bash
+npm run release:privacy-check -- /path/to/NEVER.xcarchive
+```
+
+The command verifies that `PrivacyInfo.xcprivacy` files are present in the generated archive and lists their locations. Presence alone is not enough: compare the final archive/App Store diagnostics with actual app and SDK API usage. Add an app-level `ios.privacyManifests` declaration only when a verified approved reason is required and accurately describes the shipped behavior.
 
 ### Required privacy-policy topics before public release
 
@@ -220,6 +232,7 @@ The check is expected to fail until the final app icon is actually configured.
 - `npm run quality` passes.
 - `npm run release:env-check` passes against the TestFlight environment.
 - `npm run release:asset-check` passes.
+- `npm run release:privacy-check -- /path/to/NEVER.xcarchive` finds the generated privacy manifests and manual Required-Reason review is complete.
 - critical real-device matrix passes.
 - visual iPhone/iPad acceptance passes.
 - production-like Supabase auth redirects/email flows verified.
@@ -232,6 +245,7 @@ Everything above, plus:
 - real billing/restore flows pass,
 - privacy policy/support URLs are public and final,
 - App Privacy questionnaire matches actual production behavior,
+- no unresolved privacy-manifest/Required-Reason warning remains for the submitted archive,
 - screenshots uploaded for iPhone and iPad,
 - review contact + review account supplied,
 - age rating/category/content-rights/DSA and other required App Store Connect fields completed,
@@ -242,6 +256,7 @@ Everything above, plus:
 - Paid Apple Developer/App Store Connect configuration and signing.
 - Final public legal/support URLs and published content.
 - Final NEVER app icon/launch asset.
+- Privacy-manifest/Required-Reason verification on the real production-like iOS archive.
 - Production RevenueCat/App Store products if paid access is included.
-- Final App Store screenshots.
+- Final App Store screenshots after accepted iPhone/iPad layouts.
 - Review contact and, if required, dedicated review-account credentials.
