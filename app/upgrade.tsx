@@ -1,4 +1,4 @@
-import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlan } from '@/src/context/PlanContext';
@@ -7,6 +7,9 @@ import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 import { subscriptionProducts } from '@/src/subscription/products';
 
+const PRIVACY_POLICY_URL = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL?.trim();
+const TERMS_URL = process.env.EXPO_PUBLIC_TERMS_URL?.trim();
+
 const baseFeatures = ['Capture, calendar & reminders', 'Saved & classical search', 'Share to NEVER', 'Scan to NEVER & OCR', 'Private cloud sync'];
 const aiFeatures = ['Everything in NEVER', 'Ask NEVER', 'Meaning-based semantic recall', 'AI answers grounded in your memory', 'Cross-item document & receipt analysis'];
 
@@ -14,6 +17,24 @@ export default function UpgradeScreen() {
   const theme = useTheme();
   const { plan, isBetaAccess, billingConfigured, purchasing, purchase, restore } = usePlan();
   const hardPaywall = plan === 'none' && !isBetaAccess;
+
+  async function openLegal(label: string, url?: string) {
+    if (!url) {
+      Alert.alert(`${label} unavailable`, 'This build does not have the release URL configured yet.');
+      return;
+    }
+
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (!supported) {
+        Alert.alert(`${label} unavailable`, 'The configured URL could not be opened on this device.');
+        return;
+      }
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(`${label} unavailable`, 'The configured URL could not be opened on this device.');
+    }
+  }
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
@@ -100,6 +121,26 @@ export default function UpgradeScreen() {
             ? 'Beta billing is disabled. NEVER AI remains unlocked for development testing.'
             : 'Subscriptions renew automatically unless cancelled. NEVER’s introductory free trial is available only to eligible App Store accounts. NEVER AI has no free trial.'}
         </Text>
+
+        <View style={styles.legalLinks}>
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel="Open NEVER Terms of Use"
+            onPress={() => void openLegal('Terms of Use', TERMS_URL)}
+            hitSlop={8}
+          >
+            <Text style={[styles.legalLink, { color: TERMS_URL ? theme.chrome : theme.textTertiary }]}>Terms of Use</Text>
+          </Pressable>
+          <Text style={[styles.legalDivider, { color: theme.textTertiary }]}>·</Text>
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel="Open NEVER Privacy Policy"
+            onPress={() => void openLegal('Privacy Policy', PRIVACY_POLICY_URL)}
+            hitSlop={8}
+          >
+            <Text style={[styles.legalLink, { color: PRIVACY_POLICY_URL ? theme.chrome : theme.textTertiary }]}>Privacy Policy</Text>
+          </Pressable>
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
@@ -229,5 +270,8 @@ const styles = StyleSheet.create({
   restoreText: { fontSize: 12.75, fontWeight: '700' },
   beta: { minHeight: 72, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
   betaText: { flex: 1, fontSize: 11.75, lineHeight: 17 },
-  legal: { textAlign: 'center', fontSize: 10.25, lineHeight: 15 }
+  legal: { textAlign: 'center', fontSize: 10.25, lineHeight: 15 },
+  legalLinks: { minHeight: 34, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9 },
+  legalLink: { fontSize: 11.5, fontWeight: '700' },
+  legalDivider: { fontSize: 11.5 }
 });
