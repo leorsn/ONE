@@ -1,4 +1,4 @@
-# ONE PO004 — Authentication, Cloud Sync & Personal Memory Infrastructure
+# NEVER PO004 — Authentication, Cloud Sync & Personal Memory Infrastructure
 
 ## Starting point
 
@@ -22,7 +22,7 @@ The auth service boundary is provider-agnostic enough to add Apple Sign In later
 
 ## Cloud data model
 
-ONE intentionally keeps the PO002/PO003 `items` row as the authoritative persisted memory record. Tags, contexts, entities, extracted dates/tasks and retrieval metadata remain fields on that canonical record rather than being normalized into duplicate feature-specific models.
+NEVER intentionally keeps the PO002/PO003 `items` row as the authoritative persisted memory record. Tags, contexts, entities, extracted dates/tasks and retrieval metadata remain fields on that canonical record rather than being normalized into duplicate feature-specific models.
 
 PO004 adds only `public.profiles`:
 
@@ -37,7 +37,7 @@ PO004 adds only `public.profiles`:
 
 `items` and `profiles` have RLS enabled.
 
-Private application tables expose CRUD only to the `authenticated` role. The `anon` role has no direct table privileges for ONE memories or profiles.
+Private application tables expose CRUD only to the `authenticated` role. The `anon` role has no direct table privileges for NEVER memories or profiles.
 
 Per-user policies enforce ownership using `auth.uid()` for:
 
@@ -46,7 +46,7 @@ Per-user policies enforce ownership using `auth.uid()` for:
 - UPDATE
 - DELETE
 
-The pre-existing private `one-attachments` bucket remains protected through `storage.objects` RLS and a first-path-component user ID boundary.
+The pre-existing private `one-attachments` bucket remains protected through `storage.objects` RLS and a first-path-component user ID boundary. The bucket name is a legacy technical identifier and is intentionally preserved.
 
 The mobile application uses only the public client-safe Supabase configuration. Service-role credentials stay server-side in the existing account-deletion Edge Function.
 
