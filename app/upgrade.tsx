@@ -7,6 +7,7 @@ import { PrimaryButton, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 import { subscriptionProducts } from '@/src/subscription/products';
+import type { RevenueCatIntroOffer } from '@/src/subscription/revenueCat';
 
 const PRIVACY_POLICY_URL = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL?.trim();
 const TERMS_URL = process.env.EXPO_PUBLIC_TERMS_URL?.trim();
@@ -18,16 +19,23 @@ type PurchasePlan = 'one' | 'one_ai';
 
 export default function UpgradeScreen() {
   const theme = useTheme();
-  const { plan, isBetaAccess, billingConfigured, localizedPrices, purchasing, purchase, restore } = usePlan();
+  const { plan, isBetaAccess, billingConfigured, localizedPrices, introOffers, purchasing, purchase, restore } = usePlan();
   const [purchasingPlan, setPurchasingPlan] = useState<PurchasePlan | null>(null);
   const hardPaywall = plan === 'none' && !isBetaAccess;
   const neverPrice = storefrontPrice(localizedPrices.one, billingConfigured, subscriptionProducts.oneMonthly.priceEUR);
   const neverAiPrice = storefrontPrice(localizedPrices.one_ai, billingConfigured, subscriptionProducts.oneAiMonthly.priceEUR);
-  const neverOffer = localizedPrices.one
-    ? `7-day free trial for eligible new subscribers · then ${localizedPrices.one}/month`
-    : billingConfigured
-      ? '7-day free trial for eligible new subscribers · App Store price applies after trial'
-      : `7-day free trial for eligible new subscribers · then ${formatEUR(subscriptionProducts.oneMonthly.priceEUR)}/month`;
+  const neverOffer = storefrontOffer(
+    introOffers.one,
+    localizedPrices.one,
+    billingConfigured,
+    `Planned pricing · ${formatEUR(subscriptionProducts.oneMonthly.priceEUR)}/month`
+  );
+  const neverAiOffer = storefrontOffer(
+    introOffers.one_ai,
+    localizedPrices.one_ai,
+    billingConfigured,
+    `Planned pricing · ${formatEUR(subscriptionProducts.oneAiMonthly.priceEUR)}/month`
+  );
 
   async function openLegal(label: string, url?: string) {
     if (!url) {
@@ -68,7 +76,7 @@ export default function UpgradeScreen() {
         </View>
 
         <View style={styles.hero}>
-          <View style={[styles.heroMark, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+          <View style={[styles.heroMark, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}> 
             <OneIcon name={icons.crown} size={24} color={theme.chrome} />
           </View>
           <Text style={[styles.title, { color: theme.text }]}>Simple plans. No clutter.</Text>
@@ -89,7 +97,7 @@ export default function UpgradeScreen() {
           name="NEVER AI"
           price={neverAiPrice}
           period={localizedPrices.one_ai || !billingConfigured ? '/ month' : ''}
-          offer="No trial · billed immediately"
+          offer={neverAiOffer}
           features={aiFeatures}
           planKey="one_ai"
           highlighted
@@ -97,12 +105,12 @@ export default function UpgradeScreen() {
         />
 
         {isBetaAccess ? (
-          <View style={[styles.beta, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+          <View style={[styles.beta, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}> 
             <OneIcon name={icons.ask} size={18} color={theme.chrome} />
             <Text style={[styles.betaText, { color: theme.textSecondary }]}>NEVER AI is enabled during beta so Ask NEVER and semantic recall can be tested end-to-end. App Store purchases are not active yet.</Text>
           </View>
         ) : !billingConfigured ? (
-          <View style={[styles.beta, { backgroundColor: theme.fill, borderColor: theme.border }]}>
+          <View style={[styles.beta, { backgroundColor: theme.fill, borderColor: theme.border }]}> 
             <OneIcon name={icons.more} size={18} color={theme.warning} />
             <Text style={[styles.betaText, { color: theme.textSecondary }]}>App Store billing is unavailable in this release build. Paid access is not unlocked. Configure RevenueCat before distribution.</Text>
           </View>
@@ -127,10 +135,10 @@ export default function UpgradeScreen() {
 
         {!hardPaywall ? <PrimaryButton label="Back to NEVER" icon={icons.check} onPress={() => router.back()} /> : null}
 
-        <Text style={[styles.legal, { color: theme.textTertiary }]}>
+        <Text style={[styles.legal, { color: theme.textTertiary }]}> 
           {isBetaAccess
             ? 'Beta billing is disabled. NEVER AI remains unlocked for development testing.'
-            : 'Subscriptions renew automatically unless cancelled. Prices shown above come from the current App Store storefront when available. NEVER’s introductory free trial is available only to eligible App Store accounts. NEVER AI has no free trial.'}
+            : 'Subscriptions renew automatically unless cancelled. Prices and introductory offers shown above come from the current App Store storefront when available. Apple determines introductory-offer eligibility at purchase time.'}
         </Text>
 
         <View style={styles.legalLinks}>
@@ -181,14 +189,14 @@ export default function UpgradeScreen() {
     const isThisPlanPurchasing = purchasing && purchasingPlan === planKey;
 
     return (
-      <View style={[styles.planWrap, { borderColor: highlighted ? theme.chrome : 'transparent' }]}>
+      <View style={[styles.planWrap, { borderColor: highlighted ? theme.chrome : 'transparent' }]}> 
         <Surface padded>
           <View style={styles.planTop}>
             <View>
               <View style={styles.nameRow}>
                 <Text style={[styles.planName, { color: theme.text }]}>{name}</Text>
                 {current ? (
-                  <View style={[styles.currentPill, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+                  <View style={[styles.currentPill, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}> 
                     <Text style={[styles.currentText, { color: theme.chrome }]}>{isBetaAccess ? 'CURRENT BETA' : 'CURRENT'}</Text>
                   </View>
                 ) : null}
@@ -201,7 +209,7 @@ export default function UpgradeScreen() {
             </View>
           </View>
 
-          <View style={[styles.featureList, { borderTopColor: theme.border }]}>
+          <View style={[styles.featureList, { borderTopColor: theme.border }]}> 
             {features.map((feature) => (
               <View key={feature} style={styles.featureRow}>
                 <OneIcon name={icons.check} size={14} color={highlighted ? theme.chrome : theme.success} />
@@ -234,7 +242,7 @@ export default function UpgradeScreen() {
               ]}
             >
               {isThisPlanPurchasing ? <ActivityIndicator size="small" color={theme.onAccent} /> : null}
-              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? theme.onAccent : theme.textTertiary }]}>
+              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? theme.onAccent : theme.textTertiary }]}> 
                 {purchaseReady
                   ? purchaseLabel(planKey, plan)
                   : !billingConfigured && isBetaAccess
@@ -260,6 +268,21 @@ function storefrontPrice(localized: string | undefined, billingConfigured: boole
   if (localized) return localized;
   if (billingConfigured) return 'App Store price';
   return formatEUR(fallbackEUR);
+}
+
+function storefrontOffer(
+  introOffer: RevenueCatIntroOffer | undefined,
+  localizedPrice: string | undefined,
+  billingConfigured: boolean,
+  developmentFallback: string
+) {
+  if (!billingConfigured) return developmentFallback;
+  if (!localizedPrice) return 'Unavailable in the current App Store offering';
+  if (!introOffer) return `Monthly subscription · ${localizedPrice}/month`;
+  if (introOffer.price === 0) {
+    return `Free introductory offer for eligible new subscribers · then ${localizedPrice}/month`;
+  }
+  return `Introductory offer ${introOffer.priceString} for eligible new subscribers · then ${localizedPrice}/month`;
 }
 
 function formatEUR(value: number) {
