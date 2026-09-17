@@ -1,12 +1,13 @@
+import { isValidReminderSchedule } from './reminderDate.ts';
 import type { OneItem } from '../types/item';
 
 export type NotificationTransition = 'none' | 'cancel' | 'schedule' | 'reschedule';
 
-export function isRemindable(item: Pick<OneItem, 'type' | 'date' | 'completed'>) {
+export function isRemindable(item: Pick<OneItem, 'type' | 'date' | 'time' | 'completed'>) {
   return Boolean(
-    item.date &&
     !item.completed &&
-    ['task', 'reminder', 'appointment', 'event'].includes(item.type)
+    ['task', 'reminder', 'appointment', 'event'].includes(item.type) &&
+    isValidReminderSchedule(item)
   );
 }
 
