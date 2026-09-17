@@ -13,8 +13,8 @@ const options: Array<{
   body: string;
 }> = [
   { value: 'system', title: 'System', body: 'Follow your iPhone appearance automatically.' },
-  { value: 'light', title: 'Light', body: 'Always use ONE in light mode.' },
-  { value: 'dark', title: 'Dark', body: 'Always use ONE in dark mode.' }
+  { value: 'light', title: 'Light', body: 'Always use NEVER in light mode.' },
+  { value: 'dark', title: 'Dark', body: 'Always use NEVER in dark mode.' }
 ];
 
 export default function AppearanceScreen() {
@@ -30,7 +30,7 @@ export default function AppearanceScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <View style={styles.content}>
         <View style={styles.nav}>
-          <Pressable onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+          <Pressable onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
             <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
           </Pressable>
           <Text style={[styles.navTitle, { color: theme.text }]}>Appearance</Text>
@@ -39,10 +39,8 @@ export default function AppearanceScreen() {
 
         <View style={styles.hero}>
           <IconTile icon={icons.appearance} size={50} />
-          <Text style={[styles.title, { color: theme.text }]}>Choose how ONE looks.</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            System is the default and follows your iPhone automatically.
-          </Text>
+          <Text style={[styles.title, { color: theme.text }]}>Choose how NEVER looks.</Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>System is the default and follows your iPhone automatically.</Text>
         </View>
 
         <Surface>
@@ -55,27 +53,19 @@ export default function AppearanceScreen() {
                 style={({ pressed }) => [
                   styles.row,
                   index < options.length - 1 && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth },
-                  { opacity: pressed ? 0.64 : 1 }
+                  { opacity: pressed ? 0.58 : 1 }
                 ]}
               >
-                <View style={[styles.preview, { backgroundColor: previewBackground(option.value, theme.background, theme.surface) }]}>
-                  <View style={[styles.previewBar, { backgroundColor: previewSurface(option.value, theme.surface, theme.fillStrong) }]} />
-                  <View style={[styles.previewLine, { backgroundColor: previewText(option.value, theme.text, theme.textSecondary) }]} />
+                <View style={[styles.preview, { backgroundColor: previewBackground(option.value, theme.background) }]}>
+                  <View style={[styles.previewBar, { backgroundColor: previewSurface(option.value, theme.surface) }]} />
+                  <View style={[styles.previewLine, { backgroundColor: previewText(option.value, theme.text) }]} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.rowTitle, { color: theme.text }]}>{option.title}</Text>
                   <Text style={[styles.rowBody, { color: theme.textSecondary }]}>{option.body}</Text>
                 </View>
-                <View
-                  style={[
-                    styles.radio,
-                    {
-                      borderColor: active ? theme.accent : theme.fillStrong,
-                      backgroundColor: active ? theme.accent : 'transparent'
-                    }
-                  ]}
-                >
-                  {active ? <View style={styles.radioInner} /> : null}
+                <View style={[styles.radio, { borderColor: active ? theme.chrome : theme.fillStrong, backgroundColor: active ? theme.chrome : 'transparent' }]}>
+                  {active ? <View style={[styles.radioInner, { backgroundColor: theme.background }]} /> : null}
                 </View>
               </Pressable>
             );
@@ -86,39 +76,39 @@ export default function AppearanceScreen() {
   );
 }
 
-function previewBackground(mode: ThemePreference, current: string, surface: string) {
-  if (mode === 'light') return '#F5F6F8';
-  if (mode === 'dark') return '#0B0C0E';
+function previewBackground(mode: ThemePreference, current: string) {
+  if (mode === 'light') return '#F1F3F5';
+  if (mode === 'dark') return '#080A0C';
   return current;
 }
 
-function previewSurface(mode: ThemePreference, current: string, fallback: string) {
-  if (mode === 'light') return '#FFFFFF';
-  if (mode === 'dark') return '#202328';
-  return current || fallback;
+function previewSurface(mode: ThemePreference, current: string) {
+  if (mode === 'light') return '#FAFBFC';
+  if (mode === 'dark') return '#171B1F';
+  return current;
 }
 
-function previewText(mode: ThemePreference, current: string, secondary: string) {
-  if (mode === 'light') return '#111318';
-  if (mode === 'dark') return '#F7F8FA';
-  return current || secondary;
+function previewText(mode: ThemePreference, current: string) {
+  if (mode === 'light') return '#101214';
+  if (mode === 'dark') return '#F4F6F7';
+  return current;
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 20, paddingTop: 8, gap: 24 },
+  content: { flex: 1, paddingHorizontal: 20, paddingTop: 10, gap: 26 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 16, fontWeight: '800' },
-  hero: { alignItems: 'center', paddingTop: 12 },
-  title: { marginTop: 14, fontSize: 27, lineHeight: 32, fontWeight: '800', letterSpacing: -0.7, textAlign: 'center' },
-  subtitle: { marginTop: 8, maxWidth: 320, fontSize: 13.5, lineHeight: 19, textAlign: 'center' },
-  row: { minHeight: 88, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 13 },
-  preview: { width: 52, height: 52, borderRadius: 14, padding: 8 },
+  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.1 },
+  hero: { alignItems: 'center', paddingTop: 14 },
+  title: { marginTop: 15, fontSize: 27, lineHeight: 32, fontWeight: '700', letterSpacing: -0.8, textAlign: 'center' },
+  subtitle: { marginTop: 8, maxWidth: 320, fontSize: 13, lineHeight: 19, textAlign: 'center' },
+  row: { minHeight: 88, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 13 },
+  preview: { width: 52, height: 52, borderRadius: 13, padding: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: 'rgba(127,127,127,0.18)' },
   previewBar: { height: 8, borderRadius: 4 },
-  previewLine: { width: '64%', height: 5, borderRadius: 3, marginTop: 9 },
-  rowTitle: { fontSize: 15, fontWeight: '700' },
-  rowBody: { marginTop: 4, fontSize: 12, lineHeight: 17 },
+  previewLine: { width: '64%', height: 5, borderRadius: 3, marginTop: 9, opacity: 0.72 },
+  rowTitle: { fontSize: 14.5, fontWeight: '700' },
+  rowBody: { marginTop: 4, fontSize: 11.75, lineHeight: 17 },
   radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-  radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' }
+  radioInner: { width: 8, height: 8, borderRadius: 4 }
 });
