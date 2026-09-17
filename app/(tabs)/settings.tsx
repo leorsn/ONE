@@ -21,20 +21,24 @@ export default function SettingsScreen() {
   const { syncStatus, items, retrySync, clearAll } = useItems();
   const { reset: resetOnboarding } = useOnboarding();
   const { preference } = useThemePreference();
-  const { plan, isBetaAccess, hasAi, billingConfigured, managementUrl } = usePlan();
+  const { plan, isBetaAccess, hasAi, billingConfigured, localizedPrices, managementUrl } = usePlan();
   const [deletingAccount, setDeletingAccount] = useState(false);
 
   async function openSubscriptionManagement() {
     if (!managementUrl) return;
 
     await Haptics.selectionAsync();
-    const supported = await Linking.canOpenURL(managementUrl);
-    if (!supported) {
-      Alert.alert('Manage Subscription', 'NEVER could not open your subscription management page on this device.');
-      return;
-    }
+    try {
+      const supported = await Linking.canOpenURL(managementUrl);
+      if (!supported) {
+        Alert.alert('Manage Subscription', 'NEVER could not open your subscription management page on this device.');
+        return;
+      }
 
-    await Linking.openURL(managementUrl);
+      await Linking.openURL(managementUrl);
+    } catch {
+      Alert.alert('Manage Subscription', 'NEVER could not open your subscription management page on this device.');
+    }
   }
 
   function confirmDeleteAccount() {
@@ -142,7 +146,7 @@ export default function SettingsScreen() {
             <SettingsRow
               icon={icons.crown}
               label={membershipLabel(plan)}
-              value={isBetaAccess ? 'Beta access' : membershipValue(plan)}
+              value={isBetaAccess ? 'Beta access' : membershipValue(plan, localizedPrices, billingConfigured)}
               onPress={() => router.push('/upgrade')}
               last={!billingConfigured || !managementUrl}
             />
@@ -341,9 +345,19 @@ function membershipLabel(plan: 'none' | 'one' | 'one_ai') {
   return 'No subscription';
 }
 
-function membershipValue(plan: 'none' | 'one' | 'one_ai') {
-  if (plan === 'one_ai') return '€4.99 / month';
-  if (plan === 'one') return '€2.99 / month';
+function membershipValue(
+  plan: 'none' | 'one' | 'one_ai',
+  localizedPrices: Partial<Record<'one' | 'one_ai', string>>,
+  billingConfigured: boolean
+) {
+  if (plan === 'one_ai') {
+    if (localizedPrices.one_ai) return `${localizedPrices.one_ai} / month`;
+    return billingConfigured ? 'Active · App Store' : '€4.99 / month';
+  }
+  if (plan === 'one') {
+    if (localizedPrices.one) return `${localizedPrices.one} / month`;
+    return billingConfigured ? 'Active · App Store' : '€2.99 / month';
+  }
   return 'Choose a plan';
 }
 
