@@ -1,26 +1,26 @@
-# ONE — Product Strategy
+# NEVER — Product Strategy
 
 ## Core principle
 
-Capture first. Organize automatically. Recall by asking ONE.
+Capture first. Organize automatically. Recall by asking NEVER.
 
-ONE is designed as a personal digital memory, not just a task manager.
+NEVER is designed as a personal digital memory, not just a task manager.
 
 ## Core V1 capabilities
 
 - Universal inbox for tasks, appointments, reminders, notes, links, ideas, travel and shopping
 - Calendar and local reminders
 - Saved items and search
-- Share to ONE from other apps
+- Share to NEVER from other apps
 - Screenshot and document OCR
-- Scan to ONE for receipts, invoices, letters, tickets, reservations and other documents
+- Scan to NEVER for receipts, invoices, letters, tickets, reservations and other documents
 - Private cloud sync with Supabase
-- Semantic recall and Ask ONE
+- Semantic recall and Ask NEVER
 - Automatic light/dark appearance
 
 ## Product tiers
 
-### ONE — 2.99 EUR/month
+### NEVER — 2.99 EUR/month
 
 Billing model:
 
@@ -35,8 +35,8 @@ A complete non-AI organization product:
 - Calendar
 - Reminders
 - Saved
-- Share to ONE
-- Scan to ONE
+- Share to NEVER
+- Scan to NEVER
 - Receipt and screenshot OCR
 - Basic automatic categorization
 - Cloud sync
@@ -44,18 +44,18 @@ A complete non-AI organization product:
 
 Possible later annual price: 24.99 EUR/year. Monthly launch pricing remains the priority.
 
-### ONE AI — 4.99 EUR/month
+### NEVER AI — 4.99 EUR/month
 
 Billing model:
 
 - no free trial
 - charged immediately at purchase
 - auto-renews monthly unless cancelled
-- ranked above ONE in the same App Store subscription group so upgrades take effect immediately
+- ranked above NEVER in the same App Store subscription group so upgrades take effect immediately
 
-Includes everything in ONE plus:
+Includes everything in NEVER plus:
 
-- Ask ONE
+- Ask NEVER
 - Natural-language questions over personal memory
 - Semantic search
 - Answers grounded in saved items
@@ -80,11 +80,11 @@ Preferred flow:
 3. Use inexpensive semantic retrieval to find the most relevant items.
 4. Send only a small relevant context set to an LLM when a generated answer is actually needed.
 
-This keeps ONE AI economically viable at 4.99 EUR/month.
+This keeps NEVER AI economically viable at 4.99 EUR/month.
 
-## Scan to ONE
+## Scan to NEVER
 
-Scan to ONE is a core product capability.
+Scan to NEVER is a core product capability.
 
 Typical inputs:
 
@@ -118,12 +118,16 @@ The Inbox should eventually expose quick actions such as:
 
 ## Positioning
 
-ONE:
+NEVER:
 "I save and organize everything for you."
 
-ONE AI:
+NEVER AI:
 "Just ask me what you need."
 
 Primary long-term USP:
 
-"Don't remember where you saved something. Ask ONE."
+"Don't remember where you saved something. Ask NEVER."
+
+## Technical compatibility identifiers
+
+The V1 rebrand does not rename established technical identifiers such as the repository name, `one://` URL scheme, bundle/product identifiers, RevenueCat entitlements or existing backend resource names. Consumer-facing product copy remains NEVER / NEVER AI while those identifiers are preserved to avoid release regressions.
