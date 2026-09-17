@@ -18,15 +18,18 @@ The next device pass must use both:
 
 ### Before TestFlight
 
-- **DEVICE ACCEPTANCE:** complete the critical physical-iPhone matrix, including Share Sheet, camera, Apple Vision OCR, notifications, notification taps, auth links, session restore, offline/reconnect and account isolation.
+- **DEVICE ACCEPTANCE:** complete the critical physical-iPhone matrix, including Share Sheet, camera, OCR, notifications, notification taps, auth links, session restore, offline/reconnect and account isolation.
+- **IPAD ACCEPTANCE:** because `ios.supportsTablet` is enabled, run the critical iPad/full-screen and resize/multitasking layout matrix before using iPad screenshots for submission.
 - **VISUAL ACCEPTANCE:** complete the NEVER visual QA matrix on a real iPhone in light and dark mode; resolve all P0/P1 defects before TestFlight distribution.
-- **BRAND ASSETS:** configure and verify final NEVER App Icon and launch/splash presentation in the production iOS build. No generic Expo/default asset may ship.
+- **BRAND ASSETS:** configure and verify final NEVER App Icon and launch/splash presentation in the production iOS build. No generic Expo/default asset may ship. `npm run release:asset-check` must pass.
+- **PRIVACY MANIFEST:** inspect the generated production-like iOS archive for `PrivacyInfo.xcprivacy` coverage and Apple Required-Reason-API warnings. Do not invent reason codes. If the linked Expo/React Native/CocoaPods manifests are not sufficiently aggregated, add the verified approved reasons via `expo.ios.privacyManifests` or the native target before promotion.
 - **EXTERNAL CONFIGURATION:** create/verify the Apple application and signing configuration for `app.one.mobile`, the Share Extension `app.one.mobile.ShareExtension`, App Group `group.app.one.mobile`, and required provisioning/capability assignments.
 - **EXTERNAL CONFIGURATION:** link/configure the EAS project and produce a signed production/TestFlight build.
 - **EXTERNAL CONFIGURATION:** verify Supabase Auth redirect URLs and production email delivery/templates for `one://auth/callback` and `one://auth/reset-password`.
 - **EXTERNAL CONFIGURATION:** verify that auth email templates, sender identity and any hosted confirmation pages show NEVER rather than the legacy product name.
 - **EXTERNAL CONFIGURATION:** configure production RevenueCat/App Store products and entitlement mapping before distributing a build that requires paid access. Consumer product names must be NEVER and NEVER AI even where compatibility IDs remain `one` / `one_ai`.
 - **EXTERNAL CONFIGURATION:** configure the production NEVER AI server secret/model if AI recall is included in the TestFlight acceptance scope. The existing env key `ONE_RECALL_MODEL` may remain for compatibility.
+- **RELEASE ENVIRONMENT:** `npm run release:env-check` must pass using the intended TestFlight/production-like environment.
 
 ### Before App Store release
 
@@ -36,6 +39,7 @@ All TestFlight blockers above, plus:
 - **VISUAL ACCEPTANCE:** no unresolved P0/P1 visual defects and no legacy consumer-facing ONE branding.
 - **EXTERNAL CONFIGURATION:** App Store purchase/trial/restore flows accepted with real StoreKit/App Store Connect/RevenueCat configuration.
 - **LEGAL:** production privacy policy, terms, support URL and App Store privacy disclosures completed from the technical data inventory.
+- **PRIVACY MANIFEST:** no unresolved App Store Connect privacy-manifest/required-reason warning for the submitted archive; declarations must match actual app/SDK behavior.
 - **STORE ASSETS:** final App Store Connect metadata, age rating, screenshots, app description, subtitle, keywords, privacy/support URLs and release settings completed.
 - **BRAND ASSETS:** final App Icon, screenshots and any promotional artwork match the NEVER design canon.
 - **EXTERNAL CONFIGURATION:** production secrets and EAS production environment verified; no development-only entitlement or diagnostics behavior present in the submitted binary.
@@ -50,6 +54,7 @@ Current repository state establishes identifiers and integration contracts but c
 - main bundle ID and Share Extension bundle ID registration
 - App Group capability assignment
 - EAS project link and build credentials
+- generated iOS privacy-manifest aggregation / App Store Connect required-reason acceptance
 - Supabase Auth redirect allow-list and production SMTP/template behavior
 - RevenueCat project, iOS public SDK key, entitlements, offerings and products
 - App Store Connect products/trial eligibility configuration
@@ -66,8 +71,8 @@ Repository code/config is ready to be exercised, but the following are **not acc
 - cold/warm share routing
 - camera permission and capture
 - Photos permission and selection
-- Apple Vision OCR execution, cancellation/background races and receipt behavior
-- local notification permission, delivery, edit/reschedule/cancel and tap routing
+- on-device OCR execution, cancellation/background races and receipt behavior
+- local notification permission, Settings recovery, delivery, edit/reschedule/cancel and tap routing
 - auth confirmation and password-reset deep links
 - force-quit session restoration
 - real offline/reconnect transitions
@@ -76,6 +81,22 @@ Repository code/config is ready to be exercised, but the following are **not acc
 - light/dark mode switching across core screens
 - branded launch/loading transition without white/blue flash
 - final app icon presentation on the iOS Home Screen
+
+## IPAD ACCEPTANCE
+
+Tablet support is enabled and now has bounded content widths in the primary release surfaces, but it remains unaccepted until exercised on a physical iPad or an equivalent signed build environment.
+
+At minimum verify:
+- Home/Inbox, Search, Calendar, Saved and Settings;
+- Onboarding paging after window-size changes;
+- Ask NEVER composer and source cards;
+- Scan/OCR and incoming Share Review;
+- Inbox Detail and Item Detail;
+- Appearance, Notifications and Privacy;
+- NEVER / NEVER AI plans;
+- keyboard behavior and supported multitasking/window sizes.
+
+Do not submit iPad screenshots from an unaccepted layout.
 
 ## VISUAL ACCEPTANCE
 
@@ -127,5 +148,5 @@ Not V1 release blockers:
 ## Release gates
 
 1. **Physical iPhone acceptance:** repository CI green + Apple/Xcode development signing available + functional and visual device plans executable.
-2. **TestFlight:** critical native paths passed + P0/P1 visual issues cleared + final icon/launch assets + production signing/auth/billing/AI configuration appropriate to the build.
-3. **App Store:** TestFlight gate passed + real purchase/restore acceptance + privacy/legal/store disclosures complete + final store assets + no unresolved release-critical defects.
+2. **TestFlight:** critical native paths passed + iPad critical layout accepted + P0/P1 visual issues cleared + final icon/launch assets + privacy-manifest verification + production signing/auth/billing/AI configuration appropriate to the build.
+3. **App Store:** TestFlight gate passed + real purchase/restore acceptance + privacy/legal/store disclosures complete + privacy-manifest acceptance + final store assets + no unresolved release-critical defects.
