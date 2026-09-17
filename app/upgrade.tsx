@@ -2,13 +2,13 @@ import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, View
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlan } from '@/src/context/PlanContext';
-import { IconTile, PrimaryButton, Surface } from '@/src/ui/primitives';
+import { PrimaryButton, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 import { subscriptionProducts } from '@/src/subscription/products';
 
-const baseFeatures = ['Capture, calendar & reminders', 'Saved & classical search', 'Share to ONE', 'Scan to ONE & OCR', 'Private cloud sync'];
-const aiFeatures = ['Everything in ONE', 'Ask ONE', 'Meaning-based semantic recall', 'AI answers grounded in your memory', 'Cross-item document & receipt analysis'];
+const baseFeatures = ['Capture, calendar & reminders', 'Saved & classical search', 'Share to NEVER', 'Scan to NEVER & OCR', 'Private cloud sync'];
+const aiFeatures = ['Everything in NEVER', 'Ask NEVER', 'Meaning-based semantic recall', 'AI answers grounded in your memory', 'Cross-item document & receipt analysis'];
 
 export default function UpgradeScreen() {
   const theme = useTheme();
@@ -26,23 +26,25 @@ export default function UpgradeScreen() {
               accessibilityRole="button"
               accessibilityLabel="Close plans"
               onPress={() => router.back()}
-              style={[styles.navButton, { backgroundColor: theme.fill }]}
+              style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
             >
               <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
             </Pressable>
           )}
-          <Text style={[styles.navTitle, { color: theme.text }]}>ONE Plans</Text>
+          <Text style={[styles.navTitle, { color: theme.text }]}>NEVER Plans</Text>
           <View style={{ width: 40 }} />
         </View>
 
         <View style={styles.hero}>
-          <IconTile icon={icons.crown} size={56} />
+          <View style={[styles.heroMark, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+            <OneIcon name={icons.crown} size={24} color={theme.chrome} />
+          </View>
           <Text style={[styles.title, { color: theme.text }]}>Simple plans. No clutter.</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Organization stays affordable. AI is optional.</Text>
         </View>
 
         <PlanCard
-          name="ONE"
+          name="NEVER"
           price={formatEUR(subscriptionProducts.oneMonthly.priceEUR)}
           period="/ month"
           offer="7-day free trial for eligible new subscribers · then €2.99/month"
@@ -52,7 +54,7 @@ export default function UpgradeScreen() {
         />
 
         <PlanCard
-          name="ONE AI"
+          name="NEVER AI"
           price={formatEUR(subscriptionProducts.oneAiMonthly.priceEUR)}
           period="/ month"
           offer="No trial · billed immediately"
@@ -63,12 +65,12 @@ export default function UpgradeScreen() {
         />
 
         {isBetaAccess ? (
-          <View style={[styles.beta, { backgroundColor: theme.accentSoft }]}>
-            <OneIcon name={icons.ask} size={18} color={theme.accent} />
-            <Text style={[styles.betaText, { color: theme.textSecondary }]}>ONE AI is enabled during beta so Ask ONE and semantic recall can be tested end-to-end. App Store purchases are not active yet.</Text>
+          <View style={[styles.beta, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+            <OneIcon name={icons.ask} size={18} color={theme.chrome} />
+            <Text style={[styles.betaText, { color: theme.textSecondary }]}>NEVER AI is enabled during beta so Ask NEVER and semantic recall can be tested end-to-end. App Store purchases are not active yet.</Text>
           </View>
         ) : !billingConfigured ? (
-          <View style={[styles.beta, { backgroundColor: theme.fill }]}>
+          <View style={[styles.beta, { backgroundColor: theme.fill, borderColor: theme.border }]}>
             <OneIcon name={icons.more} size={18} color={theme.warning} />
             <Text style={[styles.betaText, { color: theme.textSecondary }]}>App Store billing is unavailable in this release build. Paid access is not unlocked. Configure RevenueCat before distribution.</Text>
           </View>
@@ -82,21 +84,21 @@ export default function UpgradeScreen() {
             onPress={async () => {
               const outcome = await restore();
               if (!outcome.ok && outcome.error) Alert.alert('Restore purchases', outcome.error);
-              else if (outcome.ok) Alert.alert('Restore purchases', 'Your App Store purchases are synced with ONE.');
+              else if (outcome.ok) Alert.alert('Restore purchases', 'Your App Store purchases are synced with NEVER.');
             }}
             style={styles.restore}
           >
             {purchasing ? <ActivityIndicator size="small" /> : null}
-            <Text style={[styles.restoreText, { color: theme.accent }]}>Restore purchases</Text>
+            <Text style={[styles.restoreText, { color: theme.chrome }]}>Restore purchases</Text>
           </Pressable>
         ) : null}
 
-        {!hardPaywall ? <PrimaryButton label="Back to ONE" icon={icons.check} onPress={() => router.back()} /> : null}
+        {!hardPaywall ? <PrimaryButton label="Back to NEVER" icon={icons.check} onPress={() => router.back()} /> : null}
 
         <Text style={[styles.legal, { color: theme.textTertiary }]}>
           {isBetaAccess
-            ? 'Beta billing is disabled. ONE AI remains unlocked for development testing.'
-            : 'Subscriptions renew automatically unless cancelled. ONE’s introductory free trial is available only to eligible App Store accounts. ONE AI has no free trial.'}
+            ? 'Beta billing is disabled. NEVER AI remains unlocked for development testing.'
+            : 'Subscriptions renew automatically unless cancelled. NEVER’s introductory free trial is available only to eligible App Store accounts. NEVER AI has no free trial.'}
         </Text>
       </ScrollView>
     </SafeAreaView>
@@ -122,15 +124,15 @@ export default function UpgradeScreen() {
     current?: boolean;
   }) {
     return (
-      <View style={[styles.planWrap, highlighted && { borderColor: theme.accent }]}>
+      <View style={[styles.planWrap, { borderColor: highlighted ? theme.chrome : 'transparent' }]}>
         <Surface padded>
           <View style={styles.planTop}>
             <View>
               <View style={styles.nameRow}>
                 <Text style={[styles.planName, { color: theme.text }]}>{name}</Text>
                 {current ? (
-                  <View style={[styles.currentPill, { backgroundColor: theme.accentSoft }]}>
-                    <Text style={[styles.currentText, { color: theme.accent }]}>{isBetaAccess ? 'CURRENT BETA' : 'CURRENT'}</Text>
+                  <View style={[styles.currentPill, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+                    <Text style={[styles.currentText, { color: theme.chrome }]}>{isBetaAccess ? 'CURRENT BETA' : 'CURRENT'}</Text>
                   </View>
                 ) : null}
               </View>
@@ -138,14 +140,14 @@ export default function UpgradeScreen() {
                 <Text style={[styles.price, { color: theme.text }]}>{price}</Text>
                 <Text style={[styles.period, { color: theme.textSecondary }]}>{period}</Text>
               </View>
-              <Text style={[styles.offer, { color: highlighted ? theme.textSecondary : theme.accent }]}>{offer}</Text>
+              <Text style={[styles.offer, { color: highlighted ? theme.textSecondary : theme.chrome }]}>{offer}</Text>
             </View>
           </View>
 
           <View style={[styles.featureList, { borderTopColor: theme.border }]}>
             {features.map((feature) => (
               <View key={feature} style={styles.featureRow}>
-                <OneIcon name={icons.check} size={14} color={highlighted ? theme.accent : theme.success} />
+                <OneIcon name={icons.check} size={14} color={highlighted ? theme.chrome : theme.success} />
                 <Text style={[styles.featureText, { color: theme.textSecondary }]}>{feature}</Text>
               </View>
             ))}
@@ -158,18 +160,19 @@ export default function UpgradeScreen() {
               disabled={!billingConfigured || purchasing}
               onPress={async () => {
                 const outcome = await purchase(planKey);
-                if (!outcome.ok && !outcome.cancelled && outcome.error) Alert.alert('ONE subscription', outcome.error);
+                if (!outcome.ok && !outcome.cancelled && outcome.error) Alert.alert('NEVER subscription', outcome.error);
               }}
               style={[
                 styles.purchaseButton,
                 {
                   backgroundColor: billingConfigured ? highlighted ? theme.accent : theme.text : theme.fillStrong,
+                  borderColor: billingConfigured ? highlighted ? theme.accent : theme.text : theme.border,
                   opacity: purchasing ? 0.62 : 1
                 }
               ]}
             >
-              {purchasing ? <ActivityIndicator size="small" color={billingConfigured ? '#FFFFFF' : theme.textTertiary} /> : null}
-              <Text style={[styles.purchaseButtonText, { color: billingConfigured ? '#FFFFFF' : theme.textTertiary }]}>
+              {purchasing ? <ActivityIndicator size="small" color={billingConfigured ? theme.onAccent : theme.textTertiary} /> : null}
+              <Text style={[styles.purchaseButtonText, { color: billingConfigured ? theme.onAccent : theme.textTertiary }]}>
                 {billingConfigured ? purchaseLabel(planKey, plan) : isBetaAccess ? 'Available at launch' : 'Unavailable'}
               </Text>
             </Pressable>
@@ -181,8 +184,8 @@ export default function UpgradeScreen() {
 }
 
 function purchaseLabel(nextPlan: 'one' | 'one_ai', currentPlan: 'none' | 'one' | 'one_ai') {
-  if (nextPlan === 'one') return currentPlan === 'one_ai' ? 'Switch to ONE' : 'Get ONE';
-  return currentPlan === 'one' ? 'Upgrade to ONE AI' : 'Get ONE AI';
+  if (nextPlan === 'one') return currentPlan === 'one_ai' ? 'Switch to NEVER' : 'Get NEVER';
+  return currentPlan === 'one' ? 'Upgrade to NEVER AI' : 'Get NEVER AI';
 }
 
 function formatEUR(value: number) {
@@ -191,31 +194,32 @@ function formatEUR(value: number) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40, gap: 16 },
+  content: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 17 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 16, fontWeight: '800' },
-  hero: { alignItems: 'center', paddingTop: 8, paddingBottom: 4 },
-  title: { marginTop: 14, fontSize: 28, lineHeight: 33, fontWeight: '800', letterSpacing: -0.8, textAlign: 'center' },
-  subtitle: { marginTop: 8, fontSize: 13.5, lineHeight: 19, textAlign: 'center' },
-  planWrap: { borderRadius: 24, borderWidth: 1, borderColor: 'transparent' },
+  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.15 },
+  hero: { alignItems: 'center', paddingTop: 10, paddingBottom: 6 },
+  heroMark: { width: 56, height: 56, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  title: { marginTop: 15, fontSize: 27.5, lineHeight: 33, fontWeight: '700', letterSpacing: -0.85, textAlign: 'center' },
+  subtitle: { marginTop: 9, fontSize: 13.25, lineHeight: 19, textAlign: 'center' },
+  planWrap: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth },
   planTop: { gap: 10 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  planName: { fontSize: 20, fontWeight: '900', letterSpacing: -0.4 },
-  currentPill: { minHeight: 24, borderRadius: 9, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
-  currentText: { fontSize: 9.5, fontWeight: '900', letterSpacing: 0.5 },
-  priceRow: { marginTop: 7, flexDirection: 'row', alignItems: 'baseline', gap: 4 },
-  price: { fontSize: 29, fontWeight: '900', letterSpacing: -0.8 },
-  period: { fontSize: 12.5 },
-  offer: { marginTop: 6, fontSize: 12, fontWeight: '700' },
-  featureList: { marginTop: 16, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth, gap: 10 },
+  planName: { fontSize: 19, fontWeight: '700', letterSpacing: -0.35 },
+  currentPill: { minHeight: 24, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 8, alignItems: 'center', justifyContent: 'center' },
+  currentText: { fontSize: 9, fontWeight: '700', letterSpacing: 0.65 },
+  priceRow: { marginTop: 8, flexDirection: 'row', alignItems: 'baseline', gap: 4 },
+  price: { fontSize: 29, fontWeight: '700', letterSpacing: -0.9 },
+  period: { fontSize: 12.25 },
+  offer: { marginTop: 6, fontSize: 11.75, fontWeight: '700' },
+  featureList: { marginTop: 17, paddingTop: 15, borderTopWidth: StyleSheet.hairlineWidth, gap: 10 },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  featureText: { flex: 1, fontSize: 13, lineHeight: 18 },
-  purchaseButton: { marginTop: 16, minHeight: 50, borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  purchaseButtonText: { fontSize: 13.5, fontWeight: '800' },
+  featureText: { flex: 1, fontSize: 12.75, lineHeight: 18 },
+  purchaseButton: { marginTop: 17, minHeight: 50, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  purchaseButtonText: { fontSize: 13.25, fontWeight: '700' },
   restore: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  restoreText: { fontSize: 13, fontWeight: '700' },
-  beta: { minHeight: 72, borderRadius: 18, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  betaText: { flex: 1, fontSize: 12, lineHeight: 17 },
-  legal: { textAlign: 'center', fontSize: 10.5, lineHeight: 15 }
+  restoreText: { fontSize: 12.75, fontWeight: '700' },
+  beta: { minHeight: 72, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  betaText: { flex: 1, fontSize: 11.75, lineHeight: 17 },
+  legal: { textAlign: 'center', fontSize: 10.25, lineHeight: 15 }
 });
