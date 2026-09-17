@@ -15,8 +15,10 @@ const aiFeatures = ['Everything in NEVER', 'Ask NEVER', 'Meaning-based semantic 
 
 export default function UpgradeScreen() {
   const theme = useTheme();
-  const { plan, isBetaAccess, billingConfigured, purchasing, purchase, restore } = usePlan();
+  const { plan, isBetaAccess, billingConfigured, localizedPrices, purchasing, purchase, restore } = usePlan();
   const hardPaywall = plan === 'none' && !isBetaAccess;
+  const neverPrice = localizedPrices.one || formatEUR(subscriptionProducts.oneMonthly.priceEUR);
+  const neverAiPrice = localizedPrices.one_ai || formatEUR(subscriptionProducts.oneAiMonthly.priceEUR);
 
   async function openLegal(label: string, url?: string) {
     if (!url) {
@@ -66,9 +68,9 @@ export default function UpgradeScreen() {
 
         <PlanCard
           name="NEVER"
-          price={formatEUR(subscriptionProducts.oneMonthly.priceEUR)}
+          price={neverPrice}
           period="/ month"
-          offer="7-day free trial for eligible new subscribers · then €2.99/month"
+          offer={`7-day free trial for eligible new subscribers · then ${neverPrice}/month`}
           features={baseFeatures}
           planKey="one"
           current={plan === 'one'}
@@ -76,7 +78,7 @@ export default function UpgradeScreen() {
 
         <PlanCard
           name="NEVER AI"
-          price={formatEUR(subscriptionProducts.oneAiMonthly.priceEUR)}
+          price={neverAiPrice}
           period="/ month"
           offer="No trial · billed immediately"
           features={aiFeatures}
@@ -119,7 +121,7 @@ export default function UpgradeScreen() {
         <Text style={[styles.legal, { color: theme.textTertiary }]}>
           {isBetaAccess
             ? 'Beta billing is disabled. NEVER AI remains unlocked for development testing.'
-            : 'Subscriptions renew automatically unless cancelled. NEVER’s introductory free trial is available only to eligible App Store accounts. NEVER AI has no free trial.'}
+            : 'Subscriptions renew automatically unless cancelled. Prices shown above come from the current App Store storefront when billing is available. NEVER’s introductory free trial is available only to eligible App Store accounts. NEVER AI has no free trial.'}
         </Text>
 
         <View style={styles.legalLinks}>
