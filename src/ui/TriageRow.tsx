@@ -24,23 +24,17 @@ export function TriageRow({
         accessibilityRole="button"
         accessibilityLabel={`Open ${item.title}`}
         onPress={onOpen}
-        style={({ pressed }) => [styles.openArea, { opacity: pressed ? 0.62 : 1 }]}
+        style={({ pressed }) => [styles.openArea, { opacity: pressed ? 0.58 : 1 }]}
       >
         <IconTile icon={iconFor(item)} tone="neutral" size={40} />
         <View style={styles.body}>
           <View style={styles.topline}>
-            <Text style={[styles.state, { color: state === 'needs_review' ? theme.warning : theme.accent }]}>
-              {stateLabel(state)}
-            </Text>
+            <Text style={[styles.state, { color: state === 'needs_review' ? theme.warning : theme.chrome }]}>{stateLabel(state)}</Text>
             <Text style={[styles.source, { color: theme.textTertiary }]}>{sourceLabel(item)}</Text>
           </View>
           <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
-          <Text style={[styles.summary, { color: theme.textSecondary }]} numberOfLines={2}>
-            {item.summary || fallbackSummary(item)}
-          </Text>
-          <Text style={[styles.meta, { color: theme.textTertiary }]} numberOfLines={1}>
-            {metaLine(item)}
-          </Text>
+          <Text style={[styles.summary, { color: theme.textSecondary }]} numberOfLines={2}>{item.summary || fallbackSummary(item)}</Text>
+          <Text style={[styles.meta, { color: theme.textTertiary }]} numberOfLines={1}>{metaLine(item)}</Text>
         </View>
         <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />
       </Pressable>
@@ -53,12 +47,13 @@ export function TriageRow({
           style={({ pressed }) => [
             styles.action,
             {
-              backgroundColor: action.primary ? theme.accentSoft : theme.fill,
-              opacity: pressed ? 0.62 : 1
+              backgroundColor: action.primary ? theme.chromeSoft : theme.fill,
+              borderColor: theme.border,
+              opacity: pressed ? 0.58 : 1
             }
           ]}
         >
-          <Text style={[styles.actionText, { color: action.primary ? theme.accent : theme.textSecondary }]}>{action.label}</Text>
+          <Text style={[styles.actionText, { color: action.primary ? theme.chrome : theme.textSecondary }]}>{action.label}</Text>
         </Pressable>
       ) : null}
     </View>
@@ -97,7 +92,7 @@ function sourceLabel(item: OneItem) {
 }
 
 function fallbackSummary(item: OneItem) {
-  return item.userContext || item.extractedText || item.originalText || item.rawInput || 'Captured in ONE';
+  return item.userContext || item.extractedText || item.originalText || item.rawInput || 'Captured in NEVER';
 }
 
 function metaLine(item: OneItem) {
@@ -125,11 +120,11 @@ const styles = StyleSheet.create({
   openArea: { flexDirection: 'row', alignItems: 'center', gap: 11 },
   body: { flex: 1, minWidth: 0 },
   topline: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  state: { fontSize: 9.5, fontWeight: '900', letterSpacing: 0.65 },
+  state: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.72 },
   source: { flex: 1, fontSize: 10.5, textAlign: 'right' },
   title: { marginTop: 4, fontSize: 15, fontWeight: '700', letterSpacing: -0.15 },
   summary: { marginTop: 3, fontSize: 12.5, lineHeight: 17 },
   meta: { marginTop: 4, fontSize: 10.5 },
-  action: { alignSelf: 'flex-start', minHeight: 34, paddingHorizontal: 12, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  actionText: { fontSize: 11.5, fontWeight: '800' }
+  action: { alignSelf: 'flex-start', minHeight: 34, paddingHorizontal: 12, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  actionText: { fontSize: 11.5, fontWeight: '700' }
 });
