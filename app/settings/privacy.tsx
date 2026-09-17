@@ -23,7 +23,7 @@ const protections = [
   {
     icon: icons.ask,
     title: 'Scoped semantic recall',
-    body: 'Meaning search only matches memories belonging to the signed-in ONE account.'
+    body: 'Meaning search only matches memories belonging to the signed-in NEVER account.'
   },
   {
     icon: icons.cloud,
@@ -44,7 +44,7 @@ export default function PrivacyScreen() {
     await Haptics.selectionAsync();
     try {
       const error = await exportOneData(items);
-      if (error) Alert.alert('Export ONE data', error);
+      if (error) Alert.alert('Export NEVER data', error);
     } finally {
       setExporting(false);
     }
@@ -54,7 +54,7 @@ export default function PrivacyScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <View style={styles.content}>
         <View style={styles.nav}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
             <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
           </Pressable>
           <Text style={[styles.navTitle, { color: theme.text }]}>Privacy</Text>
@@ -64,7 +64,7 @@ export default function PrivacyScreen() {
         <View style={styles.hero}>
           <IconTile icon={icons.shield} size={52} />
           <Text style={[styles.title, { color: theme.text }]}>Private by default.</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>ONE is designed around personal memory. Access boundaries are part of the architecture, not an afterthought.</Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>NEVER is designed around personal memory. Access boundaries are part of the architecture, not an afterthought.</Text>
         </View>
 
         <Surface>
@@ -73,10 +73,7 @@ export default function PrivacyScreen() {
               key={protection.title}
               style={[
                 styles.row,
-                index < protections.length - 1 && {
-                  borderBottomColor: theme.border,
-                  borderBottomWidth: StyleSheet.hairlineWidth
-                }
+                index < protections.length - 1 && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth }
               ]}
             >
               <IconTile icon={protection.icon} tone="neutral" size={38} />
@@ -91,10 +88,10 @@ export default function PrivacyScreen() {
         <Surface>
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={`Export ${items.length} ONE memories as JSON`}
+            accessibilityLabel={`Export ${items.length} NEVER memories as JSON`}
             disabled={exporting}
             onPress={() => void runExport()}
-            style={({ pressed }) => [styles.exportRow, { opacity: pressed || exporting ? 0.6 : 1 }]}
+            style={({ pressed }) => [styles.exportRow, { opacity: pressed || exporting ? 0.58 : 1 }]}
           >
             <IconTile icon={icons.upload} tone="neutral" size={38} />
             <View style={{ flex: 1 }}>
@@ -107,8 +104,8 @@ export default function PrivacyScreen() {
           </Pressable>
         </Surface>
 
-        <View style={[styles.notice, { backgroundColor: theme.accentSoft }]}>
-          <OneIcon name={icons.shield} size={17} color={theme.accent} />
+        <View style={[styles.notice, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+          <OneIcon name={icons.shield} size={17} color={theme.chrome} />
           <Text style={[styles.noticeText, { color: theme.textSecondary }]}>A complete consumer privacy policy and legal disclosure still need to be added before public release.</Text>
         </View>
       </View>
@@ -118,17 +115,17 @@ export default function PrivacyScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 20, paddingTop: 8, gap: 20 },
+  content: { flex: 1, paddingHorizontal: 20, paddingTop: 10, gap: 20 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 16, fontWeight: '800' },
-  hero: { alignItems: 'center', paddingTop: 6 },
-  title: { marginTop: 14, fontSize: 27, lineHeight: 32, fontWeight: '800', letterSpacing: -0.7, textAlign: 'center' },
-  subtitle: { marginTop: 8, maxWidth: 340, fontSize: 13.5, lineHeight: 19, textAlign: 'center' },
-  row: { minHeight: 82, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  exportRow: { minHeight: 76, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  rowTitle: { fontSize: 14.5, fontWeight: '700' },
-  rowBody: { marginTop: 4, fontSize: 12, lineHeight: 17 },
-  notice: { minHeight: 62, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.1 },
+  hero: { alignItems: 'center', paddingTop: 8 },
+  title: { marginTop: 15, fontSize: 27, lineHeight: 32, fontWeight: '700', letterSpacing: -0.8, textAlign: 'center' },
+  subtitle: { marginTop: 8, maxWidth: 340, fontSize: 13, lineHeight: 19, textAlign: 'center' },
+  row: { minHeight: 82, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  exportRow: { minHeight: 76, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  rowTitle: { fontSize: 14.25, fontWeight: '700' },
+  rowBody: { marginTop: 4, fontSize: 11.75, lineHeight: 17 },
+  notice: { minHeight: 62, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
   noticeText: { flex: 1, fontSize: 11.5, lineHeight: 16 }
 });
