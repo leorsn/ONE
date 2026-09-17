@@ -69,9 +69,7 @@ export default function HandleShareScreen() {
   const imageUri = isImage ? localAttachmentUri : null;
 
   const automaticDraft = useMemo(
-    () => primary
-      ? createShareDraft({ payload: primary, resolved, extractedText })
-      : null,
+    () => primary ? createShareDraft({ payload: primary, resolved, extractedText }) : null,
     [primary, resolved, extractedText]
   );
   const draft = reviewedDraft ?? automaticDraft;
@@ -203,7 +201,7 @@ export default function HandleShareScreen() {
         await recordNativeAcceptanceEvent(text ? 'ocr_success' : 'ocr_empty', 'share-image');
       } catch (ocrError) {
         if (cancelled) return;
-        console.warn('ONE OCR failed', ocrError);
+        console.warn('NEVER OCR failed', ocrError);
         setOcrState('failed');
         await recordLastNativeError('share-ocr', ocrError);
         await recordNativeAcceptanceEvent('ocr_failed', 'share-image');
@@ -230,8 +228,8 @@ export default function HandleShareScreen() {
       Alert.alert(
         attachmentState === 'failed' ? 'Attachment not secured' : 'Securing attachment',
         attachmentState === 'failed'
-          ? 'ONE did not save this attachment because its private local copy could not be created. Try sharing it again.'
-          : 'Wait a moment while ONE secures the original file locally.'
+          ? 'NEVER did not save this attachment because its private local copy could not be created. Try sharing it again.'
+          : 'Wait a moment while NEVER secures the original file locally.'
       );
       return;
     }
@@ -242,7 +240,7 @@ export default function HandleShareScreen() {
         await recordNativeAcceptanceEvent('share_duplicate_blocked', selected.fingerprint);
         Alert.alert(
           'Already saved recently',
-          'ONE received the same native share again. This can happen when iOS replays a share handoff.',
+          'NEVER received the same native share again. This can happen when iOS replays a share handoff.',
           [
             { text: 'Cancel', style: 'cancel' },
             { text: 'Save again', onPress: () => setAllowDuplicate(true) }
@@ -270,15 +268,12 @@ export default function HandleShareScreen() {
       setAllowDuplicate(false);
 
       const reminderWarning = notificationSaveWarning(savedItem);
-      if (reminderWarning) Alert.alert('Saved to ONE', reminderWarning);
+      if (reminderWarning) Alert.alert('Saved to NEVER', reminderWarning);
 
       router.replace(savedItem.destination === 'saved' ? '/(tabs)/saved' : '/(tabs)');
     } catch (saveError) {
       await recordLastNativeError('share-save', saveError);
-      Alert.alert(
-        'Could not save to ONE',
-        'The shared content was not discarded. Try saving again.'
-      );
+      Alert.alert('Could not save to NEVER', 'The shared content was not discarded. Try saving again.');
     } finally {
       setSaving(false);
     }
@@ -297,33 +292,29 @@ export default function HandleShareScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView
-        style={styles.safe}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={4}
-      >
+      <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={4}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.nav}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Cancel share" onPress={() => void handleCancel()} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Cancel share" onPress={() => void handleCancel()} style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
               <OneIcon name={icons.close} size={17} color={theme.text} />
             </Pressable>
-            <Text style={[styles.navTitle, { color: theme.text }]}>Save to ONE</Text>
+            <Text style={[styles.navTitle, { color: theme.text }]}>Save to NEVER</Text>
             <View style={{ width: 40 }} />
           </View>
 
           {isResolving ? (
             <Surface padded>
               <View style={styles.center}>
-                <ActivityIndicator />
+                <ActivityIndicator color={theme.chrome} />
                 <Text style={[styles.stateText, { color: theme.textSecondary }]}>Reading shared content…</Text>
               </View>
             </Surface>
           ) : null}
 
           {error ? (
-            <View style={[styles.notice, { backgroundColor: theme.fill }]}>
+            <View style={[styles.notice, { backgroundColor: theme.fill, borderColor: theme.border }]}>
               <OneIcon name={icons.more} size={17} color={theme.warning} />
-              <Text style={[styles.noticeText, { color: theme.textSecondary }]}>ONE could not fully resolve this share. The raw content can still be reviewed where available.</Text>
+              <Text style={[styles.noticeText, { color: theme.textSecondary }]}>NEVER could not fully resolve this share. The raw content can still be reviewed where available.</Text>
             </View>
           ) : null}
 
@@ -334,12 +325,12 @@ export default function HandleShareScreen() {
                 <Surface padded>
                   <View style={styles.previewRow}>
                     {imageUri ? (
-                      <Image source={{ uri: imageUri }} style={styles.image} resizeMode="cover" />
+                      <Image source={{ uri: imageUri }} style={[styles.image, { backgroundColor: theme.fill }]} resizeMode="cover" />
                     ) : (
                       <IconTile icon={primary.shareType === 'url' ? icons.link : icons.upload} size={58} />
                     )}
                     <View style={{ flex: 1 }}>
-                      <Text style={[styles.kind, { color: theme.accent }]}>{labelFor(primary.shareType)}</Text>
+                      <Text style={[styles.kind, { color: theme.chrome }]}>{labelFor(primary.shareType)}</Text>
                       <Text style={[styles.previewTitle, { color: theme.text }]} numberOfLines={4}>{preview}</Text>
                     </View>
                   </View>
@@ -347,21 +338,21 @@ export default function HandleShareScreen() {
               </View>
 
               {isAttachment ? (
-                <View style={[styles.notice, { backgroundColor: attachmentState === 'failed' ? theme.fill : theme.accentSoft }]}>
-                  <OneIcon name={attachmentState === 'failed' ? icons.more : icons.saved} size={17} color={attachmentState === 'failed' ? theme.warning : theme.accent} />
+                <View style={[styles.notice, { backgroundColor: attachmentState === 'failed' ? theme.fill : theme.chromeSoft, borderColor: theme.border }]}>
+                  <OneIcon name={attachmentState === 'failed' ? icons.more : icons.saved} size={17} color={attachmentState === 'failed' ? theme.warning : theme.chrome} />
                   <Text style={[styles.noticeText, { color: theme.textSecondary }]}>{attachmentMessage(attachmentState)}</Text>
-                  {attachmentState === 'securing' ? <ActivityIndicator size="small" /> : null}
+                  {attachmentState === 'securing' ? <ActivityIndicator size="small" color={theme.chrome} /> : null}
                 </View>
               ) : null}
 
               {isImage ? (
-                <View style={[styles.notice, { backgroundColor: ['failed', 'empty'].includes(visibleOcrState) ? theme.fill : theme.accentSoft }]}>
+                <View style={[styles.notice, { backgroundColor: ['failed', 'empty'].includes(visibleOcrState) ? theme.fill : theme.chromeSoft, borderColor: theme.border }]}>
                   <IconTile icon={icons.screenshot} tone={visibleOcrState === 'ready' ? 'success' : 'neutral'} size={36} />
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.ocrTitle, { color: theme.text }]}>{ocrHeadline(visibleOcrState)}</Text>
                     <Text style={[styles.ocrMeta, { color: theme.textSecondary }]}>{ocrMeta(visibleOcrState)}</Text>
                   </View>
-                  {visibleOcrState === 'reading' ? <ActivityIndicator size="small" /> : null}
+                  {visibleOcrState === 'reading' ? <ActivityIndicator size="small" color={theme.chrome} /> : null}
                 </View>
               ) : null}
 
@@ -378,17 +369,17 @@ export default function HandleShareScreen() {
                 />
               ) : null}
 
-              <View style={[styles.notice, { backgroundColor: theme.accentSoft }]}>
-                <OneIcon name={icons.cloud} size={17} color={theme.accent} />
+              <View style={[styles.notice, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+                <OneIcon name={icons.cloud} size={17} color={theme.chrome} />
                 <Text style={[styles.noticeText, { color: theme.textSecondary }]}>
                   {session
-                    ? 'ONE saves locally first. Account sync retries automatically when the network is available.'
+                    ? 'NEVER saves locally first. Account sync retries automatically when the network is available.'
                     : 'This capture stays on this device until you sign in.'}
                 </Text>
               </View>
 
               <PrimaryButton
-                label={saving ? 'Saving…' : allowDuplicate ? 'Save again' : 'Save to ONE'}
+                label={saving ? 'Saving…' : allowDuplicate ? 'Save again' : 'Save to NEVER'}
                 icon={icons.check}
                 onPress={handleSave}
                 disabled={saving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')}
@@ -399,7 +390,7 @@ export default function HandleShareScreen() {
               <View style={styles.center}>
                 <IconTile icon={icons.upload} tone="neutral" size={46} />
                 <Text style={[styles.stateTitle, { color: theme.text }]}>No usable shared content</Text>
-                <Text style={[styles.stateText, { color: theme.textSecondary }]}>Return to the share sheet and choose ONE again. Empty or unsupported payloads are never saved silently.</Text>
+                <Text style={[styles.stateText, { color: theme.textSecondary }]}>Return to the share sheet and choose NEVER again. Empty or unsupported payloads are never saved silently.</Text>
               </View>
             </Surface>
           ) : null}
@@ -419,9 +410,9 @@ function labelFor(type?: string) {
 }
 
 function attachmentMessage(state: AttachmentState) {
-  if (state === 'securing') return 'Securing the original in ONE private local storage…';
+  if (state === 'securing') return 'Securing the original in NEVER private local storage…';
   if (state === 'ready') return 'Original secured locally before OCR or cloud sync.';
-  if (state === 'failed') return 'The original could not be secured. ONE will not claim this attachment as saved.';
+  if (state === 'failed') return 'The original could not be secured. NEVER will not claim this attachment as saved.';
   return 'Preparing attachment…';
 }
 
@@ -443,20 +434,20 @@ function ocrMeta(state: OcrState) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 48, gap: 20 },
+  content: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 48, gap: 20 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 16, fontWeight: '800' },
+  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.1 },
   block: { gap: 10 },
   previewRow: { flexDirection: 'row', alignItems: 'center', gap: 13 },
-  image: { width: 76, height: 76, borderRadius: 16 },
-  kind: { fontSize: 10.5, fontWeight: '800', letterSpacing: 1 },
-  previewTitle: { marginTop: 5, fontSize: 15.5, lineHeight: 20, fontWeight: '700' },
-  notice: { minHeight: 56, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  noticeText: { flex: 1, fontSize: 12, lineHeight: 17 },
-  ocrTitle: { fontSize: 13.5, fontWeight: '700' },
-  ocrMeta: { marginTop: 2, fontSize: 11.5, lineHeight: 16 },
-  center: { minHeight: 120, alignItems: 'center', justifyContent: 'center', gap: 9 },
-  stateTitle: { fontSize: 15, fontWeight: '700' },
-  stateText: { fontSize: 12.5, textAlign: 'center' }
+  image: { width: 76, height: 76, borderRadius: 15 },
+  kind: { fontSize: 10, fontWeight: '700', letterSpacing: 1.2 },
+  previewTitle: { marginTop: 5, fontSize: 15.25, lineHeight: 20, fontWeight: '700', letterSpacing: -0.1 },
+  notice: { minHeight: 56, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  noticeText: { flex: 1, fontSize: 11.75, lineHeight: 17 },
+  ocrTitle: { fontSize: 13.25, fontWeight: '700' },
+  ocrMeta: { marginTop: 2, fontSize: 11.25, lineHeight: 16 },
+  center: { minHeight: 122, alignItems: 'center', justifyContent: 'center', gap: 9, paddingHorizontal: 18 },
+  stateTitle: { fontSize: 14.5, fontWeight: '700' },
+  stateText: { fontSize: 12.25, lineHeight: 17, textAlign: 'center' }
 });
