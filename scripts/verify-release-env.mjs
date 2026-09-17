@@ -8,7 +8,7 @@ const required = [
 ];
 
 if (releaseScope === 'appstore' || process.env.NEVER_REQUIRE_BILLING === '1') {
-  required.push('EXPO_PUBLIC_REVENUECAT_IOS_KEY');
+  required.push('EXPO_PUBLIC_REVENUECAT_IOS_KEY', 'EXPO_PUBLIC_TERMS_URL');
 }
 
 const failures = [];
@@ -36,7 +36,7 @@ for (const name of ['EXPO_PUBLIC_SUPABASE_URL', 'EXPO_PUBLIC_PRIVACY_POLICY_URL'
   }
 }
 
-if (!process.env.EXPO_PUBLIC_TERMS_URL?.trim()) {
+if (releaseScope !== 'appstore' && !process.env.EXPO_PUBLIC_TERMS_URL?.trim()) {
   warnings.push('EXPO_PUBLIC_TERMS_URL is not configured');
 }
 
