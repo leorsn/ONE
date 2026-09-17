@@ -80,36 +80,38 @@ export default function OnboardingScreen() {
       >
         {slides.map((slide) => (
           <View key={slide.eyebrow} style={[styles.slide, { width: WIDTH }]}>
-            <View style={[styles.visual, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
-              <View style={[styles.ringOuter, { borderColor: theme.border }]}>
-                <View style={[styles.ringMiddle, { borderColor: theme.fillStrong }]}>
-                  <View style={[styles.ringInner, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
-                    <IconTile icon={slide.icon} size={70} />
+            <View style={styles.slideContent}>
+              <View style={[styles.visual, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
+                <View style={[styles.ringOuter, { borderColor: theme.border }]}>
+                  <View style={[styles.ringMiddle, { borderColor: theme.fillStrong }]}>
+                    <View style={[styles.ringInner, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+                      <IconTile icon={slide.icon} size={70} />
+                    </View>
+                  </View>
+                </View>
+
+                <View style={[styles.miniCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <OneIcon name={icons.check} size={14} color={theme.success} />
+                  <View style={{ flex: 1 }}>
+                    <View style={[styles.lineStrong, { backgroundColor: theme.text }]} />
+                    <View style={[styles.lineSoft, { backgroundColor: theme.textTertiary }]} />
+                  </View>
+                </View>
+
+                <View style={[styles.miniCard, styles.miniCardSecond, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+                  <OneIcon name={slide.icon} size={15} color={theme.chrome} />
+                  <View style={{ flex: 1 }}>
+                    <View style={[styles.lineStrong, { width: '62%', backgroundColor: theme.text }]} />
+                    <View style={[styles.lineSoft, { width: '43%', backgroundColor: theme.textTertiary }]} />
                   </View>
                 </View>
               </View>
 
-              <View style={[styles.miniCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <OneIcon name={icons.check} size={14} color={theme.success} />
-                <View style={{ flex: 1 }}>
-                  <View style={[styles.lineStrong, { backgroundColor: theme.text }]} />
-                  <View style={[styles.lineSoft, { backgroundColor: theme.textTertiary }]} />
-                </View>
+              <View style={styles.copy}>
+                <Text style={[styles.eyebrow, { color: theme.chrome }]}>{slide.eyebrow}</Text>
+                <Text style={[styles.title, { color: theme.text }]}>{slide.title}</Text>
+                <Text style={[styles.body, { color: theme.textSecondary }]}>{slide.body}</Text>
               </View>
-
-              <View style={[styles.miniCard, styles.miniCardSecond, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <OneIcon name={slide.icon} size={15} color={theme.chrome} />
-                <View style={{ flex: 1 }}>
-                  <View style={[styles.lineStrong, { width: '62%', backgroundColor: theme.text }]} />
-                  <View style={[styles.lineSoft, { width: '43%', backgroundColor: theme.textTertiary }]} />
-                </View>
-              </View>
-            </View>
-
-            <View style={styles.copy}>
-              <Text style={[styles.eyebrow, { color: theme.chrome }]}>{slide.eyebrow}</Text>
-              <Text style={[styles.title, { color: theme.text }]}>{slide.title}</Text>
-              <Text style={[styles.body, { color: theme.textSecondary }]}>{slide.body}</Text>
             </View>
           </View>
         ))}
@@ -137,9 +139,7 @@ export default function OnboardingScreen() {
           onPress={next}
         />
 
-        <Text style={[styles.privacy, { color: theme.textTertiary }]}>
-          Private by default. Your memory belongs to you.
-        </Text>
+        <Text style={[styles.privacy, { color: theme.textTertiary }]}>Private by default. Your memory belongs to you.</Text>
       </View>
     </SafeAreaView>
   );
@@ -147,11 +147,12 @@ export default function OnboardingScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  top: { height: 56, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  top: { width: '100%', maxWidth: 760, alignSelf: 'center', height: 56, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   brand: { fontSize: 16, fontWeight: '700', letterSpacing: 1.8 },
   skip: { fontSize: 12.5, fontWeight: '600' },
   pager: { flex: 1 },
   slide: { paddingHorizontal: 20, justifyContent: 'center' },
+  slideContent: { width: '100%', maxWidth: 760, alignSelf: 'center' },
   visual: { height: 304, borderWidth: StyleSheet.hairlineWidth, borderRadius: 24, padding: 24, justifyContent: 'center', alignItems: 'center', overflow: 'hidden', shadowOpacity: 0.065, shadowRadius: 20, shadowOffset: { width: 0, height: 10 }, elevation: 1 },
   ringOuter: { width: 174, height: 174, borderRadius: 87, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   ringMiddle: { width: 146, height: 146, borderRadius: 73, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
@@ -164,7 +165,7 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 10.5, fontWeight: '700', letterSpacing: 1.8 },
   title: { marginTop: 11, textAlign: 'center', fontSize: 30, lineHeight: 36, fontWeight: '700', letterSpacing: -0.95 },
   body: { marginTop: 13, maxWidth: 340, textAlign: 'center', fontSize: 13.75, lineHeight: 21 },
-  bottom: { paddingHorizontal: 20, paddingBottom: 8, gap: 14 },
+  bottom: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 8, gap: 14 },
   dots: { height: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   dot: { height: 7, borderRadius: 4 },
   privacy: { textAlign: 'center', fontSize: 11 }
