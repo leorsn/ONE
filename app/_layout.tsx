@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ActivityIndicator, Platform, View } from 'react-native';
+import { ActivityIndicator, Platform, Text, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
@@ -121,8 +121,9 @@ function RootNavigation() {
 
   if (!appReady) {
     return (
-      <View style={{ flex: 1, backgroundColor: theme.background, alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator />
+      <View style={{ flex: 1, backgroundColor: theme.background, alignItems: 'center', justifyContent: 'center', gap: 18 }}>
+        <Text style={{ color: theme.chrome, fontSize: 12, fontWeight: '700', letterSpacing: 3.2 }}>NEVER</Text>
+        <ActivityIndicator color={theme.chrome} />
       </View>
     );
   }
