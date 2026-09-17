@@ -67,11 +67,7 @@ export default function ScanScreen() {
         return;
       }
 
-      const result = await ImagePicker.launchCameraAsync({
-        allowsEditing: false,
-        quality: 0.9
-      });
-
+      const result = await ImagePicker.launchCameraAsync({ allowsEditing: false, quality: 0.9 });
       if (result.canceled) return;
       if (result.assets[0]) await processAsset(result.assets[0]);
     } catch (error) {
@@ -92,12 +88,7 @@ export default function ScanScreen() {
         return;
       }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
-        allowsEditing: false,
-        quality: 1,
-        selectionLimit: 1
-      });
-
+      const result = await ImagePicker.launchImageLibraryAsync({ allowsEditing: false, quality: 1, selectionLimit: 1 });
       if (result.canceled) return;
       if (result.assets[0]) await processAsset(result.assets[0]);
     } catch (error) {
@@ -212,10 +203,7 @@ export default function ScanScreen() {
       router.replace(savedItem.destination === 'saved' ? '/(tabs)/saved' : '/(tabs)');
     } catch (error) {
       await recordLastNativeError('scan-save', error);
-      Alert.alert(
-        'Could not save scan',
-        'NEVER could not save this scan. The private local image remains available while this screen is open. Try again.'
-      );
+      Alert.alert('Could not save scan', 'NEVER could not save this scan. The private local image remains available while this screen is open. Try again.');
     } finally {
       setSaving(false);
     }
@@ -230,9 +218,7 @@ export default function ScanScreen() {
         : `NEVER needs ${label.toLowerCase()} access for this scan action.`,
       [
         { text: 'Cancel', style: 'cancel' },
-        ...(permanentlyDenied
-          ? [{ text: 'Open Settings', onPress: () => void Linking.openSettings() }]
-          : [])
+        ...(permanentlyDenied ? [{ text: 'Open Settings', onPress: () => void Linking.openSettings() }] : [])
       ]
     );
   }
@@ -246,30 +232,39 @@ export default function ScanScreen() {
               accessibilityRole="button"
               accessibilityLabel="Go back"
               onPress={() => router.back()}
-              style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+              style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
             >
-              <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
+              <OneIcon name={icons.chevronLeft} size={17} color={theme.text} />
             </Pressable>
-            <Text style={[styles.navTitle, { color: theme.text }]}>Scan to NEVER</Text>
+            <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
             <View style={{ width: 40 }} />
           </View>
 
           <View style={styles.hero}>
-            <View style={[styles.heroMark, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
-              <OneIcon name={icons.scan} size={24} color={theme.chrome} />
-            </View>
+            <Text style={[styles.eyebrow, { color: theme.chrome }]}>SCAN</Text>
             <Text style={[styles.title, { color: theme.text }]}>Turn paper into memory.</Text>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Scan receipts, invoices, tickets and documents. OCR runs on-device where supported.</Text>
+            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Capture a receipt, ticket or document. NEVER preserves the original, reads what it can and lets you review the result before saving.</Text>
           </View>
 
           {!asset ? (
             <Surface padded>
               <View style={styles.emptyScan}>
-                <View style={[styles.scanFrame, { borderColor: theme.fillStrong }]}>
-                  <OneIcon name={icons.document} size={32} color={theme.textTertiary} />
+                <View style={[styles.documentStage, { backgroundColor: theme.fill, borderColor: theme.border }]}>
+                  <View style={[styles.paper, { backgroundColor: theme.surfaceElevated, borderColor: theme.fillStrong, shadowColor: theme.shadow }]}>
+                    <View style={styles.paperHeader}>
+                      <OneIcon name={icons.document} size={16} color={theme.chrome} />
+                      <Text style={[styles.paperLabel, { color: theme.textTertiary }]}>DOCUMENT</Text>
+                    </View>
+                    <View style={[styles.paperLine, styles.paperLineStrong, { backgroundColor: theme.text }]} />
+                    <View style={[styles.paperLine, { backgroundColor: theme.textTertiary }]} />
+                    <View style={[styles.paperLine, styles.paperLineShort, { backgroundColor: theme.textTertiary }]} />
+                  </View>
+                  <View style={[styles.scanCorners, { borderColor: theme.chrome }]} />
                 </View>
-                <Text style={[styles.emptyTitle, { color: theme.text }]}>Ready to scan</Text>
-                <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>Keep the document flat and make sure the important text is readable.</Text>
+
+                <Text style={[styles.emptyTitle, { color: theme.text }]}>Ready when the document is.</Text>
+                <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>Keep important text visible and avoid strong glare. You can also choose an existing image.</Text>
+
                 <View style={styles.actions}>
                   <PrimaryButton label="Open camera" icon={icons.scan} onPress={takePhoto} />
                   <Pressable
@@ -278,7 +273,7 @@ export default function ScanScreen() {
                     onPress={choosePhoto}
                     style={({ pressed }) => [styles.secondaryButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
                   >
-                    <OneIcon name={icons.screenshot} size={18} color={theme.text} />
+                    <OneIcon name={icons.screenshot} size={16} color={theme.text} />
                     <Text style={[styles.secondaryText, { color: theme.text }]}>Choose photo</Text>
                   </Pressable>
                 </View>
@@ -286,11 +281,15 @@ export default function ScanScreen() {
             </Surface>
           ) : (
             <>
-              <Image source={{ uri: asset.uri }} style={[styles.preview, { backgroundColor: theme.fill, borderColor: theme.border }]} resizeMode="cover" />
+              <View style={styles.previewBlock}>
+                <Text style={[styles.sectionEyebrow, { color: theme.textTertiary }]}>ORIGINAL</Text>
+                <Image source={{ uri: asset.uri }} style={[styles.preview, { backgroundColor: theme.fill, borderColor: theme.border }]} resizeMode="cover" />
+              </View>
 
-              <View style={[styles.notice, { backgroundColor: ['failed', 'no_text'].includes(state) ? theme.fill : theme.chromeSoft, borderColor: theme.border }]}>
-                <IconTile icon={icons.scan} tone={state === 'ready' ? 'success' : 'neutral'} size={38} />
+              <View style={[styles.statusCard, { backgroundColor: state === 'ready' ? theme.surfaceElevated : theme.fill, borderColor: theme.border, shadowColor: theme.shadow }]}>
+                <IconTile icon={state === 'ready' ? icons.check : icons.scan} tone={state === 'ready' ? 'success' : 'neutral'} size={38} />
                 <View style={{ flex: 1 }}>
+                  <Text style={[styles.statusEyebrow, { color: state === 'ready' ? theme.chrome : theme.textTertiary }]}>NEVER · {state === 'ready' ? 'RECOGNIZED' : 'PROCESSING'}</Text>
                   <Text style={[styles.noticeTitle, { color: theme.text }]}>{scanHeadline(state)}</Text>
                   <Text style={[styles.noticeText, { color: theme.textSecondary }]}>{scanMeta(state)}</Text>
                 </View>
@@ -298,36 +297,32 @@ export default function ScanScreen() {
               </View>
 
               {draft ? (
-                <CaptureReviewEditor
-                  draft={draft}
-                  onChange={(nextDraft) => {
-                    userEditedRef.current = true;
-                    if (nextDraft.extractedText !== draft.extractedText) {
-                      extractedTextEditedRef.current = true;
-                    }
-                    setDraft(nextDraft);
-                  }}
-                />
+                <View style={styles.reviewBlock}>
+                  <Text style={[styles.sectionEyebrow, { color: theme.textTertiary }]}>RECOGNIZED AND ORGANIZED</Text>
+                  <CaptureReviewEditor
+                    draft={draft}
+                    onChange={(nextDraft) => {
+                      userEditedRef.current = true;
+                      if (nextDraft.extractedText !== draft.extractedText) extractedTextEditedRef.current = true;
+                      setDraft(nextDraft);
+                    }}
+                  />
+                </View>
               ) : null}
 
-              <View style={[styles.notice, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
-                <OneIcon name={icons.cloud} size={17} color={theme.chrome} />
-                <Text style={[styles.noticeText, { color: theme.textSecondary }]}>
+              <View style={[styles.storageLine, { borderTopColor: theme.border }]}>
+                <OneIcon name={icons.lock} size={14} color={theme.chrome} />
+                <Text style={[styles.storageText, { color: theme.textTertiary }]}>
                   {session
-                    ? 'The original image is already secured locally. Cloud upload retries if the network is unavailable.'
-                    : 'The original image is already secured on this device until you sign in.'}
+                    ? 'Original secured locally. Cloud upload can retry if the network is unavailable.'
+                    : 'Original secured on this device until you sign in.'}
                 </Text>
               </View>
 
-              <PrimaryButton
-                label={saving ? 'Saving…' : 'Save to NEVER'}
-                icon={icons.check}
-                onPress={saveScan}
-                disabled={saving || !draft?.title.trim()}
-              />
+              <PrimaryButton label={saving ? 'Saving…' : 'Save to NEVER'} icon={icons.check} onPress={saveScan} disabled={saving || !draft?.title.trim()} />
 
               <Pressable accessibilityRole="button" accessibilityLabel="Scan again" onPress={takePhoto} style={styles.rescan}>
-                <Text style={[styles.rescanText, { color: theme.chrome }]}>Scan again</Text>
+                <Text style={[styles.rescanText, { color: theme.textSecondary }]}>Scan another document</Text>
               </Pressable>
             </>
           )}
@@ -338,18 +333,18 @@ export default function ScanScreen() {
 }
 
 function scanHeadline(state: ScanState) {
-  if (state === 'reading') return 'Reading document…';
-  if (state === 'ready') return 'Document understood';
+  if (state === 'reading') return 'Reading what matters…';
+  if (state === 'ready') return 'Recognized and organized';
   if (state === 'no_text') return 'No readable text found';
-  if (state === 'failed') return 'OCR unavailable';
+  if (state === 'failed') return 'Text recognition unavailable';
   return 'Ready';
 }
 
 function scanMeta(state: ScanState) {
-  if (state === 'reading') return 'The private original is safe. You can save now while OCR continues.';
-  if (state === 'ready') return 'Only explicit totals are treated as receipt totals. Review before saving.';
-  if (state === 'no_text') return 'The original image is preserved. Add details manually if useful.';
-  if (state === 'failed') return 'The original image is preserved and can still be classified and saved.';
+  if (state === 'reading') return 'The private original is already safe. You can review while recognition continues.';
+  if (state === 'ready') return 'Review the structured details before saving. Explicit totals remain the only values treated as receipt totals.';
+  if (state === 'no_text') return 'The original is preserved. Add the useful details manually if you want to keep them searchable.';
+  if (state === 'failed') return 'The original is preserved and can still be classified and saved.';
   return '';
 }
 
@@ -362,26 +357,39 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 10,
     paddingBottom: 48,
-    gap: 19
+    gap: 22
   },
-  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  nav: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.15 },
-  hero: { alignItems: 'center', paddingTop: 12, paddingBottom: 6 },
-  heroMark: { width: 56, height: 56, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  title: { marginTop: 15, fontSize: 27.5, lineHeight: 33, fontWeight: '700', letterSpacing: -0.85, textAlign: 'center' },
-  subtitle: { marginTop: 9, maxWidth: 420, fontSize: 13.25, lineHeight: 19.5, textAlign: 'center' },
-  emptyScan: { alignItems: 'center', paddingVertical: 9 },
-  scanFrame: { width: 124, height: 154, borderRadius: 20, borderWidth: 1.25, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { marginTop: 19, fontSize: 16.5, fontWeight: '700', letterSpacing: -0.15 },
-  emptyBody: { marginTop: 7, maxWidth: 340, textAlign: 'center', fontSize: 12.25, lineHeight: 18 },
-  actions: { width: '100%', marginTop: 19, gap: 9 },
+  wordmark: { fontSize: 11, fontWeight: '600', letterSpacing: 3.2 },
+  hero: { paddingTop: 12, paddingBottom: 4 },
+  eyebrow: { fontSize: 9, fontWeight: '700', letterSpacing: 2.1 },
+  title: { marginTop: 11, maxWidth: 520, fontSize: 31, lineHeight: 36, fontWeight: '600', letterSpacing: -1.05 },
+  subtitle: { marginTop: 9, maxWidth: 560, fontSize: 13, lineHeight: 19.5 },
+  emptyScan: { paddingVertical: 4 },
+  documentStage: { height: 196, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  paper: { width: 128, height: 156, borderRadius: 8, borderWidth: StyleSheet.hairlineWidth, padding: 15, shadowOpacity: 0.07, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 1 },
+  paperHeader: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  paperLabel: { fontSize: 7.5, fontWeight: '700', letterSpacing: 1.05 },
+  paperLine: { width: '78%', height: 3, borderRadius: 2, marginTop: 14, opacity: 0.28 },
+  paperLineStrong: { width: '62%', marginTop: 20, opacity: 0.72 },
+  paperLineShort: { width: '46%' },
+  scanCorners: { position: 'absolute', width: 154, height: 180, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, opacity: 0.45 },
+  emptyTitle: { marginTop: 20, fontSize: 16.5, lineHeight: 21, fontWeight: '600', letterSpacing: -0.2 },
+  emptyBody: { marginTop: 7, maxWidth: 430, fontSize: 12, lineHeight: 18 },
+  actions: { width: '100%', marginTop: 20, gap: 9 },
   secondaryButton: { minHeight: 50, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  secondaryText: { fontSize: 13.5, fontWeight: '700' },
-  preview: { width: '100%', height: 300, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth },
-  notice: { minHeight: 60, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  noticeTitle: { fontSize: 13.25, fontWeight: '700' },
-  noticeText: { flex: 1, marginTop: 2, fontSize: 11.5, lineHeight: 16.5 },
+  secondaryText: { fontSize: 13, fontWeight: '600' },
+  previewBlock: { gap: 9 },
+  sectionEyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 1.45 },
+  preview: { width: '100%', height: 320, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth },
+  statusCard: { minHeight: 82, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 11, shadowOpacity: 0.025, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 1 },
+  statusEyebrow: { fontSize: 8, fontWeight: '700', letterSpacing: 1.1 },
+  noticeTitle: { marginTop: 4, fontSize: 13.5, lineHeight: 17, fontWeight: '600' },
+  noticeText: { marginTop: 3, fontSize: 11.25, lineHeight: 16 },
+  reviewBlock: { gap: 9 },
+  storageLine: { paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  storageText: { flex: 1, fontSize: 10.5, lineHeight: 15 },
   rescan: { minHeight: 42, alignItems: 'center', justifyContent: 'center' },
-  rescanText: { fontSize: 12.75, fontWeight: '700' }
+  rescanText: { fontSize: 12, fontWeight: '600' }
 });
