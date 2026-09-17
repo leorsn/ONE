@@ -9,7 +9,7 @@ type IconName = (typeof import('@/src/ui/icons').icons)[keyof typeof import('@/s
 export function PageHeader({
   title,
   subtitle,
-  eyebrow = 'ONE',
+  eyebrow = 'NEVER',
   action
 }: {
   title: string;
@@ -21,7 +21,7 @@ export function PageHeader({
   return (
     <View style={styles.pageHeader}>
       <View style={{ flex: 1 }}>
-        <Text style={[styles.eyebrow, { color: theme.accent }]}>{eyebrow}</Text>
+        <Text style={[styles.eyebrow, { color: theme.chrome }]}>{eyebrow}</Text>
         <Text style={[styles.pageTitle, { color: theme.text }]}>{title}</Text>
         {subtitle ? <Text style={[styles.pageSubtitle, { color: theme.textSecondary }]}>{subtitle}</Text> : null}
       </View>
@@ -49,7 +49,11 @@ export function Surface({ children, padded = false }: { children: ReactNode; pad
     <View
       style={[
         styles.surface,
-        { backgroundColor: theme.surface, borderColor: theme.border },
+        {
+          backgroundColor: theme.surface,
+          borderColor: theme.border,
+          shadowColor: theme.shadow
+        },
         padded && styles.surfacePadded
       ]}
     >
@@ -69,7 +73,7 @@ export function IconTile({
 }) {
   const theme = useTheme();
   const palette = {
-    accent: [theme.accentSoft, theme.accent],
+    accent: [theme.chromeSoft, theme.chrome],
     neutral: [theme.fill, theme.textSecondary],
     success: [theme.fill, theme.success],
     danger: [theme.fill, theme.danger]
@@ -77,8 +81,19 @@ export function IconTile({
   const [background, color] = palette[tone];
 
   return (
-    <View style={[styles.iconTile, { width: size, height: size, borderRadius: Math.round(size * 0.32), backgroundColor: background }]}>
-      <OneIcon name={icon} size={Math.round(size * 0.5)} color={color} />
+    <View
+      style={[
+        styles.iconTile,
+        {
+          width: size,
+          height: size,
+          borderRadius: Math.round(size * 0.28),
+          backgroundColor: background,
+          borderColor: theme.border
+        }
+      ]}
+    >
+      <OneIcon name={icon} size={Math.round(size * 0.48)} color={color} />
     </View>
   );
 }
@@ -105,10 +120,14 @@ export function RoundIconButton({
       accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [
         styles.roundButton,
-        { backgroundColor: filled ? theme.accent : theme.fill, opacity: pressed ? 0.68 : 1 }
+        {
+          backgroundColor: filled ? theme.accent : theme.fill,
+          borderColor: filled ? theme.accent : theme.border,
+          opacity: pressed ? 0.64 : 1
+        }
       ]}
     >
-      <OneIcon name={icon} size={18} color={filled ? '#FFFFFF' : theme.text} />
+      <OneIcon name={icon} size={18} color={filled ? theme.onAccent : theme.text} />
     </Pressable>
   );
 }
@@ -145,11 +164,15 @@ export function PrimaryButton({
       }}
       style={({ pressed }) => [
         styles.primaryButton,
-        { backgroundColor: theme.accent, opacity: disabled ? 0.45 : pressed ? 0.78 : 1 }
+        {
+          backgroundColor: theme.accent,
+          borderColor: theme.accent,
+          opacity: disabled ? 0.42 : pressed ? 0.76 : 1
+        }
       ]}
     >
-      {icon ? <OneIcon name={icon} size={18} color="#FFFFFF" /> : null}
-      <Text style={styles.primaryButtonText}>{label}</Text>
+      {icon ? <OneIcon name={icon} size={17} color={theme.onAccent} /> : null}
+      <Text style={[styles.primaryButtonText, { color: theme.onAccent }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -157,28 +180,36 @@ export function PrimaryButton({
 export const uiStyles = StyleSheet.create({
   screenContent: {
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 120,
-    gap: 24
+    paddingTop: 14,
+    paddingBottom: 124,
+    gap: 26
   }
 });
 
 const styles = StyleSheet.create({
-  pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 16 },
-  eyebrow: { fontSize: 12, fontWeight: '800', letterSpacing: 1.4, marginBottom: 6 },
-  pageTitle: { fontSize: 34, lineHeight: 38, fontWeight: '800', letterSpacing: -1.1 },
-  pageSubtitle: { marginTop: 7, maxWidth: 330, fontSize: 14, lineHeight: 20 },
-  sectionHeader: { minHeight: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8 },
-  sectionTitle: { fontSize: 20, fontWeight: '700', letterSpacing: -0.35 },
-  sectionMeta: { fontSize: 12, fontWeight: '600' },
-  surface: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 20, overflow: 'hidden' },
-  surfacePadded: { padding: 16 },
-  iconTile: { alignItems: 'center', justifyContent: 'center' },
-  roundButton: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
-  emptyState: { minHeight: 148, paddingHorizontal: 24, paddingVertical: 26, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { marginTop: 12, fontSize: 15, fontWeight: '700' },
-  emptyBody: { marginTop: 5, maxWidth: 250, fontSize: 13, lineHeight: 18, textAlign: 'center' },
-  primaryButton: { minHeight: 50, borderRadius: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  primaryButtonText: { color: '#FFFFFF', fontSize: 15, fontWeight: '800' }
+  pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 18, paddingTop: 2 },
+  eyebrow: { fontSize: 10.5, fontWeight: '700', letterSpacing: 2.1, marginBottom: 9 },
+  pageTitle: { fontSize: 35, lineHeight: 39, fontWeight: '700', letterSpacing: -1.25 },
+  pageSubtitle: { marginTop: 8, maxWidth: 330, fontSize: 13.5, lineHeight: 20 },
+  sectionHeader: { minHeight: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'baseline', gap: 9 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.25 },
+  sectionMeta: { fontSize: 11, fontWeight: '600', letterSpacing: 0.2 },
+  surface: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 18,
+    overflow: 'hidden',
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 1
+  },
+  surfacePadded: { padding: 17 },
+  iconTile: { alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
+  roundButton: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
+  emptyState: { minHeight: 150, paddingHorizontal: 26, paddingVertical: 28, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { marginTop: 13, fontSize: 14.5, fontWeight: '700', letterSpacing: -0.1 },
+  emptyBody: { marginTop: 6, maxWidth: 250, fontSize: 12.5, lineHeight: 18, textAlign: 'center' },
+  primaryButton: { minHeight: 50, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  primaryButtonText: { fontSize: 14.5, fontWeight: '700', letterSpacing: -0.05 }
 });

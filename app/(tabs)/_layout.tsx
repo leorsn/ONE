@@ -20,7 +20,7 @@ export default function TabsLayout() {
         headerShown: false,
         sceneStyle: { backgroundColor: theme.background },
         tabBarStyle: {
-          height: 82,
+          height: 80,
           paddingTop: 8,
           paddingBottom: 18,
           backgroundColor: theme.surface,
@@ -28,16 +28,17 @@ export default function TabsLayout() {
           borderTopWidth: StyleSheet.hairlineWidth
         },
         tabBarLabelStyle: {
-          fontSize: 11,
-          fontWeight: '700'
+          fontSize: 10.5,
+          fontWeight: '600',
+          letterSpacing: -0.05
         },
-        tabBarActiveTintColor: theme.accent,
+        tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textTertiary,
         tabBarIcon: ({ color, focused }) => (
-          <View style={{ opacity: focused ? 1 : 0.9 }}>
+          <View style={{ opacity: focused ? 1 : 0.76 }}>
             <OneIcon
               name={tabIcon[route.name as keyof typeof tabIcon]}
-              size={22}
+              size={focused ? 22 : 21}
               color={color}
             />
           </View>
