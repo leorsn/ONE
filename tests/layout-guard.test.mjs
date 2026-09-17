@@ -28,9 +28,10 @@ test('primary NEVER consumer screens keep bounded tablet content widths', () => 
   }
 });
 
-test('onboarding keeps full-width paging separate from bounded visual content', () => {
+test('onboarding keeps responsive full-width paging separate from bounded visual content', () => {
   const onboarding = source('app/onboarding.tsx');
-  assert.match(onboarding, /style=\{\[styles\.slide, \{ width: WIDTH \}\]\}/);
+  assert.match(onboarding, /useWindowDimensions/);
+  assert.match(onboarding, /style=\{\[styles\.slide, \{ width \}\]\}/);
   assert.match(onboarding, /style=\{styles\.slideContent\}/);
 });
 
