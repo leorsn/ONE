@@ -6,6 +6,19 @@ import { useTheme } from '@/src/theme/useTheme';
 
 type IconName = (typeof import('@/src/ui/icons').icons)[keyof typeof import('@/src/ui/icons').icons];
 
+export function BrandHeader({ action }: { action?: ReactNode }) {
+  const theme = useTheme();
+  return (
+    <View style={styles.brandHeader}>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
+        <Text style={[styles.brandLine, { color: theme.textTertiary }]}>CAPTURE TODAY.\nREMEMBER TOMORROW.</Text>
+      </View>
+      {action}
+    </View>
+  );
+}
+
 export function PageHeader({
   title,
   subtitle,
@@ -50,7 +63,7 @@ export function Surface({ children, padded = false }: { children: ReactNode; pad
       style={[
         styles.surface,
         {
-          backgroundColor: theme.surface,
+          backgroundColor: theme.surfaceElevated,
           borderColor: theme.border,
           shadowColor: theme.shadow
         },
@@ -87,13 +100,13 @@ export function IconTile({
         {
           width: size,
           height: size,
-          borderRadius: Math.round(size * 0.28),
+          borderRadius: Math.round(size * 0.26),
           backgroundColor: background,
           borderColor: theme.border
         }
       ]}
     >
-      <OneIcon name={icon} size={Math.round(size * 0.48)} color={color} />
+      <OneIcon name={icon} size={Math.round(size * 0.46)} color={color} />
     </View>
   );
 }
@@ -121,8 +134,9 @@ export function RoundIconButton({
       style={({ pressed }) => [
         styles.roundButton,
         {
-          backgroundColor: filled ? theme.accent : theme.fill,
+          backgroundColor: filled ? theme.accent : theme.surfaceElevated,
           borderColor: filled ? theme.accent : theme.border,
+          shadowColor: theme.shadow,
           opacity: pressed ? 0.64 : 1
         }
       ]}
@@ -136,7 +150,7 @@ export function EmptyState({ icon, title, body }: { icon: IconName; title: strin
   const theme = useTheme();
   return (
     <View style={styles.emptyState}>
-      <IconTile icon={icon} tone="neutral" size={44} />
+      <IconTile icon={icon} tone="neutral" size={42} />
       <Text style={[styles.emptyTitle, { color: theme.text }]}>{title}</Text>
       <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>{body}</Text>
     </View>
@@ -171,7 +185,7 @@ export function PrimaryButton({
         }
       ]}
     >
-      {icon ? <OneIcon name={icon} size={17} color={theme.onAccent} /> : null}
+      {icon ? <OneIcon name={icon} size={16} color={theme.onAccent} /> : null}
       <Text style={[styles.primaryButtonText, { color: theme.onAccent }]}>{label}</Text>
     </Pressable>
   );
@@ -183,36 +197,49 @@ export const uiStyles = StyleSheet.create({
     maxWidth: 760,
     alignSelf: 'center',
     paddingHorizontal: 20,
-    paddingTop: 14,
+    paddingTop: 10,
     paddingBottom: 124,
-    gap: 26
+    gap: 28
   }
 });
 
 const styles = StyleSheet.create({
+  brandHeader: { minHeight: 74, flexDirection: 'row', alignItems: 'flex-start', gap: 18, paddingTop: 2 },
+  wordmark: { fontSize: 20, lineHeight: 23, fontWeight: '600', letterSpacing: 5.4 },
+  brandLine: { marginTop: 9, fontSize: 8.75, lineHeight: 12.5, fontWeight: '600', letterSpacing: 1.55 },
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 18, paddingTop: 2 },
-  eyebrow: { fontSize: 10.5, fontWeight: '700', letterSpacing: 2.1, marginBottom: 9 },
-  pageTitle: { fontSize: 35, lineHeight: 39, fontWeight: '700', letterSpacing: -1.25 },
-  pageSubtitle: { marginTop: 8, maxWidth: 420, fontSize: 13.5, lineHeight: 20 },
-  sectionHeader: { minHeight: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  eyebrow: { fontSize: 9.5, fontWeight: '700', letterSpacing: 2.35, marginBottom: 10 },
+  pageTitle: { fontSize: 31, lineHeight: 35, fontWeight: '650', letterSpacing: -1.05 },
+  pageSubtitle: { marginTop: 8, maxWidth: 420, fontSize: 13, lineHeight: 19 },
+  sectionHeader: { minHeight: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'baseline', gap: 9 },
-  sectionTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.25 },
-  sectionMeta: { fontSize: 11, fontWeight: '600', letterSpacing: 0.2 },
+  sectionTitle: { fontSize: 17, lineHeight: 21, fontWeight: '650', letterSpacing: -0.28 },
+  sectionMeta: { fontSize: 10.5, fontWeight: '600', letterSpacing: 0.18 },
   surface: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 18,
+    borderRadius: 19,
     overflow: 'hidden',
-    shadowOpacity: 0.08,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.045,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 6 },
     elevation: 1
   },
-  surfacePadded: { padding: 17 },
+  surfacePadded: { padding: 18 },
   iconTile: { alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
-  roundButton: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
-  emptyState: { minHeight: 150, paddingHorizontal: 26, paddingVertical: 28, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { marginTop: 13, fontSize: 14.5, fontWeight: '700', letterSpacing: -0.1 },
-  emptyBody: { marginTop: 6, maxWidth: 250, fontSize: 12.5, lineHeight: 18, textAlign: 'center' },
+  roundButton: {
+    width: 42,
+    height: 42,
+    borderRadius: 21,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: StyleSheet.hairlineWidth,
+    shadowOpacity: 0.035,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 }
+  },
+  emptyState: { minHeight: 146, paddingHorizontal: 28, paddingVertical: 28, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { marginTop: 13, fontSize: 14.5, fontWeight: '650', letterSpacing: -0.12 },
+  emptyBody: { marginTop: 6, maxWidth: 260, fontSize: 12.25, lineHeight: 18, textAlign: 'center' },
   primaryButton: { minHeight: 50, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  primaryButtonText: { fontSize: 14.5, fontWeight: '700', letterSpacing: -0.05 }
+  primaryButtonText: { fontSize: 14, fontWeight: '650', letterSpacing: -0.05 }
 });
