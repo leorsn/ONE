@@ -30,7 +30,7 @@ export default function SettingsScreen() {
     await Haptics.selectionAsync();
     const supported = await Linking.canOpenURL(managementUrl);
     if (!supported) {
-      Alert.alert('Manage Subscription', 'ONE could not open your subscription management page on this device.');
+      Alert.alert('Manage Subscription', 'NEVER could not open your subscription management page on this device.');
       return;
     }
 
@@ -41,8 +41,8 @@ export default function SettingsScreen() {
     if (deletingAccount) return;
 
     Alert.alert(
-      'Delete ONE Account?',
-      'This permanently deletes your cloud memories, documents, attachments and ONE account. This cannot be undone.\n\nImportant: deleting your ONE account does not cancel an App Store subscription. Any active ONE or ONE AI subscription must be cancelled separately in your Apple subscriptions.',
+      'Delete NEVER Account?',
+      'This permanently deletes your cloud memories, documents, attachments and NEVER account. This cannot be undone.\n\nImportant: deleting your NEVER account does not cancel an App Store subscription. Any active NEVER or NEVER AI subscription must be cancelled separately in your Apple subscriptions.',
       [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -51,7 +51,7 @@ export default function SettingsScreen() {
           onPress: () => {
             Alert.alert(
               'Delete permanently?',
-              'Your ONE account and synced data will be permanently removed.',
+              'Your NEVER account and synced data will be permanently removed.',
               [
                 { text: 'Keep Account', style: 'cancel' },
                 {
@@ -83,8 +83,8 @@ export default function SettingsScreen() {
       await clearAll();
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert(
-        'ONE Account Deleted',
-        'Your ONE account and synced data have been deleted. If you have an active App Store subscription, manage it separately in your Apple subscription settings.'
+        'NEVER Account Deleted',
+        'Your NEVER account and synced data have been deleted. If you have an active App Store subscription, manage it separately in your Apple subscription settings.'
       );
     } catch (error) {
       Alert.alert(
@@ -113,19 +113,19 @@ export default function SettingsScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
       <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false}>
-        <PageHeader title="Settings" subtitle="Keep ONE quiet, private and in sync." />
+        <PageHeader title="Settings" subtitle="Keep NEVER quiet, private and in sync." />
 
         {session ? (
           <Surface padded>
             <View style={styles.accountHero}>
               <IconTile icon={icons.person} size={48} />
               <View style={{ flex: 1 }}>
-                <Text style={[styles.accountTitle, { color: theme.text }]}>ONE Account</Text>
+                <Text style={[styles.accountTitle, { color: theme.text }]}>NEVER Account</Text>
                 <Text style={[styles.accountEmail, { color: theme.textSecondary }]} numberOfLines={1}>{session.user.email}</Text>
               </View>
-              <View style={[styles.statusPill, { backgroundColor: theme.accentSoft }]}>
+              <View style={[styles.statusPill, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
                 <View style={[styles.statusDot, { backgroundColor: syncTone }]} />
-                <Text style={[styles.statusText, { color: syncStatus === 'problem' ? theme.danger : theme.accent }]}>{syncLabel}</Text>
+                <Text style={[styles.statusText, { color: syncStatus === 'problem' ? theme.danger : theme.chrome }]}>{syncLabel}</Text>
               </View>
             </View>
             <View style={[styles.accountStats, { borderTopColor: theme.border }]}>
@@ -212,9 +212,9 @@ export default function SettingsScreen() {
             <Surface>
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Sign out of ONE"
+                accessibilityLabel="Sign out of NEVER"
                 onPress={() => void runSignOut()}
-                style={({ pressed }) => [styles.accountActionRow, { borderBottomColor: theme.border, opacity: pressed ? 0.6 : 1 }]}
+                style={({ pressed }) => [styles.accountActionRow, { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
               >
                 <IconTile icon={icons.logout} tone="danger" size={36} />
                 <Text style={[styles.accountActionText, { color: theme.danger }]}>Sign out</Text>
@@ -222,15 +222,15 @@ export default function SettingsScreen() {
 
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Delete ONE account permanently"
+                accessibilityLabel="Delete NEVER account permanently"
                 disabled={deletingAccount}
                 onPress={confirmDeleteAccount}
-                style={({ pressed }) => [styles.accountActionRow, { opacity: pressed || deletingAccount ? 0.6 : 1 }]}
+                style={({ pressed }) => [styles.accountActionRow, { opacity: pressed || deletingAccount ? 0.58 : 1 }]}
               >
                 <IconTile icon={icons.delete} tone="danger" size={36} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.accountActionText, { color: theme.danger }]}>Delete Account</Text>
-                  <Text style={[styles.deleteMeta, { color: theme.textTertiary }]}>Permanently delete ONE data</Text>
+                  <Text style={[styles.deleteMeta, { color: theme.textTertiary }]}>Permanently delete NEVER data</Text>
                 </View>
                 {deletingAccount ? <ActivityIndicator size="small" /> : <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />}
               </Pressable>
@@ -238,7 +238,7 @@ export default function SettingsScreen() {
           </View>
         ) : null}
 
-        <Text style={[styles.footer, { color: theme.textTertiary }]}>ONE · Version {APP_VERSION}</Text>
+        <Text style={[styles.footer, { color: theme.textTertiary }]}>NEVER · Version {APP_VERSION}</Text>
       </ScrollView>
     </SafeAreaView>
   );
@@ -283,7 +283,7 @@ export default function SettingsScreen() {
           style={({ pressed }) => [
             styles.row,
             !last && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth },
-            { opacity: pressed ? 0.62 : 1 }
+            { opacity: pressed ? 0.58 : 1 }
           ]}
         >
           {content}
@@ -302,23 +302,23 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   accountHero: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  accountTitle: { fontSize: 17, fontWeight: '800' },
-  accountEmail: { marginTop: 3, fontSize: 12.5 },
-  statusPill: { minHeight: 30, borderRadius: 11, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  accountTitle: { fontSize: 16.5, fontWeight: '700', letterSpacing: -0.2 },
+  accountEmail: { marginTop: 4, fontSize: 12.25 },
+  statusPill: { minHeight: 30, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { fontSize: 11.5, fontWeight: '700' },
-  accountStats: { marginTop: 16, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
+  statusText: { fontSize: 11, fontWeight: '700', letterSpacing: 0.1 },
+  accountStats: { marginTop: 17, paddingTop: 15, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
   stat: { flex: 1 },
-  statValue: { fontSize: 15, fontWeight: '800' },
-  statLabel: { marginTop: 3, fontSize: 11.5 },
+  statValue: { fontSize: 14.5, fontWeight: '700' },
+  statLabel: { marginTop: 4, fontSize: 11 },
   block: { gap: 10 },
-  row: { minHeight: 62, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  rowLabel: { flex: 1, fontSize: 15, fontWeight: '600' },
-  rowValue: { fontSize: 12.5 },
-  accountActionRow: { minHeight: 64, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11, borderBottomWidth: StyleSheet.hairlineWidth },
-  accountActionText: { fontSize: 15, fontWeight: '700' },
-  deleteMeta: { marginTop: 3, fontSize: 11.5 },
-  footer: { textAlign: 'center', fontSize: 11.5, marginTop: -4 }
+  row: { minHeight: 64, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  rowLabel: { flex: 1, fontSize: 14.5, fontWeight: '600', letterSpacing: -0.1 },
+  rowValue: { fontSize: 12 },
+  accountActionRow: { minHeight: 66, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 11, borderBottomWidth: StyleSheet.hairlineWidth },
+  accountActionText: { fontSize: 14.5, fontWeight: '700' },
+  deleteMeta: { marginTop: 4, fontSize: 11 },
+  footer: { textAlign: 'center', fontSize: 10.5, letterSpacing: 0.6, marginTop: -2 }
 });
 
 function syncStatusLabel(status: 'saved' | 'syncing' | 'saved_local' | 'problem') {
@@ -336,8 +336,8 @@ function syncStatusPreferenceLabel(status: 'saved' | 'syncing' | 'saved_local' |
 }
 
 function membershipLabel(plan: 'none' | 'one' | 'one_ai') {
-  if (plan === 'one_ai') return 'ONE AI';
-  if (plan === 'one') return 'ONE';
+  if (plan === 'one_ai') return 'NEVER AI';
+  if (plan === 'one') return 'NEVER';
   return 'No subscription';
 }
 
