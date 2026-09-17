@@ -64,7 +64,7 @@ export default function InboxScreen() {
     setInput('');
     setReviewedDraft(null);
     const reminderWarning = notificationSaveWarning(savedItem);
-    if (reminderWarning) Alert.alert('Saved to ONE', reminderWarning);
+    if (reminderWarning) Alert.alert('Saved to NEVER', reminderWarning);
   }
 
   async function executeAction(item: OneItem, action: OneInboxAction) {
@@ -74,7 +74,7 @@ export default function InboxScreen() {
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     if (updated) {
       const warning = notificationSaveWarning(updated);
-      if (warning) Alert.alert('Saved to ONE', warning);
+      if (warning) Alert.alert('Saved to NEVER', warning);
     }
   }
 
@@ -87,7 +87,16 @@ export default function InboxScreen() {
           action={<RoundIconButton icon={icons.person} onPress={() => router.push('/(tabs)/settings')} accessibilityLabel="Open settings" />}
         />
 
-        <View style={[styles.capture, { backgroundColor: theme.surface, borderColor: draft ? theme.accent : theme.border }]}>
+        <View
+          style={[
+            styles.capture,
+            {
+              backgroundColor: theme.surfaceElevated,
+              borderColor: draft ? theme.chrome : theme.border,
+              shadowColor: theme.shadow
+            }
+          ]}
+        >
           <IconTile icon={icons.plus} size={36} />
           <TextInput
             value={input}
@@ -103,18 +112,18 @@ export default function InboxScreen() {
             accessibilityLabel="Quick capture"
             accessibilityHint="Type a note, reminder, appointment, link or idea"
           />
-          <RoundIconButton icon={icons.ask} onPress={() => router.push('/ask')} accessibilityLabel="Ask ONE" filled />
+          <RoundIconButton icon={icons.ask} onPress={() => router.push('/ask')} accessibilityLabel="Ask NEVER" filled />
         </View>
 
         <View style={styles.quickActions} accessibilityRole="toolbar">
           <QuickAction label="Scan" icon={icons.scan} hint="Scan a receipt or document" onPress={() => router.push('/scan')} />
-          <QuickAction label="Share" icon={icons.upload} hint="Learn how to share content to ONE" onPress={() => router.push('/share')} />
-          <QuickAction label="Ask" icon={icons.ask} hint="Search your ONE memory" badge="AI" onPress={() => router.push('/ask')} />
+          <QuickAction label="Share" icon={icons.upload} hint="Learn how to share content to NEVER" onPress={() => router.push('/share')} />
+          <QuickAction label="Ask" icon={icons.ask} hint="Search your NEVER memory" badge="AI" onPress={() => router.push('/ask')} />
         </View>
 
         {draft ? (
           <View style={styles.block}>
-            <SectionHeader title="ONE understood" meta={draft.overallConfidence.toUpperCase()} />
+            <SectionHeader title="NEVER understood" meta={draft.overallConfidence.toUpperCase()} />
             {!structuredReview ? (
               <Surface>
                 <View style={styles.interpretationTop}>
@@ -176,7 +185,7 @@ export default function InboxScreen() {
             meta={String(upcoming.length)}
             action={
               <Pressable accessibilityRole="button" accessibilityLabel="Open calendar" onPress={() => router.push('/(tabs)/calendar')}>
-                <Text style={[styles.textAction, { color: theme.accent }]}>Calendar</Text>
+                <Text style={[styles.textAction, { color: theme.chrome }]}>Calendar</Text>
               </Pressable>
             }
           />
@@ -193,7 +202,7 @@ export default function InboxScreen() {
             meta={String(saved.length)}
             action={
               <Pressable accessibilityRole="button" accessibilityLabel="View all saved items" onPress={() => router.push('/(tabs)/saved')}>
-                <Text style={[styles.textAction, { color: theme.accent }]}>View all</Text>
+                <Text style={[styles.textAction, { color: theme.chrome }]}>View all</Text>
               </Pressable>
             }
           />
@@ -214,9 +223,9 @@ export default function InboxScreen() {
         accessibilityRole="button"
         accessibilityLabel={`${reason}. ${item.title}`}
         onPress={() => router.push({ pathname: activeInbox ? '/inbox/[id]' : '/item/[id]', params: { id: item.id } } as never)}
-        style={({ pressed }) => [styles.todayRow, { borderBottomColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+        style={({ pressed }) => [styles.todayRow, { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
       >
-        <View style={[styles.todayMarker, { backgroundColor: reason === 'Overdue' ? theme.warning : theme.accent }]} />
+        <View style={[styles.todayMarker, { backgroundColor: reason === 'Overdue' ? theme.warning : theme.chrome }]} />
         <View style={{ flex: 1 }}>
           <Text style={[styles.todayReason, { color: theme.textTertiary }]}>{reason.toUpperCase()}</Text>
           <Text style={[styles.todayTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
@@ -245,13 +254,16 @@ export default function InboxScreen() {
           await Haptics.selectionAsync();
           onPress();
         }}
-        style={({ pressed }) => [styles.quickAction, { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+        style={({ pressed }) => [
+          styles.quickAction,
+          { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.58 : 1 }
+        ]}
       >
         <IconTile icon={icon} tone="neutral" size={34} />
         <Text style={[styles.quickLabel, { color: theme.text }]}>{label}</Text>
         {badge ? (
-          <View style={[styles.aiBadge, { backgroundColor: theme.accentSoft }]}>
-            <Text style={[styles.aiBadgeText, { color: theme.accent }]}>{badge}</Text>
+          <View style={[styles.aiBadge, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+            <Text style={[styles.aiBadgeText, { color: theme.chrome }]}>{badge}</Text>
           </View>
         ) : null}
       </Pressable>
@@ -281,22 +293,44 @@ function toIsoDate(date: Date) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  capture: { minHeight: 64, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', paddingLeft: 10, paddingRight: 8, gap: 10 },
-  input: { flex: 1, fontSize: 16, letterSpacing: -0.15 },
+  capture: {
+    minHeight: 66,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingLeft: 10,
+    paddingRight: 8,
+    gap: 10,
+    shadowOpacity: 0.07,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 1
+  },
+  input: { flex: 1, fontSize: 15.5, letterSpacing: -0.15 },
   block: { gap: 10 },
   quickActions: { flexDirection: 'row', gap: 8 },
-  quickAction: { flex: 1, minHeight: 52, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 9, flexDirection: 'row', alignItems: 'center', gap: 7 },
-  quickLabel: { flex: 1, fontSize: 12.5, fontWeight: '700' },
-  aiBadge: { minHeight: 20, borderRadius: 7, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
-  aiBadgeText: { fontSize: 9, fontWeight: '900', letterSpacing: 0.5 },
-  interpretationTop: { padding: 15, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  interpretationTitle: { fontSize: 16, fontWeight: '700', letterSpacing: -0.2 },
-  interpretationMeta: { fontSize: 12.5, marginTop: 4 },
+  quickAction: {
+    flex: 1,
+    minHeight: 52,
+    borderRadius: 15,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 9,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7
+  },
+  quickLabel: { flex: 1, fontSize: 12, fontWeight: '700' },
+  aiBadge: { minHeight: 20, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 6, alignItems: 'center', justifyContent: 'center' },
+  aiBadgeText: { fontSize: 9, fontWeight: '800', letterSpacing: 0.6 },
+  interpretationTop: { padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  interpretationTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.15 },
+  interpretationMeta: { fontSize: 12, marginTop: 4 },
   saveWrap: { padding: 14, paddingTop: 0 },
-  textAction: { fontSize: 13, fontWeight: '700' },
-  todayRow: { minHeight: 68, borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  todayMarker: { width: 4, height: 34, borderRadius: 2 },
-  todayReason: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.6 },
-  todayTitle: { marginTop: 3, fontSize: 14.5, fontWeight: '700' },
+  textAction: { fontSize: 12.5, fontWeight: '700' },
+  todayRow: { minHeight: 70, borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  todayMarker: { width: 3, height: 34, borderRadius: 2 },
+  todayReason: { fontSize: 9.5, fontWeight: '700', letterSpacing: 0.75 },
+  todayTitle: { marginTop: 3, fontSize: 14.5, fontWeight: '700', letterSpacing: -0.1 },
   todayMeta: { marginTop: 3, fontSize: 11.5 }
 });
