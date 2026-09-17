@@ -12,13 +12,67 @@ if (expo.name !== 'NEVER') failures.push(`expo.name must be NEVER (found ${JSON.
 if (!expo.ios?.bundleIdentifier) failures.push('ios.bundleIdentifier is missing');
 if (!expo.version) failures.push('expo.version is missing');
 
-const iconPath = expo.ios?.icon || expo.icon;
-if (!iconPath) {
-  failures.push('No final iOS app icon is configured in app.json (expo.icon or expo.ios.icon)');
-} else {
+function inspectPng(iconPath, label) {
   const resolved = path.resolve(root, iconPath);
-  if (!fs.existsSync(resolved)) failures.push(`Configured app icon does not exist: ${iconPath}`);
-  if (!/\.png$/i.test(iconPath)) warnings.push('Use a PNG source asset for the App Store icon pipeline');
+  if (!fs.existsSync(resolved)) {
+    failures.push(`${label} does not exist: ${iconPath}`);
+    return;
+  }
+
+  if (!/\.png$/i.test(iconPath)) {
+    failures.push(`${label} must use a PNG source asset unless an Icon Composer .icon directory is configured: ${iconPath}`);
+    return;
+  }
+
+  const buffer = fs.readFileSync(resolved);
+  const pngSignature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  if (buffer.length < 33 || !buffer.subarray(0, 8).equals(pngSignature) || buffer.toString('ascii', 12, 16) !== 'IHDR') {
+    failures.push(`${label} is not a valid PNG file: ${iconPath}`);
+    return;
+  }
+
+  const width = buffer.readUInt32BE(16);
+  const height = buffer.readUInt32BE(20);
+  const colorType = buffer[25];
+
+  if (width !== height) failures.push(`${label} must be exactly square (found ${width}x${height})`);
+  if (width !== 1024 || height !== 1024) failures.push(`${label} must be 1024x1024 for the NEVER release source asset (found ${width}x${height})`);
+
+  const hasTransparencyChunk = buffer.includes(Buffer.from('tRNS', 'ascii'));
+  if (hasTransparencyChunk) failures.push(`${label} contains a PNG transparency chunk; iOS app icon artwork must fill the square without transparency`);
+  if (colorType === 4 || colorType === 6) {
+    warnings.push(`${label} uses an alpha-capable PNG color type; visually/export-verify that every pixel is fully opaque before TestFlight`);
+  }
+}
+
+function inspectIconEntry(icon, label) {
+  if (typeof icon !== 'string' || !icon.trim()) {
+    failures.push(`${label} must be a non-empty asset path`);
+    return;
+  }
+
+  if (/\.icon$/i.test(icon)) {
+    const resolved = path.resolve(root, icon);
+    if (!fs.existsSync(resolved) || !fs.statSync(resolved).isDirectory()) {
+      failures.push(`${label} Icon Composer directory does not exist: ${icon}`);
+    } else {
+      warnings.push(`${label} uses an Icon Composer directory; validate light/dark/tinted output in a production-like iOS build`);
+    }
+    return;
+  }
+
+  inspectPng(icon, label);
+}
+
+const iosIcon = expo.ios?.icon;
+if (iosIcon && typeof iosIcon === 'object' && !Array.isArray(iosIcon)) {
+  const variants = Object.entries(iosIcon).filter(([, value]) => Boolean(value));
+  if (!variants.length) failures.push('ios.icon variants are configured but empty');
+  for (const [variant, value] of variants) inspectIconEntry(value, `iOS ${variant} app icon`);
+} else {
+  const iconPath = iosIcon || expo.icon;
+  if (!iconPath) failures.push('No final iOS app icon is configured in app.json (expo.icon or expo.ios.icon)');
+  else inspectIconEntry(iconPath, 'iOS app icon');
 }
 
 const splashImage = expo.splash?.image;
