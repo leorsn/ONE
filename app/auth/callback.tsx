@@ -3,17 +3,12 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/src/supabase/client';
-import { IconTile } from '@/src/ui/primitives';
-import { icons } from '@/src/ui/icons';
+import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
 export default function AuthCallbackScreen() {
   const theme = useTheme();
-  const params = useLocalSearchParams<{
-    code?: string;
-    error?: string;
-    error_description?: string;
-  }>();
+  const params = useLocalSearchParams<{ code?: string; error?: string; error_description?: string }>();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,41 +27,51 @@ export default function AuthCallbackScreen() {
 
       const { error } = await supabase.auth.exchangeCodeForSession(params.code);
       if (cancelled) return;
-
       if (error) {
         setErrorMessage(error.message);
         return;
       }
-
       router.replace('/(tabs)/settings');
     }
 
     void completeAuth();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [params.code, params.error, params.error_description]);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
-      <View style={styles.content}>
-        <Text style={[styles.brand, { color: theme.chrome }]}>NEVER</Text>
-        <IconTile icon={errorMessage ? icons.close : icons.person} size={54} tone={errorMessage ? 'danger' : 'neutral'} />
-        <Text style={[styles.title, { color: theme.text }]}>{errorMessage ? 'Could not confirm account' : 'Confirming your NEVER account…'}</Text>
-        <Text style={[styles.body, { color: theme.textSecondary }]}>{errorMessage || 'NEVER is securely completing the sign-in on this device.'}</Text>
+      <View style={styles.shell}>
+        <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
 
-        {!errorMessage ? <ActivityIndicator style={styles.spinner} color={theme.chrome} /> : null}
+        <View style={styles.hero}>
+          <Text style={[styles.eyebrow, { color: errorMessage ? theme.danger : theme.chrome }]}>{errorMessage ? 'ACCOUNT' : 'SECURE SIGN-IN'}</Text>
+          <Text style={[styles.title, { color: theme.text }]}>{errorMessage ? 'We could not confirm this account.' : 'Connecting your memory.'}</Text>
+          <Text style={[styles.body, { color: theme.textSecondary }]}>{errorMessage || 'NEVER is securely completing sign-in on this device.'}</Text>
+        </View>
 
-        {errorMessage ? (
+        {!errorMessage ? (
+          <View style={[styles.statusCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
+            <ActivityIndicator size="small" color={theme.chrome} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.statusTitle, { color: theme.text }]}>Confirming account</Text>
+              <Text style={[styles.statusBody, { color: theme.textSecondary }]}>This should finish automatically.</Text>
+            </View>
+          </View>
+        ) : (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Return to NEVER settings"
             onPress={() => router.replace('/(tabs)/settings')}
-            style={[styles.button, { backgroundColor: theme.accent }]}
+            style={({ pressed }) => [styles.button, { backgroundColor: theme.accent, opacity: pressed ? 0.74 : 1 }]}
           >
             <Text style={[styles.buttonText, { color: theme.onAccent }]}>Return to NEVER</Text>
           </Pressable>
-        ) : null}
+        )}
+
+        <View style={styles.trustRow}>
+          <OneIcon name={icons.lock} size={13} color={theme.chrome} />
+          <Text style={[styles.trustText, { color: theme.textTertiary }]}>The link is exchanged for your authenticated NEVER session on this device.</Text>
+        </View>
       </View>
     </SafeAreaView>
   );
@@ -74,11 +79,17 @@ export default function AuthCallbackScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 28, alignItems: 'center', justifyContent: 'center' },
-  brand: { marginBottom: 20, fontSize: 10.5, fontWeight: '700', letterSpacing: 2.4 },
-  title: { marginTop: 18, maxWidth: 340, textAlign: 'center', fontSize: 25, lineHeight: 30, fontWeight: '700', letterSpacing: -0.55 },
-  body: { marginTop: 9, maxWidth: 340, textAlign: 'center', fontSize: 13, lineHeight: 20 },
-  spinner: { marginTop: 22 },
-  button: { marginTop: 24, minHeight: 50, minWidth: 180, paddingHorizontal: 18, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  buttonText: { fontSize: 14, fontWeight: '700' }
+  shell: { flex: 1, width: '100%', maxWidth: 520, alignSelf: 'center', justifyContent: 'center', paddingHorizontal: 20 },
+  wordmark: { fontSize: 17, lineHeight: 20, fontWeight: '600', letterSpacing: 4.7 },
+  hero: { marginTop: 46, marginBottom: 27 },
+  eyebrow: { fontSize: 9, fontWeight: '700', letterSpacing: 2.05 },
+  title: { marginTop: 12, maxWidth: 430, fontSize: 31, lineHeight: 36, fontWeight: '600', letterSpacing: -1.05 },
+  body: { marginTop: 10, maxWidth: 410, fontSize: 13, lineHeight: 19.5 },
+  statusCard: { minHeight: 74, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 12, shadowOpacity: 0.03, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 1 },
+  statusTitle: { fontSize: 13.5, fontWeight: '600' },
+  statusBody: { marginTop: 3, fontSize: 10.75 },
+  button: { minHeight: 50, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  buttonText: { fontSize: 13, fontWeight: '600' },
+  trustRow: { marginTop: 20, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  trustText: { flex: 1, fontSize: 10.5, lineHeight: 15 }
 });
