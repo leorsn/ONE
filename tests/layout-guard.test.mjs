@@ -33,6 +33,7 @@ test('onboarding keeps responsive full-width paging separate from bounded visual
   assert.match(onboarding, /useWindowDimensions/);
   assert.match(onboarding, /style=\{\[styles\.slide, \{ width \}\]\}/);
   assert.match(onboarding, /style=\{styles\.slideContent\}/);
+  assert.match(onboarding, /scrollTo\(\{ x: width \* index, animated: false \}\)/);
 });
 
 test('release-facing copy does not mention a development build in the share guide', () => {
