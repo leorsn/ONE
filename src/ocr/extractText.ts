@@ -3,7 +3,7 @@ import { recognizeText } from 'expo-ocr-kit';
 
 export type OneOcrResult = {
   text: string;
-  blocks: Array<{
+  blocks: {
     text: string;
     boundingBox: {
       x: number;
@@ -11,7 +11,7 @@ export type OneOcrResult = {
       width: number;
       height: number;
     };
-  }>;
+  }[];
 };
 
 export async function extractTextFromImage(uri: string): Promise<OneOcrResult> {
