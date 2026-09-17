@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, AppState, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -31,16 +31,42 @@ export default function NotificationSettingsScreen() {
   const [leadMinutes, setLeadMinutes] = useState<ReminderLeadMinutes>(10);
 
   useEffect(() => {
-    Promise.all([getNotificationPermissionStatus(), loadNotificationPreferences()]).then(
-      ([status, preferences]) => {
-        setPermission(status);
-        setLeadMinutes(preferences.leadMinutes);
-      }
-    );
+    let cancelled = false;
+
+    async function loadSettings() {
+      const [status, preferences] = await Promise.all([
+        getNotificationPermissionStatus(),
+        loadNotificationPreferences()
+      ]);
+      if (cancelled) return;
+      setPermission(status);
+      setLeadMinutes(preferences.leadMinutes);
+    }
+
+    async function refreshPermission() {
+      const status = await getNotificationPermissionStatus();
+      if (!cancelled) setPermission(status);
+    }
+
+    void loadSettings();
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') void refreshPermission();
+    });
+
+    return () => {
+      cancelled = true;
+      subscription.remove();
+    };
   }, []);
 
-  async function requestPermission() {
+  async function handlePermissionAction() {
     await Haptics.selectionAsync();
+
+    if (permission === 'denied') {
+      await Linking.openSettings();
+      return;
+    }
+
     const granted = await ensureNotificationPermissions();
     setPermission(granted ? 'granted' : await getNotificationPermissionStatus());
   }
@@ -53,9 +79,14 @@ export default function NotificationSettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
-          <Pressable onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => router.back()}
+            style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}
+          >
             <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
           </Pressable>
           <Text style={[styles.navTitle, { color: theme.text }]}>Notifications</Text>
@@ -83,8 +114,13 @@ export default function NotificationSettingsScreen() {
                 <Text style={[styles.statusText, { color: theme.text }]}>On</Text>
               </View>
             ) : permission !== 'unsupported' ? (
-              <Pressable onPress={requestPermission} style={[styles.enableButton, { backgroundColor: theme.accent }]}>
-                <Text style={[styles.enableText, { color: theme.onAccent }]}>Enable</Text>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={permission === 'denied' ? 'Open system notification settings' : 'Enable notifications'}
+                onPress={() => void handlePermissionAction()}
+                style={({ pressed }) => [styles.enableButton, { backgroundColor: theme.accent, opacity: pressed ? 0.72 : 1 }]}
+              >
+                <Text style={[styles.enableText, { color: theme.onAccent }]}>{permission === 'denied' ? 'Open Settings' : 'Enable'}</Text>
               </Pressable>
             ) : null}
           </View>
@@ -100,7 +136,10 @@ export default function NotificationSettingsScreen() {
               return (
                 <Pressable
                   key={option.value}
-                  onPress={() => chooseLead(option.value)}
+                  accessibilityRole="radio"
+                  accessibilityState={{ checked: active }}
+                  accessibilityLabel={option.label}
+                  onPress={() => void chooseLead(option.value)}
                   style={({ pressed }) => [
                     styles.optionRow,
                     index < leadOptions.length - 1 && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth },
@@ -119,7 +158,7 @@ export default function NotificationSettingsScreen() {
 
           <Text style={[styles.note, { color: theme.textTertiary }]}>This preference applies when reminders are newly scheduled or edited.</Text>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -127,27 +166,35 @@ export default function NotificationSettingsScreen() {
 function permissionDescription(permission: PermissionState) {
   if (permission === 'loading') return 'Checking access…';
   if (permission === 'granted') return 'NEVER can schedule local reminders.';
-  if (permission === 'denied') return 'Access is off in system settings.';
+  if (permission === 'denied') return 'Access is off in system settings. Open Settings to turn it back on.';
   if (permission === 'unsupported') return 'Notifications are not available on this platform.';
   return 'Enable access when you want NEVER to remind you.';
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 20, paddingTop: 10, gap: 26 },
+  content: {
+    width: '100%',
+    maxWidth: 760,
+    alignSelf: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 40,
+    gap: 26
+  },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.1 },
   hero: { alignItems: 'center', paddingTop: 12 },
   title: { marginTop: 15, fontSize: 27, lineHeight: 32, fontWeight: '700', letterSpacing: -0.8, textAlign: 'center' },
-  subtitle: { marginTop: 8, maxWidth: 320, fontSize: 13, lineHeight: 19, textAlign: 'center' },
+  subtitle: { marginTop: 8, maxWidth: 360, fontSize: 13, lineHeight: 19, textAlign: 'center' },
   permissionRow: { minHeight: 66, flexDirection: 'row', alignItems: 'center', gap: 12 },
   permissionTitle: { fontSize: 14.5, fontWeight: '700' },
   permissionBody: { marginTop: 4, fontSize: 11.75, lineHeight: 17 },
   statusPill: { minHeight: 30, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
   statusText: { fontSize: 11.5, fontWeight: '700' },
-  enableButton: { minHeight: 34, borderRadius: 17, paddingHorizontal: 13, alignItems: 'center', justifyContent: 'center' },
+  enableButton: { minHeight: 36, borderRadius: 18, paddingHorizontal: 13, alignItems: 'center', justifyContent: 'center' },
   enableText: { fontSize: 12, fontWeight: '700' },
   block: { gap: 8 },
   sectionTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.25 },
