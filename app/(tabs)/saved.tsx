@@ -12,7 +12,7 @@ import {
   groupDocumentsByMonth
 } from '@/src/documents/analytics';
 import { OneItemRow } from '@/src/ui/OneItemRow';
-import { EmptyState, IconTile, PageHeader, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { EmptyState, IconTile, PageHeader, RoundIconButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 import type { OneDocumentKind, OneItem } from '@/src/types/item';
@@ -74,36 +74,36 @@ export default function SavedScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
-      <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={uiStyles.screenContent}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
         <PageHeader
-          title="Saved"
-          subtitle={filter === 'Documents' ? 'Receipts, invoices and documents in one place.' : 'Links, ideas and moments worth keeping.'}
-          action={
-            filter === 'Documents'
-              ? <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Scan a document"
-                  onPress={() => router.push('/scan')}
-                  style={({ pressed }) => [styles.scanButton, { backgroundColor: theme.chromeSoft, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
-                >
-                  <OneIcon name={icons.scan} size={17} color={theme.chrome} />
-                </Pressable>
-              : undefined
-          }
+          eyebrow="MEMORY"
+          title={filter === 'Documents' ? 'Documents' : 'Saved'}
+          subtitle={filter === 'Documents'
+            ? 'Receipts, tickets and important files — organized around what they mean.'
+            : 'The information you chose to keep, ready when you need it.'}
+          action={filter === 'Documents'
+            ? <RoundIconButton icon={icons.scan} onPress={() => router.push('/scan')} accessibilityLabel="Scan a document" />
+            : undefined}
         />
 
         <View style={[styles.search, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
-          <OneIcon name={icons.search} size={18} color={theme.textTertiary} />
+          <OneIcon name={icons.search} size={17} color={theme.textTertiary} />
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder={filter === 'Documents' ? 'Search receipts and documents' : 'Search saved'}
+            placeholder={filter === 'Documents' ? 'Search documents' : 'Search your memory'}
             placeholderTextColor={theme.textTertiary}
             style={[styles.searchInput, { color: theme.text }]}
+            returnKeyType="search"
+            accessibilityLabel={filter === 'Documents' ? 'Search documents' : 'Search saved memories'}
           />
           {query ? (
-            <Pressable accessibilityRole="button" accessibilityLabel="Clear search" onPress={() => setQuery('')}>
-              <OneIcon name={icons.close} size={15} color={theme.textTertiary} />
+            <Pressable accessibilityRole="button" accessibilityLabel="Clear search" onPress={() => setQuery('')} style={styles.clearButton}>
+              <OneIcon name={icons.close} size={14} color={theme.textTertiary} />
             </Pressable>
           ) : null}
         </View>
@@ -114,6 +114,8 @@ export default function SavedScreen() {
             return (
               <Pressable
                 key={name}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
                 onPress={async () => {
                   await Haptics.selectionAsync();
                   setFilter(name);
@@ -121,14 +123,13 @@ export default function SavedScreen() {
                 style={[
                   styles.filter,
                   {
-                    backgroundColor: active ? theme.accent : theme.fill,
-                    borderColor: active ? theme.accent : theme.border
+                    backgroundColor: active ? theme.surfaceElevated : theme.fill,
+                    borderColor: active ? theme.fillStrong : theme.border,
+                    shadowColor: theme.shadow
                   }
                 ]}
               >
-                <Text style={[styles.filterText, { color: active ? theme.onAccent : theme.textSecondary }]}>
-                  {name}
-                </Text>
+                <Text style={[styles.filterText, { color: active ? theme.text : theme.textSecondary }]}>{name}</Text>
               </Pressable>
             );
           })}
@@ -136,7 +137,6 @@ export default function SavedScreen() {
 
         {filter === 'Documents' ? (
           <DocumentsView
-            documents={documents}
             groups={documentGroups}
             summary={documentSummary}
             selectedFilter={documentFilter}
@@ -146,11 +146,9 @@ export default function SavedScreen() {
           <View style={styles.block}>
             <SectionHeader title={filter === 'All' ? 'Your memory' : filter} meta={String(savedItems.length)} />
             <Surface>
-              {savedItems.length ? (
-                savedItems.map((item) => <OneItemRow key={item.id} item={item} />)
-              ) : (
-                <EmptyState icon={icons.saved} title="Nothing here yet" body="Share something to NEVER or save an idea from your inbox." />
-              )}
+              {savedItems.length
+                ? savedItems.map((item) => <OneItemRow key={item.id} item={item} />)
+                : <EmptyState icon={icons.saved} title="Nothing here yet" body="Share something to NEVER or save an idea from your inbox." />}
             </Surface>
           </View>
         )}
@@ -159,13 +157,11 @@ export default function SavedScreen() {
   );
 
   function DocumentsView({
-    documents,
     groups,
     summary,
     selectedFilter,
     setSelectedFilter
   }: {
-    documents: OneItem[];
     groups: Array<{ label: string; items: OneItem[] }>;
     summary: ReturnType<typeof getDocumentSummary>;
     selectedFilter: 'all' | OneDocumentKind;
@@ -175,72 +171,77 @@ export default function SavedScreen() {
 
     return (
       <View style={styles.documents}>
-        <View style={[styles.summaryCard, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>
-          <View style={styles.summaryTop}>
-            <View>
-              <Text style={[styles.summaryEyebrow, { color: theme.chrome }]}>{summary.monthLabel.toUpperCase()}</Text>
-              <Text style={[styles.summaryAmount, { color: theme.text }]}>
-                {primaryTotal ? formatCurrencyTotal(primaryTotal, 'de-DE') : '€0.00'}
-              </Text>
-              <Text style={[styles.summaryCaption, { color: theme.textSecondary }]}>captured total</Text>
+        <View style={[styles.documentMemory, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
+          <View style={styles.memoryTopline}>
+            <View style={styles.memoryIdentity}>
+              <IconTile icon={icons.document} tone="neutral" size={40} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.memoryEyebrow, { color: theme.textTertiary }]}>{summary.monthLabel.toUpperCase()}</Text>
+                <Text style={[styles.memoryTitle, { color: theme.text }]}>Document memory</Text>
+              </View>
             </View>
-            <IconTile icon={icons.document} size={46} />
+            <Text style={[styles.documentCount, { color: theme.textTertiary }]}>{summary.documents.length}</Text>
+          </View>
+
+          <View style={[styles.memoryFacts, { borderTopColor: theme.border }]}>
+            <CompactFact label="Receipts" value={String(summary.receipts)} />
+            <CompactFact label="Invoices" value={String(summary.invoices)} />
+            <CompactFact
+              label="Captured value"
+              value={primaryTotal ? formatCurrencyTotal(primaryTotal, 'de-DE') : '—'}
+              wide
+            />
           </View>
 
           {summary.totals.length > 1 ? (
             <Text style={[styles.multiCurrency, { color: theme.textTertiary }]}>
-              + {summary.totals.slice(1).map((total) => formatCurrencyTotal(total, 'de-DE')).join(' + ')}
+              Other currencies: {summary.totals.slice(1).map((total) => formatCurrencyTotal(total, 'de-DE')).join(' · ')}
             </Text>
           ) : null}
 
-          <View style={[styles.metrics, { borderTopColor: theme.border }]}>
-            <Metric value={String(summary.receipts)} label="Receipts" />
-            <Metric value={String(summary.invoices)} label="Invoices" />
-            <Metric value={String(summary.documents.length)} label="Documents" />
-          </View>
+          {(summary.largest || summary.topMerchant) ? (
+            <View style={[styles.insightStrip, { borderTopColor: theme.border }]}>
+              {summary.largest ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open largest document ${summary.largest.title}`}
+                  onPress={() => router.push({ pathname: '/item/[id]', params: { id: summary.largest!.id } })}
+                  style={({ pressed }) => [styles.insightLine, { opacity: pressed ? 0.58 : 1 }]}
+                >
+                  <Text style={[styles.insightLabel, { color: theme.textTertiary }]}>LARGEST</Text>
+                  <Text style={[styles.insightValue, { color: theme.text }]} numberOfLines={1}>
+                    {formatItemAmount(summary.largest, 'de-DE') || '—'} · {summary.largest.merchant || summary.largest.title}
+                  </Text>
+                  <OneIcon name={icons.chevron} size={12} color={theme.textTertiary} />
+                </Pressable>
+              ) : null}
+              {summary.topMerchant ? (
+                <View style={styles.insightLine}>
+                  <Text style={[styles.insightLabel, { color: theme.textTertiary }]}>FREQUENT</Text>
+                  <Text style={[styles.insightValue, { color: theme.text }]} numberOfLines={1}>
+                    {summary.topMerchant.name} · {summary.topMerchant.count} {summary.topMerchant.count === 1 ? 'document' : 'documents'}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+          ) : null}
         </View>
-
-        {(summary.largest || summary.topMerchant) ? (
-          <View style={styles.insights}>
-            {summary.largest ? (
-              <InsightCard
-                icon={icons.shopping}
-                label="Largest"
-                value={formatItemAmount(summary.largest, 'de-DE') || '—'}
-                meta={summary.largest.merchant || summary.largest.title}
-                onPress={() => router.push({ pathname: '/item/[id]', params: { id: summary.largest!.id } })}
-              />
-            ) : null}
-            {summary.topMerchant ? (
-              <InsightCard
-                icon={icons.saved}
-                label="Top merchant"
-                value={summary.topMerchant.name}
-                meta={summary.topMerchant.count + (summary.topMerchant.count === 1 ? ' document' : ' documents')}
-              />
-            ) : null}
-          </View>
-        ) : null}
 
         <View style={styles.documentActions}>
           <Pressable
+            accessibilityRole="button"
             onPress={() => router.push('/scan')}
-            style={({ pressed }) => [
-              styles.actionButton,
-              { backgroundColor: theme.accent, borderColor: theme.accent, opacity: pressed ? 0.72 : 1 }
-            ]}
+            style={({ pressed }) => [styles.actionButton, { backgroundColor: theme.accent, borderColor: theme.accent, opacity: pressed ? 0.74 : 1 }]}
           >
-            <OneIcon name={icons.scan} size={17} color={theme.onAccent} />
-            <Text style={[styles.actionButtonText, { color: theme.onAccent }]}>Scan document</Text>
+            <OneIcon name={icons.scan} size={16} color={theme.onAccent} />
+            <Text style={[styles.actionButtonText, { color: theme.onAccent }]}>Scan</Text>
           </Pressable>
           <Pressable
+            accessibilityRole="button"
             onPress={() => router.push({ pathname: '/ask', params: { q: 'How much did I spend this month?' } })}
-            style={({ pressed }) => [
-              styles.actionButton,
-              { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }
-            ]}
+            style={({ pressed }) => [styles.actionButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
           >
-            <OneIcon name={icons.ask} size={17} color={theme.text} />
+            <OneIcon name={icons.ask} size={16} color={theme.text} />
             <Text style={[styles.actionButtonText, { color: theme.text }]}>Ask NEVER</Text>
           </Pressable>
         </View>
@@ -251,6 +252,8 @@ export default function SavedScreen() {
             return (
               <Pressable
                 key={entry.value}
+                accessibilityRole="button"
+                accessibilityState={{ selected: active }}
                 onPress={async () => {
                   await Haptics.selectionAsync();
                   setSelectedFilter(entry.value);
@@ -258,31 +261,26 @@ export default function SavedScreen() {
                 style={[
                   styles.documentFilter,
                   {
-                    backgroundColor: active ? theme.chromeSoft : theme.fill,
-                    borderColor: active ? theme.chrome : theme.border
+                    backgroundColor: active ? theme.surfaceElevated : theme.fill,
+                    borderColor: active ? theme.fillStrong : theme.border,
+                    shadowColor: theme.shadow
                   }
                 ]}
               >
-                <Text style={[styles.documentFilterText, { color: active ? theme.chrome : theme.textSecondary }]}>
-                  {entry.label}
-                </Text>
+                <Text style={[styles.documentFilterText, { color: active ? theme.text : theme.textSecondary }]}>{entry.label}</Text>
               </Pressable>
             );
           })}
         </ScrollView>
 
-        {groups.length ? (
-          groups.map((group) => (
-            <View key={group.label} style={styles.block}>
-              <SectionHeader title={group.label} meta={String(group.items.length)} />
-              <Surface>
-                {group.items.map((item) => (
-                  <DocumentRow key={item.id} item={item} />
-                ))}
-              </Surface>
-            </View>
-          ))
-        ) : (
+        {groups.length ? groups.map((group) => (
+          <View key={group.label} style={styles.block}>
+            <SectionHeader title={group.label} meta={String(group.items.length)} />
+            <Surface>
+              {group.items.map((item) => <DocumentRow key={item.id} item={item} />)}
+            </Surface>
+          </View>
+        )) : (
           <Surface>
             <EmptyState
               icon={icons.document}
@@ -295,50 +293,11 @@ export default function SavedScreen() {
     );
   }
 
-  function Metric({ value, label }: { value: string; label: string }) {
+  function CompactFact({ label, value, wide = false }: { label: string; value: string; wide?: boolean }) {
     return (
-      <View style={styles.metric}>
-        <Text style={[styles.metricValue, { color: theme.text }]}>{value}</Text>
-        <Text style={[styles.metricLabel, { color: theme.textTertiary }]}>{label}</Text>
-      </View>
-    );
-  }
-
-  function InsightCard({
-    icon,
-    label,
-    value,
-    meta,
-    onPress
-  }: {
-    icon: (typeof icons)[keyof typeof icons];
-    label: string;
-    value: string;
-    meta: string;
-    onPress?: () => void;
-  }) {
-    const content = (
-      <>
-        <IconTile icon={icon} tone="neutral" size={34} />
-        <Text style={[styles.insightLabel, { color: theme.textTertiary }]}>{label}</Text>
-        <Text style={[styles.insightValue, { color: theme.text }]} numberOfLines={1}>{value}</Text>
-        <Text style={[styles.insightMeta, { color: theme.textSecondary }]} numberOfLines={1}>{meta}</Text>
-      </>
-    );
-
-    return onPress ? (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [
-          styles.insightCard,
-          { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow, opacity: pressed ? 0.6 : 1 }
-        ]}
-      >
-        {content}
-      </Pressable>
-    ) : (
-      <View style={[styles.insightCard, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>
-        {content}
+      <View style={[styles.fact, wide && styles.factWide]}>
+        <Text style={[styles.factValue, { color: theme.text }]} numberOfLines={1}>{value}</Text>
+        <Text style={[styles.factLabel, { color: theme.textTertiary }]}>{label}</Text>
       </View>
     );
   }
@@ -349,23 +308,20 @@ export default function SavedScreen() {
 
     return (
       <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Open ${item.merchant || item.title}`}
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [
-          styles.documentRow,
-          { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }
-        ]}
+        style={({ pressed }) => [styles.documentRow, { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
       >
-        <IconTile icon={iconForDocument(item.documentKind)} size={40} />
+        <IconTile icon={iconForDocument(item.documentKind)} tone="neutral" size={42} />
         <View style={styles.documentContent}>
-          <Text style={[styles.documentTitle, { color: theme.text }]} numberOfLines={1}>
-            {item.merchant || item.title}
-          </Text>
+          <Text style={[styles.documentTitle, { color: theme.text }]} numberOfLines={1}>{item.merchant || item.title}</Text>
           <Text style={[styles.documentMeta, { color: theme.textSecondary }]} numberOfLines={1}>
             {[kind, prettyDate(item.date), item.category].filter(Boolean).join(' · ')}
           </Text>
         </View>
         {amount ? <Text style={[styles.documentAmount, { color: theme.text }]}>{amount}</Text> : null}
-        <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />
+        <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
       </Pressable>
     );
   }
@@ -380,17 +336,12 @@ function iconForDocument(kind?: OneDocumentKind) {
 
 function formatKind(kind?: OneDocumentKind) {
   if (!kind || kind === 'other') return 'Document';
-  return kind
-    .split('_')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
+  return kind.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
 }
 
 function prettyDate(iso?: string) {
   if (!iso) return undefined;
-  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(
-    new Date(iso + 'T12:00:00')
-  );
+  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(`${iso}T12:00:00`));
 }
 
 const styles = StyleSheet.create({
@@ -399,45 +350,92 @@ const styles = StyleSheet.create({
     minHeight: 54,
     borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 15,
+    paddingLeft: 15,
+    paddingRight: 8,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.035,
     shadowRadius: 14,
-    shadowOffset: { width: 0, height: 7 },
+    shadowOffset: { width: 0, height: 5 },
     elevation: 1
   },
-  searchInput: { flex: 1, fontSize: 14.75, letterSpacing: -0.08 },
+  searchInput: { flex: 1, minHeight: 48, fontSize: 14.5, lineHeight: 19, letterSpacing: -0.1 },
+  clearButton: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   filters: { gap: 8, paddingRight: 20 },
-  filter: { minHeight: 34, paddingHorizontal: 14, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  filterText: { fontSize: 12, fontWeight: '700' },
+  filter: {
+    minHeight: 34,
+    paddingHorizontal: 14,
+    borderRadius: 13,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOpacity: 0.02,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 }
+  },
+  filterText: { fontSize: 11.5, fontWeight: '600' },
   block: { gap: 10 },
-  scanButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  documents: { gap: 17 },
-  summaryCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 20, padding: 18, shadowOpacity: 0.06, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 1 },
-  summaryTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16 },
-  summaryEyebrow: { fontSize: 10, fontWeight: '700', letterSpacing: 1.25 },
-  summaryAmount: { marginTop: 8, fontSize: 31, lineHeight: 37, fontWeight: '700', letterSpacing: -1.05 },
-  summaryCaption: { marginTop: 3, fontSize: 12 },
-  multiCurrency: { marginTop: 7, fontSize: 11 },
-  metrics: { marginTop: 18, paddingTop: 15, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
-  metric: { flex: 1 },
-  metricValue: { fontSize: 15.5, fontWeight: '700' },
-  metricLabel: { marginTop: 4, fontSize: 11 },
-  insights: { flexDirection: 'row', gap: 10 },
-  insightCard: { flex: 1, minWidth: 0, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 14, shadowOpacity: 0.045, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 1 },
-  insightLabel: { marginTop: 11, fontSize: 10, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.7 },
-  insightValue: { marginTop: 5, fontSize: 14.5, fontWeight: '700' },
-  insightMeta: { marginTop: 4, fontSize: 11 },
+  documents: { gap: 20 },
+  documentMemory: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 19,
+    padding: 17,
+    shadowOpacity: 0.035,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 5 },
+    elevation: 1
+  },
+  memoryTopline: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
+  memoryIdentity: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  memoryEyebrow: { fontSize: 8.75, lineHeight: 11, fontWeight: '700', letterSpacing: 1.15 },
+  memoryTitle: { marginTop: 3, fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.2 },
+  documentCount: { fontSize: 11, fontWeight: '600' },
+  memoryFacts: { marginTop: 16, paddingTop: 15, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 8 },
+  fact: { minWidth: 66 },
+  factWide: { flex: 1, alignItems: 'flex-end' },
+  factValue: { fontSize: 14, lineHeight: 18, fontWeight: '600', letterSpacing: -0.12 },
+  factLabel: { marginTop: 3, fontSize: 9.75, lineHeight: 13 },
+  multiCurrency: { marginTop: 11, fontSize: 10.5, lineHeight: 15 },
+  insightStrip: { marginTop: 14, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth, gap: 1 },
+  insightLine: { minHeight: 36, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  insightLabel: { width: 58, fontSize: 8.25, fontWeight: '700', letterSpacing: 0.75 },
+  insightValue: { flex: 1, fontSize: 11.25, lineHeight: 15.5, fontWeight: '500' },
   documentActions: { flexDirection: 'row', gap: 9 },
-  actionButton: { flex: 1, minHeight: 48, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  actionButtonText: { fontSize: 12.75, fontWeight: '700' },
-  documentFilter: { minHeight: 34, paddingHorizontal: 13, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  documentFilterText: { fontSize: 11.75, fontWeight: '700' },
-  documentRow: { minHeight: 78, paddingHorizontal: 15, paddingVertical: 11, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  actionButton: {
+    flex: 1,
+    minHeight: 48,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8
+  },
+  actionButtonText: { fontSize: 12.5, fontWeight: '600' },
+  documentFilter: {
+    minHeight: 34,
+    paddingHorizontal: 13,
+    borderRadius: 13,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowOpacity: 0.02,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 2 }
+  },
+  documentFilterText: { fontSize: 11.25, fontWeight: '600' },
+  documentRow: {
+    minHeight: 78,
+    paddingHorizontal: 15,
+    paddingVertical: 11,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12
+  },
   documentContent: { flex: 1, minWidth: 0 },
-  documentTitle: { fontSize: 14.75, fontWeight: '700', letterSpacing: -0.1 },
-  documentMeta: { marginTop: 4, fontSize: 11.25 },
-  documentAmount: { fontSize: 13.25, fontWeight: '700' }
+  documentTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.14 },
+  documentMeta: { marginTop: 4, fontSize: 11.25, lineHeight: 15 },
+  documentAmount: { fontSize: 12.75, fontWeight: '600', letterSpacing: -0.05 }
 });
