@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,6 +8,10 @@ import { exportOneData } from '@/src/export/exportOneData';
 import { IconTile, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
+
+const PRIVACY_POLICY_URL = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL?.trim();
+const TERMS_URL = process.env.EXPO_PUBLIC_TERMS_URL?.trim();
+const SUPPORT_URL = process.env.EXPO_PUBLIC_SUPPORT_URL?.trim();
 
 const protections = [
   {
@@ -37,6 +41,8 @@ export default function PrivacyScreen() {
   const { items } = useItems();
   const [exporting, setExporting] = useState(false);
 
+  const legalReady = Boolean(PRIVACY_POLICY_URL && SUPPORT_URL);
+
   async function runExport() {
     if (exporting) return;
 
@@ -50,9 +56,27 @@ export default function PrivacyScreen() {
     }
   }
 
+  async function openExternal(label: string, url?: string) {
+    if (!url) {
+      Alert.alert(`${label} unavailable`, 'This release build does not have this URL configured yet.');
+      return;
+    }
+
+    try {
+      const supported = await Linking.canOpenURL(url);
+      if (!supported) {
+        Alert.alert(`${label} unavailable`, 'The configured URL could not be opened on this device.');
+        return;
+      }
+      await Linking.openURL(url);
+    } catch {
+      Alert.alert(`${label} unavailable`, 'The configured URL could not be opened on this device.');
+    }
+  }
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
-      <View style={styles.content}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
           <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
             <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
@@ -86,6 +110,12 @@ export default function PrivacyScreen() {
         </Surface>
 
         <Surface>
+          <PolicyRow label="Privacy policy" detail={PRIVACY_POLICY_URL ? 'Read the public NEVER privacy policy.' : 'Not configured for this build.'} url={PRIVACY_POLICY_URL} icon={icons.shield} />
+          <PolicyRow label="Terms of use" detail={TERMS_URL ? 'Read NEVER’s terms of use.' : 'Not configured for this build.'} url={TERMS_URL} icon={icons.document} />
+          <PolicyRow label="Support" detail={SUPPORT_URL ? 'Get help or contact NEVER support.' : 'Not configured for this build.'} url={SUPPORT_URL} icon={icons.more} last />
+        </Surface>
+
+        <Surface>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`Export ${items.length} NEVER memories as JSON`}
@@ -104,18 +134,56 @@ export default function PrivacyScreen() {
           </Pressable>
         </Surface>
 
-        <View style={[styles.notice, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
-          <OneIcon name={icons.shield} size={17} color={theme.chrome} />
-          <Text style={[styles.noticeText, { color: theme.textSecondary }]}>A complete consumer privacy policy and legal disclosure still need to be added before public release.</Text>
+        <View style={[styles.notice, { backgroundColor: legalReady ? theme.chromeSoft : theme.fill, borderColor: theme.border }]}>
+          <OneIcon name={legalReady ? icons.check : icons.shield} size={17} color={legalReady ? theme.chrome : theme.warning} />
+          <Text style={[styles.noticeText, { color: theme.textSecondary }]}>
+            {legalReady
+              ? 'Privacy and support URLs are configured in this build. Confirm their production content before App Store submission.'
+              : 'Privacy policy and support URLs must be configured before TestFlight/App Store release.'}
+          </Text>
         </View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
+
+  function PolicyRow({
+    label,
+    detail,
+    url,
+    icon,
+    last = false
+  }: {
+    label: string;
+    detail: string;
+    url?: string;
+    icon: (typeof icons)[keyof typeof icons];
+    last?: boolean;
+  }) {
+    return (
+      <Pressable
+        accessibilityRole="link"
+        accessibilityLabel={`${label}. ${url ? 'Open link' : 'Not configured'}`}
+        onPress={() => void openExternal(label, url)}
+        style={({ pressed }) => [
+          styles.linkRow,
+          !last && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth },
+          { opacity: pressed ? 0.58 : 1 }
+        ]}
+      >
+        <IconTile icon={icon} tone="neutral" size={38} />
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.rowTitle, { color: theme.text }]}>{label}</Text>
+          <Text style={[styles.rowBody, { color: theme.textSecondary }]}>{detail}</Text>
+        </View>
+        <OneIcon name={icons.chevron} size={14} color={url ? theme.chrome : theme.textTertiary} />
+      </Pressable>
+    );
+  }
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 20, paddingTop: 10, gap: 20 },
+  content: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 40, gap: 20 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.1 },
@@ -123,6 +191,7 @@ const styles = StyleSheet.create({
   title: { marginTop: 15, fontSize: 27, lineHeight: 32, fontWeight: '700', letterSpacing: -0.8, textAlign: 'center' },
   subtitle: { marginTop: 8, maxWidth: 340, fontSize: 13, lineHeight: 19, textAlign: 'center' },
   row: { minHeight: 82, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  linkRow: { minHeight: 76, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
   exportRow: { minHeight: 76, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
   rowTitle: { fontSize: 14.25, fontWeight: '700' },
   rowBody: { marginTop: 4, fontSize: 11.75, lineHeight: 17 },
