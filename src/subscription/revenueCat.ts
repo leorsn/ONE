@@ -21,6 +21,8 @@ export type PurchaseOutcome = {
   plan?: OnePlan;
 };
 
+export type RevenueCatPriceStrings = Partial<Record<PaidOnePlan, string>>;
+
 export function isRevenueCatConfigured() {
   return Boolean(apiKeyForPlatform());
 }
@@ -47,6 +49,20 @@ export async function getRevenueCatPlan(): Promise<OnePlan> {
 export async function getSubscriptionManagementURL(): Promise<string | undefined> {
   const customerInfo = await Purchases.getCustomerInfo();
   return customerInfo.managementURL ?? undefined;
+}
+
+export async function getRevenueCatPriceStrings(): Promise<RevenueCatPriceStrings> {
+  const offerings = await Purchases.getOfferings();
+  const offering = offerings.all[REVENUECAT_OFFERING_ID] || offerings.current;
+  if (!offering) return {};
+
+  const prices: RevenueCatPriceStrings = {};
+  for (const plan of ['one', 'one_ai'] as const) {
+    const rcPackage = packageFromAvailablePackages(offering.availablePackages, plan);
+    const priceString = rcPackage?.product.priceString?.trim();
+    if (priceString) prices[plan] = priceString;
+  }
+  return prices;
 }
 
 export async function purchaseRevenueCatPlan(plan: PaidOnePlan): Promise<PurchaseOutcome> {
@@ -100,12 +116,18 @@ async function packageForPlan(plan: PaidOnePlan): Promise<PurchasesPackage | und
   const offerings = await Purchases.getOfferings();
   const offering = offerings.all[REVENUECAT_OFFERING_ID] || offerings.current;
   if (!offering) return undefined;
+  return packageFromAvailablePackages(offering.availablePackages, plan);
+}
 
+function packageFromAvailablePackages(
+  availablePackages: PurchasesPackage[],
+  plan: PaidOnePlan
+): PurchasesPackage | undefined {
   const product = plan === 'one_ai'
     ? subscriptionProducts.oneAiMonthly
     : subscriptionProducts.oneMonthly;
 
-  return offering.availablePackages.find(
+  return availablePackages.find(
     (rcPackage) =>
       rcPackage.identifier === product.revenueCatPackageId ||
       rcPackage.product.identifier === product.id
