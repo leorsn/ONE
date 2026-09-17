@@ -5,6 +5,7 @@ import test from 'node:test';
 const text = async (path) => readFile(new URL(`../${path}`, import.meta.url), 'utf8');
 
 const userFacingFiles = [
+  'app/_layout.tsx',
   'app/(tabs)/index.tsx',
   'app/(tabs)/search.tsx',
   'app/(tabs)/calendar.tsx',
@@ -32,7 +33,8 @@ const userFacingFiles = [
   'src/recall/service.ts',
   'src/search/grounded.ts',
   'src/ui/OneItemRow.tsx',
-  'src/ui/TriageRow.tsx'
+  'src/ui/TriageRow.tsx',
+  'src/ui/primitives.tsx'
 ];
 
 const bannedLegacyCopy = [
@@ -62,6 +64,8 @@ test('consumer app metadata exposes NEVER while compatibility identifiers remain
   assert.equal(config.expo.name, 'NEVER');
   assert.equal(config.expo.scheme, 'one');
   assert.equal(config.expo.ios.bundleIdentifier, 'app.one.mobile');
+  assert.match(config.expo.plugins.flat(Infinity).join('\n'), /Allow NEVER to scan receipts and documents\./);
+  assert.match(config.expo.plugins.flat(Infinity).join('\n'), /Allow NEVER to import receipts and documents/);
 });
 
 test('visible subscription names use NEVER without changing compatibility product identifiers', async () => {
@@ -90,4 +94,10 @@ test('critical user-facing surfaces contain no known legacy ONE copy', async () 
       );
     }
   }
+});
+
+test('repository quality workflow uses NEVER as its visible name', async () => {
+  const workflow = await text('.github/workflows/quality.yml');
+  assert.match(workflow, /^name: NEVER Quality/m);
+  assert.doesNotMatch(workflow, /^name: ONE Quality/m);
 });
