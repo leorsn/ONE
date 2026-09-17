@@ -96,9 +96,7 @@ export default function HandleShareScreen() {
       setAllowDuplicate(false);
     }
     void resetReviewForNewShare();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [selectedFingerprint]);
 
   useEffect(() => {
@@ -149,9 +147,7 @@ export default function HandleShareScreen() {
     }
 
     void secureAttachment();
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [selectedFingerprint, isAttachment, contentUri, resolved?.originalName, resolved?.contentType, primary?.shareType]);
 
   useEffect(() => () => {
@@ -209,9 +205,7 @@ export default function HandleShareScreen() {
     }
 
     void readImage(ocrImageUri);
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [imageUri, primary, resolved]);
 
   const preview = useMemo(() => {
@@ -299,86 +293,95 @@ export default function HandleShareScreen() {
               accessibilityRole="button"
               accessibilityLabel="Cancel share"
               onPress={() => void handleCancel()}
-              style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+              style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
             >
-              <OneIcon name={icons.close} size={17} color={theme.text} />
+              <OneIcon name={icons.close} size={16} color={theme.text} />
             </Pressable>
-            <Text style={[styles.navTitle, { color: theme.text }]}>Save to NEVER</Text>
+            <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
             <View style={{ width: 40 }} />
           </View>
 
+          <View style={styles.hero}>
+            <Text style={[styles.eyebrow, { color: theme.chrome }]}>INCOMING</Text>
+            <Text style={[styles.title, { color: theme.text }]}>Save what matters.</Text>
+            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>NEVER keeps the original content, recognizes useful details where possible and lets you review the memory before it is saved.</Text>
+          </View>
+
           {isResolving ? (
-            <Surface padded>
-              <View style={styles.center}>
-                <ActivityIndicator color={theme.chrome} />
-                <Text style={[styles.stateText, { color: theme.textSecondary }]}>Reading shared content…</Text>
+            <View style={[styles.stateCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+              <ActivityIndicator color={theme.chrome} />
+              <View style={{ flex: 1 }}>
+                <Text style={[styles.stateTitle, { color: theme.text }]}>Opening shared content</Text>
+                <Text style={[styles.stateText, { color: theme.textSecondary }]}>Preparing the best available representation…</Text>
               </View>
-            </Surface>
+            </View>
           ) : null}
 
           {error ? (
             <View style={[styles.notice, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-              <OneIcon name={icons.more} size={17} color={theme.warning} />
-              <Text style={[styles.noticeText, { color: theme.textSecondary }]}>NEVER could not fully resolve this share. The raw content can still be reviewed where available.</Text>
+              <OneIcon name={icons.more} size={15} color={theme.warning} />
+              <Text style={[styles.noticeText, { color: theme.textSecondary }]}>Some shared details could not be resolved. The available content can still be reviewed.</Text>
             </View>
           ) : null}
 
           {primary ? (
             <>
-              <View style={styles.block}>
-                <SectionHeader title="Shared content" meta={selected && selected.representationCount > 1 ? `${selected.representationCount} representations` : undefined} />
-                <Surface padded>
-                  <View style={styles.previewRow}>
-                    {imageUri ? (
-                      <Image source={{ uri: imageUri }} style={[styles.image, { backgroundColor: theme.fill }]} resizeMode="cover" />
-                    ) : (
-                      <IconTile icon={primary.shareType === 'url' ? icons.link : icons.upload} size={58} />
-                    )}
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.kind, { color: theme.chrome }]}>{labelFor(primary.shareType)}</Text>
-                      <Text style={[styles.previewTitle, { color: theme.text }]} numberOfLines={4}>{preview}</Text>
+              <View style={styles.section}>
+                <SectionHeader title="Original" meta={selected && selected.representationCount > 1 ? `${selected.representationCount} representations` : undefined} />
+                <View style={[styles.originalCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
+                  {imageUri ? (
+                    <Image source={{ uri: imageUri }} style={[styles.image, { backgroundColor: theme.fill }]} resizeMode="cover" />
+                  ) : (
+                    <View style={[styles.originalIcon, { backgroundColor: theme.fill, borderColor: theme.border }]}>
+                      <OneIcon name={primary.shareType === 'url' ? icons.link : icons.upload} size={24} color={theme.chrome} />
                     </View>
+                  )}
+                  <View style={{ flex: 1, minWidth: 0 }}>
+                    <Text style={[styles.kind, { color: theme.textTertiary }]}>{labelFor(primary.shareType)}</Text>
+                    <Text style={[styles.previewTitle, { color: theme.text }]} numberOfLines={4}>{preview}</Text>
                   </View>
-                </Surface>
+                </View>
               </View>
 
               {isAttachment ? (
-                <View style={[styles.notice, { backgroundColor: attachmentState === 'failed' ? theme.fill : theme.chromeSoft, borderColor: theme.border }]}>
-                  <OneIcon name={attachmentState === 'failed' ? icons.more : icons.saved} size={17} color={attachmentState === 'failed' ? theme.warning : theme.chrome} />
-                  <Text style={[styles.noticeText, { color: theme.textSecondary }]}>{attachmentMessage(attachmentState)}</Text>
-                  {attachmentState === 'securing' ? <ActivityIndicator size="small" color={theme.chrome} /> : null}
-                </View>
-              ) : null}
-
-              {isImage ? (
-                <View style={[styles.notice, { backgroundColor: ['failed', 'empty'].includes(visibleOcrState) ? theme.fill : theme.chromeSoft, borderColor: theme.border }]}>
-                  <IconTile icon={icons.screenshot} tone={visibleOcrState === 'ready' ? 'success' : 'neutral'} size={36} />
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.ocrTitle, { color: theme.text }]}>{ocrHeadline(visibleOcrState)}</Text>
-                    <Text style={[styles.ocrMeta, { color: theme.textSecondary }]}>{ocrMeta(visibleOcrState)}</Text>
-                  </View>
-                  {visibleOcrState === 'reading' ? <ActivityIndicator size="small" color={theme.chrome} /> : null}
-                </View>
-              ) : null}
-
-              {draft ? (
-                <CaptureReviewEditor
-                  draft={draft}
-                  onChange={(nextDraft) => {
-                    userEditedRef.current = true;
-                    if (nextDraft.extractedText !== draft.extractedText) {
-                      extractedTextEditedRef.current = true;
-                    }
-                    setReviewedDraft(nextDraft);
-                  }}
+                <StatusLine
+                  icon={attachmentState === 'failed' ? icons.more : icons.lock}
+                  tone={attachmentState === 'failed' ? 'warning' : 'chrome'}
+                  title={attachmentState === 'ready' ? 'Original secured' : attachmentState === 'securing' ? 'Securing original' : attachmentState === 'failed' ? 'Original not secured' : 'Preparing original'}
+                  body={attachmentMessage(attachmentState)}
+                  loading={attachmentState === 'securing'}
                 />
               ) : null}
 
-              <View style={[styles.notice, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
-                <OneIcon name={icons.cloud} size={17} color={theme.chrome} />
-                <Text style={[styles.noticeText, { color: theme.textSecondary }]}>
+              {isImage ? (
+                <StatusLine
+                  icon={visibleOcrState === 'ready' ? icons.check : icons.screenshot}
+                  tone={visibleOcrState === 'ready' ? 'success' : ['failed', 'empty'].includes(visibleOcrState) ? 'warning' : 'chrome'}
+                  title={ocrHeadline(visibleOcrState)}
+                  body={ocrMeta(visibleOcrState)}
+                  loading={visibleOcrState === 'reading'}
+                />
+              ) : null}
+
+              {draft ? (
+                <View style={styles.section}>
+                  <SectionHeader title="Recognized and organized" />
+                  <CaptureReviewEditor
+                    draft={draft}
+                    onChange={(nextDraft) => {
+                      userEditedRef.current = true;
+                      if (nextDraft.extractedText !== draft.extractedText) extractedTextEditedRef.current = true;
+                      setReviewedDraft(nextDraft);
+                    }}
+                  />
+                </View>
+              ) : null}
+
+              <View style={[styles.storageLine, { borderTopColor: theme.border }]}>
+                <OneIcon name={icons.cloud} size={13} color={theme.chrome} />
+                <Text style={[styles.storageText, { color: theme.textTertiary }]}>
                   {session
-                    ? 'NEVER saves locally first. Account sync retries automatically when the network is available.'
+                    ? 'NEVER saves locally first. Account sync can retry when the network is available.'
                     : 'This capture stays on this device until you sign in.'}
                 </Text>
               </View>
@@ -392,10 +395,10 @@ export default function HandleShareScreen() {
             </>
           ) : !isResolving ? (
             <Surface>
-              <View style={styles.center}>
-                <IconTile icon={icons.upload} tone="neutral" size={46} />
-                <Text style={[styles.stateTitle, { color: theme.text }]}>No usable shared content</Text>
-                <Text style={[styles.stateText, { color: theme.textSecondary }]}>Return to the share sheet and choose NEVER again. Empty or unsupported payloads are never saved silently.</Text>
+              <View style={styles.emptyState}>
+                <IconTile icon={icons.upload} tone="neutral" size={42} />
+                <Text style={[styles.stateTitle, { color: theme.text }]}>Nothing usable arrived</Text>
+                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Return to the iOS Share Sheet and choose NEVER again. Empty or unsupported content is never saved silently.</Text>
               </View>
             </Surface>
           ) : null}
@@ -403,6 +406,28 @@ export default function HandleShareScreen() {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
+
+  function StatusLine({ icon, tone, title, body, loading = false }: {
+    icon: (typeof icons)[keyof typeof icons];
+    tone: 'chrome' | 'success' | 'warning';
+    title: string;
+    body: string;
+    loading?: boolean;
+  }) {
+    const color = tone === 'success' ? theme.success : tone === 'warning' ? theme.warning : theme.chrome;
+    return (
+      <View style={[styles.statusLine, { borderTopColor: theme.border }]}>
+        <View style={[styles.statusIcon, { backgroundColor: theme.fill, borderColor: theme.border }]}>
+          <OneIcon name={icon} size={15} color={color} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[styles.statusTitle, { color: theme.text }]}>{title}</Text>
+          <Text style={[styles.statusBody, { color: theme.textSecondary }]}>{body}</Text>
+        </View>
+        {loading ? <ActivityIndicator size="small" color={theme.chrome} /> : null}
+      </View>
+    );
+  }
 }
 
 function labelFor(type?: string) {
@@ -415,44 +440,55 @@ function labelFor(type?: string) {
 }
 
 function attachmentMessage(state: AttachmentState) {
-  if (state === 'securing') return 'Securing the original in NEVER private local storage…';
-  if (state === 'ready') return 'Original secured locally before OCR or cloud sync.';
-  if (state === 'failed') return 'The original could not be secured. NEVER will not claim this attachment as saved.';
-  return 'Preparing attachment…';
+  if (state === 'securing') return 'Creating a private local copy before NEVER treats the attachment as saved.';
+  if (state === 'ready') return 'The original is safely available locally before recognition or cloud sync.';
+  if (state === 'failed') return 'NEVER will not claim this attachment as saved because the local copy could not be created.';
+  return 'Preparing the attachment…';
 }
 
 function ocrHeadline(state: OcrState) {
-  if (state === 'reading') return 'Reading on-device';
+  if (state === 'reading') return 'Reading what matters';
   if (state === 'ready') return 'Text recognized';
   if (state === 'empty') return 'No readable text found';
-  if (state === 'failed') return 'OCR unavailable';
+  if (state === 'failed') return 'Text recognition unavailable';
   return 'Screenshot ready';
 }
 
 function ocrMeta(state: OcrState) {
-  if (state === 'reading') return 'You can save now. OCR text is included only if recognition finishes first.';
-  if (state === 'ready') return 'Review the recognized text before saving.';
-  if (state === 'empty') return 'The original image is still preserved and can be saved.';
-  if (state === 'failed') return 'The original screenshot can still be saved.';
-  return 'Waiting for OCR.';
+  if (state === 'reading') return 'You can continue reviewing while on-device recognition runs.';
+  if (state === 'ready') return 'Recognized text is included in the review below.';
+  if (state === 'empty') return 'The original image is preserved and can still be saved.';
+  if (state === 'failed') return 'The original screenshot can still be saved without recognized text.';
+  return 'Waiting for recognition.';
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 48, gap: 20 },
-  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 48, gap: 22 },
+  nav: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.1 },
-  block: { gap: 10 },
-  previewRow: { flexDirection: 'row', alignItems: 'center', gap: 13 },
-  image: { width: 76, height: 76, borderRadius: 15 },
-  kind: { fontSize: 10, fontWeight: '700', letterSpacing: 1.2 },
-  previewTitle: { marginTop: 5, fontSize: 15.25, lineHeight: 20, fontWeight: '700', letterSpacing: -0.1 },
-  notice: { minHeight: 56, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  noticeText: { flex: 1, fontSize: 11.75, lineHeight: 17 },
-  ocrTitle: { fontSize: 13.25, fontWeight: '700' },
-  ocrMeta: { marginTop: 2, fontSize: 11.25, lineHeight: 16 },
-  center: { minHeight: 122, alignItems: 'center', justifyContent: 'center', gap: 9, paddingHorizontal: 18 },
-  stateTitle: { fontSize: 14.5, fontWeight: '700' },
-  stateText: { fontSize: 12.25, lineHeight: 17, textAlign: 'center' }
+  wordmark: { fontSize: 11, fontWeight: '600', letterSpacing: 3.2 },
+  hero: { paddingTop: 10, paddingBottom: 2 },
+  eyebrow: { fontSize: 9, fontWeight: '700', letterSpacing: 2.1 },
+  title: { marginTop: 11, maxWidth: 520, fontSize: 31, lineHeight: 36, fontWeight: '600', letterSpacing: -1.05 },
+  subtitle: { marginTop: 9, maxWidth: 560, fontSize: 13, lineHeight: 19.5 },
+  section: { gap: 10 },
+  originalCard: { minHeight: 96, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 13, shadowOpacity: 0.03, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 1 },
+  originalIcon: { width: 70, height: 70, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  image: { width: 70, height: 70, borderRadius: 15 },
+  kind: { fontSize: 8, fontWeight: '700', letterSpacing: 1.25 },
+  previewTitle: { marginTop: 6, fontSize: 14.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
+  notice: { minHeight: 54, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  noticeText: { flex: 1, fontSize: 11, lineHeight: 16 },
+  stateCard: { minHeight: 70, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  stateTitle: { fontSize: 13.5, lineHeight: 17, fontWeight: '600' },
+  stateText: { marginTop: 3, fontSize: 10.75, lineHeight: 15 },
+  statusLine: { paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  statusIcon: { width: 34, height: 34, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  statusTitle: { fontSize: 12.25, lineHeight: 16, fontWeight: '600' },
+  statusBody: { marginTop: 2, fontSize: 10.5, lineHeight: 15 },
+  storageLine: { paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  storageText: { flex: 1, fontSize: 10.5, lineHeight: 15 },
+  emptyState: { minHeight: 160, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
+  emptyText: { marginTop: 9, maxWidth: 360, fontSize: 11.5, lineHeight: 17, textAlign: 'center' }
 });
