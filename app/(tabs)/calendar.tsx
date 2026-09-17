@@ -4,7 +4,7 @@ import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
 import { OneItemRow } from '@/src/ui/OneItemRow';
-import { EmptyState, PageHeader, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { BrandHeader, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
@@ -30,9 +30,7 @@ export default function CalendarScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
       <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false}>
-        <PageHeader
-          title="Calendar"
-          subtitle="Everything with a date, without the clutter."
+        <BrandHeader
           action={
             <Pressable
               accessibilityRole="button"
@@ -43,13 +41,23 @@ export default function CalendarScreen() {
               }}
               style={({ pressed }) => [
                 styles.todayButton,
-                { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.6 : 1 }
+                {
+                  backgroundColor: theme.surfaceElevated,
+                  borderColor: theme.border,
+                  shadowColor: theme.shadow,
+                  opacity: pressed ? 0.62 : 1
+                }
               ]}
             >
               <Text style={[styles.todayText, { color: theme.text }]}>Today</Text>
             </Pressable>
           }
         />
+
+        <View style={styles.intro}>
+          <Text style={[styles.title, { color: theme.text }]}>Calendar</Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Everything with a date, without the clutter.</Text>
+        </View>
 
         <Surface padded>
           <View style={styles.monthRow}>
@@ -62,7 +70,7 @@ export default function CalendarScreen() {
               </Text>
             </View>
             <View style={[styles.calendarMark, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
-              <OneIcon name={icons.calendar} size={18} color={theme.chrome} />
+              <OneIcon name={icons.calendar} size={17} color={theme.chrome} />
             </View>
           </View>
 
@@ -79,28 +87,27 @@ export default function CalendarScreen() {
                     await Haptics.selectionAsync();
                     setSelectedDate(day.iso);
                   }}
-                  style={({ pressed }) => [
-                    styles.day,
-                    {
-                      backgroundColor: active ? theme.accent : theme.fill,
-                      borderColor: active ? theme.accent : theme.border,
-                      opacity: pressed ? 0.64 : 1
-                    }
-                  ]}
+                  style={({ pressed }) => [styles.day, { opacity: pressed ? 0.58 : 1 }]}
                 >
-                  <Text style={[styles.weekday, { color: active ? theme.onAccent : theme.textSecondary }]}>
-                    {day.weekday}
-                  </Text>
-                  <Text style={[styles.dayNumber, { color: active ? theme.onAccent : theme.text }]}>
-                    {day.number}
-                  </Text>
+                  <Text style={[styles.weekday, { color: active ? theme.text : theme.textTertiary }]}>{day.weekday}</Text>
+                  <View
+                    style={[
+                      styles.dayNumberWrap,
+                      {
+                        backgroundColor: active ? theme.accent : 'transparent',
+                        borderColor: active ? theme.accent : 'transparent'
+                      }
+                    ]}
+                  >
+                    <Text style={[styles.dayNumber, { color: active ? theme.onAccent : theme.text }]}>{day.number}</Text>
+                  </View>
                   <View
                     style={[
                       styles.dot,
                       {
                         backgroundColor: hasItems
                           ? active
-                            ? theme.onAccent
+                            ? theme.textTertiary
                             : theme.chrome
                           : 'transparent'
                       }
@@ -169,17 +176,24 @@ const styles = StyleSheet.create({
     borderRadius: 19,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    shadowOpacity: 0.025,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 }
   },
-  todayText: { fontSize: 12, fontWeight: '700', letterSpacing: -0.05 },
+  todayText: { fontSize: 11.75, fontWeight: '600', letterSpacing: -0.03 },
+  intro: { marginTop: -4 },
+  title: { fontSize: 31, lineHeight: 35, fontWeight: '600', letterSpacing: -1.05 },
+  subtitle: { marginTop: 7, maxWidth: 420, fontSize: 13, lineHeight: 19 },
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
-  month: { fontSize: 18, fontWeight: '700', letterSpacing: -0.3 },
-  selectedLabel: { marginTop: 4, fontSize: 12.25 },
-  calendarMark: { width: 38, height: 38, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  dayStrip: { paddingTop: 20, gap: 8 },
-  day: { width: 50, height: 72, borderWidth: StyleSheet.hairlineWidth, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  weekday: { fontSize: 10, fontWeight: '700', letterSpacing: 0.55, textTransform: 'uppercase' },
-  dayNumber: { marginTop: 5, fontSize: 17, fontWeight: '700', letterSpacing: -0.2 },
-  dot: { width: 4, height: 4, borderRadius: 2, marginTop: 7 },
+  month: { fontSize: 17.5, lineHeight: 22, fontWeight: '600', letterSpacing: -0.28 },
+  selectedLabel: { marginTop: 4, fontSize: 11.75, lineHeight: 16 },
+  calendarMark: { width: 38, height: 38, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  dayStrip: { paddingTop: 19, gap: 7, paddingRight: 4 },
+  day: { width: 45, minHeight: 70, alignItems: 'center', justifyContent: 'flex-start', paddingTop: 2 },
+  weekday: { fontSize: 9, lineHeight: 12, fontWeight: '600', letterSpacing: 0.72, textTransform: 'uppercase' },
+  dayNumberWrap: { width: 34, height: 34, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginTop: 7 },
+  dayNumber: { fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.16 },
+  dot: { width: 3.5, height: 3.5, borderRadius: 2, marginTop: 7 },
   block: { gap: 10 }
 });
