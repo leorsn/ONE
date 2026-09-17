@@ -17,8 +17,13 @@ export default function UpgradeScreen() {
   const theme = useTheme();
   const { plan, isBetaAccess, billingConfigured, localizedPrices, purchasing, purchase, restore } = usePlan();
   const hardPaywall = plan === 'none' && !isBetaAccess;
-  const neverPrice = localizedPrices.one || formatEUR(subscriptionProducts.oneMonthly.priceEUR);
-  const neverAiPrice = localizedPrices.one_ai || formatEUR(subscriptionProducts.oneAiMonthly.priceEUR);
+  const neverPrice = storefrontPrice(localizedPrices.one, billingConfigured, subscriptionProducts.oneMonthly.priceEUR);
+  const neverAiPrice = storefrontPrice(localizedPrices.one_ai, billingConfigured, subscriptionProducts.oneAiMonthly.priceEUR);
+  const neverOffer = localizedPrices.one
+    ? `7-day free trial for eligible new subscribers · then ${localizedPrices.one}/month`
+    : billingConfigured
+      ? '7-day free trial for eligible new subscribers · App Store price applies after trial'
+      : `7-day free trial for eligible new subscribers · then ${formatEUR(subscriptionProducts.oneMonthly.priceEUR)}/month`;
 
   async function openLegal(label: string, url?: string) {
     if (!url) {
@@ -69,8 +74,8 @@ export default function UpgradeScreen() {
         <PlanCard
           name="NEVER"
           price={neverPrice}
-          period="/ month"
-          offer={`7-day free trial for eligible new subscribers · then ${neverPrice}/month`}
+          period={localizedPrices.one || !billingConfigured ? '/ month' : ''}
+          offer={neverOffer}
           features={baseFeatures}
           planKey="one"
           current={plan === 'one'}
@@ -79,7 +84,7 @@ export default function UpgradeScreen() {
         <PlanCard
           name="NEVER AI"
           price={neverAiPrice}
-          period="/ month"
+          period={localizedPrices.one_ai || !billingConfigured ? '/ month' : ''}
           offer="No trial · billed immediately"
           features={aiFeatures}
           planKey="one_ai"
@@ -121,7 +126,7 @@ export default function UpgradeScreen() {
         <Text style={[styles.legal, { color: theme.textTertiary }]}>
           {isBetaAccess
             ? 'Beta billing is disabled. NEVER AI remains unlocked for development testing.'
-            : 'Subscriptions renew automatically unless cancelled. Prices shown above come from the current App Store storefront when billing is available. NEVER’s introductory free trial is available only to eligible App Store accounts. NEVER AI has no free trial.'}
+            : 'Subscriptions renew automatically unless cancelled. Prices shown above come from the current App Store storefront when available. NEVER’s introductory free trial is available only to eligible App Store accounts. NEVER AI has no free trial.'}
         </Text>
 
         <View style={styles.legalLinks}>
@@ -181,7 +186,7 @@ export default function UpgradeScreen() {
               </View>
               <View style={styles.priceRow}>
                 <Text style={[styles.price, { color: theme.text }]}>{price}</Text>
-                <Text style={[styles.period, { color: theme.textSecondary }]}>{period}</Text>
+                {period ? <Text style={[styles.period, { color: theme.textSecondary }]}>{period}</Text> : null}
               </View>
               <Text style={[styles.offer, { color: highlighted ? theme.textSecondary : theme.chrome }]}>{offer}</Text>
             </View>
@@ -229,6 +234,12 @@ export default function UpgradeScreen() {
 function purchaseLabel(nextPlan: 'one' | 'one_ai', currentPlan: 'none' | 'one' | 'one_ai') {
   if (nextPlan === 'one') return currentPlan === 'one_ai' ? 'Switch to NEVER' : 'Get NEVER';
   return currentPlan === 'one' ? 'Upgrade to NEVER AI' : 'Get NEVER AI';
+}
+
+function storefrontPrice(localized: string | undefined, billingConfigured: boolean, fallbackEUR: number) {
+  if (localized) return localized;
+  if (billingConfigured) return 'App Store price';
+  return formatEUR(fallbackEUR);
 }
 
 function formatEUR(value: number) {
