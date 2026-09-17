@@ -171,6 +171,9 @@ export default function UpgradeScreen() {
     highlighted?: boolean;
     current?: boolean;
   }) {
+    const availableInStorefront = Boolean(localizedPrices[planKey]);
+    const canPurchase = billingConfigured && availableInStorefront && !purchasing;
+
     return (
       <View style={[styles.planWrap, { borderColor: highlighted ? theme.chrome : 'transparent' }]}>
         <Surface padded>
@@ -204,8 +207,8 @@ export default function UpgradeScreen() {
           {!current ? (
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={purchaseLabel(planKey, plan)}
-              disabled={!billingConfigured || purchasing}
+              accessibilityLabel={availableInStorefront ? purchaseLabel(planKey, plan) : `${name} is unavailable in the current App Store offering`}
+              disabled={!canPurchase}
               onPress={async () => {
                 const outcome = await purchase(planKey);
                 if (!outcome.ok && !outcome.cancelled && outcome.error) Alert.alert('NEVER subscription', outcome.error);
@@ -213,15 +216,21 @@ export default function UpgradeScreen() {
               style={[
                 styles.purchaseButton,
                 {
-                  backgroundColor: billingConfigured ? highlighted ? theme.accent : theme.text : theme.fillStrong,
-                  borderColor: billingConfigured ? highlighted ? theme.accent : theme.text : theme.border,
+                  backgroundColor: canPurchase ? highlighted ? theme.accent : theme.text : theme.fillStrong,
+                  borderColor: canPurchase ? highlighted ? theme.accent : theme.text : theme.border,
                   opacity: purchasing ? 0.62 : 1
                 }
               ]}
             >
-              {purchasing ? <ActivityIndicator size="small" color={billingConfigured ? theme.onAccent : theme.textTertiary} /> : null}
-              <Text style={[styles.purchaseButtonText, { color: billingConfigured ? theme.onAccent : theme.textTertiary }]}>
-                {billingConfigured ? purchaseLabel(planKey, plan) : isBetaAccess ? 'Available at launch' : 'Unavailable'}
+              {purchasing ? <ActivityIndicator size="small" color={canPurchase ? theme.onAccent : theme.textTertiary} /> : null}
+              <Text style={[styles.purchaseButtonText, { color: canPurchase ? theme.onAccent : theme.textTertiary }]}>
+                {canPurchase
+                  ? purchaseLabel(planKey, plan)
+                  : !billingConfigured && isBetaAccess
+                    ? 'Available at launch'
+                    : billingConfigured
+                      ? 'Unavailable in App Store'
+                      : 'Unavailable'}
               </Text>
             </Pressable>
           ) : null}
