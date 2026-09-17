@@ -9,7 +9,7 @@ export type ScheduledItemNotificationSnapshot = {
 };
 
 export function reminderReconciliationAction(
-  item: Pick<OneItem, 'type' | 'date' | 'completed' | 'notificationId'>,
+  item: Pick<OneItem, 'type' | 'date' | 'time' | 'completed' | 'notificationId'>,
   scheduledIds: ReadonlySet<string> | null
 ): ReminderReconciliationAction {
   if (!isRemindable(item)) return 'clear';
@@ -20,7 +20,7 @@ export function reminderReconciliationAction(
 
 export function orphanedScheduledNotificationIds(
   scheduled: ScheduledItemNotificationSnapshot[],
-  items: Pick<OneItem, 'id' | 'type' | 'date' | 'completed' | 'notificationId'>[]
+  items: Pick<OneItem, 'id' | 'type' | 'date' | 'time' | 'completed' | 'notificationId'>[]
 ) {
   const expectedByItemId = new Map<string, string>();
 
