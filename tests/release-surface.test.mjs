@@ -26,17 +26,21 @@ test('subscription paywall exposes Privacy Policy and Terms of Use from release 
   assert.match(upgrade, />Privacy Policy</);
 });
 
-test('subscription paywall prefers localized RevenueCat storefront prices over fixed EUR fallback copy', async () => {
+test('subscription surfaces prefer localized RevenueCat storefront prices and avoid misleading release EUR fallbacks', async () => {
   const revenueCat = await text('src/subscription/revenueCat.ts');
   const planContext = await text('src/context/PlanContext.tsx');
   const upgrade = await text('app/upgrade.tsx');
+  const settings = await text('app/(tabs)/settings.tsx');
 
   assert.match(revenueCat, /rcPackage\?\.product\.priceString\?\.trim\(\)/);
   assert.match(planContext, /getRevenueCatPriceStrings/);
   assert.match(planContext, /localizedPrices/);
-  assert.match(upgrade, /localizedPrices\.one \|\| formatEUR/);
-  assert.match(upgrade, /localizedPrices\.one_ai \|\| formatEUR/);
+  assert.match(upgrade, /storefrontPrice\(localizedPrices\.one, billingConfigured/);
+  assert.match(upgrade, /storefrontPrice\(localizedPrices\.one_ai, billingConfigured/);
+  assert.match(upgrade, /if \(billingConfigured\) return 'App Store price'/);
   assert.doesNotMatch(upgrade, /then €2\.99\/month/);
+  assert.match(settings, /membershipValue\(plan, localizedPrices, billingConfigured\)/);
+  assert.match(settings, /billingConfigured \? 'Active · App Store'/);
 });
 
 test('App Store release environment requires both billing and Terms configuration', async () => {
