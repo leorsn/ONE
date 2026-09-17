@@ -25,10 +25,7 @@ export default function InboxItemDetailScreen() {
   const item = useMemo(() => items.find((candidate) => candidate.id === id), [items, id]);
   const [showOriginal, setShowOriginal] = useState(false);
   const [working, setWorking] = useState(false);
-  const duplicate = useMemo(
-    () => item ? findLikelyDuplicate(item, items) : undefined,
-    [item, items]
-  );
+  const duplicate = useMemo(() => item ? findLikelyDuplicate(item, items) : undefined, [item, items]);
 
   if (!item) {
     return (
@@ -36,7 +33,7 @@ export default function InboxItemDetailScreen() {
         <View style={styles.missing}>
           <EmptyState icon={icons.inbox} title="Inbox item not found" body="It may have been processed or removed on another device." />
           <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)')}>
-            <Text style={{ color: theme.accent, fontWeight: '700' }}>Return to Inbox</Text>
+            <Text style={{ color: theme.chrome, fontWeight: '700' }}>Return to Inbox</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -60,7 +57,7 @@ export default function InboxItemDetailScreen() {
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       if (next) {
         const warning = notificationSaveWarning(next);
-        if (warning) Alert.alert('Saved to ONE', warning);
+        if (warning) Alert.alert('Saved to NEVER', warning);
       }
       router.replace('/(tabs)');
     } finally {
@@ -95,11 +92,11 @@ export default function InboxItemDetailScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={styles.nav}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Back to Inbox" onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Back to Inbox" onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
             <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
           </Pressable>
           <Text style={[styles.navTitle, { color: theme.text }]}>Inbox item</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Edit item details" onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Edit item details" onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })} style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
             <OneIcon name={icons.edit} size={17} color={theme.text} />
           </Pressable>
         </View>
@@ -107,7 +104,7 @@ export default function InboxItemDetailScreen() {
         <View style={styles.hero}>
           <IconTile icon={iconFor(currentItem)} size={52} />
           <View style={{ flex: 1 }}>
-            <Text style={[styles.state, { color: state === 'needs_review' ? theme.warning : theme.accent }]}>{stateLabel(state)}</Text>
+            <Text style={[styles.state, { color: state === 'needs_review' ? theme.warning : theme.chrome }]}>{stateLabel(state)}</Text>
             <Text style={[styles.title, { color: theme.text }]}>{currentItem.title}</Text>
             <Text style={[styles.source, { color: theme.textSecondary }]}>{sourceLine(currentItem)}</Text>
           </View>
@@ -117,14 +114,14 @@ export default function InboxItemDetailScreen() {
 
         <Surface padded>
           <View style={styles.summaryTop}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>ONE understood</Text>
-            <View style={[styles.confidencePill, { backgroundColor: theme.fill }]}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>NEVER understood</Text>
+            <View style={[styles.confidencePill, { backgroundColor: theme.fill, borderColor: theme.border }]}>
               <Text style={[styles.confidenceText, { color: theme.textSecondary }]}>{confidenceLabel(currentItem)}</Text>
             </View>
           </View>
           <Text style={[styles.summary, { color: theme.textSecondary }]}>{currentItem.summary || currentItem.userContext || 'No additional summary was inferred.'}</Text>
           {currentItem.ambiguities?.length ? (
-            <View style={[styles.ambiguity, { backgroundColor: theme.fill }]}>
+            <View style={[styles.ambiguity, { backgroundColor: theme.fill, borderColor: theme.border }]}>
               <Text style={[styles.ambiguityTitle, { color: theme.warning }]}>Review before acting</Text>
               {currentItem.ambiguities.slice(0, 4).map((value) => (
                 <Text key={value} style={[styles.ambiguityText, { color: theme.textSecondary }]}>• {value}</Text>
@@ -148,14 +145,14 @@ export default function InboxItemDetailScreen() {
         ) : null}
 
         {duplicate ? (
-          <View style={[styles.duplicate, { backgroundColor: theme.fill }]}>
+          <View style={[styles.duplicate, { backgroundColor: theme.fill, borderColor: theme.border }]}>
             <OneIcon name={icons.more} size={17} color={theme.warning} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.duplicateTitle, { color: theme.text }]}>Possible duplicate</Text>
-              <Text style={[styles.duplicateBody, { color: theme.textSecondary }]} numberOfLines={2}>ONE found a recent capture with the same source content: {duplicate.title}</Text>
+              <Text style={[styles.duplicateBody, { color: theme.textSecondary }]} numberOfLines={2}>NEVER found a recent capture with the same source content: {duplicate.title}</Text>
             </View>
             <Pressable accessibilityRole="button" accessibilityLabel="Open possible duplicate" onPress={() => router.push({ pathname: '/item/[id]', params: { id: duplicate.id } })}>
-              <Text style={[styles.openText, { color: theme.accent }]}>Open</Text>
+              <Text style={[styles.openText, { color: theme.chrome }]}>Open</Text>
             </Pressable>
           </View>
         ) : null}
@@ -167,7 +164,7 @@ export default function InboxItemDetailScreen() {
               <Text style={[styles.reviewBody, { color: theme.textSecondary }]}>Correct any uncertain fields first. Confirm only when the extracted facts match what you captured.</Text>
               <View style={styles.actionStack}>
                 <PrimaryButton label="Edit details" icon={icons.edit} onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })} />
-                <Pressable accessibilityRole="button" accessibilityLabel="Confirm extracted facts" disabled={working} onPress={confirmReview} style={[styles.secondaryAction, { backgroundColor: theme.fill }]}>
+                <Pressable accessibilityRole="button" accessibilityLabel="Confirm extracted facts" disabled={working} onPress={confirmReview} style={[styles.secondaryAction, { backgroundColor: theme.fill, borderColor: theme.border }]}>
                   <Text style={[styles.secondaryActionText, { color: theme.text }]}>Confirm extracted facts</Text>
                 </Pressable>
               </View>
@@ -179,29 +176,32 @@ export default function InboxItemDetailScreen() {
           <View style={styles.block}>
             <SectionHeader title="Proposed actions" meta="Based on saved facts" />
             <View style={styles.actionStack}>
-              {actions.map((action, index) => (
-                <Pressable
-                  key={action.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${action.label}. ${action.reason}`}
-                  disabled={working}
-                  onPress={() => void execute(action.id)}
-                  style={({ pressed }) => [
-                    styles.proposal,
-                    {
-                      backgroundColor: action.primary && index === 0 ? theme.accent : theme.surface,
-                      borderColor: action.primary && index === 0 ? theme.accent : theme.border,
-                      opacity: pressed || working ? 0.62 : 1
-                    }
-                  ]}
-                >
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.proposalTitle, { color: action.primary && index === 0 ? '#FFFFFF' : theme.text }]}>{action.label}</Text>
-                    <Text style={[styles.proposalReason, { color: action.primary && index === 0 ? '#FFFFFFCC' : theme.textSecondary }]}>{action.reason}</Text>
-                  </View>
-                  <OneIcon name={icons.chevron} size={14} color={action.primary && index === 0 ? '#FFFFFF' : theme.textTertiary} />
-                </Pressable>
-              ))}
+              {actions.map((action, index) => {
+                const primary = action.primary && index === 0;
+                return (
+                  <Pressable
+                    key={action.id}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${action.label}. ${action.reason}`}
+                    disabled={working}
+                    onPress={() => void execute(action.id)}
+                    style={({ pressed }) => [
+                      styles.proposal,
+                      {
+                        backgroundColor: primary ? theme.accent : theme.surface,
+                        borderColor: primary ? theme.accent : theme.border,
+                        opacity: pressed || working ? 0.58 : 1
+                      }
+                    ]}
+                  >
+                    <View style={{ flex: 1 }}>
+                      <Text style={[styles.proposalTitle, { color: primary ? theme.onAccent : theme.text }]}>{action.label}</Text>
+                      <Text style={[styles.proposalReason, { color: primary ? theme.onAccent : theme.textSecondary, opacity: primary ? 0.78 : 1 }]}>{action.reason}</Text>
+                    </View>
+                    <OneIcon name={icons.chevron} size={14} color={primary ? theme.onAccent : theme.textTertiary} />
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
         ) : null}
@@ -210,24 +210,20 @@ export default function InboxItemDetailScreen() {
           <View style={styles.block}>
             <Pressable accessibilityRole="button" accessibilityLabel="Toggle original captured content" onPress={() => setShowOriginal((value) => !value)} style={styles.disclosure}>
               <Text style={[styles.disclosureText, { color: theme.text }]}>Original capture</Text>
-              <Text style={[styles.openText, { color: theme.accent }]}>{showOriginal ? 'Hide' : 'Show'}</Text>
+              <Text style={[styles.openText, { color: theme.chrome }]}>{showOriginal ? 'Hide' : 'Show'}</Text>
             </Pressable>
-            {showOriginal ? (
-              <Surface padded>
-                <Text style={[styles.original, { color: theme.textSecondary }]} selectable>{original}</Text>
-              </Surface>
-            ) : null}
+            {showOriginal ? <Surface padded><Text style={[styles.original, { color: theme.textSecondary }]} selectable>{original}</Text></Surface> : null}
           </View>
         ) : null}
 
         <View style={styles.triageActions}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Review tomorrow" disabled={working} onPress={deferReview} style={[styles.triageButton, { backgroundColor: theme.fill }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Review tomorrow" disabled={working} onPress={deferReview} style={[styles.triageButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
             <Text style={[styles.triageText, { color: theme.textSecondary }]}>Review tomorrow</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Mark processed" disabled={working} onPress={() => void execute('mark_processed')} style={[styles.triageButton, { backgroundColor: theme.fill }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Mark processed" disabled={working} onPress={() => void execute('mark_processed')} style={[styles.triageButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
             <Text style={[styles.triageText, { color: theme.textSecondary }]}>Mark processed</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Archive item" disabled={working} onPress={() => void execute('archive')} style={[styles.triageButton, { backgroundColor: theme.fill }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Archive item" disabled={working} onPress={() => void execute('archive')} style={[styles.triageButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
             <Text style={[styles.triageText, { color: theme.danger }]}>Archive</Text>
           </Pressable>
         </View>
@@ -292,43 +288,43 @@ function formatAmount(amount: number, currency = 'EUR') {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 42, gap: 18 },
+  content: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 18 },
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 16, fontWeight: '800' },
+  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.1 },
   hero: { flexDirection: 'row', alignItems: 'center', gap: 13 },
-  state: { fontSize: 10, fontWeight: '900', letterSpacing: 0.75 },
-  title: { marginTop: 4, fontSize: 22, lineHeight: 27, fontWeight: '800', letterSpacing: -0.45 },
+  state: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.8 },
+  title: { marginTop: 4, fontSize: 22, lineHeight: 27, fontWeight: '700', letterSpacing: -0.5 },
   source: { marginTop: 4, fontSize: 12 },
-  preview: { width: '100%', height: 250, borderRadius: 22 },
+  preview: { width: '100%', height: 250, borderRadius: 18 },
   summaryTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  sectionTitle: { fontSize: 15, fontWeight: '800' },
-  confidencePill: { minHeight: 27, borderRadius: 10, paddingHorizontal: 9, alignItems: 'center', justifyContent: 'center' },
+  sectionTitle: { fontSize: 15, fontWeight: '700' },
+  confidencePill: { minHeight: 27, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 9, alignItems: 'center', justifyContent: 'center' },
   confidenceText: { fontSize: 10.5, fontWeight: '700' },
   summary: { marginTop: 8, fontSize: 13, lineHeight: 19 },
-  ambiguity: { marginTop: 12, borderRadius: 14, padding: 12 },
-  ambiguityTitle: { fontSize: 11.5, fontWeight: '800' },
+  ambiguity: { marginTop: 12, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, padding: 12 },
+  ambiguityTitle: { fontSize: 11.5, fontWeight: '700' },
   ambiguityText: { marginTop: 4, fontSize: 11.5, lineHeight: 16 },
   block: { gap: 10 },
   factRow: { minHeight: 48, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
   factLabel: { width: 76, fontSize: 11.5 },
   factValue: { flex: 1, fontSize: 13, fontWeight: '600', textAlign: 'right' },
-  duplicate: { borderRadius: 16, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  duplicateTitle: { fontSize: 12.5, fontWeight: '800' },
+  duplicate: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  duplicateTitle: { fontSize: 12.5, fontWeight: '700' },
   duplicateBody: { marginTop: 2, fontSize: 11.5, lineHeight: 16 },
-  openText: { fontSize: 12, fontWeight: '800' },
+  openText: { fontSize: 12, fontWeight: '700' },
   reviewBody: { fontSize: 12.5, lineHeight: 18 },
   actionStack: { marginTop: 12, gap: 8 },
-  secondaryAction: { minHeight: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  secondaryActionText: { fontSize: 13, fontWeight: '800' },
-  proposal: { minHeight: 64, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  proposalTitle: { fontSize: 13.5, fontWeight: '800' },
+  secondaryAction: { minHeight: 48, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  secondaryActionText: { fontSize: 13, fontWeight: '700' },
+  proposal: { minHeight: 64, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  proposalTitle: { fontSize: 13.5, fontWeight: '700' },
   proposalReason: { marginTop: 3, fontSize: 11.5, lineHeight: 16 },
   disclosure: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   disclosureText: { fontSize: 13.5, fontWeight: '700' },
   original: { fontSize: 12.5, lineHeight: 19 },
   triageActions: { flexDirection: 'row', gap: 7, flexWrap: 'wrap' },
-  triageButton: { minHeight: 40, borderRadius: 13, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
+  triageButton: { minHeight: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
   triageText: { fontSize: 11.5, fontWeight: '700' }
 });
