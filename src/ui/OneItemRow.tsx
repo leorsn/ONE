@@ -48,12 +48,12 @@ export function OneItemRow({
             }
           ]}
         >
-          {item.completed ? <OneIcon name={icons.check} size={12} color={theme.background} /> : null}
+          {item.completed ? <OneIcon name={icons.check} size={11} color={theme.background} /> : null}
         </Pressable>
       ) : previewUri ? (
         <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill }]} resizeMode="cover" />
       ) : (
-        <IconTile icon={iconForType(item.type)} size={38} />
+        <IconTile icon={iconForType(item.type)} tone="neutral" size={42} />
       )}
 
       <View style={styles.content}>
@@ -73,12 +73,10 @@ export function OneItemRow({
       </View>
 
       {item.time ? (
-        <View style={[styles.timePill, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-          <Text style={[styles.time, { color: theme.textSecondary }]}>{item.time}</Text>
-        </View>
+        <Text style={[styles.time, { color: theme.textTertiary }]}>{item.time}</Text>
       ) : null}
 
-      {showChevron ? <OneIcon name={icons.chevron} size={15} color={theme.textTertiary} /> : null}
+      {showChevron ? <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} /> : null}
     </Pressable>
   );
 }
@@ -144,12 +142,19 @@ function formatType(type: string) {
 }
 
 const styles = StyleSheet.create({
-  row: { minHeight: 72, paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  check: { width: 24, height: 24, borderRadius: 12, borderWidth: 1.5, alignItems: 'center', justifyContent: 'center' },
-  preview: { width: 40, height: 40, borderRadius: 11 },
+  row: {
+    minHeight: 76,
+    paddingHorizontal: 15,
+    paddingVertical: 11,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12
+  },
+  check: { width: 23, height: 23, borderRadius: 12, borderWidth: 1.35, alignItems: 'center', justifyContent: 'center' },
+  preview: { width: 44, height: 44, borderRadius: 12 },
   content: { flex: 1, minWidth: 0 },
-  title: { fontSize: 15.25, fontWeight: '600', letterSpacing: -0.16 },
-  meta: { fontSize: 12.25, marginTop: 4 },
-  timePill: { minHeight: 28, paddingHorizontal: 9, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  time: { fontSize: 11.5, fontWeight: '700' }
+  title: { fontSize: 14.75, lineHeight: 18, fontWeight: '650', letterSpacing: -0.17 },
+  meta: { fontSize: 11.5, lineHeight: 15.5, marginTop: 4 },
+  time: { fontSize: 11, lineHeight: 14, fontWeight: '600', letterSpacing: 0.05 }
 });
