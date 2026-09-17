@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
 import { iconForType } from '@/src/ui/OneItemRow';
-import { EmptyState, IconTile, PrimaryButton, Surface } from '@/src/ui/primitives';
+import { EmptyState, IconTile, PrimaryButton, SectionHeader, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
@@ -47,7 +47,7 @@ export default function ItemDetailScreen() {
         <View style={styles.missing}>
           <EmptyState icon={icons.note} title="Item not found" body="This memory may have been removed." />
           <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()}>
-            <Text style={{ color: theme.chrome, fontWeight: '700' }}>Go back</Text>
+            <Text style={{ color: theme.chrome, fontWeight: '600' }}>Go back</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -101,64 +101,28 @@ export default function ItemDetailScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             onPress={() => router.back()}
-            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
           >
-            <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
+            <OneIcon name={icons.chevronLeft} size={17} color={theme.text} />
           </Pressable>
-          <Text style={[styles.navTitle, { color: theme.text }]}>Details</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Delete item"
-            onPress={confirmDelete}
-            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
-          >
-            <OneIcon name={icons.delete} size={17} color={theme.danger} />
-          </Pressable>
+          <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
+          <View style={{ width: 40 }} />
         </View>
 
-        <View style={styles.hero}>
-          <IconTile icon={iconForType(currentItem.type)} size={54} />
+        <View style={styles.identity}>
+          <IconTile icon={iconForType(currentItem.type)} tone="neutral" size={42} />
           <View style={{ flex: 1 }}>
             <Text style={[styles.type, { color: theme.chrome }]}>{formatType(currentItem.type)}</Text>
-            <Text style={[styles.source, { color: theme.textSecondary }]}>
-              {sourceLabel(currentItem.sourceType)} · {formatUpdated(currentItem.updatedAt)}
-            </Text>
+            <Text style={[styles.source, { color: theme.textTertiary }]}>{sourceLabel(currentItem.sourceType)} · Updated {formatUpdated(currentItem.updatedAt)}</Text>
           </View>
         </View>
 
-        {(currentItem.type === 'document' || currentItem.merchant || currentItem.amount !== undefined) ? (
-          <Surface padded>
-            <View style={styles.documentHeader}>
-              <IconTile icon={icons.document} tone="neutral" size={40} />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.documentTitle, { color: theme.text }]}>Document details</Text>
-                <Text style={[styles.documentMeta, { color: theme.textSecondary }]}>
-                  {formatDocumentKind(currentItem.documentKind)}
-                </Text>
-              </View>
-              {currentItem.amount !== undefined ? (
-                <Text style={[styles.documentAmount, { color: theme.text }]}>
-                  {formatMoney(currentItem.amount, currentItem.currency)}
-                </Text>
-              ) : null}
-            </View>
-            <View style={[styles.documentDetails, { borderTopColor: theme.border }]}>
-              {currentItem.merchant ? <InfoLine label="Merchant" value={currentItem.merchant} /> : null}
-              {currentItem.date ? <InfoLine label="Date" value={formatHumanDate(currentItem.date)} /> : null}
-              {currentItem.currency ? <InfoLine label="Currency" value={currentItem.currency} /> : null}
-            </View>
-          </Surface>
-        ) : null}
-
-        <View style={styles.block}>
-          <Text style={[styles.label, { color: theme.textSecondary }]}>Title</Text>
+        <View style={styles.titleBlock}>
+          <Text style={[styles.fieldEyebrow, { color: theme.textTertiary }]}>MEMORY</Text>
           <TextInput
             value={title}
             onChangeText={setTitle}
-            style={[
-              styles.titleInput,
-              { color: theme.text, backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }
-            ]}
+            style={[styles.titleInput, { color: theme.text }]}
             placeholder="Title"
             placeholderTextColor={theme.textTertiary}
             accessibilityLabel="Item title"
@@ -166,19 +130,43 @@ export default function ItemDetailScreen() {
           />
         </View>
 
-        <Surface>
-          <DateTimeFieldRow kind="date" label="Date" value={date} icon={icons.calendar} />
-          <DateTimeFieldRow kind="time" label="Time" value={time} icon={icons.clock} />
-          <TextFieldRow label="Category" value={category} onChange={setCategory} placeholder="General" icon={icons.saved} />
-          <TextFieldRow label="Location" value={location} onChange={setLocation} placeholder="Optional" icon={icons.travel} last />
-        </Surface>
+        {(currentItem.type === 'document' || currentItem.merchant || currentItem.amount !== undefined) ? (
+          <View style={styles.section}>
+            <SectionHeader title="Document" />
+            <Surface padded>
+              <View style={styles.documentHeader}>
+                <IconTile icon={icons.document} tone="neutral" size={38} />
+                <View style={{ flex: 1 }}>
+                  <Text style={[styles.documentTitle, { color: theme.text }]}>{formatDocumentKind(currentItem.documentKind)}</Text>
+                  <Text style={[styles.documentMeta, { color: theme.textSecondary }]}>{currentItem.merchant || 'Saved document'}</Text>
+                </View>
+                {currentItem.amount !== undefined ? <Text style={[styles.documentAmount, { color: theme.text }]}>{formatMoney(currentItem.amount, currentItem.currency)}</Text> : null}
+              </View>
+              <View style={[styles.documentDetails, { borderTopColor: theme.border }]}>
+                {currentItem.merchant ? <InfoLine label="Merchant" value={currentItem.merchant} /> : null}
+                {currentItem.date ? <InfoLine label="Date" value={formatHumanDate(currentItem.date)} /> : null}
+                {currentItem.currency ? <InfoLine label="Currency" value={currentItem.currency} /> : null}
+              </View>
+            </Surface>
+          </View>
+        ) : null}
 
-        <View style={styles.block}>
-          <Text style={[styles.label, { color: theme.textSecondary }]}>Context</Text>
+        <View style={styles.section}>
+          <SectionHeader title="Details" />
+          <Surface>
+            <DateTimeFieldRow kind="date" label="Date" value={date} icon={icons.calendar} />
+            <DateTimeFieldRow kind="time" label="Time" value={time} icon={icons.clock} />
+            <TextFieldRow label="Category" value={category} onChange={setCategory} placeholder="General" icon={icons.saved} />
+            <TextFieldRow label="Location" value={location} onChange={setLocation} placeholder="Optional" icon={icons.travel} last />
+          </Surface>
+        </View>
+
+        <View style={styles.section}>
+          <SectionHeader title="Context" />
           <TextInput
             value={context}
             onChangeText={setContext}
-            style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
             placeholder="What should NEVER remember this as?"
             placeholderTextColor={theme.textTertiary}
             accessibilityLabel="Memory context"
@@ -186,12 +174,12 @@ export default function ItemDetailScreen() {
           />
         </View>
 
-        <View style={styles.block}>
-          <Text style={[styles.label, { color: theme.textSecondary }]}>Notes</Text>
+        <View style={styles.section}>
+          <SectionHeader title="Notes" />
           <TextInput
             value={notes}
             onChangeText={setNotes}
-            style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
             placeholder="Add notes"
             placeholderTextColor={theme.textTertiary}
             accessibilityLabel="Notes"
@@ -200,8 +188,8 @@ export default function ItemDetailScreen() {
         </View>
 
         {currentItem.extractedText ? (
-          <View style={styles.block}>
-            <Text style={[styles.label, { color: theme.textSecondary }]}>Recognized text</Text>
+          <View style={styles.section}>
+            <SectionHeader title="Recognized text" />
             <Surface padded>
               <Text style={[styles.extracted, { color: theme.textSecondary }]} selectable>{currentItem.extractedText}</Text>
             </Surface>
@@ -213,27 +201,30 @@ export default function ItemDetailScreen() {
             accessibilityRole="link"
             accessibilityLabel="Open saved link"
             onPress={() => Linking.openURL(currentItem.url!)}
-            style={({ pressed }) => [
-              styles.linkCard,
-              { backgroundColor: theme.chromeSoft, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }
-            ]}
+            style={({ pressed }) => [styles.linkCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
           >
-            <OneIcon name={icons.link} size={18} color={theme.chrome} />
-            <Text style={[styles.linkText, { color: theme.chrome }]} numberOfLines={1}>{currentItem.url}</Text>
-            <OneIcon name={icons.chevron} size={14} color={theme.chrome} />
+            <IconTile icon={icons.link} tone="neutral" size={36} />
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.linkLabel, { color: theme.textTertiary }]}>SAVED LINK</Text>
+              <Text style={[styles.linkText, { color: theme.text }]} numberOfLines={1}>{currentItem.url}</Text>
+            </View>
+            <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
           </Pressable>
         ) : null}
 
-        <Surface>
-          <ToggleRow label="Saved" value={saved} onChange={setSaved} icon={icons.saved} />
-          <ToggleRow label="Completed" value={completed} onChange={setCompleted} icon={icons.check} last />
-        </Surface>
+        <View style={styles.section}>
+          <SectionHeader title="Status" />
+          <Surface>
+            <ToggleRow label="Saved" value={saved} onChange={setSaved} icon={icons.saved} />
+            <ToggleRow label="Completed" value={completed} onChange={setCompleted} icon={icons.check} last />
+          </Surface>
+        </View>
 
         <PrimaryButton label={saving ? 'Saving…' : 'Save changes'} icon={icons.check} onPress={saveChanges} disabled={saving || !title.trim()} />
 
         <Pressable accessibilityRole="button" accessibilityLabel="Delete item" onPress={confirmDelete} style={styles.deleteAction}>
-          <OneIcon name={icons.delete} size={16} color={theme.danger} />
-          <Text style={[styles.deleteText, { color: theme.danger }]}>Delete item</Text>
+          <OneIcon name={icons.delete} size={15} color={theme.danger} />
+          <Text style={[styles.deleteText, { color: theme.danger }]}>Delete this memory</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
@@ -248,12 +239,7 @@ export default function ItemDetailScreen() {
     );
   }
 
-  function DateTimeFieldRow({
-    kind,
-    label,
-    value,
-    icon
-  }: {
+  function DateTimeFieldRow({ kind, label, value, icon }: {
     kind: 'date' | 'time';
     label: string;
     value: string;
@@ -326,13 +312,7 @@ export default function ItemDetailScreen() {
           )}
 
           {value ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`Clear ${label.toLowerCase()}`}
-              hitSlop={8}
-              onPress={clearValue}
-              style={styles.clearButton}
-            >
+            <Pressable accessibilityRole="button" accessibilityLabel={`Clear ${label.toLowerCase()}`} hitSlop={8} onPress={clearValue} style={styles.clearButton}>
               <OneIcon name={icons.close} size={12} color={theme.textTertiary} />
             </Pressable>
           ) : null}
@@ -353,14 +333,7 @@ export default function ItemDetailScreen() {
     );
   }
 
-  function TextFieldRow({
-    label,
-    value,
-    onChange,
-    placeholder,
-    icon,
-    last = false
-  }: {
+  function TextFieldRow({ label, value, onChange, placeholder, icon, last = false }: {
     label: string;
     value: string;
     onChange: (value: string) => void;
@@ -385,13 +358,7 @@ export default function ItemDetailScreen() {
     );
   }
 
-  function ToggleRow({
-    label,
-    value,
-    onChange,
-    icon,
-    last = false
-  }: {
+  function ToggleRow({ label, value, onChange, icon, last = false }: {
     label: string;
     value: boolean;
     onChange: (value: boolean) => void;
@@ -439,7 +406,6 @@ function formatHumanDate(value: string) {
 function dateValue(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
   if (!match) return new Date();
-
   const date = new Date(Number(match[1]), Number(match[2]) - 1, Number(match[3]), 12, 0, 0, 0);
   return Number.isNaN(date.getTime()) ? new Date() : date;
 }
@@ -448,11 +414,9 @@ function timeValue(value: string) {
   const now = new Date();
   const match = /^(\d{2}):(\d{2})$/.exec(value);
   if (!match) return now;
-
   const hours = Number(match[1]);
   const minutes = Number(match[2]);
   if (hours > 23 || minutes > 59) return now;
-
   now.setHours(hours, minutes, 0, 0);
   return now;
 }
@@ -470,36 +434,38 @@ function toTime(value: Date) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 21 },
-  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 24 },
+  nav: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.15 },
-  hero: { flexDirection: 'row', alignItems: 'center', gap: 13, marginTop: 5 },
-  type: { fontSize: 10.5, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.15 },
-  source: { marginTop: 5, fontSize: 12 },
-  block: { gap: 9 },
+  wordmark: { fontSize: 11, fontWeight: '600', letterSpacing: 3.2 },
+  identity: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 2 },
+  type: { fontSize: 8.75, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.35 },
+  source: { marginTop: 4, fontSize: 10.75, lineHeight: 14 },
+  titleBlock: { gap: 6 },
+  fieldEyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 1.55 },
+  titleInput: { minHeight: 62, paddingVertical: 4, fontSize: 29, lineHeight: 35, fontWeight: '600', letterSpacing: -0.95, textAlignVertical: 'top' },
+  section: { gap: 10 },
   documentHeader: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  documentTitle: { fontSize: 14.75, fontWeight: '700' },
-  documentMeta: { marginTop: 3, fontSize: 11.75 },
-  documentAmount: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.15 },
+  documentTitle: { fontSize: 14.25, lineHeight: 18, fontWeight: '600' },
+  documentMeta: { marginTop: 3, fontSize: 11.25 },
+  documentAmount: { fontSize: 14.5, fontWeight: '600', letterSpacing: -0.15 },
   documentDetails: { marginTop: 14, paddingTop: 11, borderTopWidth: StyleSheet.hairlineWidth, gap: 9 },
   infoLine: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  infoLabel: { width: 76, fontSize: 11, fontWeight: '700' },
-  infoValue: { flex: 1, textAlign: 'right', fontSize: 12.75, fontWeight: '600' },
-  label: { fontSize: 11.5, fontWeight: '700', marginLeft: 2, letterSpacing: 0.1 },
-  titleInput: { minHeight: 74, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 15, fontSize: 21.5, lineHeight: 27, fontWeight: '700', textAlignVertical: 'top', shadowOpacity: 0.05, shadowRadius: 14, shadowOffset: { width: 0, height: 7 }, elevation: 1 },
-  fieldRow: { minHeight: 62, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  fieldLabel: { width: 72, fontSize: 13.75, fontWeight: '600' },
-  fieldInput: { flex: 1, fontSize: 13.75, textAlign: 'right', paddingVertical: 10 },
+  infoLabel: { width: 76, fontSize: 10.5, fontWeight: '600' },
+  infoValue: { flex: 1, textAlign: 'right', fontSize: 12.25, fontWeight: '500' },
+  fieldRow: { minHeight: 64, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  fieldLabel: { width: 72, fontSize: 13.25, fontWeight: '600' },
+  fieldInput: { flex: 1, fontSize: 13.25, textAlign: 'right', paddingVertical: 10 },
   nativePickerWrap: { flex: 1, alignItems: 'flex-end' },
   pickerButton: { flex: 1, minHeight: 36, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 11, alignItems: 'flex-end', justifyContent: 'center' },
-  pickerButtonText: { fontSize: 12.75, fontWeight: '600' },
+  pickerButtonText: { fontSize: 12.25, fontWeight: '600' },
   clearButton: { width: 26, height: 32, alignItems: 'center', justifyContent: 'center' },
-  largeInput: { minHeight: 110, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 14, fontSize: 14, lineHeight: 20, textAlignVertical: 'top' },
-  extracted: { fontSize: 12.75, lineHeight: 19 },
-  linkCard: { minHeight: 52, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  linkText: { flex: 1, fontSize: 12.75, fontWeight: '600' },
+  largeInput: { minHeight: 112, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 14, fontSize: 13.5, lineHeight: 20, textAlignVertical: 'top' },
+  extracted: { fontSize: 12.25, lineHeight: 19 },
+  linkCard: { minHeight: 64, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  linkLabel: { fontSize: 7.75, fontWeight: '700', letterSpacing: 1.05 },
+  linkText: { marginTop: 3, fontSize: 11.75, fontWeight: '500' },
   deleteAction: { minHeight: 44, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center' },
-  deleteText: { fontSize: 13, fontWeight: '700' },
+  deleteText: { fontSize: 12.25, fontWeight: '600' },
   missing: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }
 });
