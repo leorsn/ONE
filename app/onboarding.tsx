@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Dimensions, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,8 +8,6 @@ import { useOnboarding } from '@/src/context/OnboardingContext';
 import { IconTile, PrimaryButton } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
-
-const WIDTH = Dimensions.get('window').width;
 
 const slides = [
   {
@@ -34,13 +32,14 @@ const slides = [
 
 export default function OnboardingScreen() {
   const theme = useTheme();
+  const { width } = useWindowDimensions();
   const { configured, session } = useAuth();
   const { complete } = useOnboarding();
   const scrollRef = useRef<ScrollView>(null);
   const [index, setIndex] = useState(0);
 
   function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
-    const next = Math.round(event.nativeEvent.contentOffset.x / WIDTH);
+    const next = Math.round(event.nativeEvent.contentOffset.x / width);
     if (next !== index && next >= 0 && next < slides.length) setIndex(next);
   }
 
@@ -57,7 +56,7 @@ export default function OnboardingScreen() {
       return;
     }
 
-    scrollRef.current?.scrollTo({ x: WIDTH * (index + 1), animated: true });
+    scrollRef.current?.scrollTo({ x: width * (index + 1), animated: true });
   }
 
   return (
@@ -79,7 +78,7 @@ export default function OnboardingScreen() {
         style={styles.pager}
       >
         {slides.map((slide) => (
-          <View key={slide.eyebrow} style={[styles.slide, { width: WIDTH }]}>
+          <View key={slide.eyebrow} style={[styles.slide, { width }]}>
             <View style={styles.slideContent}>
               <View style={[styles.visual, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
                 <View style={[styles.ringOuter, { borderColor: theme.border }]}>
