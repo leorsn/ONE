@@ -122,9 +122,9 @@ const styles = StyleSheet.create({
   topline: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   state: { fontSize: 8.75, fontWeight: '700', letterSpacing: 0.92 },
   source: { flex: 1, fontSize: 10, lineHeight: 13, textAlign: 'right' },
-  title: { marginTop: 5, fontSize: 14.75, lineHeight: 18, fontWeight: '650', letterSpacing: -0.16 },
+  title: { marginTop: 5, fontSize: 14.75, lineHeight: 18, fontWeight: '600', letterSpacing: -0.16 },
   summary: { marginTop: 4, fontSize: 12, lineHeight: 17 },
   meta: { marginTop: 5, fontSize: 10.25, lineHeight: 13.5 },
   action: { alignSelf: 'flex-start', minHeight: 32, paddingHorizontal: 12, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  actionText: { fontSize: 11, fontWeight: '650' }
+  actionText: { fontSize: 11, fontWeight: '600' }
 });
