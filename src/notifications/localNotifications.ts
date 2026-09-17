@@ -2,8 +2,11 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { recordLastNativeError, recordNativeAcceptanceEvent } from '@/src/native/acceptance';
 import type { ScheduledItemNotificationSnapshot } from '@/src/notifications/reconciliation';
+import { getReminderDate } from '@/src/notifications/reminderDate';
 import { loadNotificationPreferences } from '@/src/storage/preferences';
 import type { OneItem, OneNotificationStatus } from '@/src/types/item';
+
+export { getReminderDate } from '@/src/notifications/reminderDate';
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -58,25 +61,6 @@ export async function getScheduledItemNotifications(): Promise<ScheduledItemNoti
 export async function getScheduledNotificationIds() {
   const scheduled = await getScheduledItemNotifications();
   return scheduled ? new Set(scheduled.map((entry) => entry.identifier)) : null;
-}
-
-export function getReminderDate(
-  item: Pick<OneItem, 'date' | 'time'>,
-  leadMinutes = 10
-) {
-  if (!item.date) return null;
-
-  const [year, month, day] = item.date.split('-').map(Number);
-  const [hour, minute] = (item.time || '09:00').split(':').map(Number);
-  // Deliberately uses the device's local timezone. NEVER stores wall-clock date/time
-  // separately so a user's 18:00 reminder remains 18:00 in the active locale.
-  const eventDate = new Date(year, month - 1, day, hour, minute, 0, 0);
-
-  if (item.time && leadMinutes > 0) {
-    eventDate.setMinutes(eventDate.getMinutes() - leadMinutes);
-  }
-
-  return eventDate;
 }
 
 export async function scheduleItemNotification(item: OneItem): Promise<NotificationScheduleResult> {
