@@ -26,6 +26,19 @@ test('subscription paywall exposes Privacy Policy and Terms of Use from release 
   assert.match(upgrade, />Privacy Policy</);
 });
 
+test('subscription paywall prefers localized RevenueCat storefront prices over fixed EUR fallback copy', async () => {
+  const revenueCat = await text('src/subscription/revenueCat.ts');
+  const planContext = await text('src/context/PlanContext.tsx');
+  const upgrade = await text('app/upgrade.tsx');
+
+  assert.match(revenueCat, /rcPackage\?\.product\.priceString\?\.trim\(\)/);
+  assert.match(planContext, /getRevenueCatPriceStrings/);
+  assert.match(planContext, /localizedPrices/);
+  assert.match(upgrade, /localizedPrices\.one \|\| formatEUR/);
+  assert.match(upgrade, /localizedPrices\.one_ai \|\| formatEUR/);
+  assert.doesNotMatch(upgrade, /then €2\.99\/month/);
+});
+
 test('App Store release environment requires both billing and Terms configuration', async () => {
   const releaseEnv = await text('scripts/verify-release-env.mjs');
   assert.match(releaseEnv, /required\.push\('EXPO_PUBLIC_REVENUECAT_IOS_KEY', 'EXPO_PUBLIC_TERMS_URL'\)/);
