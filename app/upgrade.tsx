@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,9 +14,12 @@ const TERMS_URL = process.env.EXPO_PUBLIC_TERMS_URL?.trim();
 const baseFeatures = ['Capture, calendar & reminders', 'Saved & classical search', 'Share to NEVER', 'Scan to NEVER & OCR', 'Private cloud sync'];
 const aiFeatures = ['Everything in NEVER', 'Ask NEVER', 'Meaning-based semantic recall', 'AI answers grounded in your memory', 'Cross-item document & receipt analysis'];
 
+type PurchasePlan = 'one' | 'one_ai';
+
 export default function UpgradeScreen() {
   const theme = useTheme();
   const { plan, isBetaAccess, billingConfigured, localizedPrices, purchasing, purchase, restore } = usePlan();
+  const [purchasingPlan, setPurchasingPlan] = useState<PurchasePlan | null>(null);
   const hardPaywall = plan === 'none' && !isBetaAccess;
   const neverPrice = storefrontPrice(localizedPrices.one, billingConfigured, subscriptionProducts.oneMonthly.priceEUR);
   const neverAiPrice = storefrontPrice(localizedPrices.one_ai, billingConfigured, subscriptionProducts.oneAiMonthly.priceEUR);
@@ -116,7 +120,7 @@ export default function UpgradeScreen() {
             }}
             style={styles.restore}
           >
-            {purchasing ? <ActivityIndicator size="small" /> : null}
+            {purchasing && !purchasingPlan ? <ActivityIndicator size="small" /> : null}
             <Text style={[styles.restoreText, { color: theme.chrome }]}>Restore purchases</Text>
           </Pressable>
         ) : null}
@@ -167,12 +171,14 @@ export default function UpgradeScreen() {
     period: string;
     offer: string;
     features: string[];
-    planKey: 'one' | 'one_ai';
+    planKey: PurchasePlan;
     highlighted?: boolean;
     current?: boolean;
   }) {
     const availableInStorefront = Boolean(localizedPrices[planKey]);
-    const canPurchase = billingConfigured && availableInStorefront && !purchasing;
+    const purchaseReady = billingConfigured && availableInStorefront;
+    const canPurchase = purchaseReady && !purchasing;
+    const isThisPlanPurchasing = purchasing && purchasingPlan === planKey;
 
     return (
       <View style={[styles.planWrap, { borderColor: highlighted ? theme.chrome : 'transparent' }]}>
@@ -210,21 +216,26 @@ export default function UpgradeScreen() {
               accessibilityLabel={availableInStorefront ? purchaseLabel(planKey, plan) : `${name} is unavailable in the current App Store offering`}
               disabled={!canPurchase}
               onPress={async () => {
-                const outcome = await purchase(planKey);
-                if (!outcome.ok && !outcome.cancelled && outcome.error) Alert.alert('NEVER subscription', outcome.error);
+                setPurchasingPlan(planKey);
+                try {
+                  const outcome = await purchase(planKey);
+                  if (!outcome.ok && !outcome.cancelled && outcome.error) Alert.alert('NEVER subscription', outcome.error);
+                } finally {
+                  setPurchasingPlan(null);
+                }
               }}
               style={[
                 styles.purchaseButton,
                 {
-                  backgroundColor: canPurchase ? highlighted ? theme.accent : theme.text : theme.fillStrong,
-                  borderColor: canPurchase ? highlighted ? theme.accent : theme.text : theme.border,
+                  backgroundColor: purchaseReady ? highlighted ? theme.accent : theme.text : theme.fillStrong,
+                  borderColor: purchaseReady ? highlighted ? theme.accent : theme.text : theme.border,
                   opacity: purchasing ? 0.62 : 1
                 }
               ]}
             >
-              {purchasing ? <ActivityIndicator size="small" color={canPurchase ? theme.onAccent : theme.textTertiary} /> : null}
-              <Text style={[styles.purchaseButtonText, { color: canPurchase ? theme.onAccent : theme.textTertiary }]}>
-                {canPurchase
+              {isThisPlanPurchasing ? <ActivityIndicator size="small" color={theme.onAccent} /> : null}
+              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? theme.onAccent : theme.textTertiary }]}>
+                {purchaseReady
                   ? purchaseLabel(planKey, plan)
                   : !billingConfigured && isBetaAccess
                     ? 'Available at launch'
@@ -240,7 +251,7 @@ export default function UpgradeScreen() {
   }
 }
 
-function purchaseLabel(nextPlan: 'one' | 'one_ai', currentPlan: 'none' | 'one' | 'one_ai') {
+function purchaseLabel(nextPlan: PurchasePlan, currentPlan: 'none' | 'one' | 'one_ai') {
   if (nextPlan === 'one') return currentPlan === 'one_ai' ? 'Switch to NEVER' : 'Get NEVER';
   return currentPlan === 'one' ? 'Upgrade to NEVER AI' : 'Get NEVER AI';
 }
