@@ -6,6 +6,7 @@
     "version": "0.1.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
+    "icon": "./assets/icons/never-nature.png",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "app.one.mobile",
@@ -23,6 +24,7 @@
     },
     "plugins": [
       "expo-router",
+      "./plugins/with-never-app-icons",
       "expo-notifications",
       [
         "expo-sharing",
