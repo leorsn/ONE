@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   check: { width: 23, height: 23, borderRadius: 12, borderWidth: 1.35, alignItems: 'center', justifyContent: 'center' },
   preview: { width: 44, height: 44, borderRadius: 12 },
   content: { flex: 1, minWidth: 0 },
-  title: { fontSize: 14.75, lineHeight: 18, fontWeight: '650', letterSpacing: -0.17 },
+  title: { fontSize: 14.75, lineHeight: 18, fontWeight: '600', letterSpacing: -0.17 },
   meta: { fontSize: 11.5, lineHeight: 15.5, marginTop: 4 },
   time: { fontSize: 11, lineHeight: 14, fontWeight: '600', letterSpacing: 0.05 }
 });
