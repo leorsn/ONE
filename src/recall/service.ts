@@ -98,7 +98,7 @@ export async function answerFromRetrievedItems({
       mode: 'ai',
       meta: data?.model ? `Grounded recall · ${String(data.model)}` : 'Grounded recall'
     };
-  } catch (error) {
+  } catch {
     return {
       ...fallback,
       aiUnavailable: true,
