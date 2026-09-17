@@ -23,6 +23,20 @@ export type PurchaseOutcome = {
 
 export type RevenueCatPriceStrings = Partial<Record<PaidOnePlan, string>>;
 
+export type RevenueCatIntroOffer = {
+  price: number;
+  priceString: string;
+  cycles: number;
+  period: string;
+  periodUnit: string;
+  periodNumberOfUnits: number;
+};
+
+export type RevenueCatStorefront = {
+  prices: RevenueCatPriceStrings;
+  introOffers: Partial<Record<PaidOnePlan, RevenueCatIntroOffer>>;
+};
+
 export function isRevenueCatConfigured() {
   return Boolean(apiKeyForPlatform());
 }
@@ -51,18 +65,33 @@ export async function getSubscriptionManagementURL(): Promise<string | undefined
   return customerInfo.managementURL ?? undefined;
 }
 
-export async function getRevenueCatPriceStrings(): Promise<RevenueCatPriceStrings> {
+export async function getRevenueCatStorefront(): Promise<RevenueCatStorefront> {
   const offerings = await Purchases.getOfferings();
   const offering = offerings.all[REVENUECAT_OFFERING_ID] || offerings.current;
-  if (!offering) return {};
+  if (!offering) return { prices: {}, introOffers: {} };
 
   const prices: RevenueCatPriceStrings = {};
+  const introOffers: RevenueCatStorefront['introOffers'] = {};
+
   for (const plan of ['one', 'one_ai'] as const) {
     const rcPackage = packageFromAvailablePackages(offering.availablePackages, plan);
     const priceString = rcPackage?.product.priceString?.trim();
     if (priceString) prices[plan] = priceString;
+
+    const intro = rcPackage?.product.introPrice;
+    if (intro) {
+      introOffers[plan] = {
+        price: intro.price,
+        priceString: intro.priceString,
+        cycles: intro.cycles,
+        period: intro.period,
+        periodUnit: intro.periodUnit,
+        periodNumberOfUnits: intro.periodNumberOfUnits
+      };
+    }
   }
-  return prices;
+
+  return { prices, introOffers };
 }
 
 export async function purchaseRevenueCatPlan(plan: PaidOnePlan): Promise<PurchaseOutcome> {
