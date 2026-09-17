@@ -35,11 +35,16 @@ export default function CalendarScreen() {
           subtitle="Everything with a date, without the clutter."
           action={
             <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Jump to today"
               onPress={async () => {
                 await Haptics.selectionAsync();
                 setSelectedDate(today);
               }}
-              style={[styles.todayButton, { backgroundColor: theme.fill }]}
+              style={({ pressed }) => [
+                styles.todayButton,
+                { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.6 : 1 }
+              ]}
             >
               <Text style={[styles.todayText, { color: theme.text }]}>Today</Text>
             </Pressable>
@@ -56,7 +61,9 @@ export default function CalendarScreen() {
                 {new Intl.DateTimeFormat('en', { weekday: 'long', month: 'short', day: 'numeric' }).format(selected)}
               </Text>
             </View>
-            <OneIcon name={icons.calendar} size={21} color={theme.accent} />
+            <View style={[styles.calendarMark, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+              <OneIcon name={icons.calendar} size={18} color={theme.chrome} />
+            </View>
           </View>
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayStrip}>
@@ -66,22 +73,25 @@ export default function CalendarScreen() {
               return (
                 <Pressable
                   key={day.iso}
+                  accessibilityRole="button"
+                  accessibilityLabel={`${day.weekday} ${day.number}${hasItems ? ', has items' : ''}`}
                   onPress={async () => {
                     await Haptics.selectionAsync();
                     setSelectedDate(day.iso);
                   }}
-                  style={[
+                  style={({ pressed }) => [
                     styles.day,
                     {
                       backgroundColor: active ? theme.accent : theme.fill,
-                      borderColor: active ? theme.accent : 'transparent'
+                      borderColor: active ? theme.accent : theme.border,
+                      opacity: pressed ? 0.64 : 1
                     }
                   ]}
                 >
-                  <Text style={[styles.weekday, { color: active ? '#FFFFFF' : theme.textSecondary }]}>
+                  <Text style={[styles.weekday, { color: active ? theme.onAccent : theme.textSecondary }]}>
                     {day.weekday}
                   </Text>
-                  <Text style={[styles.dayNumber, { color: active ? '#FFFFFF' : theme.text }]}>
+                  <Text style={[styles.dayNumber, { color: active ? theme.onAccent : theme.text }]}>
                     {day.number}
                   </Text>
                   <View
@@ -90,8 +100,8 @@ export default function CalendarScreen() {
                       {
                         backgroundColor: hasItems
                           ? active
-                            ? '#FFFFFF'
-                            : theme.accent
+                            ? theme.onAccent
+                            : theme.chrome
                           : 'transparent'
                       }
                     ]}
@@ -155,19 +165,21 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   todayButton: {
     minHeight: 38,
-    paddingHorizontal: 13,
-    borderRadius: 14,
+    paddingHorizontal: 14,
+    borderRadius: 19,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  todayText: { fontSize: 12.5, fontWeight: '700' },
-  monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  month: { fontSize: 18, fontWeight: '700', letterSpacing: -0.25 },
-  selectedLabel: { marginTop: 3, fontSize: 12.5 },
-  dayStrip: { paddingTop: 18, gap: 8 },
-  day: { width: 52, height: 72, borderWidth: 1, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  weekday: { fontSize: 10.5, fontWeight: '700', textTransform: 'uppercase' },
-  dayNumber: { marginTop: 4, fontSize: 17, fontWeight: '800' },
-  dot: { width: 4, height: 4, borderRadius: 2, marginTop: 6 },
+  todayText: { fontSize: 12, fontWeight: '700', letterSpacing: -0.05 },
+  monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16 },
+  month: { fontSize: 18, fontWeight: '700', letterSpacing: -0.3 },
+  selectedLabel: { marginTop: 4, fontSize: 12.25 },
+  calendarMark: { width: 38, height: 38, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  dayStrip: { paddingTop: 20, gap: 8 },
+  day: { width: 50, height: 72, borderWidth: StyleSheet.hairlineWidth, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  weekday: { fontSize: 10, fontWeight: '700', letterSpacing: 0.55, textTransform: 'uppercase' },
+  dayNumber: { marginTop: 5, fontSize: 17, fontWeight: '700', letterSpacing: -0.2 },
+  dot: { width: 4, height: 4, borderRadius: 2, marginTop: 7 },
   block: { gap: 10 }
 });
