@@ -6,7 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
 import { retrieveLocalOneItems } from '@/src/search/retrieve';
 import { iconForType } from '@/src/ui/OneItemRow';
-import { IconTile, EmptyState } from '@/src/ui/primitives';
+import { IconTile, EmptyState, PageHeader } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 import type { OneItem } from '@/src/types/item';
@@ -32,24 +32,36 @@ export default function SearchScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <Text style={[styles.title, { color: theme.text }]}>Search</Text>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Find anything you sent to ONE.</Text>
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Ask ONE"
-            onPress={() => router.push(query.trim() ? { pathname: '/ask', params: { q: query.trim() } } : '/ask')}
-            style={({ pressed }) => [styles.askButton, { backgroundColor: theme.accentSoft, opacity: pressed ? 0.65 : 1 }]}
-          >
-            <OneIcon name={icons.ask} size={17} color={theme.accent} />
-            <Text style={[styles.askText, { color: theme.accent }]}>Ask</Text>
-          </Pressable>
-        </View>
+        <PageHeader
+          title="Search"
+          subtitle="Find anything you sent to NEVER."
+          action={
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Ask NEVER"
+              onPress={() => router.push(query.trim() ? { pathname: '/ask', params: { q: query.trim() } } : '/ask')}
+              style={({ pressed }) => [
+                styles.askButton,
+                { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }
+              ]}
+            >
+              <OneIcon name={icons.ask} size={17} color={theme.text} />
+              <Text style={[styles.askText, { color: theme.text }]}>Ask</Text>
+            </Pressable>
+          }
+        />
 
-        <View style={[styles.searchBox, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <OneIcon name={icons.search} size={19} color={theme.textTertiary} />
+        <View
+          style={[
+            styles.searchBox,
+            {
+              backgroundColor: theme.surfaceElevated,
+              borderColor: query.trim() ? theme.chrome : theme.border,
+              shadowColor: theme.shadow
+            }
+          ]}
+        >
+          <OneIcon name={icons.search} size={18} color={theme.textTertiary} />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -58,7 +70,7 @@ export default function SearchScreen() {
             style={[styles.input, { color: theme.text }]}
             autoCorrect={false}
             returnKeyType="search"
-            accessibilityLabel="Search ONE"
+            accessibilityLabel="Search NEVER"
             accessibilityHint="Search titles, text, links, tags, contexts, people and dates"
           />
           {query ? (
@@ -86,7 +98,7 @@ export default function SearchScreen() {
                 }}
                 style={({ pressed }) => [
                   styles.suggestion,
-                  { backgroundColor: theme.fill, opacity: pressed ? 0.65 : 1 }
+                  { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }
                 ]}
               >
                 <Text style={[styles.suggestionText, { color: theme.textSecondary }]}>{suggestion}</Text>
@@ -100,14 +112,19 @@ export default function SearchScreen() {
           <Text style={[styles.count, { color: theme.textTertiary }]}>{results.length}</Text>
         </View>
 
-        <View style={[styles.results, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View
+          style={[
+            styles.results,
+            { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }
+          ]}
+        >
           {results.length ? results.map(({ item, reasons }) => (
             <SearchRow key={item.id} item={item} reason={reasonLabel(reasons)} />
           )) : (
             <EmptyState
               icon={icons.search}
               title="Nothing matched"
-              body="Try another wording. ONE searches the title, original content, links, tags, context and extracted details."
+              body="Try another wording. NEVER searches the title, original content, links, tags, context and extracted details."
             />
           )}
         </View>
@@ -123,7 +140,7 @@ export default function SearchScreen() {
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
         style={({ pressed }) => [
           styles.row,
-          { borderBottomColor: theme.border, opacity: pressed ? 0.62 : 1 }
+          { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }
         ]}
       >
         <IconTile icon={iconForType(item.type)} tone="neutral" size={40} />
@@ -143,7 +160,7 @@ export default function SearchScreen() {
 }
 
 function previewFor(item: OneItem) {
-  return item.summary || item.originalText || item.rawInput || item.url || item.extractedText || item.category || 'Saved in ONE';
+  return item.summary || item.originalText || item.rawInput || item.url || item.extractedText || item.category || 'Saved in NEVER';
 }
 
 function reasonLabel(reasons: string[]) {
@@ -164,25 +181,42 @@ function formatCaptured(value: string) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  screen: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 120, gap: 16 },
-  header: { minHeight: 74, flexDirection: 'row', alignItems: 'center', gap: 14 },
-  title: { fontSize: 32, fontWeight: '800', letterSpacing: -0.7 },
-  subtitle: { marginTop: 3, fontSize: 14.5, lineHeight: 20 },
-  askButton: { minHeight: 44, paddingHorizontal: 14, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 7 },
-  askText: { fontSize: 13.5, fontWeight: '800' },
-  searchBox: { minHeight: 54, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  input: { flex: 1, fontSize: 16, minHeight: 48 },
+  screen: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 14, paddingBottom: 124, gap: 20 },
+  askButton: { minHeight: 42, paddingHorizontal: 13, borderRadius: 21, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 7 },
+  askText: { fontSize: 13, fontWeight: '700' },
+  searchBox: {
+    minHeight: 56,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    shadowOpacity: 0.06,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 7 },
+    elevation: 1
+  },
+  input: { flex: 1, fontSize: 15.5, minHeight: 50, letterSpacing: -0.1 },
   clear: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   suggestions: { gap: 8, paddingRight: 20 },
-  suggestion: { minHeight: 36, paddingHorizontal: 13, borderRadius: 14, justifyContent: 'center' },
-  suggestionText: { fontSize: 12.5, fontWeight: '700' },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 4 },
-  sectionTitle: { fontSize: 17, fontWeight: '800' },
-  count: { fontSize: 12.5, fontWeight: '700' },
-  results: { borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
-  row: { minHeight: 86, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  suggestion: { minHeight: 36, paddingHorizontal: 13, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  suggestionText: { fontSize: 12, fontWeight: '600' },
+  sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginTop: 2 },
+  sectionTitle: { fontSize: 18, fontWeight: '700', letterSpacing: -0.25 },
+  count: { fontSize: 11.5, fontWeight: '600' },
+  results: {
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    overflow: 'hidden',
+    shadowOpacity: 0.06,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 1
+  },
+  row: { minHeight: 88, paddingHorizontal: 15, paddingVertical: 13, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
   rowText: { flex: 1, gap: 3 },
-  rowTitle: { fontSize: 15.5, fontWeight: '700' },
-  preview: { fontSize: 13, lineHeight: 18 },
-  meta: { fontSize: 11.5, fontWeight: '600' }
+  rowTitle: { fontSize: 15, fontWeight: '700', letterSpacing: -0.12 },
+  preview: { fontSize: 12.75, lineHeight: 18 },
+  meta: { fontSize: 11, fontWeight: '600' }
 });
