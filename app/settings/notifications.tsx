@@ -16,7 +16,7 @@ import { IconTile, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
-const leadOptions: Array<{ value: ReminderLeadMinutes; label: string }> = [
+const leadOptions: { value: ReminderLeadMinutes; label: string }[] = [
   { value: 0, label: 'At time' },
   { value: 10, label: '10 min before' },
   { value: 30, label: '30 min before' },
