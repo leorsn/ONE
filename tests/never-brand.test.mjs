@@ -37,6 +37,19 @@ const userFacingFiles = [
   'src/ui/primitives.tsx'
 ];
 
+const documentationBrandFiles = [
+  'docs/AUTH.md',
+  'docs/BILLING.md',
+  'docs/CAPTURE_FLOW.md',
+  'docs/INBOX_TRIAGE.md',
+  'docs/PO003_SHARE_SEARCH_RECALL.md',
+  'docs/PO004_AUTH_CLOUD_SYNC.md',
+  'docs/PO005_V1_INTEGRATION_AUDIT.md',
+  'docs/PO046_RELEASE_CANDIDATE.md',
+  'docs/PRODUCT_STRATEGY.md',
+  'docs/REPOSITORY_RECOVERY_AUDIT.md'
+];
+
 const bannedLegacyCopy = [
   'Ask ONE',
   'Saved to ONE',
@@ -92,6 +105,20 @@ test('critical user-facing surfaces contain no known legacy ONE copy', async () 
         source.includes(phrase),
         false,
         `${path} still contains legacy visible copy: ${phrase}`
+      );
+    }
+  }
+});
+
+test('release and architecture documentation uses NEVER for consumer-facing product wording', async () => {
+  for (const path of documentationBrandFiles) {
+    const source = await text(path);
+    assert.match(source, /^# NEVER\b/m, `${path} must use NEVER in its document title`);
+    for (const phrase of bannedLegacyCopy) {
+      assert.equal(
+        source.includes(phrase),
+        false,
+        `${path} still contains legacy consumer wording: ${phrase}`
       );
     }
   }
