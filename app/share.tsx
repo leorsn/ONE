@@ -18,7 +18,12 @@ export default function ShareGuideScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <View style={styles.content}>
         <View style={styles.nav}>
-          <Pressable onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => router.back()}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+          >
             <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
           </Pressable>
           <Text style={[styles.navTitle, { color: theme.text }]}>Share to NEVER</Text>
@@ -28,7 +33,7 @@ export default function ShareGuideScreen() {
         <View style={styles.hero}>
           <IconTile icon={icons.upload} size={54} />
           <Text style={[styles.title, { color: theme.text }]}>Save from anywhere.</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>NEVER appears in the iOS Share Sheet after the native development build is installed.</Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>When NEVER is installed, it can appear in the iOS Share Sheet for supported content.</Text>
         </View>
 
         <Surface>
@@ -62,7 +67,7 @@ export default function ShareGuideScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { flex: 1, paddingHorizontal: 20, paddingTop: 10, gap: 22 },
+  content: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, gap: 22 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.1 },
