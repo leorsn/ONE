@@ -61,11 +61,12 @@ const bannedLegacyCopy = [
 
 test('consumer app metadata exposes NEVER while compatibility identifiers remain stable', async () => {
   const config = JSON.parse(await text('app.json'));
+  const pluginConfig = JSON.stringify(config.expo.plugins);
   assert.equal(config.expo.name, 'NEVER');
   assert.equal(config.expo.scheme, 'one');
   assert.equal(config.expo.ios.bundleIdentifier, 'app.one.mobile');
-  assert.match(config.expo.plugins.flat(Infinity).join('\n'), /Allow NEVER to scan receipts and documents\./);
-  assert.match(config.expo.plugins.flat(Infinity).join('\n'), /Allow NEVER to import receipts and documents/);
+  assert.match(pluginConfig, /Allow NEVER to scan receipts and documents\./);
+  assert.match(pluginConfig, /Allow NEVER to import receipts and documents/);
 });
 
 test('visible subscription names use NEVER without changing compatibility product identifiers', async () => {
