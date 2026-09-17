@@ -61,6 +61,16 @@ test('subscription purchase loading is scoped to the selected NEVER plan', async
   assert.match(upgrade, /purchasing && !purchasingPlan/);
 });
 
+test('account deletion warns active subscribers and still permits immediate deletion', async () => {
+  const settings = await text('app/(tabs)/settings.tsx');
+  assert.match(settings, /const hasStoreSubscription = billingConfigured && plan !== 'none'/);
+  assert.match(settings, /https:\/\/apps\.apple\.com\/account\/subscriptions/);
+  assert.match(settings, /Subscription continues after deletion/);
+  assert.match(settings, /Manage Subscription/);
+  assert.match(settings, /Delete Anyway/);
+  assert.match(settings, /confirmPermanentDelete/);
+});
+
 test('App Store release environment requires both billing and Terms configuration', async () => {
   const releaseEnv = await text('scripts/verify-release-env.mjs');
   assert.match(releaseEnv, /required\.push\('EXPO_PUBLIC_REVENUECAT_IOS_KEY', 'EXPO_PUBLIC_TERMS_URL'\)/);
