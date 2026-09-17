@@ -47,7 +47,7 @@ export default function ItemDetailScreen() {
         <View style={styles.missing}>
           <EmptyState icon={icons.note} title="Item not found" body="This memory may have been removed." />
           <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()}>
-            <Text style={{ color: theme.accent, fontWeight: '700' }}>Go back</Text>
+            <Text style={{ color: theme.chrome, fontWeight: '700' }}>Go back</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -79,7 +79,7 @@ export default function ItemDetailScreen() {
   }
 
   function confirmDelete() {
-    Alert.alert('Delete this item?', 'This removes it from ONE and your synced account.', [
+    Alert.alert('Delete this item?', 'This removes it from NEVER and your synced account.', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
@@ -97,11 +97,21 @@ export default function ItemDetailScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+            onPress={() => router.back()}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+          >
             <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
           </Pressable>
           <Text style={[styles.navTitle, { color: theme.text }]}>Details</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Delete item" onPress={confirmDelete} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Delete item"
+            onPress={confirmDelete}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+          >
             <OneIcon name={icons.delete} size={17} color={theme.danger} />
           </Pressable>
         </View>
@@ -109,7 +119,7 @@ export default function ItemDetailScreen() {
         <View style={styles.hero}>
           <IconTile icon={iconForType(currentItem.type)} size={54} />
           <View style={{ flex: 1 }}>
-            <Text style={[styles.type, { color: theme.accent }]}>{formatType(currentItem.type)}</Text>
+            <Text style={[styles.type, { color: theme.chrome }]}>{formatType(currentItem.type)}</Text>
             <Text style={[styles.source, { color: theme.textSecondary }]}>
               {sourceLabel(currentItem.sourceType)} · {formatUpdated(currentItem.updatedAt)}
             </Text>
@@ -145,7 +155,10 @@ export default function ItemDetailScreen() {
           <TextInput
             value={title}
             onChangeText={setTitle}
-            style={[styles.titleInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
+            style={[
+              styles.titleInput,
+              { color: theme.text, backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }
+            ]}
             placeholder="Title"
             placeholderTextColor={theme.textTertiary}
             accessibilityLabel="Item title"
@@ -166,7 +179,7 @@ export default function ItemDetailScreen() {
             value={context}
             onChangeText={setContext}
             style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
-            placeholder="What should ONE remember this as?"
+            placeholder="What should NEVER remember this as?"
             placeholderTextColor={theme.textTertiary}
             accessibilityLabel="Memory context"
             multiline
@@ -200,11 +213,14 @@ export default function ItemDetailScreen() {
             accessibilityRole="link"
             accessibilityLabel="Open saved link"
             onPress={() => Linking.openURL(currentItem.url!)}
-            style={[styles.linkCard, { backgroundColor: theme.accentSoft }]}
+            style={({ pressed }) => [
+              styles.linkCard,
+              { backgroundColor: theme.chromeSoft, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }
+            ]}
           >
-            <OneIcon name={icons.link} size={18} color={theme.accent} />
-            <Text style={[styles.linkText, { color: theme.accent }]} numberOfLines={1}>{currentItem.url}</Text>
-            <OneIcon name={icons.chevron} size={14} color={theme.accent} />
+            <OneIcon name={icons.link} size={18} color={theme.chrome} />
+            <Text style={[styles.linkText, { color: theme.chrome }]} numberOfLines={1}>{currentItem.url}</Text>
+            <OneIcon name={icons.chevron} size={14} color={theme.chrome} />
           </Pressable>
         ) : null}
 
@@ -292,7 +308,7 @@ export default function ItemDetailScreen() {
                 mode={kind}
                 display="compact"
                 is24Hour
-                accentColor={theme.accent}
+                accentColor={theme.chrome}
                 onValueChange={(_event, selected) => applySelected(selected)}
               />
             </View>
@@ -301,7 +317,7 @@ export default function ItemDetailScreen() {
               accessibilityRole="button"
               accessibilityLabel={`${label}. ${value || 'Not set'}`}
               onPress={activatePicker}
-              style={({ pressed }) => [styles.pickerButton, { backgroundColor: theme.fill, opacity: pressed ? 0.62 : 1 }]}
+              style={({ pressed }) => [styles.pickerButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
             >
               <Text style={[styles.pickerButtonText, { color: value ? theme.text : theme.textTertiary }]}>
                 {value ? (kind === 'date' ? formatHumanDate(value) : value) : `Add ${label.toLowerCase()}`}
@@ -328,7 +344,7 @@ export default function ItemDetailScreen() {
             mode={kind}
             presentation="dialog"
             is24Hour
-            accentColor={theme.accent}
+            accentColor={theme.chrome}
             onValueChange={(_event, selected) => applySelected(selected)}
             onDismiss={() => setActivePicker(null)}
           />
@@ -386,7 +402,7 @@ export default function ItemDetailScreen() {
       <View style={[styles.fieldRow, !last && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth }]}>
         <IconTile icon={icon} tone="neutral" size={34} />
         <Text style={[styles.fieldLabel, { color: theme.text }]}>{label}</Text>
-        <Switch accessibilityLabel={label} value={value} onValueChange={onChange} trackColor={{ true: theme.accent }} />
+        <Switch accessibilityLabel={label} value={value} onValueChange={onChange} trackColor={{ true: theme.chrome }} />
       </View>
     );
   }
@@ -454,36 +470,36 @@ function toTime(value: Date) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 40, gap: 20 },
+  content: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 21 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 16, fontWeight: '800' },
-  hero: { flexDirection: 'row', alignItems: 'center', gap: 13, marginTop: 4 },
-  type: { fontSize: 12, fontWeight: '800', textTransform: 'uppercase', letterSpacing: 0.9 },
-  source: { marginTop: 5, fontSize: 12.5 },
-  block: { gap: 8 },
+  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.15 },
+  hero: { flexDirection: 'row', alignItems: 'center', gap: 13, marginTop: 5 },
+  type: { fontSize: 10.5, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.15 },
+  source: { marginTop: 5, fontSize: 12 },
+  block: { gap: 9 },
   documentHeader: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  documentTitle: { fontSize: 15, fontWeight: '800' },
-  documentMeta: { marginTop: 3, fontSize: 12 },
-  documentAmount: { fontSize: 16, fontWeight: '800' },
-  documentDetails: { marginTop: 13, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, gap: 8 },
+  documentTitle: { fontSize: 14.75, fontWeight: '700' },
+  documentMeta: { marginTop: 3, fontSize: 11.75 },
+  documentAmount: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.15 },
+  documentDetails: { marginTop: 14, paddingTop: 11, borderTopWidth: StyleSheet.hairlineWidth, gap: 9 },
   infoLine: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  infoLabel: { width: 76, fontSize: 11.5, fontWeight: '700' },
-  infoValue: { flex: 1, textAlign: 'right', fontSize: 13, fontWeight: '600' },
-  label: { fontSize: 12, fontWeight: '700', marginLeft: 2 },
-  titleInput: { minHeight: 72, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 15, fontSize: 22, lineHeight: 27, fontWeight: '700', textAlignVertical: 'top' },
-  fieldRow: { minHeight: 60, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  fieldLabel: { width: 72, fontSize: 14, fontWeight: '600' },
-  fieldInput: { flex: 1, fontSize: 14, textAlign: 'right', paddingVertical: 10 },
+  infoLabel: { width: 76, fontSize: 11, fontWeight: '700' },
+  infoValue: { flex: 1, textAlign: 'right', fontSize: 12.75, fontWeight: '600' },
+  label: { fontSize: 11.5, fontWeight: '700', marginLeft: 2, letterSpacing: 0.1 },
+  titleInput: { minHeight: 74, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 15, fontSize: 21.5, lineHeight: 27, fontWeight: '700', textAlignVertical: 'top', shadowOpacity: 0.05, shadowRadius: 14, shadowOffset: { width: 0, height: 7 }, elevation: 1 },
+  fieldRow: { minHeight: 62, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  fieldLabel: { width: 72, fontSize: 13.75, fontWeight: '600' },
+  fieldInput: { flex: 1, fontSize: 13.75, textAlign: 'right', paddingVertical: 10 },
   nativePickerWrap: { flex: 1, alignItems: 'flex-end' },
-  pickerButton: { flex: 1, minHeight: 36, borderRadius: 11, paddingHorizontal: 11, alignItems: 'flex-end', justifyContent: 'center' },
-  pickerButtonText: { fontSize: 13, fontWeight: '600' },
+  pickerButton: { flex: 1, minHeight: 36, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 11, alignItems: 'flex-end', justifyContent: 'center' },
+  pickerButtonText: { fontSize: 12.75, fontWeight: '600' },
   clearButton: { width: 26, height: 32, alignItems: 'center', justifyContent: 'center' },
-  largeInput: { minHeight: 108, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 14, fontSize: 14.5, lineHeight: 20, textAlignVertical: 'top' },
-  extracted: { fontSize: 13, lineHeight: 19 },
-  linkCard: { minHeight: 50, borderRadius: 15, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  linkText: { flex: 1, fontSize: 13, fontWeight: '600' },
+  largeInput: { minHeight: 110, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 14, fontSize: 14, lineHeight: 20, textAlignVertical: 'top' },
+  extracted: { fontSize: 12.75, lineHeight: 19 },
+  linkCard: { minHeight: 52, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  linkText: { flex: 1, fontSize: 12.75, fontWeight: '600' },
   deleteAction: { minHeight: 44, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center' },
-  deleteText: { fontSize: 13.5, fontWeight: '700' },
+  deleteText: { fontSize: 13, fontWeight: '700' },
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }
 });
