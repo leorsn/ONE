@@ -1,12 +1,12 @@
-# ONE — Inbox Triage and Daily Control Surface
+# NEVER — Inbox Triage and Daily Control Surface
 
-PO045 keeps one canonical `OneItem` identity across Inbox, Calendar, Saved and Ask ONE. Triage never creates a second copy of a capture.
+PO045 keeps one canonical `OneItem` identity across Inbox, Calendar, Saved and Ask NEVER. `OneItem` is a legacy technical type name; triage never creates a second copy of a capture.
 
 ## Triage states
 
 - `new` — captured and ready for a lightweight decision.
 - `needs_review` — low-confidence or ambiguous extraction. Consequential actions are not proposed until the user confirms/corrects the facts.
-- `actionable` — grounded information supports a real ONE action such as calendar placement or reminder creation.
+- `actionable` — grounded information supports a real NEVER action such as calendar placement or reminder creation.
 - `processed` — the user confirmed an action or deliberately marked the item processed.
 - `archived` — removed from the active Inbox without deleting the underlying memory.
 
@@ -43,7 +43,7 @@ The canonical Inbox detail route is `/inbox/[id]`. It can show:
 
 - source and capture time,
 - attachment preview when locally accessible,
-- ONE summary,
+- NEVER summary,
 - confidence,
 - unresolved ambiguities,
 - extracted date/time/location/people/merchant/amount/category,
@@ -56,7 +56,7 @@ Editing uses the existing canonical `/item/[id]` editor. Confirming review clear
 
 ## Duplicate protection
 
-ONE uses a deterministic capture fingerprint across normalized source/title/raw/original/OCR/URL/document metadata. A recent matching fingerprint is surfaced as a possible duplicate. ONE never deletes or merges the item automatically.
+NEVER uses a deterministic capture fingerprint across normalized source/title/raw/original/OCR/URL/document metadata. A recent matching fingerprint is surfaced as a possible duplicate. NEVER never deletes or merges the item automatically.
 
 ## Offline and sync behavior
 
@@ -74,8 +74,8 @@ Existing RLS ownership policies remain unchanged.
 
 ## Recall
 
-Processed and archived items are not deleted from ONE memory. Existing lexical/semantic search and grounded Ask ONE continue to operate on the canonical item content and provenance.
+Processed and archived items are not deleted from NEVER memory. Existing lexical/semantic search and grounded Ask NEVER continue to operate on the canonical item content and provenance.
 
 ## Known boundary
 
-`Add to Calendar` means ONE's internal Calendar view. PO045 does not claim Apple Calendar or Google Calendar synchronization.
+`Add to Calendar` means NEVER's internal Calendar view. PO045 does not claim Apple Calendar or Google Calendar synchronization.
