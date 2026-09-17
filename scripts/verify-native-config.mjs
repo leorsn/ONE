@@ -15,8 +15,10 @@ const plugins = expo.plugins ?? [];
 
 assert(expo.name === 'NEVER', 'Expo display name must be NEVER');
 assert(expo.scheme === 'one', 'Expo scheme must remain one');
+assert(expo.orientation === 'default', 'NEVER must remain adaptively orientable for supported iPad layouts');
 assert(ios.bundleIdentifier === 'app.one.mobile', 'Unexpected iOS bundle identifier');
 assert(ios.supportsTablet === true, 'iPad support must remain enabled');
+assert(ios.requireFullScreen !== true, 'iPad support must not opt out of resizing/multitasking via requireFullScreen');
 assert(android.package === 'app.one.mobile', 'Unexpected Android package identifier');
 assert(envExample.includes('EXPO_PUBLIC_SUPABASE_URL'), 'Supabase URL example is missing');
 assert(envExample.includes('EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY'), 'Supabase publishable key example is missing');
