@@ -32,7 +32,7 @@ export function buildGroundedRecallAnswer(
       return {
         title: bestMatch.location,
         body: bestMatch.title,
-        meta: german ? 'Aus deinen gespeicherten ONE-Daten' : 'From your saved ONE data',
+        meta: german ? 'Aus deinen gespeicherten NEVER-Daten' : 'From your saved NEVER data',
         itemIds: [bestMatch.id]
       };
     }
@@ -40,8 +40,8 @@ export function buildGroundedRecallAnswer(
     return {
       title: german ? 'Kein Ort gespeichert' : 'No location saved',
       body: german
-        ? `ONE hat für „${bestMatch.title}“ keinen Ort gespeichert.`
-        : `ONE does not have a location saved for “${bestMatch.title}”.`,
+        ? `NEVER hat für „${bestMatch.title}“ keinen Ort gespeichert.`
+        : `NEVER does not have a location saved for “${bestMatch.title}”.`,
       itemIds: [bestMatch.id]
     };
   }
@@ -54,7 +54,7 @@ export function buildGroundedRecallAnswer(
       return {
         title: [formatDate(bestMatch.date, german), bestMatch.time].filter(Boolean).join(' · '),
         body: [bestMatch.title, bestMatch.location].filter(Boolean).join(' · '),
-        meta: german ? 'Aus deinen gespeicherten ONE-Daten' : 'From your saved ONE data',
+        meta: german ? 'Aus deinen gespeicherten NEVER-Daten' : 'From your saved NEVER data',
         itemIds: [bestMatch.id]
       };
     }
@@ -62,8 +62,8 @@ export function buildGroundedRecallAnswer(
     return {
       title: german ? 'Kein Datum gespeichert' : 'No date saved',
       body: german
-        ? `ONE hat für „${bestMatch.title}“ kein Datum gespeichert.`
-        : `ONE does not have a date saved for “${bestMatch.title}”.`,
+        ? `NEVER hat für „${bestMatch.title}“ kein Datum gespeichert.`
+        : `NEVER does not have a date saved for “${bestMatch.title}”.`,
       itemIds: [bestMatch.id]
     };
   }
@@ -104,7 +104,7 @@ export function buildGroundedRecallAnswer(
             ? `${ideas.length} gespeicherte Ideen`
             : `${ideas.length} saved ideas`,
         body: ideas.length === 1
-          ? detail || (german ? 'Gespeichert in ONE.' : 'Saved in ONE.')
+          ? detail || (german ? 'Gespeichert in NEVER.' : 'Saved in NEVER.')
           : ideas.slice(0, 5).map((item) => item.title).join('\n'),
         meta: german ? 'Nur aus deinen gespeicherten Erinnerungen' : 'Only from your saved memories',
         itemIds: ideas.map((item) => item.id)
@@ -121,7 +121,7 @@ export function buildGroundedRecallAnswer(
           bestMatch.amount !== undefined ? formatMoney(bestMatch.amount, bestMatch.currency) : undefined,
           bestMatch.date
         ].filter(Boolean).join(' · '),
-        meta: german ? 'Gespeichertes Dokument in ONE' : 'Saved document in ONE',
+        meta: german ? 'Gespeichertes Dokument in NEVER' : 'Saved document in NEVER',
         itemIds: [bestMatch.id]
       };
     }
@@ -138,7 +138,7 @@ export function buildGroundedRecallAnswer(
         bestMatch.merchant,
         bestMatch.amount !== undefined ? formatMoney(bestMatch.amount, bestMatch.currency) : undefined
       ].filter((value): value is string => Boolean(value)).filter(uniqueText).join(' · ') || (german ? 'Keine weiteren Details gespeichert.' : 'No additional details are saved.'),
-      meta: german ? 'Bester gespeicherter Treffer in ONE' : 'Best saved match in ONE',
+      meta: german ? 'Bester gespeicherter Treffer in NEVER' : 'Best saved match in NEVER',
       itemIds: [bestMatch.id]
     };
   }
@@ -166,7 +166,7 @@ function buildReminderAnswer(clean: string, items: OneItem[], german: boolean, n
     body: reminders.slice(0, 5).map((item) =>
       [item.title, item.date, item.time].filter(Boolean).join(' · ')
     ).join('\n'),
-    meta: german ? 'Aus deinen gespeicherten ONE-Erinnerungen' : 'From your saved ONE reminders',
+    meta: german ? 'Aus deinen gespeicherten NEVER-Erinnerungen' : 'From your saved NEVER reminders',
     itemIds: reminders.map((item) => item.id)
   } satisfies GroundedRecallAnswer;
 }
@@ -181,8 +181,8 @@ function buildSpecificDocumentAnswer(clean: string, bestMatch: OneItem | undefin
     return {
       title: german ? 'Kein Betrag gespeichert' : 'No amount saved',
       body: german
-        ? `ONE hat für „${bestMatch.merchant || bestMatch.title}“ keinen bestätigten Betrag gespeichert.`
-        : `ONE does not have a confirmed amount saved for “${bestMatch.merchant || bestMatch.title}”.`,
+        ? `NEVER hat für „${bestMatch.merchant || bestMatch.title}“ keinen bestätigten Betrag gespeichert.`
+        : `NEVER does not have a confirmed amount saved for “${bestMatch.merchant || bestMatch.title}”.`,
       itemIds: [bestMatch.id]
     } satisfies GroundedRecallAnswer;
   }
