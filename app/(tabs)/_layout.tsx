@@ -19,26 +19,37 @@ export default function TabsLayout() {
       screenOptions={({ route }) => ({
         headerShown: false,
         sceneStyle: { backgroundColor: theme.background },
+        tabBarHideOnKeyboard: true,
         tabBarStyle: {
-          height: 80,
-          paddingTop: 8,
-          paddingBottom: 18,
-          backgroundColor: theme.surface,
+          height: 78,
+          paddingTop: 7,
+          paddingBottom: 17,
+          backgroundColor: theme.surfaceElevated,
           borderTopColor: theme.border,
-          borderTopWidth: StyleSheet.hairlineWidth
+          borderTopWidth: StyleSheet.hairlineWidth,
+          shadowColor: theme.shadow,
+          shadowOpacity: 0.035,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: -4 }
         },
+        tabBarItemStyle: { paddingTop: 1 },
         tabBarLabelStyle: {
-          fontSize: 10.5,
+          fontSize: 9.75,
           fontWeight: '600',
-          letterSpacing: -0.05
+          letterSpacing: 0.1
         },
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textTertiary,
         tabBarIcon: ({ color, focused }) => (
-          <View style={{ opacity: focused ? 1 : 0.76 }}>
+          <View
+            style={[
+              styles.iconWrap,
+              focused && { backgroundColor: theme.fill }
+            ]}
+          >
             <OneIcon
               name={tabIcon[route.name as keyof typeof tabIcon]}
-              size={focused ? 22 : 21}
+              size={20}
               color={color}
             />
           </View>
@@ -53,3 +64,13 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  iconWrap: {
+    width: 34,
+    height: 28,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center'
+  }
+});
