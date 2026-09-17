@@ -11,6 +11,8 @@
     "web:export": "expo export --platform web --output-dir .expo-web-test",
     "native:release-check": "node scripts/verify-native-config.mjs",
     "native:config": "expo config --type introspect > /tmp/one-expo-introspect.json",
+    "release:env-check": "node scripts/verify-release-env.mjs",
+    "release:asset-check": "node scripts/verify-store-assets.mjs",
     "lint": "expo lint",
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit",
