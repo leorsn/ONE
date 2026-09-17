@@ -106,9 +106,9 @@ export default function AskOneScreen() {
     return (
       <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
         <View style={styles.locked}>
-          <IconTile icon={icons.crown} size={54} />
+          <IconTile icon={icons.crown} size={52} />
           <Text style={[styles.heading, { color: theme.text }]}>Ask NEVER is part of NEVER AI.</Text>
-          <Text style={[styles.subheading, { color: theme.textSecondary }]}>Search remains available without AI. NEVER AI adds conversational recall over your own saved memories.</Text>
+          <Text style={[styles.subheading, { color: theme.textSecondary }]}>Search stays available without AI. NEVER AI adds grounded conversational recall over your saved memories.</Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="View NEVER AI"
@@ -134,20 +134,20 @@ export default function AskOneScreen() {
               accessibilityRole="button"
               accessibilityLabel="Go back"
               onPress={() => router.back()}
-              style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+              style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
             >
               <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
             </Pressable>
             <View style={styles.navCenter}>
               <Text style={[styles.navTitle, { color: theme.text }]}>Ask NEVER</Text>
-              <Text style={[styles.navMeta, { color: theme.textTertiary }]}>Grounded in your memory</Text>
+              <Text style={[styles.navMeta, { color: theme.textTertiary }]}>GROUNDED IN YOUR MEMORY</Text>
             </View>
             {messages.length ? (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Clear conversation"
                 onPress={() => setMessages([])}
-                style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+                style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
               >
                 <OneIcon name={icons.close} size={15} color={theme.textSecondary} />
               </Pressable>
@@ -165,10 +165,10 @@ export default function AskOneScreen() {
               <>
                 <View style={styles.hero}>
                   <View style={[styles.heroMark, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
-                    <OneIcon name={icons.ask} size={25} color={theme.chrome} />
+                    <OneIcon name={icons.ask} size={23} color={theme.chrome} />
                   </View>
-                  <Text style={[styles.heading, { color: theme.text }]}>Ask what you saved.</Text>
-                  <Text style={[styles.subheading, { color: theme.textSecondary }]}>NEVER retrieves relevant memories first, then answers only from those sources.</Text>
+                  <Text style={[styles.heading, { color: theme.text }]}>Ask your memory.</Text>
+                  <Text style={[styles.subheading, { color: theme.textSecondary }]}>NEVER retrieves relevant saved information first, then answers only from those sources.</Text>
                 </View>
                 <View style={styles.examples}>
                   {examples.map((example) => (
@@ -180,22 +180,24 @@ export default function AskOneScreen() {
                       style={({ pressed }) => [
                         styles.example,
                         {
-                          backgroundColor: theme.surface,
+                          backgroundColor: theme.surfaceElevated,
                           borderColor: theme.border,
                           shadowColor: theme.shadow,
                           opacity: pressed ? 0.58 : 1
                         }
                       ]}
                     >
-                      <OneIcon name={icons.ask} size={15} color={theme.chrome} />
+                      <View style={[styles.exampleIcon, { backgroundColor: theme.fill }]}>
+                        <OneIcon name={icons.ask} size={14} color={theme.chrome} />
+                      </View>
                       <Text style={[styles.exampleText, { color: theme.text }]}>{example}</Text>
                       <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
                     </Pressable>
                   ))}
                 </View>
                 <View style={[styles.privacy, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
-                  <OneIcon name={icons.shield} size={16} color={theme.chrome} />
-                  <Text style={[styles.privacyText, { color: theme.textSecondary }]}>Only retrieved source items are eligible for AI synthesis. If AI is unavailable, NEVER falls back to grounded local recall.</Text>
+                  <OneIcon name={icons.shield} size={15} color={theme.chrome} />
+                  <Text style={[styles.privacyText, { color: theme.textSecondary }]}>Answers are limited to retrieved source items. When there is not enough saved evidence, NEVER should say so.</Text>
                 </View>
               </>
             ) : messages.map((message) => (
@@ -203,9 +205,11 @@ export default function AskOneScreen() {
             ))}
 
             {sending ? (
-              <View style={[styles.assistant, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]} accessibilityLabel="Looking through your memory">
-                <ActivityIndicator size="small" />
-                <Text style={[styles.thinking, { color: theme.textSecondary }]}>Looking through your memory…</Text>
+              <View style={[styles.assistant, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]} accessibilityLabel="Looking through your memory">
+                <View style={styles.thinkingRow}>
+                  <ActivityIndicator size="small" />
+                  <Text style={[styles.thinking, { color: theme.textSecondary }]}>Looking through your memory…</Text>
+                </View>
               </View>
             ) : null}
           </ScrollView>
@@ -215,7 +219,7 @@ export default function AskOneScreen() {
               <TextInput
                 value={query}
                 onChangeText={setQuery}
-                placeholder={messages.length ? 'Ask a follow-up…' : 'Ask your memory'}
+                placeholder={messages.length ? 'Ask a follow-up…' : 'Ask a question about your memories…'}
                 placeholderTextColor={theme.textTertiary}
                 style={[styles.input, { color: theme.text }]}
                 multiline
@@ -251,10 +255,9 @@ export default function AskOneScreen() {
   function MessageBubble({ message }: { message: ChatMessage }) {
     if (message.role === 'user') {
       return (
-        <View style={styles.userRow}>
-          <View style={[styles.user, { backgroundColor: theme.accent }]}>
-            <Text style={[styles.userText, { color: theme.onAccent }]}>{message.text}</Text>
-          </View>
+        <View style={[styles.user, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
+          <Text style={[styles.userEyebrow, { color: theme.textTertiary }]}>YOU</Text>
+          <Text style={[styles.userText, { color: theme.text }]}>{message.text}</Text>
         </View>
       );
     }
@@ -265,9 +268,9 @@ export default function AskOneScreen() {
       .slice(0, 6);
 
     return (
-      <View style={[styles.assistant, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>
+      <View style={[styles.assistant, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
         <View style={styles.answerHeader}>
-          <OneIcon name={icons.ask} size={15} color={theme.chrome} />
+          <OneIcon name={icons.ask} size={14} color={theme.chrome} />
           <Text style={[styles.answerEyebrow, { color: theme.chrome }]}>NEVER</Text>
           {message.mode ? <Text style={[styles.mode, { color: theme.textTertiary }]}>{message.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text> : null}
         </View>
@@ -277,7 +280,10 @@ export default function AskOneScreen() {
 
         {sources.length ? (
           <View style={[styles.sources, { borderTopColor: theme.border }]}>
-            <Text style={[styles.sourcesLabel, { color: theme.textTertiary }]}>SOURCES</Text>
+            <View style={styles.sourcesHeader}>
+              <Text style={[styles.sourcesLabel, { color: theme.textTertiary }]}>SOURCES</Text>
+              <Text style={[styles.sourcesCount, { color: theme.textTertiary }]}>{sources.length} {sources.length === 1 ? 'memory' : 'memories'}</Text>
+            </View>
             {sources.map((item) => (
               <Pressable
                 key={item.id}
@@ -316,46 +322,50 @@ function makeId(prefix: string) {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   shell: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center' },
-  nav: { minHeight: 58, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  nav: { minHeight: 60, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { alignItems: 'center', gap: 2 },
-  navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.15 },
-  navMeta: { fontSize: 10, fontWeight: '600', letterSpacing: 0.15 },
+  navCenter: { alignItems: 'center', gap: 3 },
+  navTitle: { fontSize: 15, lineHeight: 18, fontWeight: '600', letterSpacing: -0.12 },
+  navMeta: { fontSize: 8.25, lineHeight: 11, fontWeight: '700', letterSpacing: 1.05 },
   chat: { flex: 1 },
-  chatContent: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 26, gap: 12 },
-  emptyContent: { paddingHorizontal: 20, paddingTop: 54, paddingBottom: 26, gap: 26 },
-  hero: { alignItems: 'center', gap: 11, paddingHorizontal: 18 },
-  heroMark: { width: 56, height: 56, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
-  heading: { fontSize: 26, lineHeight: 32, fontWeight: '700', textAlign: 'center', letterSpacing: -0.55 },
-  subheading: { maxWidth: 410, fontSize: 14, lineHeight: 21, textAlign: 'center' },
+  chatContent: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 28, gap: 13 },
+  emptyContent: { paddingHorizontal: 20, paddingTop: 48, paddingBottom: 28, gap: 26 },
+  hero: { alignItems: 'center', gap: 10, paddingHorizontal: 18 },
+  heroMark: { width: 54, height: 54, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginBottom: 3 },
+  heading: { fontSize: 28, lineHeight: 33, fontWeight: '600', textAlign: 'center', letterSpacing: -0.88 },
+  subheading: { maxWidth: 410, fontSize: 13, lineHeight: 19.5, textAlign: 'center' },
   examples: { gap: 9 },
-  example: { minHeight: 56, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 11, shadowOpacity: 0.045, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 1 },
-  exampleText: { flex: 1, fontSize: 13.5, fontWeight: '600', letterSpacing: -0.08 },
-  privacy: { minHeight: 60, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  privacyText: { flex: 1, fontSize: 12, lineHeight: 17.5 },
-  userRow: { alignItems: 'flex-end' },
-  user: { maxWidth: '84%', borderRadius: 18, borderBottomRightRadius: 6, paddingHorizontal: 14, paddingVertical: 10 },
-  userText: { fontSize: 14, lineHeight: 20 },
-  assistant: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, padding: 16, gap: 9, shadowOpacity: 0.05, shadowRadius: 14, shadowOffset: { width: 0, height: 7 }, elevation: 1 },
+  example: { minHeight: 58, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 11, shadowOpacity: 0.035, shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 1 },
+  exampleIcon: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  exampleText: { flex: 1, fontSize: 13, lineHeight: 17, fontWeight: '600', letterSpacing: -0.08 },
+  privacy: { minHeight: 58, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  privacyText: { flex: 1, fontSize: 11.75, lineHeight: 17 },
+  user: { alignSelf: 'flex-end', maxWidth: '88%', borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 11 },
+  userEyebrow: { fontSize: 8.25, lineHeight: 10, fontWeight: '700', letterSpacing: 1.05, marginBottom: 5 },
+  userText: { fontSize: 13.75, lineHeight: 20 },
+  assistant: { borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, padding: 16, gap: 9, shadowOpacity: 0.04, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 1 },
+  thinkingRow: { minHeight: 28, flexDirection: 'row', alignItems: 'center', gap: 9 },
   answerHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  answerEyebrow: { fontSize: 10, fontWeight: '700', letterSpacing: 1.15 },
-  mode: { marginLeft: 'auto', fontSize: 9, fontWeight: '700', letterSpacing: 0.65 },
-  answerTitle: { fontSize: 17.5, lineHeight: 23, fontWeight: '700', letterSpacing: -0.2 },
-  answerBody: { fontSize: 13.75, lineHeight: 20.5 },
-  answerMeta: { fontSize: 11, lineHeight: 16 },
-  thinking: { fontSize: 12.5 },
-  sources: { marginTop: 5, paddingTop: 11, borderTopWidth: StyleSheet.hairlineWidth, gap: 4 },
-  sourcesLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 0.85, marginBottom: 4 },
-  sourceRow: { minHeight: 51, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sourceTitle: { fontSize: 13.25, fontWeight: '700' },
-  sourceMeta: { marginTop: 2, fontSize: 11 },
+  answerEyebrow: { fontSize: 9, fontWeight: '700', letterSpacing: 1.25 },
+  mode: { marginLeft: 'auto', fontSize: 8.5, fontWeight: '700', letterSpacing: 0.75 },
+  answerTitle: { fontSize: 17.5, lineHeight: 23, fontWeight: '600', letterSpacing: -0.26 },
+  answerBody: { fontSize: 13.5, lineHeight: 20.5 },
+  answerMeta: { fontSize: 10.5, lineHeight: 15.5 },
+  thinking: { fontSize: 12 },
+  sources: { marginTop: 6, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 4 },
+  sourcesHeader: { minHeight: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sourcesLabel: { fontSize: 8.75, fontWeight: '700', letterSpacing: 0.95 },
+  sourcesCount: { fontSize: 10, lineHeight: 13 },
+  sourceRow: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  sourceTitle: { fontSize: 13, lineHeight: 16, fontWeight: '600' },
+  sourceMeta: { marginTop: 2, fontSize: 10.75, lineHeight: 14 },
   composerWrap: { borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 8 },
-  composer: { minHeight: 54, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 15, paddingRight: 7, flexDirection: 'row', alignItems: 'flex-end', gap: 8, shadowOpacity: 0.055, shadowRadius: 14, shadowOffset: { width: 0, height: 7 }, elevation: 1 },
-  input: { flex: 1, minHeight: 47, maxHeight: 120, fontSize: 14.75, paddingTop: 13, paddingBottom: 11 },
+  composer: { minHeight: 54, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 15, paddingRight: 7, flexDirection: 'row', alignItems: 'flex-end', gap: 8, shadowOpacity: 0.045, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 1 },
+  input: { flex: 1, minHeight: 47, maxHeight: 120, fontSize: 14.25, lineHeight: 19, paddingTop: 13, paddingBottom: 11 },
   send: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginBottom: 7 },
   locked: { flex: 1, width: '100%', maxWidth: 560, alignSelf: 'center', justifyContent: 'center', alignItems: 'center', padding: 28, gap: 14 },
-  primary: { minHeight: 50, minWidth: 220, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
-  primaryText: { fontWeight: '700', fontSize: 14.25 },
+  primary: { minHeight: 50, minWidth: 220, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  primaryText: { fontWeight: '600', fontSize: 14 },
   secondary: { minHeight: 44, paddingHorizontal: 18, justifyContent: 'center' },
-  secondaryText: { fontSize: 13, fontWeight: '700' }
+  secondaryText: { fontSize: 12.75, fontWeight: '600' }
 });
