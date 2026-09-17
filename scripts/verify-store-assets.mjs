@@ -75,6 +75,11 @@ if (iosIcon && typeof iosIcon === 'object' && !Array.isArray(iosIcon)) {
   else inspectIconEntry(iconPath, 'iOS app icon');
 }
 
+const alternateIconPlugin = expo.plugins?.includes('./plugins/with-never-app-icons');
+if (alternateIconPlugin) {
+  inspectIconEntry('./assets/icons/never-wordmark.png', 'iOS alternate wordmark app icon');
+}
+
 const splashImage = expo.splash?.image;
 if (!splashImage) {
   warnings.push('No explicit launch/splash image is configured; visually verify the native launch experience before TestFlight');
