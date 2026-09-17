@@ -26,7 +26,7 @@ export function TriageRow({
         onPress={onOpen}
         style={({ pressed }) => [styles.openArea, { opacity: pressed ? 0.58 : 1 }]}
       >
-        <IconTile icon={iconFor(item)} tone="neutral" size={40} />
+        <IconTile icon={iconFor(item)} tone="neutral" size={42} />
         <View style={styles.body}>
           <View style={styles.topline}>
             <Text style={[styles.state, { color: state === 'needs_review' ? theme.warning : theme.chrome }]}>{stateLabel(state)}</Text>
@@ -34,7 +34,7 @@ export function TriageRow({
           </View>
           <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
           <Text style={[styles.summary, { color: theme.textSecondary }]} numberOfLines={2}>{item.summary || fallbackSummary(item)}</Text>
-          <Text style={[styles.meta, { color: theme.textTertiary }]} numberOfLines={1}>{metaLine(item)}</Text>
+          {metaLine(item) ? <Text style={[styles.meta, { color: theme.textTertiary }]} numberOfLines={1}>{metaLine(item)}</Text> : null}
         </View>
         <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />
       </Pressable>
@@ -53,7 +53,7 @@ export function TriageRow({
             }
           ]}
         >
-          <Text style={[styles.actionText, { color: action.primary ? theme.chrome : theme.textSecondary }]}>{action.label}</Text>
+          <Text style={[styles.actionText, { color: action.primary ? theme.text : theme.textSecondary }]}>{action.label}</Text>
         </Pressable>
       ) : null}
     </View>
@@ -116,15 +116,15 @@ function formatAmount(amount: number, currency = 'EUR') {
 }
 
 const styles = StyleSheet.create({
-  row: { padding: 14, borderBottomWidth: StyleSheet.hairlineWidth, gap: 10 },
-  openArea: { flexDirection: 'row', alignItems: 'center', gap: 11 },
+  row: { padding: 15, borderBottomWidth: StyleSheet.hairlineWidth, gap: 11 },
+  openArea: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   body: { flex: 1, minWidth: 0 },
   topline: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  state: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.72 },
-  source: { flex: 1, fontSize: 10.5, textAlign: 'right' },
-  title: { marginTop: 4, fontSize: 15, fontWeight: '700', letterSpacing: -0.15 },
-  summary: { marginTop: 3, fontSize: 12.5, lineHeight: 17 },
-  meta: { marginTop: 4, fontSize: 10.5 },
-  action: { alignSelf: 'flex-start', minHeight: 34, paddingHorizontal: 12, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  actionText: { fontSize: 11.5, fontWeight: '700' }
+  state: { fontSize: 8.75, fontWeight: '700', letterSpacing: 0.92 },
+  source: { flex: 1, fontSize: 10, lineHeight: 13, textAlign: 'right' },
+  title: { marginTop: 5, fontSize: 14.75, lineHeight: 18, fontWeight: '650', letterSpacing: -0.16 },
+  summary: { marginTop: 4, fontSize: 12, lineHeight: 17 },
+  meta: { marginTop: 5, fontSize: 10.25, lineHeight: 13.5 },
+  action: { alignSelf: 'flex-start', minHeight: 32, paddingHorizontal: 12, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  actionText: { fontSize: 11, fontWeight: '650' }
 });
