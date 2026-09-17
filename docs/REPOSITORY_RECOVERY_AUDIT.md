@@ -1,16 +1,16 @@
-# ONE — Repository Recovery & Audit
+# NEVER — Repository Recovery & Audit
 
 Date: 2026-09-14
 
 ## Recovery result
 
-The ONE application was not lost. The default `main` branch remains the initial baseline, while the complete active application is stored on `dev/foundation`.
+The NEVER application was not lost. The default `main` branch remains the initial baseline, while the complete active application is stored on `dev/foundation`.
 
 Verified pre-audit remote HEAD:
 
 `c8f37793f0f5d4aa91f7cafb4d3dfa498e3230bf`
 
-This branch contains the Expo/React Native application source, routing, native share configuration, Supabase integration and migrations, tests, release scripts, documentation, `.env.example`, `.gitignore`, and CI quality workflow.
+The GitHub repository remains `leorsn/ONE` as a legacy technical/repository identifier. This branch contains the Expo/React Native application source, routing, native share configuration, Supabase integration and migrations, tests, release scripts, documentation, `.env.example`, `.gitignore`, and CI quality workflow.
 
 ## Technical foundation
 
@@ -21,13 +21,13 @@ This branch contains the Expo/React Native application source, routing, native s
 - AsyncStorage local persistence
 - Supabase JS client and committed database/storage migrations
 - Supabase Auth/cloud synchronization architecture
-- native Share-to-ONE intake via `expo-sharing`
+- native Share-to-NEVER intake via `expo-sharing`
 - on-device OCR via `expo-ocr-kit`
 - local notifications via `expo-notifications`
 - RevenueCat client dependency for subscription plumbing
 - automatic light/dark UI mode with explicit appearance settings
 - EAS development-build configuration
-- GitHub Actions quality gate
+- GitHub Actions NEVER Quality gate
 
 ## User-facing routes present
 
@@ -35,7 +35,7 @@ This branch contains the Expo/React Native application source, routing, native s
 - Calendar
 - Saved
 - Settings
-- Ask ONE
+- Ask NEVER
 - Share intake
 - Share handling
 - Scan
@@ -58,7 +58,7 @@ Status below distinguishes code-level implementation from physical-device accept
 | --- | --- |
 | Home | WORKING at code level |
 | Inbox / Capture | WORKING at code level |
-| Share into ONE | WORKING at code level; physical iOS acceptance pending |
+| Share into NEVER | WORKING at code level; physical iOS acceptance pending |
 | Manual text capture | WORKING at code level |
 | Image capture | WORKING at code level; physical permission/device acceptance pending |
 | Screenshot capture | WORKING at code level; physical OCR acceptance pending |
@@ -67,7 +67,7 @@ Status below distinguishes code-level implementation from physical-device accept
 | Automatic classification | WORKING at code level |
 | Folders / collections | PARTIAL — saved/context organization exists; full generalized folders UX is not treated as complete |
 | Search | WORKING at code level |
-| AI chat / Ask ONE | WORKING at code level |
+| AI chat / Ask NEVER | WORKING at code level |
 | Semantic retrieval | WORKING at code level and grounded in stored accessible items |
 | Reminders | WORKING at code level; real notification delivery/tap acceptance pending |
 | Calendar/event extraction | WORKING at code level |
@@ -89,13 +89,14 @@ It includes:
 1. TypeScript (`tsc --noEmit`)
 2. Expo lint
 3. Node tests
-4. Expo dependency compatibility check
-5. Expo Doctor
-6. native release configuration verification
-7. Expo native config introspection
-8. web export
+4. release-script syntax validation
+5. Expo dependency compatibility check
+6. Expo Doctor
+7. native release configuration verification
+8. Expo native config introspection
+9. web export
 
-GitHub Actions runs the quality command on pushes to `dev/foundation` and verifies the checkout is clean afterwards.
+GitHub Actions runs the NEVER Quality command on pushes to `dev/foundation` and verifies the checkout is clean afterwards.
 
 ## Secrets / exclusions
 
