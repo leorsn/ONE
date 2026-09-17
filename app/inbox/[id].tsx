@@ -33,7 +33,7 @@ export default function InboxItemDetailScreen() {
         <View style={styles.missing}>
           <EmptyState icon={icons.inbox} title="Inbox item not found" body="It may have been processed or removed on another device." />
           <Pressable accessibilityRole="button" accessibilityLabel="Return to Inbox" onPress={() => router.replace('/(tabs)')}>
-            <Text style={{ color: theme.chrome, fontWeight: '700' }}>Return to Inbox</Text>
+            <Text style={{ color: theme.chrome, fontWeight: '600' }}>Return to Inbox</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -96,53 +96,63 @@ export default function InboxItemDetailScreen() {
             accessibilityRole="button"
             accessibilityLabel="Back to Inbox"
             onPress={() => router.back()}
-            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
           >
-            <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
+            <OneIcon name={icons.chevronLeft} size={17} color={theme.text} />
           </Pressable>
-          <Text style={[styles.navTitle, { color: theme.text }]}>Inbox item</Text>
+          <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Edit item details"
             onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })}
-            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
           >
-            <OneIcon name={icons.edit} size={17} color={theme.text} />
+            <OneIcon name={icons.edit} size={16} color={theme.text} />
           </Pressable>
         </View>
 
-        <View style={styles.hero}>
-          <IconTile icon={iconFor(currentItem)} size={52} />
-          <View style={{ flex: 1 }}>
+        <View style={styles.identity}>
+          <IconTile icon={iconFor(currentItem)} tone="neutral" size={42} />
+          <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={[styles.state, { color: state === 'needs_review' ? theme.warning : theme.chrome }]}>{stateLabel(state)}</Text>
-            <Text style={[styles.title, { color: theme.text }]}>{currentItem.title}</Text>
-            <Text style={[styles.source, { color: theme.textSecondary }]}>{sourceLine(currentItem)}</Text>
+            <Text style={[styles.source, { color: theme.textTertiary }]}>{sourceLine(currentItem)}</Text>
           </View>
         </View>
 
-        {previewUri ? <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill }]} resizeMode="cover" /> : null}
+        <View style={styles.titleBlock}>
+          <Text style={[styles.eyebrow, { color: theme.textTertiary }]}>INBOX MEMORY</Text>
+          <Text style={[styles.title, { color: theme.text }]}>{currentItem.title}</Text>
+        </View>
 
-        <Surface padded>
-          <View style={styles.summaryTop}>
-            <Text style={[styles.sectionTitle, { color: theme.text }]}>NEVER understood</Text>
-            <View style={[styles.confidencePill, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-              <Text style={[styles.confidenceText, { color: theme.textSecondary }]}>{confidenceLabel(currentItem)}</Text>
-            </View>
+        {previewUri ? (
+          <View style={styles.section}>
+            <SectionHeader title="Original" />
+            <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill, borderColor: theme.border }]} resizeMode="cover" />
           </View>
-          <Text style={[styles.summary, { color: theme.textSecondary }]}>{currentItem.summary || currentItem.userContext || 'No additional summary was inferred.'}</Text>
-          {currentItem.ambiguities?.length ? (
-            <View style={[styles.ambiguity, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-              <Text style={[styles.ambiguityTitle, { color: theme.warning }]}>Review before acting</Text>
-              {currentItem.ambiguities.slice(0, 4).map((value) => (
-                <Text key={value} style={[styles.ambiguityText, { color: theme.textSecondary }]}>• {value}</Text>
-              ))}
+        ) : null}
+
+        <View style={styles.section}>
+          <SectionHeader title="What NEVER understood" />
+          <Surface padded>
+            <View style={styles.understandingTop}>
+              <Text style={[styles.confidenceLabel, { color: theme.textTertiary }]}>CONFIDENCE</Text>
+              <Text style={[styles.confidenceValue, { color: theme.text }]}>{confidenceLabel(currentItem)}</Text>
             </View>
-          ) : null}
-        </Surface>
+            <Text style={[styles.summary, { color: theme.textSecondary }]}>{currentItem.summary || currentItem.userContext || 'No additional summary was inferred.'}</Text>
+            {currentItem.ambiguities?.length ? (
+              <View style={[styles.ambiguity, { borderTopColor: theme.border }]}>
+                <Text style={[styles.ambiguityTitle, { color: theme.warning }]}>Review these details</Text>
+                {currentItem.ambiguities.slice(0, 4).map((value) => (
+                  <Text key={value} style={[styles.ambiguityText, { color: theme.textSecondary }]}>• {value}</Text>
+                ))}
+              </View>
+            ) : null}
+          </Surface>
+        </View>
 
         {facts(currentItem).length ? (
-          <View style={styles.block}>
-            <SectionHeader title="Extracted facts" />
+          <View style={styles.section}>
+            <SectionHeader title="Facts" />
             <Surface>
               {facts(currentItem).map((fact, index, list) => (
                 <View key={fact.label} style={[styles.factRow, index < list.length - 1 && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth }]}>
@@ -155,27 +165,38 @@ export default function InboxItemDetailScreen() {
         ) : null}
 
         {duplicate ? (
-          <View style={[styles.duplicate, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-            <OneIcon name={icons.more} size={17} color={theme.warning} />
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Open possible duplicate"
+            onPress={() => router.push({ pathname: '/item/[id]', params: { id: duplicate.id } })}
+            style={({ pressed }) => [styles.duplicate, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
+          >
+            <View style={[styles.warningIcon, { backgroundColor: theme.fill, borderColor: theme.border }]}>
+              <OneIcon name={icons.more} size={15} color={theme.warning} />
+            </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.duplicateTitle, { color: theme.text }]}>Possible duplicate</Text>
-              <Text style={[styles.duplicateBody, { color: theme.textSecondary }]} numberOfLines={2}>NEVER found a recent capture with the same source content: {duplicate.title}</Text>
+              <Text style={[styles.duplicateBody, { color: theme.textSecondary }]} numberOfLines={2}>A recent capture appears to contain the same source information: {duplicate.title}</Text>
             </View>
-            <Pressable accessibilityRole="button" accessibilityLabel="Open possible duplicate" onPress={() => router.push({ pathname: '/item/[id]', params: { id: duplicate.id } })}>
-              <Text style={[styles.openText, { color: theme.chrome }]}>Open</Text>
-            </Pressable>
-          </View>
+            <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+          </Pressable>
         ) : null}
 
         {state === 'needs_review' ? (
-          <View style={styles.block}>
+          <View style={styles.section}>
             <SectionHeader title="Review" />
             <Surface padded>
-              <Text style={[styles.reviewBody, { color: theme.textSecondary }]}>Correct any uncertain fields first. Confirm only when the extracted facts match what you captured.</Text>
+              <Text style={[styles.reviewBody, { color: theme.textSecondary }]}>Check uncertain details before confirming. Edit the memory if any recognized fact is wrong.</Text>
               <View style={styles.actionStack}>
                 <PrimaryButton label="Edit details" icon={icons.edit} onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })} />
-                <Pressable accessibilityRole="button" accessibilityLabel="Confirm extracted facts" disabled={working} onPress={confirmReview} style={[styles.secondaryAction, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-                  <Text style={[styles.secondaryActionText, { color: theme.text }]}>Confirm extracted facts</Text>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Confirm extracted facts"
+                  disabled={working}
+                  onPress={confirmReview}
+                  style={({ pressed }) => [styles.secondaryAction, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed || working ? 0.58 : 1 }]}
+                >
+                  <Text style={[styles.secondaryActionText, { color: theme.text }]}>Confirm facts</Text>
                 </Pressable>
               </View>
             </Surface>
@@ -183,8 +204,8 @@ export default function InboxItemDetailScreen() {
         ) : null}
 
         {actions.length ? (
-          <View style={styles.block}>
-            <SectionHeader title="Proposed actions" meta="Based on saved facts" />
+          <View style={styles.section}>
+            <SectionHeader title="Next actions" meta="From saved facts" />
             <View style={styles.actionStack}>
               {actions.map((action, index) => {
                 const primary = action.primary && index === 0;
@@ -198,7 +219,7 @@ export default function InboxItemDetailScreen() {
                     style={({ pressed }) => [
                       styles.proposal,
                       {
-                        backgroundColor: primary ? theme.accent : theme.surface,
+                        backgroundColor: primary ? theme.accent : theme.surfaceElevated,
                         borderColor: primary ? theme.accent : theme.border,
                         opacity: pressed || working ? 0.58 : 1
                       }
@@ -208,7 +229,7 @@ export default function InboxItemDetailScreen() {
                       <Text style={[styles.proposalTitle, { color: primary ? theme.onAccent : theme.text }]}>{action.label}</Text>
                       <Text style={[styles.proposalReason, { color: primary ? theme.onAccent : theme.textSecondary, opacity: primary ? 0.78 : 1 }]}>{action.reason}</Text>
                     </View>
-                    <OneIcon name={icons.chevron} size={14} color={primary ? theme.onAccent : theme.textTertiary} />
+                    <OneIcon name={icons.chevron} size={13} color={primary ? theme.onAccent : theme.textTertiary} />
                   </Pressable>
                 );
               })}
@@ -217,24 +238,24 @@ export default function InboxItemDetailScreen() {
         ) : null}
 
         {original ? (
-          <View style={styles.block}>
+          <View style={styles.section}>
             <Pressable accessibilityRole="button" accessibilityLabel="Toggle original captured content" onPress={() => setShowOriginal((value) => !value)} style={styles.disclosure}>
               <Text style={[styles.disclosureText, { color: theme.text }]}>Original capture</Text>
-              <Text style={[styles.openText, { color: theme.chrome }]}>{showOriginal ? 'Hide' : 'Show'}</Text>
+              <Text style={[styles.openText, { color: theme.textSecondary }]}>{showOriginal ? 'Hide' : 'Show'}</Text>
             </Pressable>
             {showOriginal ? <Surface padded><Text style={[styles.original, { color: theme.textSecondary }]} selectable>{original}</Text></Surface> : null}
           </View>
         ) : null}
 
-        <View style={styles.triageActions}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Review tomorrow" disabled={working} onPress={deferReview} style={[styles.triageButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-            <Text style={[styles.triageText, { color: theme.textSecondary }]}>Review tomorrow</Text>
+        <View style={[styles.triageFooter, { borderTopColor: theme.border }]}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Review tomorrow" disabled={working} onPress={deferReview} style={({ pressed }) => [styles.footerAction, { opacity: pressed || working ? 0.55 : 1 }]}>
+            <Text style={[styles.footerText, { color: theme.textSecondary }]}>Review tomorrow</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Mark processed" disabled={working} onPress={() => void execute('mark_processed')} style={[styles.triageButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-            <Text style={[styles.triageText, { color: theme.textSecondary }]}>Mark processed</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel="Mark processed" disabled={working} onPress={() => void execute('mark_processed')} style={({ pressed }) => [styles.footerAction, { opacity: pressed || working ? 0.55 : 1 }]}>
+            <Text style={[styles.footerText, { color: theme.textSecondary }]}>Mark processed</Text>
           </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Archive item" disabled={working} onPress={() => void execute('archive')} style={[styles.triageButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-            <Text style={[styles.triageText, { color: theme.danger }]}>Archive</Text>
+          <Pressable accessibilityRole="button" accessibilityLabel="Archive item" disabled={working} onPress={() => void execute('archive')} style={({ pressed }) => [styles.footerAction, { opacity: pressed || working ? 0.55 : 1 }]}>
+            <Text style={[styles.footerText, { color: theme.danger }]}>Archive</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -289,52 +310,51 @@ function confidenceLabel(item: OneItem) {
 }
 
 function formatAmount(amount: number, currency = 'EUR') {
-  try {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
+  try { return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount); }
+  catch { return `${amount.toFixed(2)} ${currency}`; }
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 18 },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 23 },
   missing: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
-  nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  nav: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.1 },
-  hero: { flexDirection: 'row', alignItems: 'center', gap: 13 },
-  state: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.8 },
-  title: { marginTop: 4, fontSize: 22, lineHeight: 27, fontWeight: '700', letterSpacing: -0.5 },
-  source: { marginTop: 4, fontSize: 12 },
-  preview: { width: '100%', height: 250, borderRadius: 18 },
-  summaryTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 },
-  sectionTitle: { fontSize: 15, fontWeight: '700' },
-  confidencePill: { minHeight: 27, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 9, alignItems: 'center', justifyContent: 'center' },
-  confidenceText: { fontSize: 10.5, fontWeight: '700' },
-  summary: { marginTop: 8, fontSize: 13, lineHeight: 19 },
-  ambiguity: { marginTop: 12, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, padding: 12 },
-  ambiguityTitle: { fontSize: 11.5, fontWeight: '700' },
-  ambiguityText: { marginTop: 4, fontSize: 11.5, lineHeight: 16 },
-  block: { gap: 10 },
-  factRow: { minHeight: 48, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  factLabel: { width: 76, fontSize: 11.5 },
-  factValue: { flex: 1, fontSize: 13, fontWeight: '600', textAlign: 'right' },
-  duplicate: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  duplicateTitle: { fontSize: 12.5, fontWeight: '700' },
-  duplicateBody: { marginTop: 2, fontSize: 11.5, lineHeight: 16 },
-  openText: { fontSize: 12, fontWeight: '700' },
-  reviewBody: { fontSize: 12.5, lineHeight: 18 },
+  wordmark: { fontSize: 11, fontWeight: '600', letterSpacing: 3.2 },
+  identity: { flexDirection: 'row', alignItems: 'center', gap: 11 },
+  state: { fontSize: 8.5, fontWeight: '700', letterSpacing: 1.2 },
+  source: { marginTop: 3, fontSize: 10.5, lineHeight: 14 },
+  titleBlock: { gap: 7 },
+  eyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 1.5 },
+  title: { maxWidth: 650, fontSize: 29, lineHeight: 35, fontWeight: '600', letterSpacing: -0.95 },
+  section: { gap: 10 },
+  preview: { width: '100%', height: 270, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth },
+  understandingTop: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 },
+  confidenceLabel: { fontSize: 8, fontWeight: '700', letterSpacing: 1.1 },
+  confidenceValue: { fontSize: 11.25, fontWeight: '600' },
+  summary: { marginTop: 11, fontSize: 12.5, lineHeight: 18.5 },
+  ambiguity: { marginTop: 14, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
+  ambiguityTitle: { fontSize: 11.25, fontWeight: '600' },
+  ambiguityText: { marginTop: 5, fontSize: 11.25, lineHeight: 16 },
+  factRow: { minHeight: 54, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  factLabel: { width: 76, fontSize: 10.75 },
+  factValue: { flex: 1, fontSize: 12.75, fontWeight: '600', textAlign: 'right' },
+  duplicate: { minHeight: 74, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  warningIcon: { width: 36, height: 36, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  duplicateTitle: { fontSize: 12.75, fontWeight: '600' },
+  duplicateBody: { marginTop: 3, fontSize: 10.75, lineHeight: 15.5 },
+  openText: { fontSize: 11.5, fontWeight: '600' },
+  reviewBody: { fontSize: 12, lineHeight: 17.5 },
   actionStack: { marginTop: 12, gap: 8 },
-  secondaryAction: { minHeight: 48, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  secondaryActionText: { fontSize: 13, fontWeight: '700' },
-  proposal: { minHeight: 64, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  proposalTitle: { fontSize: 13.5, fontWeight: '700' },
-  proposalReason: { marginTop: 3, fontSize: 11.5, lineHeight: 16 },
+  secondaryAction: { minHeight: 48, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  secondaryActionText: { fontSize: 12.5, fontWeight: '600' },
+  proposal: { minHeight: 66, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  proposalTitle: { fontSize: 13.25, fontWeight: '600' },
+  proposalReason: { marginTop: 3, fontSize: 10.75, lineHeight: 15.5 },
   disclosure: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  disclosureText: { fontSize: 13.5, fontWeight: '700' },
-  original: { fontSize: 12.5, lineHeight: 19 },
-  triageActions: { flexDirection: 'row', gap: 7, flexWrap: 'wrap' },
-  triageButton: { minHeight: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
-  triageText: { fontSize: 11.5, fontWeight: '700' }
+  disclosureText: { fontSize: 13, fontWeight: '600' },
+  original: { fontSize: 12, lineHeight: 18.5 },
+  triageFooter: { paddingTop: 11, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 4 },
+  footerAction: { minHeight: 36, paddingHorizontal: 10, justifyContent: 'center' },
+  footerText: { fontSize: 10.75, fontWeight: '600' }
 });
