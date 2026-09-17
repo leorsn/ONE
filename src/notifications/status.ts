@@ -16,16 +16,16 @@ export function notificationSaveWarning(
   if (!actionable) return undefined;
 
   if (item.notificationStatus === 'permission_denied') {
-    return 'Saved to ONE, but notification permission is off. You can enable reminders in Settings.';
+    return 'Saved to NEVER, but notification permission is off. You can enable reminders in Settings.';
   }
   if (item.notificationStatus === 'unsupported') {
-    return 'Saved to ONE. Local reminder delivery is not available on this platform.';
+    return 'Saved to NEVER. Local reminder delivery is not available on this platform.';
   }
   if (item.notificationStatus === 'error') {
-    return 'Saved to ONE, but the local reminder could not be scheduled.';
+    return 'Saved to NEVER, but the local reminder could not be scheduled.';
   }
   if (item.notificationStatus === 'not_scheduled') {
-    return 'Saved to ONE, but there is no future notification scheduled for this item.';
+    return 'Saved to NEVER, but there is no future notification scheduled for this item.';
   }
   return undefined;
 }
