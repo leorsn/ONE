@@ -49,7 +49,7 @@ export async function answerFromRetrievedItems({
       sourceIds: direct.itemIds,
       evidence: 'saved',
       mode: 'deterministic',
-      meta: direct.meta || 'Calculated from your saved ONE items'
+      meta: direct.meta || 'Calculated from your saved NEVER items'
     };
   }
 
@@ -71,7 +71,7 @@ export async function answerFromRetrievedItems({
         sourceIds: direct.itemIds,
         evidence: 'saved' as const,
         mode: 'deterministic' as const,
-        meta: direct.meta || 'Grounded in saved ONE items'
+        meta: direct.meta || 'Grounded in saved NEVER items'
       }
     : buildGroundedFallback(query, retrievedItems, now);
 
