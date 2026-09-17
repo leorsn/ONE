@@ -107,10 +107,15 @@ export default function AskOneScreen() {
       <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
         <View style={styles.locked}>
           <IconTile icon={icons.crown} size={54} />
-          <Text style={[styles.heading, { color: theme.text }]}>Ask ONE is part of ONE AI.</Text>
-          <Text style={[styles.subheading, { color: theme.textSecondary }]}>Search remains available without AI. ONE AI adds conversational recall over your own saved memories.</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="View ONE AI" onPress={() => router.push('/upgrade')} style={[styles.primary, { backgroundColor: theme.accent }]}>
-            <Text style={styles.primaryText}>View ONE AI</Text>
+          <Text style={[styles.heading, { color: theme.text }]}>Ask NEVER is part of NEVER AI.</Text>
+          <Text style={[styles.subheading, { color: theme.textSecondary }]}>Search remains available without AI. NEVER AI adds conversational recall over your own saved memories.</Text>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="View NEVER AI"
+            onPress={() => router.push('/upgrade')}
+            style={({ pressed }) => [styles.primary, { backgroundColor: theme.accent, borderColor: theme.accent, opacity: pressed ? 0.74 : 1 }]}
+          >
+            <Text style={[styles.primaryText, { color: theme.onAccent }]}>View NEVER AI</Text>
           </Pressable>
           <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={styles.secondary}>
             <Text style={[styles.secondaryText, { color: theme.textSecondary }]}>Not now</Text>
@@ -125,15 +130,25 @@ export default function AskOneScreen() {
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={4}>
         <View style={styles.shell}>
           <View style={styles.nav}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Go back" onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Go back"
+              onPress={() => router.back()}
+              style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+            >
               <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
             </Pressable>
             <View style={styles.navCenter}>
-              <Text style={[styles.navTitle, { color: theme.text }]}>Ask ONE</Text>
+              <Text style={[styles.navTitle, { color: theme.text }]}>Ask NEVER</Text>
               <Text style={[styles.navMeta, { color: theme.textTertiary }]}>Grounded in your memory</Text>
             </View>
             {messages.length ? (
-              <Pressable accessibilityRole="button" accessibilityLabel="Clear conversation" onPress={() => setMessages([])} style={[styles.navButton, { backgroundColor: theme.fill }]}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Clear conversation"
+                onPress={() => setMessages([])}
+                style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+              >
                 <OneIcon name={icons.close} size={15} color={theme.textSecondary} />
               </Pressable>
             ) : <View style={{ width: 40 }} />}
@@ -149,9 +164,11 @@ export default function AskOneScreen() {
             {!messages.length ? (
               <>
                 <View style={styles.hero}>
-                  <IconTile icon={icons.ask} size={54} />
+                  <View style={[styles.heroMark, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+                    <OneIcon name={icons.ask} size={25} color={theme.chrome} />
+                  </View>
                   <Text style={[styles.heading, { color: theme.text }]}>Ask what you saved.</Text>
-                  <Text style={[styles.subheading, { color: theme.textSecondary }]}>ONE retrieves relevant memories first, then answers only from those sources.</Text>
+                  <Text style={[styles.subheading, { color: theme.textSecondary }]}>NEVER retrieves relevant memories first, then answers only from those sources.</Text>
                 </View>
                 <View style={styles.examples}>
                   {examples.map((example) => (
@@ -160,17 +177,25 @@ export default function AskOneScreen() {
                       accessibilityRole="button"
                       accessibilityLabel={example}
                       onPress={() => submitQuestion(example)}
-                      style={({ pressed }) => [styles.example, { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+                      style={({ pressed }) => [
+                        styles.example,
+                        {
+                          backgroundColor: theme.surface,
+                          borderColor: theme.border,
+                          shadowColor: theme.shadow,
+                          opacity: pressed ? 0.58 : 1
+                        }
+                      ]}
                     >
-                      <OneIcon name={icons.ask} size={16} color={theme.accent} />
+                      <OneIcon name={icons.ask} size={15} color={theme.chrome} />
                       <Text style={[styles.exampleText, { color: theme.text }]}>{example}</Text>
                       <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
                     </Pressable>
                   ))}
                 </View>
-                <View style={[styles.privacy, { backgroundColor: theme.accentSoft }]}>
-                  <OneIcon name={icons.shield} size={17} color={theme.accent} />
-                  <Text style={[styles.privacyText, { color: theme.textSecondary }]}>Only retrieved source items are eligible for AI synthesis. If AI is unavailable, ONE falls back to grounded local recall.</Text>
+                <View style={[styles.privacy, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
+                  <OneIcon name={icons.shield} size={16} color={theme.chrome} />
+                  <Text style={[styles.privacyText, { color: theme.textSecondary }]}>Only retrieved source items are eligible for AI synthesis. If AI is unavailable, NEVER falls back to grounded local recall.</Text>
                 </View>
               </>
             ) : messages.map((message) => (
@@ -178,7 +203,7 @@ export default function AskOneScreen() {
             ))}
 
             {sending ? (
-              <View style={[styles.assistant, { backgroundColor: theme.surface, borderColor: theme.border }]} accessibilityLabel="Looking through your memory">
+              <View style={[styles.assistant, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]} accessibilityLabel="Looking through your memory">
                 <ActivityIndicator size="small" />
                 <Text style={[styles.thinking, { color: theme.textSecondary }]}>Looking through your memory…</Text>
               </View>
@@ -186,7 +211,7 @@ export default function AskOneScreen() {
           </ScrollView>
 
           <View style={[styles.composerWrap, { borderTopColor: theme.border, backgroundColor: theme.background }]}>
-            <View style={[styles.composer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={[styles.composer, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
               <TextInput
                 value={query}
                 onChangeText={setQuery}
@@ -198,17 +223,23 @@ export default function AskOneScreen() {
                 returnKeyType="send"
                 blurOnSubmit
                 onSubmitEditing={() => submitQuestion()}
-                accessibilityLabel="Ask ONE question"
-                accessibilityHint="Ask a question about information saved in ONE"
+                accessibilityLabel="Ask NEVER question"
+                accessibilityHint="Ask a question about information saved in NEVER"
               />
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel="Send question"
                 disabled={!query.trim() || sending}
                 onPress={() => submitQuestion()}
-                style={[styles.send, { backgroundColor: query.trim() && !sending ? theme.accent : theme.fillStrong, opacity: sending ? 0.6 : 1 }]}
+                style={[
+                  styles.send,
+                  {
+                    backgroundColor: query.trim() && !sending ? theme.accent : theme.fillStrong,
+                    opacity: sending ? 0.6 : 1
+                  }
+                ]}
               >
-                <OneIcon name={icons.upload} size={16} color={query.trim() && !sending ? '#FFFFFF' : theme.textTertiary} />
+                <OneIcon name={icons.upload} size={16} color={query.trim() && !sending ? theme.onAccent : theme.textTertiary} />
               </Pressable>
             </View>
           </View>
@@ -222,7 +253,7 @@ export default function AskOneScreen() {
       return (
         <View style={styles.userRow}>
           <View style={[styles.user, { backgroundColor: theme.accent }]}>
-            <Text style={styles.userText}>{message.text}</Text>
+            <Text style={[styles.userText, { color: theme.onAccent }]}>{message.text}</Text>
           </View>
         </View>
       );
@@ -234,10 +265,10 @@ export default function AskOneScreen() {
       .slice(0, 6);
 
     return (
-      <View style={[styles.assistant, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <View style={[styles.assistant, { backgroundColor: theme.surface, borderColor: theme.border, shadowColor: theme.shadow }]}>
         <View style={styles.answerHeader}>
-          <OneIcon name={icons.ask} size={16} color={theme.accent} />
-          <Text style={[styles.answerEyebrow, { color: theme.accent }]}>ONE</Text>
+          <OneIcon name={icons.ask} size={15} color={theme.chrome} />
+          <Text style={[styles.answerEyebrow, { color: theme.chrome }]}>NEVER</Text>
           {message.mode ? <Text style={[styles.mode, { color: theme.textTertiary }]}>{message.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text> : null}
         </View>
         {message.title ? <Text style={[styles.answerTitle, { color: theme.text }]}>{message.title}</Text> : null}
@@ -253,7 +284,7 @@ export default function AskOneScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={`Open source ${item.title}`}
                 onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-                style={({ pressed }) => [styles.sourceRow, { opacity: pressed ? 0.62 : 1 }]}
+                style={({ pressed }) => [styles.sourceRow, { opacity: pressed ? 0.58 : 1 }]}
               >
                 <IconTile icon={iconForType(item.type)} tone="neutral" size={34} />
                 <View style={{ flex: 1 }}>
@@ -285,45 +316,46 @@ function makeId(prefix: string) {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   shell: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center' },
-  nav: { minHeight: 56, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { alignItems: 'center', gap: 1 },
-  navTitle: { fontSize: 16, fontWeight: '800' },
-  navMeta: { fontSize: 10.5, fontWeight: '600' },
+  nav: { minHeight: 58, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { alignItems: 'center', gap: 2 },
+  navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.15 },
+  navMeta: { fontSize: 10, fontWeight: '600', letterSpacing: 0.15 },
   chat: { flex: 1 },
-  chatContent: { paddingHorizontal: 20, paddingTop: 12, paddingBottom: 24, gap: 12 },
-  emptyContent: { paddingHorizontal: 20, paddingTop: 46, paddingBottom: 24, gap: 24 },
-  hero: { alignItems: 'center', gap: 10, paddingHorizontal: 18 },
-  heading: { fontSize: 26, lineHeight: 32, fontWeight: '800', textAlign: 'center', letterSpacing: -0.45 },
-  subheading: { fontSize: 14.5, lineHeight: 21, textAlign: 'center' },
+  chatContent: { paddingHorizontal: 20, paddingTop: 14, paddingBottom: 26, gap: 12 },
+  emptyContent: { paddingHorizontal: 20, paddingTop: 54, paddingBottom: 26, gap: 26 },
+  hero: { alignItems: 'center', gap: 11, paddingHorizontal: 18 },
+  heroMark: { width: 56, height: 56, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginBottom: 2 },
+  heading: { fontSize: 26, lineHeight: 32, fontWeight: '700', textAlign: 'center', letterSpacing: -0.55 },
+  subheading: { maxWidth: 410, fontSize: 14, lineHeight: 21, textAlign: 'center' },
   examples: { gap: 9 },
-  example: { minHeight: 54, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  exampleText: { flex: 1, fontSize: 14, fontWeight: '600' },
-  privacy: { minHeight: 58, borderRadius: 18, paddingHorizontal: 14, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  privacyText: { flex: 1, fontSize: 12.5, lineHeight: 17.5 },
+  example: { minHeight: 56, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 11, shadowOpacity: 0.045, shadowRadius: 12, shadowOffset: { width: 0, height: 6 }, elevation: 1 },
+  exampleText: { flex: 1, fontSize: 13.5, fontWeight: '600', letterSpacing: -0.08 },
+  privacy: { minHeight: 60, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  privacyText: { flex: 1, fontSize: 12, lineHeight: 17.5 },
   userRow: { alignItems: 'flex-end' },
-  user: { maxWidth: '84%', borderRadius: 19, borderBottomRightRadius: 7, paddingHorizontal: 14, paddingVertical: 10 },
-  userText: { color: '#FFFFFF', fontSize: 14.5, lineHeight: 20 },
-  assistant: { borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, padding: 15, gap: 9 },
+  user: { maxWidth: '84%', borderRadius: 18, borderBottomRightRadius: 6, paddingHorizontal: 14, paddingVertical: 10 },
+  userText: { fontSize: 14, lineHeight: 20 },
+  assistant: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, padding: 16, gap: 9, shadowOpacity: 0.05, shadowRadius: 14, shadowOffset: { width: 0, height: 7 }, elevation: 1 },
   answerHeader: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  answerEyebrow: { fontSize: 11, fontWeight: '800', letterSpacing: 0.5 },
-  mode: { marginLeft: 'auto', fontSize: 9.5, fontWeight: '800', letterSpacing: 0.45 },
-  answerTitle: { fontSize: 18, lineHeight: 23, fontWeight: '800' },
-  answerBody: { fontSize: 14, lineHeight: 20 },
-  answerMeta: { fontSize: 11.5, lineHeight: 16 },
-  thinking: { fontSize: 13 },
-  sources: { marginTop: 4, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, gap: 4 },
-  sourcesLabel: { fontSize: 9.5, fontWeight: '800', letterSpacing: 0.6, marginBottom: 3 },
-  sourceRow: { minHeight: 50, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sourceTitle: { fontSize: 13.5, fontWeight: '700' },
-  sourceMeta: { marginTop: 2, fontSize: 11.5 },
+  answerEyebrow: { fontSize: 10, fontWeight: '700', letterSpacing: 1.15 },
+  mode: { marginLeft: 'auto', fontSize: 9, fontWeight: '700', letterSpacing: 0.65 },
+  answerTitle: { fontSize: 17.5, lineHeight: 23, fontWeight: '700', letterSpacing: -0.2 },
+  answerBody: { fontSize: 13.75, lineHeight: 20.5 },
+  answerMeta: { fontSize: 11, lineHeight: 16 },
+  thinking: { fontSize: 12.5 },
+  sources: { marginTop: 5, paddingTop: 11, borderTopWidth: StyleSheet.hairlineWidth, gap: 4 },
+  sourcesLabel: { fontSize: 9, fontWeight: '700', letterSpacing: 0.85, marginBottom: 4 },
+  sourceRow: { minHeight: 51, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  sourceTitle: { fontSize: 13.25, fontWeight: '700' },
+  sourceMeta: { marginTop: 2, fontSize: 11 },
   composerWrap: { borderTopWidth: StyleSheet.hairlineWidth, paddingHorizontal: 20, paddingTop: 10, paddingBottom: 8 },
-  composer: { minHeight: 52, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 14, paddingRight: 7, flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  input: { flex: 1, minHeight: 46, maxHeight: 120, fontSize: 15, paddingTop: 13, paddingBottom: 11 },
-  send: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginBottom: 6 },
+  composer: { minHeight: 54, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 15, paddingRight: 7, flexDirection: 'row', alignItems: 'flex-end', gap: 8, shadowOpacity: 0.055, shadowRadius: 14, shadowOffset: { width: 0, height: 7 }, elevation: 1 },
+  input: { flex: 1, minHeight: 47, maxHeight: 120, fontSize: 14.75, paddingTop: 13, paddingBottom: 11 },
+  send: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginBottom: 7 },
   locked: { flex: 1, width: '100%', maxWidth: 560, alignSelf: 'center', justifyContent: 'center', alignItems: 'center', padding: 28, gap: 14 },
-  primary: { minHeight: 50, minWidth: 220, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
-  primaryText: { color: '#FFFFFF', fontWeight: '800', fontSize: 14.5 },
+  primary: { minHeight: 50, minWidth: 220, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginTop: 8 },
+  primaryText: { fontWeight: '700', fontSize: 14.25 },
   secondary: { minHeight: 44, paddingHorizontal: 18, justifyContent: 'center' },
-  secondaryText: { fontSize: 13.5, fontWeight: '700' }
+  secondaryText: { fontSize: 13, fontWeight: '700' }
 });
