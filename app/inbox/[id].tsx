@@ -32,7 +32,7 @@ export default function InboxItemDetailScreen() {
       <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
         <View style={styles.missing}>
           <EmptyState icon={icons.inbox} title="Inbox item not found" body="It may have been processed or removed on another device." />
-          <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)')}>
+          <Pressable accessibilityRole="button" accessibilityLabel="Return to Inbox" onPress={() => router.replace('/(tabs)')}>
             <Text style={{ color: theme.chrome, fontWeight: '700' }}>Return to Inbox</Text>
           </Pressable>
         </View>
@@ -92,11 +92,21 @@ export default function InboxItemDetailScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={styles.nav}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Back to Inbox" onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back to Inbox"
+            onPress={() => router.back()}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+          >
             <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
           </Pressable>
           <Text style={[styles.navTitle, { color: theme.text }]}>Inbox item</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Edit item details" onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })} style={[styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border }]}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Edit item details"
+            onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+          >
             <OneIcon name={icons.edit} size={17} color={theme.text} />
           </Pressable>
         </View>
@@ -288,8 +298,8 @@ function formatAmount(amount: number, currency = 'EUR') {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 18 },
-  missing: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 18 },
+  missing: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 15.5, fontWeight: '700', letterSpacing: -0.1 },
