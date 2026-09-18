@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { isValidElement, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { OneIcon } from '@/src/ui/icons';
@@ -43,9 +43,8 @@ export function SectionAccent() {
 
 export function BrandHeader({ action, showTagline = false }: { action?: ReactNode; showTagline?: boolean }) {
   const theme = useTheme();
-  if (!showTagline) {
-    return action ? <View style={styles.utilityHeader}>{action}</View> : null;
-  }
+  const homeHeader = showTagline || (isValidElement(action) && action.type === RoundIconButton);
+  if (!homeHeader) return action ? <View style={styles.utilityHeader}>{action}</View> : null;
   return (
     <View style={[styles.brandHeader, styles.brandHeaderWithTagline]}>
       <View style={{ flex: 1 }}>
