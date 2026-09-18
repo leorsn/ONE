@@ -20,7 +20,7 @@ import { answerFromRetrievedItems } from '@/src/recall/service';
 import { retrieveLocalOneItems, retrieveOneItems } from '@/src/search/retrieve';
 import { searchSemantically } from '@/src/search/semantic';
 import { iconForType } from '@/src/ui/OneItemRow';
-import { BrandHeader, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { BrandHeader, CoreBackdrop, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 import { editorialFontFamily } from '@/src/theme/typography';
@@ -109,6 +109,7 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
+      <CoreBackdrop />
       <ScrollView contentContainerStyle={uiStyles.screenContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <BrandHeader />
 
@@ -123,14 +124,15 @@ export default function SearchScreen() {
           style={[
             styles.searchBox,
             {
-              backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFFA',
-              borderColor: query.trim() ? `${theme.sky}40` : dark ? '#FFFFFF12' : '#0000000A',
-              shadowColor: theme.shadow,
-              shadowOpacity: dark ? 0.22 : 0.1
+              backgroundColor: dark ? '#1C1C1ED6' : '#FFFFFFDE',
+              borderColor: query.trim() ? `${theme.sky}4A` : dark ? '#FFFFFF18' : '#FFFFFFF5',
+              shadowColor: dark ? '#000000' : '#6E7688',
+              shadowOpacity: dark ? 0.34 : 0.16
             }
           ]}
         >
-          <View style={[styles.searchIconWell, { backgroundColor: dark ? '#2C2C2EF2' : '#F2F2F7' }]}>
+          <View pointerEvents="none" style={[styles.searchHighlight, { backgroundColor: dark ? '#FFFFFF1C' : '#FFFFFF' }]} />
+          <View style={[styles.searchIconWell, { backgroundColor: dark ? '#2C2C2EC8' : '#F1F2F6DC', borderColor: dark ? '#FFFFFF14' : '#FFFFFFE8' }]}>
             <OneIcon name={mode === 'ask' ? icons.ask : icons.search} size={18} color={mode === 'ask' ? theme.sky : theme.chrome} />
           </View>
           <TextInput
@@ -169,8 +171,8 @@ export default function SearchScreen() {
             style={({ pressed }) => [
               styles.modeInline,
               {
-                backgroundColor: mode === 'ask' ? `${theme.sky}${dark ? '28' : '18'}` : dark ? '#2C2C2EE8' : '#F2F2F7',
-                borderColor: mode === 'ask' ? `${theme.sky}48` : dark ? '#FFFFFF10' : '#00000008',
+                backgroundColor: mode === 'ask' ? `${theme.sky}${dark ? '2C' : '1C'}` : dark ? '#2C2C2EB8' : '#F1F2F6D8',
+                borderColor: mode === 'ask' ? `${theme.sky}4E` : dark ? '#FFFFFF16' : '#FFFFFFE8',
                 opacity: pressed ? 0.72 : 1
               }
             ]}
@@ -183,7 +185,8 @@ export default function SearchScreen() {
         {mode === 'quick' ? (
           <>
             {!query.trim() ? (
-              <View style={[styles.segmented, { backgroundColor: dark ? '#1C1C1EF0' : '#E9E9EEF0', borderColor: dark ? '#FFFFFF0D' : '#00000008' }]}>
+              <View style={[styles.segmented, { backgroundColor: dark ? '#1C1C1EC9' : '#E8EAF0C9', borderColor: dark ? '#FFFFFF16' : '#FFFFFFEA', shadowColor: dark ? '#000000' : '#7B8290' }]}>
+                <View pointerEvents="none" style={[styles.segmentedHighlight, { backgroundColor: dark ? '#FFFFFF14' : '#FFFFFFE8' }]} />
                 {suggestions.map((suggestion, index) => (
                   <Pressable
                     key={suggestion}
@@ -196,11 +199,12 @@ export default function SearchScreen() {
                     style={({ pressed }) => [
                       styles.segment,
                       index === 0 && {
-                        backgroundColor: dark ? '#3A3A3CF2' : '#FFFFFF',
+                        backgroundColor: dark ? '#343438DE' : '#FFFFFFE8',
+                        borderColor: dark ? '#FFFFFF12' : '#FFFFFF',
                         shadowColor: theme.shadow,
-                        shadowOpacity: dark ? 0.2 : 0.12,
-                        shadowRadius: 8,
-                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: dark ? 0.24 : 0.13,
+                        shadowRadius: 10,
+                        shadowOffset: { width: 0, height: 4 },
                         elevation: 2
                       },
                       { opacity: pressed ? 0.72 : 1 }
@@ -235,15 +239,15 @@ export default function SearchScreen() {
                 style={({ pressed }) => [
                   styles.askBridge,
                   {
-                    backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFFA',
-                    borderColor: dark ? '#FFFFFF10' : '#00000008',
-                    shadowColor: theme.shadow,
-                    shadowOpacity: dark ? 0.18 : 0.08,
+                    backgroundColor: dark ? '#1C1C1ECB' : '#FFFFFFDA',
+                    borderColor: dark ? '#FFFFFF17' : '#FFFFFFF0',
+                    shadowColor: dark ? '#000000' : '#6F7787',
+                    shadowOpacity: dark ? 0.26 : 0.12,
                     opacity: pressed ? 0.7 : 1
                   }
                 ]}
               >
-                <View style={[styles.askBridgeIcon, { backgroundColor: `${theme.sky}${dark ? '24' : '16'}` }]}>
+                <View style={[styles.askBridgeIcon, { backgroundColor: `${theme.sky}${dark ? '26' : '18'}` }]}>
                   <OneIcon name={icons.ask} size={15} color={theme.sky} />
                 </View>
                 <Text style={[styles.askBridgeTitle, { color: theme.text }]}>Ask NEVER about these results</Text>
@@ -254,7 +258,7 @@ export default function SearchScreen() {
         ) : (
           <View style={styles.askBlock}>
             {!answer && !asking ? (
-              <View style={[styles.askIntro, { backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFFA', borderColor: dark ? '#FFFFFF10' : '#00000008', shadowColor: theme.shadow }]}>
+              <View style={[styles.askIntro, { backgroundColor: dark ? '#1C1C1ECB' : '#FFFFFFDA', borderColor: dark ? '#FFFFFF17' : '#FFFFFFF0', shadowColor: theme.shadow }]}>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.askIntroTitle, { color: theme.text }]}>Ask your own memory.</Text>
                   <Text style={[styles.askIntroBody, { color: theme.textSecondary }]}>Links, dates, documents, ideas and saved context — grounded in what you captured.</Text>
@@ -263,15 +267,15 @@ export default function SearchScreen() {
                   accessibilityRole="button"
                   disabled={!query.trim()}
                   onPress={askNever}
-                  style={({ pressed }) => [styles.askButton, { backgroundColor: query.trim() ? theme.chrome : theme.fillStrong, opacity: !query.trim() ? 0.55 : pressed ? 0.72 : 1 }]}
+                  style={({ pressed }) => [styles.askButton, { backgroundColor: query.trim() ? theme.sky : theme.fillStrong, opacity: !query.trim() ? 0.55 : pressed ? 0.72 : 1 }]}
                 >
-                  <Text style={[styles.askButtonText, { color: query.trim() ? theme.onAccent : theme.textTertiary }]}>Ask</Text>
+                  <Text style={[styles.askButtonText, { color: query.trim() ? '#FFFFFF' : theme.textTertiary }]}>Ask</Text>
                 </Pressable>
               </View>
             ) : null}
 
             {asking ? (
-              <View style={[styles.answerCard, { backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFFA', borderColor: dark ? '#FFFFFF10' : '#00000008', shadowColor: theme.shadow }]}>
+              <View style={[styles.answerCard, { backgroundColor: dark ? '#1C1C1ECB' : '#FFFFFFDA', borderColor: dark ? '#FFFFFF17' : '#FFFFFFF0', shadowColor: theme.shadow }]}>
                 <View style={styles.thinkingRow}>
                   <ActivityIndicator size="small" />
                   <Text style={[styles.thinkingText, { color: theme.textSecondary }]}>Looking through your memory…</Text>
@@ -323,7 +327,7 @@ export default function SearchScreen() {
     const body = withoutStandaloneUrlLines(current.body);
     const sources = current.sourceIds.map((id) => itemById.get(id)).filter((item): item is OneItem => Boolean(item)).slice(0, 5);
     return (
-      <View style={[styles.answerCard, { backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFFA', borderColor: dark ? '#FFFFFF10' : '#00000008', shadowColor: theme.shadow }]}>
+      <View style={[styles.answerCard, { backgroundColor: dark ? '#1C1C1ECB' : '#FFFFFFDA', borderColor: dark ? '#FFFFFF17' : '#FFFFFFF0', shadowColor: theme.shadow }]}>
         <View style={styles.answerHeader}>
           <Text style={[styles.answerEyebrow, { color: theme.textTertiary }]}>NEVER</Text>
           <Text style={[styles.answerMode, { color: theme.textTertiary }]}>{current.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text>
@@ -420,48 +424,51 @@ function withoutStandaloneUrlLines(value: string) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  intro: { marginTop: -1 },
-  title: { fontFamily: editorialFontFamily, fontSize: 36, lineHeight: 40, fontWeight: '400', letterSpacing: -1 },
-  subtitle: { marginTop: 7, fontSize: 13, lineHeight: 18.5 },
+  intro: { marginTop: 5 },
+  title: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.12 },
+  subtitle: { marginTop: 5, fontSize: 12.75, lineHeight: 18.5 },
   searchBox: {
-    minHeight: 62,
-    borderRadius: 20,
+    minHeight: 64,
+    borderRadius: 24,
     borderWidth: StyleSheet.hairlineWidth,
     paddingLeft: 9,
     paddingRight: 8,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 9,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 9 },
-    elevation: 4
+    overflow: 'hidden',
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 5
   },
-  searchIconWell: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  searchHighlight: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth },
+  searchIconWell: { width: 40, height: 40, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   input: { flex: 1, minHeight: 50, fontSize: 15, lineHeight: 20 },
   clear: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
-  modeInline: { minWidth: 58, minHeight: 36, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
+  modeInline: { minWidth: 58, minHeight: 38, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
   modeInlineText: { fontSize: 8.6, lineHeight: 11, fontWeight: '800', letterSpacing: 0.7 },
-  segmented: { minHeight: 40, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, padding: 3, flexDirection: 'row', gap: 2 },
-  segment: { flex: 1, minHeight: 34, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  segmented: { minHeight: 43, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, padding: 4, flexDirection: 'row', gap: 2, overflow: 'hidden', shadowOpacity: 0.1, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 2 },
+  segmentedHighlight: { position: 'absolute', top: 0, left: 14, right: 14, height: StyleSheet.hairlineWidth },
+  segment: { flex: 1, minHeight: 35, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center' },
   segmentText: { fontSize: 10.75, fontWeight: '600' },
   resultsBlock: { gap: 10 },
   row: { minHeight: 74, paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  rowGlyph: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  previewImage: { width: 44, height: 44, borderRadius: 12 },
+  rowGlyph: { width: 40, height: 40, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  previewImage: { width: 44, height: 44, borderRadius: 14 },
   rowText: { flex: 1, minWidth: 0 },
   rowTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.16 },
   preview: { marginTop: 3, fontSize: 11.2, lineHeight: 14.5 },
   meta: { marginTop: 3, fontSize: 9.8, lineHeight: 12.5, fontWeight: '600' },
-  askBridge: { minHeight: 54, paddingHorizontal: 12, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, flexDirection: 'row', alignItems: 'center', gap: 10, shadowRadius: 16, shadowOffset: { width: 0, height: 7 }, elevation: 3 },
-  askBridgeIcon: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  askBridge: { minHeight: 56, paddingHorizontal: 12, borderWidth: StyleSheet.hairlineWidth, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 10, shadowRadius: 22, shadowOffset: { width: 0, height: 10 }, elevation: 3 },
+  askBridgeIcon: { width: 34, height: 34, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   askBridgeTitle: { flex: 1, fontSize: 12.25, fontWeight: '600' },
   askBlock: { gap: 12 },
-  askIntro: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 22, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 13, shadowOpacity: 0.1, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 3 },
+  askIntro: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 24, padding: 18, flexDirection: 'row', alignItems: 'center', gap: 13, shadowOpacity: 0.12, shadowRadius: 26, shadowOffset: { width: 0, height: 12 }, elevation: 3 },
   askIntroTitle: { fontFamily: editorialFontFamily, fontSize: 19.5, lineHeight: 23.5, fontWeight: '400' },
   askIntroBody: { marginTop: 5, fontSize: 11.25, lineHeight: 16 },
-  askButton: { minWidth: 60, minHeight: 40, paddingHorizontal: 13, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  askButton: { minWidth: 60, minHeight: 40, paddingHorizontal: 13, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   askButtonText: { fontSize: 11.75, fontWeight: '700' },
-  answerCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 22, overflow: 'hidden', paddingTop: 17, shadowOpacity: 0.1, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 3 },
+  answerCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 24, overflow: 'hidden', paddingTop: 17, shadowOpacity: 0.12, shadowRadius: 26, shadowOffset: { width: 0, height: 12 }, elevation: 3 },
   thinkingRow: { paddingHorizontal: 17, paddingBottom: 17, flexDirection: 'row', alignItems: 'center', gap: 9 },
   thinkingText: { fontSize: 11.75, lineHeight: 15.5 },
   errorCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, padding: 14 },
@@ -473,7 +480,7 @@ const styles = StyleSheet.create({
   answerBody: { paddingHorizontal: 17, marginTop: 8, fontSize: 12, lineHeight: 17.5 },
   answerLinks: { marginTop: 13 },
   answerLink: { minHeight: 58, paddingHorizontal: 17, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  answerLinkIcon: { width: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  answerLinkIcon: { width: 30, height: 30, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   answerLinkLabel: { fontSize: 11.75, fontWeight: '600' },
   answerLinkUrl: { marginTop: 2, fontSize: 10, lineHeight: 13 },
   answerMeta: { paddingHorizontal: 17, marginTop: 11, fontSize: 9.25, lineHeight: 13 },
