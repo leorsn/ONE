@@ -9,20 +9,22 @@ import { useItems } from '@/src/context/ItemsContext';
 import { useOnboarding } from '@/src/context/OnboardingContext';
 import { usePlan } from '@/src/context/PlanContext';
 import { deleteOneAccount } from '@/src/supabase/account';
-import { BrandHeader, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { BrandHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
-import { editorialFontFamily } from '@/src/theme/typography';
 
 const APP_VERSION = Constants.expoConfig?.version || '0.1.0';
 const APPLE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
+
+type RowTone = 'neutral' | 'blue' | 'red' | 'green' | 'gold' | 'plum';
 
 export default function SettingsScreen() {
   const theme = useTheme();
   const { session, signOut } = useAuth();
   const { syncStatus, retrySync, clearAll } = useItems();
   const { reset: resetOnboarding } = useOnboarding();
-  const { preference } = useThemePreference();
+  const { preference, resolvedMode } = useThemePreference();
+  const dark = resolvedMode === 'dark';
   const { plan, isBetaAccess, hasAi, billingConfigured, localizedPrices, managementUrl } = usePlan();
   const [deletingAccount, setDeletingAccount] = useState(false);
   const hasStoreSubscription = billingConfigured && plan !== 'none';
@@ -118,15 +120,15 @@ export default function SettingsScreen() {
             style={({ pressed }) => [
               styles.profileCard,
               {
-                backgroundColor: `${theme.surfaceElevated}C8`,
-                borderColor: `${theme.text}14`,
+                backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFFA',
+                borderColor: dark ? '#FFFFFF10' : '#00000008',
                 shadowColor: theme.shadow,
-                opacity: pressed ? 0.68 : 1
+                shadowOpacity: dark ? 0.2 : 0.1,
+                opacity: pressed ? 0.7 : 1
               }
             ]}
           >
-            <View pointerEvents="none" style={[styles.profileShine, { backgroundColor: `${theme.text}0D` }]} />
-            <View style={[styles.avatar, { backgroundColor: `${theme.fill}A8`, borderColor: `${theme.text}12` }]}>
+            <View style={[styles.avatar, { backgroundColor: dark ? '#2C2C2EF0' : '#F2F2F7' }]}>
               {initials ? <Text style={[styles.avatarText, { color: theme.chrome }]}>{initials}</Text> : <OneIcon name={icons.person} size={18.5} color={theme.chrome} />}
             </View>
             <View style={styles.profileCopy}>
@@ -134,36 +136,36 @@ export default function SettingsScreen() {
               <Text style={[styles.profileEmail, { color: theme.textSecondary }]} numberOfLines={1}>{session.user.email}</Text>
             </View>
             <View style={styles.profileMeta}>
-              <View style={[styles.planBadge, { backgroundColor: `${theme.fill}78`, borderColor: `${theme.text}10` }]}>
+              <View style={[styles.planBadge, { backgroundColor: dark ? '#2C2C2EF0' : '#F2F2F7' }]}>
                 <Text style={[styles.planLabel, { color: theme.textSecondary }]}>{isBetaAccess ? 'BETA' : membershipLabel(plan).toUpperCase()}</Text>
               </View>
-              <View style={[styles.rowArrow, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}0E` }]}>
-                <OneIcon name={icons.chevron} size={10.5} color={theme.textTertiary} />
-              </View>
+              <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
             </View>
           </Pressable>
         ) : null}
 
         <SettingsSection title="Preferences">
-          <SettingsRow icon={icons.appearance} label="Appearance" value={appearanceLabel(preference)} onPress={() => router.push('/settings/appearance')} />
-          <SettingsRow icon={icons.bell} label="Notifications" value="Reminders and alerts" onPress={() => router.push('/settings/notifications')} />
-          <SettingsRow icon={icons.cloud} label="Cloud sync" value={syncLabel} onPress={syncStatus === 'problem' ? retrySync : undefined} />
-          <SettingsRow icon={icons.shield} label="Security & Privacy" value="Export, legal and account controls" onPress={() => router.push('/settings/privacy')} last />
+          <SettingsRow tone="blue" icon={icons.appearance} label="Appearance" value={appearanceLabel(preference)} onPress={() => router.push('/settings/appearance')} />
+          <SettingsRow tone="red" icon={icons.bell} label="Notifications" value="Reminders and alerts" onPress={() => router.push('/settings/notifications')} />
+          <SettingsRow tone="blue" icon={icons.cloud} label="Cloud sync" value={syncLabel} onPress={syncStatus === 'problem' ? retrySync : undefined} />
+          <SettingsRow tone="green" icon={icons.shield} label="Security & Privacy" value="Export, legal and account controls" onPress={() => router.push('/settings/privacy')} last />
         </SettingsSection>
 
         <SettingsSection title="Membership">
           <SettingsRow
+            tone="gold"
             icon={icons.crown}
             label={membershipLabel(plan)}
             value={isBetaAccess ? 'Beta access' : membershipValue(plan, localizedPrices, billingConfigured)}
             onPress={() => router.push('/upgrade')}
             last={!subscriptionManagementUrl}
           />
-          {subscriptionManagementUrl ? <SettingsRow icon={icons.settings} label="Manage subscription" value="Open store subscription settings" onPress={openSubscriptionManagement} last /> : null}
+          {subscriptionManagementUrl ? <SettingsRow tone="neutral" icon={icons.settings} label="Manage subscription" value="Open store subscription settings" onPress={openSubscriptionManagement} last /> : null}
         </SettingsSection>
 
         <SettingsSection title="NEVER">
           <SettingsRow
+            tone="plum"
             icon={icons.ask}
             label="Replay onboarding"
             value="Review the core NEVER concepts"
@@ -173,31 +175,27 @@ export default function SettingsScreen() {
               router.replace('/onboarding');
             }}
           />
-          <SettingsRow icon={icons.info} label="About NEVER" value={`Version ${APP_VERSION}`} last />
+          <SettingsRow tone="neutral" icon={icons.info} label="About NEVER" value={`Version ${APP_VERSION}`} last />
         </SettingsSection>
 
         {session ? (
           <SettingsSection title="Account">
-            <SettingsRow icon={icons.logout} label="Sign out" value="Keep your account and cloud data" onPress={runSignOut} />
+            <SettingsRow tone="neutral" icon={icons.logout} label="Sign out" value="Keep your account and cloud data" onPress={runSignOut} />
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Delete NEVER account permanently"
               disabled={deletingAccount}
               onPress={confirmDeleteAccount}
-              style={({ pressed }) => [styles.dangerRow, { borderTopColor: `${theme.text}10`, opacity: pressed || deletingAccount ? 0.58 : 1 }]}
+              style={({ pressed }) => [styles.dangerRow, { borderTopColor: `${theme.text}0D`, backgroundColor: pressed ? `${theme.fill}42` : 'transparent', opacity: deletingAccount ? 0.58 : 1 }]}
             >
-              <View style={[styles.rowIcon, { backgroundColor: `${theme.danger}13`, borderColor: `${theme.danger}30` }]}>
+              <View style={[styles.rowIcon, { backgroundColor: `${theme.danger}${dark ? '24' : '18'}` }]}>
                 <OneIcon name={icons.delete} size={15.5} color={theme.danger} />
               </View>
               <View style={styles.rowCopy}>
                 <Text style={[styles.rowLabel, { color: theme.danger }]}>Delete account</Text>
                 <Text style={[styles.rowValue, { color: theme.textTertiary }]}>Permanently delete your NEVER account and synced data</Text>
               </View>
-              {deletingAccount ? <ActivityIndicator size="small" /> : (
-                <View style={[styles.rowArrow, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}0E` }]}>
-                  <OneIcon name={icons.chevron} size={10.5} color={theme.textTertiary} />
-                </View>
-              )}
+              {deletingAccount ? <ActivityIndicator size="small" /> : <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />}
             </Pressable>
           </SettingsSection>
         ) : null}
@@ -210,45 +208,52 @@ export default function SettingsScreen() {
   function SettingsSection({ title: sectionTitle, children }: { title: string; children: React.ReactNode }) {
     return (
       <View style={styles.block}>
-        <SectionHeader title={sectionTitle} />
+        <Text style={[styles.groupTitle, { color: theme.textSecondary }]}>{sectionTitle.toUpperCase()}</Text>
         <Surface>{children}</Surface>
       </View>
     );
   }
 
-  function SettingsRow({ icon, label, value, last = false, onPress }: {
+  function SettingsRow({ tone, icon, label, value, last = false, onPress }: {
+    tone: RowTone;
     icon: (typeof icons)[keyof typeof icons];
     label: string;
     value: string;
     last?: boolean;
     onPress?: () => void | Promise<void>;
   }) {
+    const tint = toneColor(tone, theme);
     const content = (
       <>
-        <View style={[styles.rowIcon, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}0E` }]}>
-          <OneIcon name={icon} size={15.5} color={theme.textSecondary} />
+        <View style={[styles.rowIcon, { backgroundColor: `${tint}${dark ? '24' : '18'}` }]}>
+          <OneIcon name={icon} size={15.5} color={tint} />
         </View>
         <View style={styles.rowCopy}>
           <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
           <Text style={[styles.rowValue, { color: theme.textSecondary }]} numberOfLines={2}>{value}</Text>
         </View>
-        {onPress ? (
-          <View style={[styles.rowArrow, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}0E` }]}>
-            <OneIcon name={icons.chevron} size={10.5} color={theme.textTertiary} />
-          </View>
-        ) : null}
+        {onPress ? <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} /> : null}
       </>
     );
-    const separator = !last ? { borderBottomColor: `${theme.text}10`, borderBottomWidth: StyleSheet.hairlineWidth } : undefined;
+    const separator = !last ? { borderBottomColor: `${theme.text}0D`, borderBottomWidth: StyleSheet.hairlineWidth } : undefined;
     if (onPress) {
       return (
-        <Pressable onPress={onPress} style={({ pressed }) => [styles.row, separator, { opacity: pressed ? 0.58 : 1 }]} accessibilityRole="button">
+        <Pressable onPress={onPress} style={({ pressed }) => [styles.row, separator, { backgroundColor: pressed ? `${theme.fill}42` : 'transparent' }]} accessibilityRole="button">
           {content}
         </Pressable>
       );
     }
     return <View style={[styles.row, separator]}>{content}</View>;
   }
+}
+
+function toneColor(tone: RowTone, theme: ReturnType<typeof useTheme>) {
+  if (tone === 'blue') return theme.sky;
+  if (tone === 'red') return theme.danger;
+  if (tone === 'green') return theme.success;
+  if (tone === 'gold') return theme.warning;
+  if (tone === 'plum') return theme.plum;
+  return theme.textSecondary;
 }
 
 function displayName(metadata?: Record<string, unknown>) {
@@ -283,26 +288,25 @@ function appearanceLabel(value: 'system' | 'light' | 'dark') {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  intro: { marginTop: -2 },
-  title: { fontFamily: editorialFontFamily, fontSize: 34, lineHeight: 38, fontWeight: '400', letterSpacing: -0.9 },
-  subtitle: { marginTop: 6, fontSize: 12.5, lineHeight: 18 },
-  profileCard: { minHeight: 80, borderRadius: 21, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 11, overflow: 'hidden', shadowOpacity: 0.11, shadowRadius: 22, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
-  profileShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth },
-  avatar: { width: 44, height: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 12.5, lineHeight: 15, fontWeight: '700', letterSpacing: 0.4 },
+  intro: { marginTop: -1 },
+  title: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.1 },
+  subtitle: { marginTop: 6, fontSize: 13, lineHeight: 18.5 },
+  profileCard: { minHeight: 82, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12, shadowRadius: 22, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
+  avatar: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 13, lineHeight: 16, fontWeight: '700', letterSpacing: 0.35 },
   profileCopy: { flex: 1, minWidth: 0 },
-  profileTitle: { fontSize: 14.25, lineHeight: 18, fontWeight: '600' },
-  profileEmail: { marginTop: 2, fontSize: 10.75, lineHeight: 14 },
-  profileMeta: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  planBadge: { minHeight: 26, paddingHorizontal: 9, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  profileTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  profileEmail: { marginTop: 2, fontSize: 10.9, lineHeight: 14 },
+  profileMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  planBadge: { minHeight: 28, paddingHorizontal: 10, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   planLabel: { fontSize: 8.1, fontWeight: '700', letterSpacing: 0.82 },
-  block: { gap: 10 },
-  row: { minHeight: 64, paddingHorizontal: 14, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  rowIcon: { width: 34, height: 34, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  rowArrow: { width: 23, height: 23, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  block: { gap: 7 },
+  groupTitle: { paddingHorizontal: 7, fontSize: 8.5, lineHeight: 12, fontWeight: '700', letterSpacing: 1.15 },
+  row: { minHeight: 62, paddingHorizontal: 15, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  rowIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   rowCopy: { flex: 1, minWidth: 0 },
-  rowLabel: { fontSize: 13.65, lineHeight: 17.25, fontWeight: '600', letterSpacing: -0.06 },
+  rowLabel: { fontSize: 13.75, lineHeight: 17.25, fontWeight: '600', letterSpacing: -0.08 },
   rowValue: { marginTop: 2, fontSize: 10.6, lineHeight: 14.5 },
-  dangerRow: { minHeight: 68, paddingHorizontal: 14, paddingVertical: 9, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  footer: { textAlign: 'center', fontSize: 8.35, fontWeight: '600', letterSpacing: 1.18, marginTop: 1 }
+  dangerRow: { minHeight: 66, paddingHorizontal: 15, paddingVertical: 9, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  footer: { textAlign: 'center', fontSize: 8.35, fontWeight: '600', letterSpacing: 1.18, marginTop: 2 }
 });
