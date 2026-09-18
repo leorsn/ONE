@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { OneIcon } from '@/src/ui/icons';
-import { useTheme } from '@/src/theme/useTheme';
+import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 import { editorialFontFamily } from '@/src/theme/typography';
 
 type IconName = (typeof import('@/src/ui/icons').icons)[keyof typeof import('@/src/ui/icons').icons];
@@ -97,19 +97,23 @@ export function SectionHeader({
 
 export function Surface({ children, padded = false }: { children: ReactNode; padded?: boolean }) {
   const theme = useTheme();
+  const { resolvedMode } = useThemePreference();
+  const dark = resolvedMode === 'dark';
   return (
     <View
       style={[
         styles.surface,
         {
-          backgroundColor: `${theme.surfaceElevated}D6`,
-          borderColor: `${theme.text}14`,
-          shadowColor: theme.shadow
+          backgroundColor: dark ? `${theme.surface}FA` : `${theme.surface}F7`,
+          borderColor: dark ? '#FFFFFF10' : '#0000000A',
+          shadowColor: theme.shadow,
+          shadowOpacity: dark ? 0.22 : 0.09,
+          elevation: dark ? 1 : 4
         },
         padded && styles.surfacePadded
       ]}
     >
-      <View pointerEvents="none" style={[styles.surfaceShine, { backgroundColor: `${theme.text}0D` }]} />
+      <View pointerEvents="none" style={[styles.surfaceHighlight, { backgroundColor: dark ? '#FFFFFF12' : '#FFFFFFE8' }]} />
       {children}
     </View>
   );
@@ -125,14 +129,16 @@ export function IconTile({
   size?: number;
 }) {
   const theme = useTheme();
+  const { resolvedMode } = useThemePreference();
+  const dark = resolvedMode === 'dark';
   const palette = {
-    accent: [theme.accentSoft, theme.chrome, `${theme.chrome}22`],
-    neutral: [theme.fill, theme.textSecondary, theme.border],
-    success: [theme.successSoft, theme.success, `${theme.success}28`],
-    danger: [theme.dangerSoft, theme.danger, `${theme.danger}28`],
-    warning: [theme.warningSoft, theme.warning, `${theme.warning}28`],
-    info: [theme.skySoft, theme.sky, `${theme.sky}28`],
-    memory: [theme.plumSoft, theme.plum, `${theme.plum}28`]
+    accent: [theme.accentSoft, theme.chrome],
+    neutral: [theme.fill, theme.textSecondary],
+    success: [theme.successSoft, theme.success],
+    danger: [theme.dangerSoft, theme.danger],
+    warning: [theme.warningSoft, theme.warning],
+    info: [theme.skySoft, theme.sky],
+    memory: [theme.plumSoft, theme.plum]
   } as const;
   const [background, color] = palette[tone];
 
@@ -143,14 +149,15 @@ export function IconTile({
         {
           width: size,
           height: size,
-          borderRadius: Math.max(10, Math.round(size * 0.24)),
-          backgroundColor: `${background}C8`,
-          borderColor: `${color}26`,
-          shadowColor: theme.shadow
+          borderRadius: Math.max(11, Math.round(size * 0.28)),
+          backgroundColor: dark ? `${background}B8` : `${background}F0`,
+          borderColor: dark ? '#FFFFFF10' : '#00000008',
+          shadowColor: theme.shadow,
+          shadowOpacity: dark ? 0.08 : 0.06
         }
       ]}
     >
-      <OneIcon name={icon} size={Math.round(size * 0.43)} color={color} />
+      <OneIcon name={icon} size={Math.round(size * 0.42)} color={color} />
     </View>
   );
 }
@@ -167,6 +174,8 @@ export function RoundIconButton({
   filled?: boolean;
 }) {
   const theme = useTheme();
+  const { resolvedMode } = useThemePreference();
+  const dark = resolvedMode === 'dark';
   return (
     <Pressable
       onPress={async () => {
@@ -178,16 +187,17 @@ export function RoundIconButton({
       style={({ pressed }) => [
         styles.roundButton,
         {
-          backgroundColor: filled ? `${theme.chrome}E2` : `${theme.surfaceElevated}C8`,
-          borderColor: filled ? `${theme.chrome}88` : `${theme.text}18`,
+          backgroundColor: filled ? theme.chrome : dark ? `${theme.surfaceElevated}F0` : '#FFFFFFF2',
+          borderColor: filled ? `${theme.chrome}B8` : dark ? '#FFFFFF14' : '#0000000C',
           shadowColor: theme.shadow,
-          opacity: pressed ? 0.64 : 1,
-          transform: [{ scale: pressed ? 0.97 : 1 }]
+          shadowOpacity: dark ? 0.2 : 0.12,
+          opacity: pressed ? 0.72 : 1,
+          transform: [{ scale: pressed ? 0.965 : 1 }]
         }
       ]}
     >
-      <View pointerEvents="none" style={[styles.roundShine, { backgroundColor: `${theme.text}0F` }]} />
-      <OneIcon name={icon} size={16.5} color={filled ? theme.onAccent : theme.chrome} />
+      <View pointerEvents="none" style={[styles.roundHighlight, { backgroundColor: dark ? '#FFFFFF10' : '#FFFFFFE8' }]} />
+      <OneIcon name={icon} size={17} color={filled ? theme.onAccent : theme.chrome} />
     </Pressable>
   );
 }
@@ -196,7 +206,9 @@ export function EmptyState({ icon, title, body }: { icon: IconName; title: strin
   const theme = useTheme();
   return (
     <View style={styles.emptyState}>
-      <OneIcon name={icon} size={21} color={theme.textTertiary} />
+      <View style={[styles.emptyIcon, { backgroundColor: `${theme.fill}A8` }]}>
+        <OneIcon name={icon} size={19} color={theme.textTertiary} />
+      </View>
       <Text style={[styles.emptyTitle, { color: theme.text }]}>{title}</Text>
       <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>{body}</Text>
     </View>
@@ -225,15 +237,14 @@ export function PrimaryButton({
       style={({ pressed }) => [
         styles.primaryButton,
         {
-          backgroundColor: `${theme.chrome}E2`,
-          borderColor: `${theme.text}22`,
+          backgroundColor: theme.chrome,
+          borderColor: `${theme.chrome}D8`,
           shadowColor: theme.shadow,
-          opacity: disabled ? 0.42 : pressed ? 0.76 : 1,
-          transform: [{ scale: pressed ? 0.992 : 1 }]
+          opacity: disabled ? 0.42 : pressed ? 0.78 : 1,
+          transform: [{ scale: pressed ? 0.988 : 1 }]
         }
       ]}
     >
-      <View pointerEvents="none" style={[styles.primaryShine, { backgroundColor: `${theme.onAccent}18` }]} />
       {icon ? <OneIcon name={icon} size={15.5} color={theme.onAccent} /> : null}
       <Text style={[styles.primaryButtonText, { color: theme.onAccent }]}>{label}</Text>
     </Pressable>
@@ -245,18 +256,18 @@ export const uiStyles = StyleSheet.create({
     width: '100%',
     maxWidth: 760,
     alignSelf: 'center',
-    paddingHorizontal: 18,
-    paddingTop: 10,
-    paddingBottom: 110,
-    gap: 19
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 118,
+    gap: 22
   }
 });
 
 const styles = StyleSheet.create({
   brandHeader: { minHeight: 62, flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingTop: 2 },
-  wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  wordmark: { fontSize: 17.5, lineHeight: 21, fontWeight: '700', letterSpacing: 5.4 },
-  brandLine: { marginTop: 7, fontSize: 8.1, lineHeight: 11.5, fontWeight: '700', letterSpacing: 1.5 },
+  wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  wordmark: { fontSize: 18, lineHeight: 22, fontWeight: '700', letterSpacing: 5.5 },
+  brandLine: { marginTop: 8, fontSize: 8.2, lineHeight: 11.5, fontWeight: '700', letterSpacing: 1.55 },
   signal: { height: 4, width: 49, flexDirection: 'row', alignItems: 'center', gap: 3 },
   signalCompact: { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] },
   signalGraphite: { width: 24, height: 4, borderRadius: 2 },
@@ -267,64 +278,59 @@ const styles = StyleSheet.create({
   sectionAccentRed: { width: 2, height: 10, borderRadius: 2 },
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingTop: 2 },
   eyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 2, marginBottom: 8 },
-  pageTitle: { fontSize: 30, lineHeight: 35, fontWeight: '600', letterSpacing: -1 },
-  editorialTitle: { fontFamily: editorialFontFamily, fontWeight: '400', letterSpacing: -0.78 },
-  pageSubtitle: { marginTop: 6, maxWidth: 440, fontSize: 12.5, lineHeight: 18 },
-  sectionHeader: { minHeight: 26, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  pageTitle: { fontSize: 31, lineHeight: 36, fontWeight: '700', letterSpacing: -1 },
+  editorialTitle: { fontFamily: editorialFontFamily, fontWeight: '400', letterSpacing: -0.8 },
+  pageSubtitle: { marginTop: 6, maxWidth: 440, fontSize: 12.75, lineHeight: 18.5 },
+  sectionHeader: { minHeight: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionTitle: { fontSize: 16.25, lineHeight: 20, fontWeight: '600', letterSpacing: -0.24 },
-  sectionMeta: { fontSize: 10.25, fontWeight: '600', letterSpacing: 0.12 },
+  sectionTitle: { fontSize: 16.5, lineHeight: 20.5, fontWeight: '700', letterSpacing: -0.3 },
+  sectionMeta: { fontSize: 10.25, fontWeight: '600', letterSpacing: 0.08 },
   surface: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 19,
+    borderRadius: 22,
     overflow: 'hidden',
-    shadowOpacity: 0.11,
     shadowRadius: 24,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 4
+    shadowOffset: { width: 0, height: 10 }
   },
-  surfaceShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth, zIndex: 2 },
-  surfacePadded: { padding: 16 },
+  surfaceHighlight: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth, zIndex: 2 },
+  surfacePadded: { padding: 18 },
   iconTile: {
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    shadowOpacity: 0.07,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2
+    shadowRadius: 9,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 1
   },
   roundButton: {
-    width: 42,
-    height: 42,
-    borderRadius: 21,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
     overflow: 'hidden',
-    shadowOpacity: 0.13,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 7 },
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
     elevation: 4
   },
-  roundShine: { position: 'absolute', top: 0, left: 8, right: 8, height: StyleSheet.hairlineWidth },
-  emptyState: { minHeight: 104, paddingHorizontal: 24, paddingVertical: 20, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { marginTop: 9, fontSize: 14.1, fontWeight: '600', letterSpacing: -0.1 },
-  emptyBody: { marginTop: 5, maxWidth: 270, fontSize: 11.75, lineHeight: 17.25, textAlign: 'center' },
+  roundHighlight: { position: 'absolute', top: 0, left: 10, right: 10, height: StyleSheet.hairlineWidth },
+  emptyState: { minHeight: 118, paddingHorizontal: 24, paddingVertical: 22, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { marginTop: 11, fontSize: 14.25, fontWeight: '600', letterSpacing: -0.12 },
+  emptyBody: { marginTop: 5, maxWidth: 280, fontSize: 11.75, lineHeight: 17.25, textAlign: 'center' },
   primaryButton: {
     minHeight: 50,
-    borderRadius: 16,
+    borderRadius: 14,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    overflow: 'hidden',
-    shadowOpacity: 0.11,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 4
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 7 },
+    elevation: 3
   },
-  primaryShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth },
   primaryButtonText: { fontSize: 13.75, fontWeight: '700', letterSpacing: -0.04 }
 });
