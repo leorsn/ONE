@@ -9,7 +9,7 @@ import { useItems } from '@/src/context/ItemsContext';
 import { useOnboarding } from '@/src/context/OnboardingContext';
 import { usePlan } from '@/src/context/PlanContext';
 import { deleteOneAccount } from '@/src/supabase/account';
-import { BrandHeader, NeverSignal, Surface, uiStyles } from '@/src/ui/primitives';
+import { BrandHeader, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 import { editorialFontFamily } from '@/src/theme/typography';
@@ -188,13 +188,10 @@ export default function SettingsScreen() {
     </SafeAreaView>
   );
 
-  function SettingsSection({ title, children }: { title: string; children: React.ReactNode }) {
+  function SettingsSection({ title: sectionTitle, children }: { title: string; children: React.ReactNode }) {
     return (
       <View style={styles.block}>
-        <View style={styles.sectionHeading}>
-          <NeverSignal compact />
-          <Text style={[styles.sectionTitle, { color: theme.text }]}>{title}</Text>
-        </View>
+        <SectionHeader title={sectionTitle} />
         <Surface>{children}</Surface>
       </View>
     );
@@ -209,7 +206,9 @@ export default function SettingsScreen() {
   }) {
     const content = (
       <>
-        <OneIcon name={icon} size={17} color={theme.textSecondary} />
+        <View style={styles.rowIcon}>
+          <OneIcon name={icon} size={16.5} color={theme.textSecondary} />
+        </View>
         <View style={styles.rowCopy}>
           <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
           <Text style={[styles.rowValue, { color: theme.textSecondary }]} numberOfLines={2}>{value}</Text>
@@ -262,23 +261,22 @@ function appearanceLabel(value: 'system' | 'light' | 'dark') {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   intro: { marginTop: -2 },
-  title: { fontFamily: editorialFontFamily, fontSize: 34, lineHeight: 38, fontWeight: '400', letterSpacing: -0.9 },
+  title: { fontFamily: editorialFontFamily, fontSize: 33, lineHeight: 37, fontWeight: '400', letterSpacing: -0.88 },
   subtitle: { marginTop: 6, fontSize: 12.5, lineHeight: 18 },
-  profileCard: { minHeight: 74, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  profileCard: { minHeight: 72, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 11 },
   avatar: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 12.5, lineHeight: 15, fontWeight: '700', letterSpacing: 0.4 },
   profileCopy: { flex: 1, minWidth: 0 },
-  profileTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
-  profileEmail: { marginTop: 3, fontSize: 11, lineHeight: 14.5 },
+  profileTitle: { fontSize: 14.25, lineHeight: 18, fontWeight: '600' },
+  profileEmail: { marginTop: 2, fontSize: 10.75, lineHeight: 14 },
   profileMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  planLabel: { fontSize: 8.25, fontWeight: '700', letterSpacing: 0.85 },
+  planLabel: { fontSize: 8.1, fontWeight: '700', letterSpacing: 0.82 },
   block: { gap: 9 },
-  sectionHeading: { minHeight: 27, flexDirection: 'row', alignItems: 'center', gap: 7 },
-  sectionTitle: { fontSize: 16.75, lineHeight: 20.5, fontWeight: '600', letterSpacing: -0.26 },
-  row: { minHeight: 62, paddingHorizontal: 15, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  row: { minHeight: 59, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  rowIcon: { width: 23, alignItems: 'center', justifyContent: 'center' },
   rowCopy: { flex: 1, minWidth: 0 },
-  rowLabel: { fontSize: 13.9, lineHeight: 17.5, fontWeight: '600', letterSpacing: -0.08 },
-  rowValue: { marginTop: 3, fontSize: 10.9, lineHeight: 15 },
-  dangerRow: { minHeight: 68, paddingHorizontal: 15, paddingVertical: 10, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  footer: { textAlign: 'center', fontSize: 8.5, fontWeight: '600', letterSpacing: 1.2, marginTop: 1 }
+  rowLabel: { fontSize: 13.65, lineHeight: 17.25, fontWeight: '600', letterSpacing: -0.06 },
+  rowValue: { marginTop: 2, fontSize: 10.6, lineHeight: 14.5 },
+  dangerRow: { minHeight: 64, paddingHorizontal: 14, paddingVertical: 9, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  footer: { textAlign: 'center', fontSize: 8.35, fontWeight: '600', letterSpacing: 1.18, marginTop: 1 }
 });
