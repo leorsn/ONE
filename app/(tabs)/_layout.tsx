@@ -36,10 +36,10 @@ export default function TabsLayout() {
           borderTopWidth: StyleSheet.hairlineWidth,
           borderRadius: 18,
           shadowColor: theme.shadow,
-          shadowOpacity: 0.065,
-          shadowRadius: 16,
+          shadowOpacity: 0.055,
+          shadowRadius: 15,
           shadowOffset: { width: 0, height: 6 },
-          elevation: 6
+          elevation: 5
         },
         tabBarItemStyle: { paddingTop: 1 },
         tabBarLabelStyle: {
@@ -48,14 +48,14 @@ export default function TabsLayout() {
           letterSpacing: 0.02,
           marginTop: 0
         },
-        tabBarActiveTintColor: theme.text,
+        tabBarActiveTintColor: theme.sky,
         tabBarInactiveTintColor: theme.textTertiary,
         tabBarIcon: ({ color, focused }) => (
           <View style={styles.iconStack}>
             <OneIcon
               name={tabIcon[route.name as keyof typeof tabIcon]}
               size={focused ? 18.5 : 17.5}
-              color={focused ? theme.text : color}
+              color={focused ? theme.sky : color}
             />
             {focused ? (
               <View style={styles.activeSignal} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
