@@ -1,6 +1,7 @@
 import { supabase } from '@/src/supabase/client';
 import { buildDirectAnswer } from '@/src/search/answer';
 import { buildFollowUpAnswer } from '@/src/search/followUp';
+import { buildSpecificLinkAnswer } from '@/src/search/linkAnswer';
 import type { RetrievalResult } from '@/src/search/retrieve';
 import type { OneItem } from '@/src/types/item';
 import {
@@ -28,9 +29,24 @@ export async function answerFromRetrievedItems({
   const retrievedItems = retrieval.map((result) => result.item);
   const linkQuestion = asksForExactLink(query);
 
-  // Exact saved URLs are a retrieval task, not a synthesis task. Prefer the
-  // deterministic saved value so the model cannot replace it with a source card
-  // or paraphrase it away.
+  if (linkQuestion) {
+    const previousItems = previousSourceIds
+      .map((id) => allItems.find((item) => item.id === id))
+      .filter((item): item is OneItem => Boolean(item));
+    const linkScope = previousItems.length ? previousItems : retrievedItems.length ? retrievedItems : allItems;
+    const specificLink = buildSpecificLinkAnswer(query, linkScope);
+    if (specificLink) {
+      return {
+        title: specificLink.title,
+        body: specificLink.body,
+        sourceIds: specificLink.itemIds,
+        evidence: 'saved',
+        mode: 'deterministic',
+        meta: specificLink.meta
+      };
+    }
+  }
+
   const direct = buildDirectAnswer(query, allItems, retrievedItems[0], now);
   if (direct && (direct.kind !== 'memory' || linkQuestion)) {
     return {
@@ -115,5 +131,5 @@ export async function answerFromRetrievedItems({
 
 function asksForExactLink(value: string) {
   const clean = value.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
-  return /\b(link|url|webseite|website)\b/.test(clean);
+  return /\b(link|links|url|urls|webseite|website)\b/.test(clean);
 }
