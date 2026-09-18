@@ -81,15 +81,18 @@ export function IconTile({
   size = 38
 }: {
   icon: IconName;
-  tone?: 'accent' | 'neutral' | 'success' | 'danger';
+  tone?: 'accent' | 'neutral' | 'success' | 'danger' | 'warning' | 'info' | 'memory';
   size?: number;
 }) {
   const theme = useTheme();
   const palette = {
-    accent: [theme.chromeSoft, theme.chrome],
+    accent: [theme.accentSoft, theme.accent],
     neutral: [theme.fill, theme.textSecondary],
-    success: [theme.fill, theme.success],
-    danger: [theme.fill, theme.danger]
+    success: [theme.successSoft, theme.success],
+    danger: [theme.dangerSoft, theme.danger],
+    warning: [theme.warningSoft, theme.warning],
+    info: [theme.skySoft, theme.sky],
+    memory: [theme.plumSoft, theme.plum]
   } as const;
   const [background, color] = palette[tone];
 
