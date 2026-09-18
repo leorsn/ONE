@@ -6,12 +6,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { buildItemFromCapture } from '@/src/capture/buildItem';
 import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
 import { interpretCapture, requiresStructuredReview, type CaptureDraft } from '@/src/capture/core';
+import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { isInboxActive, triageActionChanges, triagePriority } from '@/src/inbox/triage';
 import { buildTodayEntries, todayReasonLabel } from '@/src/inbox/today';
 import { notificationSaveWarning } from '@/src/notifications/status';
 import { TriageRow } from '@/src/ui/TriageRow';
-import { OneItemRow, iconForType } from '@/src/ui/OneItemRow';
+import { OneItemRow } from '@/src/ui/OneItemRow';
 import { BrandHeader, IconTile, PrimaryButton, RoundIconButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
@@ -20,10 +21,11 @@ import type { OneInboxAction, OneItem } from '@/src/types/item';
 
 export default function InboxScreen() {
   const theme = useTheme();
+  const { session } = useAuth();
   const captureRef = useRef<TextInput>(null);
   const [input, setInput] = useState('');
   const [reviewedDraft, setReviewedDraft] = useState<CaptureDraft | null>(null);
-  const { items, add, update, toggleCompleted } = useItems();
+  const { items, add, update } = useItems();
 
   const automaticDraft = useMemo(
     () => input.trim() ? interpretCapture({ rawText: input, sourceType: 'manual' }) : null,
@@ -32,6 +34,7 @@ export default function InboxScreen() {
   const draft = reviewedDraft ?? automaticDraft;
   const structuredReview = draft ? requiresStructuredReview(draft) : false;
   const now = new Date();
+  const firstName = displayFirstName(session?.user.user_metadata);
 
   const recentItems = [...items]
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
@@ -85,7 +88,9 @@ export default function InboxScreen() {
         />
 
         <View style={styles.hero}>
-          <Text style={[styles.heroTitle, { color: theme.text }]}>{greetingFor(new Date())}</Text>
+          <Text style={[styles.heroTitle, { color: theme.text }]}>
+            {greetingFor(now)}{firstName ? `\n${firstName}.` : ''}
+          </Text>
           <Text style={[styles.heroSubtitle, { color: theme.textSecondary }]}>Everything you want to remember, in one place.</Text>
         </View>
 
@@ -267,22 +272,29 @@ export default function InboxScreen() {
           { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }
         ]}
       >
-        <OneIcon name={icon} size={19} color={theme.chrome} />
+        <OneIcon name={icon} size={18.5} color={theme.chrome} />
         <View style={{ flex: 1 }}>
           <Text style={[styles.toolLabel, { color: theme.text }]}>{label}</Text>
           <Text style={[styles.toolMeta, { color: theme.textSecondary }]}>{meta}</Text>
         </View>
-        <OneIcon name={icons.chevron} size={12} color={theme.textTertiary} />
+        <OneIcon name={icons.chevron} size={11.5} color={theme.textTertiary} />
       </Pressable>
     );
   }
 }
 
+function displayFirstName(metadata?: Record<string, unknown>) {
+  if (!metadata) return undefined;
+  const candidate = [metadata.first_name, metadata.full_name, metadata.name]
+    .find((value) => typeof value === 'string' && value.trim()) as string | undefined;
+  return candidate?.trim().split(/\s+/)[0];
+}
+
 function greetingFor(date: Date) {
   const hour = date.getHours();
-  if (hour < 12) return 'Good morning.';
-  if (hour < 18) return 'Good afternoon.';
-  return 'Good evening.';
+  if (hour < 12) return 'Good morning,';
+  if (hour < 18) return 'Good afternoon,';
+  return 'Good evening,';
 }
 
 function iconForDraft(draft: CaptureDraft) {
@@ -300,43 +312,43 @@ function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getT
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  hero: { marginTop: -3, paddingHorizontal: 1 },
-  heroTitle: { maxWidth: 430, fontFamily: editorialFontFamily, fontSize: 31, lineHeight: 34, letterSpacing: -0.8 },
-  heroSubtitle: { marginTop: 5, fontSize: 12.5, lineHeight: 18 },
+  hero: { marginTop: -4, paddingHorizontal: 1 },
+  heroTitle: { maxWidth: 430, fontFamily: editorialFontFamily, fontSize: 31, lineHeight: 33.5, letterSpacing: -0.82 },
+  heroSubtitle: { marginTop: 5, fontSize: 12.25, lineHeight: 17.5 },
   captureGroup: { gap: 8 },
-  eyebrow: { paddingHorizontal: 1, fontSize: 8.5, lineHeight: 12, fontWeight: '700', letterSpacing: 1.6 },
+  eyebrow: { paddingHorizontal: 1, fontSize: 8.35, lineHeight: 11.5, fontWeight: '700', letterSpacing: 1.55 },
   capture: {
-    minHeight: 62,
-    borderRadius: 19,
+    minHeight: 60,
+    borderRadius: 17,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: 12,
+    paddingRight: 11,
     gap: 10,
-    shadowOpacity: 0.04,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.03,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 4 },
     elevation: 1
   },
-  captureStart: { width: 54, alignSelf: 'stretch', borderRightWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  input: { flex: 1, minHeight: 50, fontSize: 14.5, lineHeight: 19, letterSpacing: -0.1 },
-  captureSubmit: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  toolGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
-  toolCard: { width: '48%', minHeight: 72, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  toolLabel: { fontSize: 13.25, lineHeight: 17, fontWeight: '600', letterSpacing: -0.08 },
-  toolMeta: { marginTop: 3, fontSize: 10.25, lineHeight: 13.5 },
-  block: { gap: 10 },
+  captureStart: { width: 52, alignSelf: 'stretch', borderRightWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  input: { flex: 1, minHeight: 48, fontSize: 14.25, lineHeight: 18.5, letterSpacing: -0.08 },
+  captureSubmit: { width: 31, height: 31, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  toolGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
+  toolCard: { width: '48.5%', minHeight: 66, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  toolLabel: { fontSize: 13, lineHeight: 16.5, fontWeight: '600', letterSpacing: -0.06 },
+  toolMeta: { marginTop: 2.5, fontSize: 10, lineHeight: 13 },
+  block: { gap: 9 },
   interpretationTop: { padding: 15, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  interpretationTitle: { fontSize: 14.75, lineHeight: 18.5, fontWeight: '600', letterSpacing: -0.14 },
-  interpretationMeta: { fontSize: 11.25, lineHeight: 15, marginTop: 4 },
+  interpretationTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.12 },
+  interpretationMeta: { fontSize: 11, lineHeight: 14.5, marginTop: 4 },
   saveWrap: { padding: 14, paddingTop: 0 },
-  textAction: { fontSize: 11.5, fontWeight: '600' },
-  compactEmpty: { minHeight: 106, paddingHorizontal: 18, justifyContent: 'center' },
-  compactEmptyTitle: { fontSize: 14, lineHeight: 18, fontWeight: '600' },
-  compactEmptyBody: { marginTop: 4, fontSize: 11.5, lineHeight: 16 },
-  todayRow: { minHeight: 72, borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  todayMarker: { width: 3, height: 30, borderRadius: 2 },
-  todayReason: { fontSize: 8.5, lineHeight: 11, fontWeight: '700', letterSpacing: 0.9 },
-  todayTitle: { marginTop: 3, fontSize: 14.25, lineHeight: 18, fontWeight: '600', letterSpacing: -0.12 },
-  todayMeta: { marginTop: 3, fontSize: 11.1, lineHeight: 15 }
+  textAction: { fontSize: 11.25, fontWeight: '600' },
+  compactEmpty: { minHeight: 96, paddingHorizontal: 18, justifyContent: 'center' },
+  compactEmptyTitle: { fontSize: 13.75, lineHeight: 17.5, fontWeight: '600' },
+  compactEmptyBody: { marginTop: 4, fontSize: 11.25, lineHeight: 15.5 },
+  todayRow: { minHeight: 68, borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  todayMarker: { width: 3, height: 28, borderRadius: 2 },
+  todayReason: { fontSize: 8.25, lineHeight: 10.5, fontWeight: '700', letterSpacing: 0.85 },
+  todayTitle: { marginTop: 3, fontSize: 14, lineHeight: 17.5, fontWeight: '600', letterSpacing: -0.1 },
+  todayMeta: { marginTop: 3, fontSize: 10.9, lineHeight: 14.5 }
 });
