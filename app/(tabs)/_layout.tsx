@@ -30,16 +30,16 @@ export default function TabsLayout() {
           height: 64,
           paddingTop: 7,
           paddingBottom: 6,
-          backgroundColor: `${theme.surface}E8`,
+          backgroundColor: `${theme.surfaceElevated}CC`,
           borderColor: `${theme.text}18`,
           borderWidth: StyleSheet.hairlineWidth,
           borderTopWidth: StyleSheet.hairlineWidth,
-          borderRadius: 21,
+          borderRadius: 22,
           shadowColor: theme.shadow,
-          shadowOpacity: 0.12,
-          shadowRadius: 24,
-          shadowOffset: { width: 0, height: 10 },
-          elevation: 8
+          shadowOpacity: 0.16,
+          shadowRadius: 28,
+          shadowOffset: { width: 0, height: 12 },
+          elevation: 10
         },
         tabBarItemStyle: { paddingTop: 1 },
         tabBarLabelStyle: {
@@ -56,8 +56,9 @@ export default function TabsLayout() {
               style={[
                 styles.iconHalo,
                 focused && {
-                  backgroundColor: `${theme.sky}18`,
-                  borderColor: `${theme.sky}32`
+                  backgroundColor: `${theme.surfaceElevated}B8`,
+                  borderColor: `${theme.sky}42`,
+                  shadowColor: theme.shadow
                 }
               ]}
             >
@@ -89,13 +90,16 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   iconStack: { minWidth: 38, minHeight: 28, alignItems: 'center', justifyContent: 'center' },
   iconHalo: {
-    width: 31,
-    height: 28,
-    borderRadius: 10,
+    width: 33,
+    height: 29,
+    borderRadius: 12,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 }
   },
   activeSignal: { position: 'absolute', bottom: -4, width: 17, height: 2.5, flexDirection: 'row', gap: 2 },
   activeSignalBlue: { flex: 2, borderRadius: 2 },
