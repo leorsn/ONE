@@ -1,11 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { proposedActionsForItem, triageStateForItem } from '@/src/inbox/triage';
-import { IconTile } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 import type { OneInboxAction, OneItem } from '@/src/types/item';
-
-type TriageTone = 'accent' | 'neutral' | 'warning' | 'info' | 'memory';
 
 export function TriageRow({
   item,
@@ -22,10 +19,10 @@ export function TriageRow({
   const stateColor = state === 'needs_review'
     ? theme.warning
     : state === 'actionable'
-      ? theme.accent
+      ? theme.sky
       : state === 'processed'
         ? theme.success
-        : theme.chrome;
+        : theme.textTertiary;
 
   return (
     <View style={[styles.row, { borderBottomColor: theme.border }]}>
@@ -35,20 +32,16 @@ export function TriageRow({
         onPress={onOpen}
         style={({ pressed }) => [styles.openArea, { opacity: pressed ? 0.58 : 1 }]}
       >
-        <IconTile icon={iconFor(item)} tone={toneFor(item, state)} size={42} />
+        <View style={[styles.spine, { backgroundColor: stateColor }]} />
         <View style={styles.body}>
           <View style={styles.topline}>
-            <View style={[styles.stateBadge, { backgroundColor: `${stateColor}16` }]}>
-              <View style={[styles.stateDot, { backgroundColor: stateColor }]} />
-              <Text style={[styles.state, { color: stateColor }]}>{stateLabel(state)}</Text>
-            </View>
+            <Text style={[styles.state, { color: stateColor }]}>{stateLabel(state)}</Text>
             <Text style={[styles.source, { color: theme.textTertiary }]}>{sourceLabel(item)}</Text>
           </View>
           <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
-          <Text style={[styles.summary, { color: theme.textSecondary }]} numberOfLines={2}>{item.summary || fallbackSummary(item)}</Text>
-          {metaLine(item) ? <Text style={[styles.meta, { color: theme.textTertiary }]} numberOfLines={1}>{metaLine(item)}</Text> : null}
+          <Text style={[styles.summary, { color: theme.textSecondary }]} numberOfLines={1}>{item.summary || fallbackSummary(item)}</Text>
         </View>
-        <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />
+        <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
       </Pressable>
 
       {action ? (
@@ -56,39 +49,14 @@ export function TriageRow({
           accessibilityRole="button"
           accessibilityLabel={`${action.label} for ${item.title}`}
           onPress={() => onExecute(action.id)}
-          style={({ pressed }) => [
-            styles.action,
-            {
-              backgroundColor: action.primary ? theme.accentSoft : theme.fill,
-              borderColor: action.primary ? `${theme.accent}33` : theme.border,
-              opacity: pressed ? 0.58 : 1
-            }
-          ]}
+          style={({ pressed }) => [styles.action, { borderTopColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
         >
-          <Text style={[styles.actionText, { color: action.primary ? theme.accent : theme.textSecondary }]}>{action.label}</Text>
-          {action.primary ? <OneIcon name={icons.chevron} size={11} color={theme.accent} /> : null}
+          <Text style={[styles.actionText, { color: theme.textSecondary }]}>{action.label}</Text>
+          <OneIcon name={icons.chevron} size={11} color={theme.textTertiary} />
         </Pressable>
       ) : null}
     </View>
   );
-}
-
-function toneFor(item: OneItem, state: ReturnType<typeof triageStateForItem>): TriageTone {
-  if (state === 'needs_review') return 'warning';
-  if (item.kind === 'receipt' || item.kind === 'document' || item.kind === 'link') return 'info';
-  if (item.type === 'idea' || item.type === 'note') return 'memory';
-  if (item.kind === 'event' || item.kind === 'reminder') return 'accent';
-  return 'neutral';
-}
-
-function iconFor(item: OneItem) {
-  if (item.kind === 'event') return icons.appointment;
-  if (item.kind === 'reminder') return icons.reminder;
-  if (item.kind === 'receipt' || item.kind === 'document') return icons.document;
-  if (item.kind === 'image') return icons.screenshot;
-  if (item.kind === 'link') return icons.link;
-  if (item.type === 'idea') return icons.idea;
-  return icons.note;
 }
 
 function stateLabel(state: ReturnType<typeof triageStateForItem>) {
@@ -116,38 +84,16 @@ function fallbackSummary(item: OneItem) {
   return item.userContext || item.extractedText || item.originalText || item.rawInput || 'Captured in NEVER';
 }
 
-function metaLine(item: OneItem) {
-  const values = [
-    item.date,
-    item.time,
-    item.location,
-    item.merchant,
-    item.amount !== undefined ? formatAmount(item.amount, item.currency) : undefined,
-    item.understandingConfidence ? `${item.understandingConfidence} confidence` : undefined
-  ].filter(Boolean);
-  return values.join(' · ');
-}
-
-function formatAmount(amount: number, currency = 'EUR') {
-  try {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
-}
-
 const styles = StyleSheet.create({
-  row: { padding: 15, borderBottomWidth: StyleSheet.hairlineWidth, gap: 11 },
-  openArea: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  row: { paddingHorizontal: 15, borderBottomWidth: StyleSheet.hairlineWidth },
+  openArea: { minHeight: 78, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  spine: { width: 3, height: 34, borderRadius: 2 },
   body: { flex: 1, minWidth: 0 },
   topline: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  stateBadge: { minHeight: 20, paddingHorizontal: 7, borderRadius: 8, flexDirection: 'row', alignItems: 'center', gap: 5 },
-  stateDot: { width: 5, height: 5, borderRadius: 3 },
-  state: { fontSize: 8.25, fontWeight: '800', letterSpacing: 0.78 },
-  source: { flex: 1, fontSize: 9.75, lineHeight: 13, textAlign: 'right' },
-  title: { marginTop: 7, fontSize: 14.75, lineHeight: 18, fontWeight: '600', letterSpacing: -0.16 },
-  summary: { marginTop: 4, fontSize: 12, lineHeight: 17 },
-  meta: { marginTop: 5, fontSize: 10.25, lineHeight: 13.5 },
-  action: { alignSelf: 'flex-start', minHeight: 34, paddingHorizontal: 12, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
-  actionText: { fontSize: 11, fontWeight: '700' }
+  state: { fontSize: 8.1, fontWeight: '700', letterSpacing: 0.9 },
+  source: { flex: 1, fontSize: 9.6, lineHeight: 13, textAlign: 'right' },
+  title: { marginTop: 6, fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.15 },
+  summary: { marginTop: 3, fontSize: 11.5, lineHeight: 16 },
+  action: { minHeight: 38, marginLeft: 14, paddingVertical: 8, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  actionText: { fontSize: 10.75, fontWeight: '600' }
 });
