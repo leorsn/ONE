@@ -24,49 +24,39 @@ export default function TabsLayout() {
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
           position: 'absolute',
-          left: 14,
-          right: 14,
-          bottom: Math.max(10, insets.bottom - 6),
-          height: 70,
-          paddingTop: 7,
+          left: 12,
+          right: 12,
+          bottom: Math.max(10, insets.bottom - 7),
+          height: 68,
+          paddingTop: 8,
           paddingBottom: 7,
           backgroundColor: theme.surface,
           borderColor: theme.border,
-          borderWidth: 1,
-          borderTopWidth: 1,
-          borderRadius: 20,
+          borderWidth: StyleSheet.hairlineWidth,
+          borderTopWidth: StyleSheet.hairlineWidth,
+          borderRadius: 22,
           shadowColor: theme.shadow,
-          shadowOpacity: 0.18,
-          shadowRadius: 22,
-          shadowOffset: { width: 0, height: 10 },
-          elevation: 14
+          shadowOpacity: 0.08,
+          shadowRadius: 20,
+          shadowOffset: { width: 0, height: 8 },
+          elevation: 8
         },
         tabBarItemStyle: { paddingTop: 1 },
         tabBarLabelStyle: {
-          fontSize: 9.5,
-          fontWeight: '700',
-          letterSpacing: 0.08,
+          fontSize: 9.25,
+          fontWeight: '600',
+          letterSpacing: 0.04,
           marginTop: 1
         },
-        tabBarActiveTintColor: theme.chrome,
+        tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textTertiary,
         tabBarIcon: ({ color, focused }) => (
           <View style={styles.iconStack}>
-            <View
-              style={[
-                styles.iconWrap,
-                focused && {
-                  backgroundColor: theme.accentSoft,
-                  borderColor: `${theme.accent}55`
-                }
-              ]}
-            >
-              <OneIcon
-                name={tabIcon[route.name as keyof typeof tabIcon]}
-                size={focused ? 19 : 18}
-                color={focused ? theme.chrome : color}
-              />
-            </View>
+            <OneIcon
+              name={tabIcon[route.name as keyof typeof tabIcon]}
+              size={focused ? 19 : 18}
+              color={focused ? theme.text : color}
+            />
             {focused ? (
               <View style={styles.activeSignal} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
                 <View style={[styles.activeSignalBlue, { backgroundColor: theme.sky }]} />
@@ -87,17 +77,8 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  iconStack: { alignItems: 'center', justifyContent: 'center' },
-  iconWrap: {
-    width: 38,
-    height: 30,
-    borderRadius: 9,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  activeSignal: { position: 'absolute', bottom: -2, width: 20, height: 3, flexDirection: 'row', gap: 2 },
+  iconStack: { minWidth: 36, minHeight: 26, alignItems: 'center', justifyContent: 'center' },
+  activeSignal: { position: 'absolute', bottom: -5, width: 18, height: 3, flexDirection: 'row', gap: 2 },
   activeSignalBlue: { flex: 2, borderRadius: 2 },
   activeSignalRed: { flex: 1, borderRadius: 2 }
 });
