@@ -117,9 +117,21 @@ export default function SearchScreen() {
           </Text>
         </View>
 
-        <View style={[styles.searchBox, { backgroundColor: theme.surface, borderColor: query.trim() ? theme.fillStrong : theme.border }]}>
-          <OneIcon name={mode === 'ask' ? icons.ask : icons.search} size={18.5} color={theme.chrome} />
-          <View style={[styles.inputDivider, { backgroundColor: theme.border }]} />
+        <View
+          style={[
+            styles.searchBox,
+            {
+              backgroundColor: `${theme.surfaceElevated}D6`,
+              borderColor: query.trim() ? `${theme.chrome}3A` : `${theme.text}16`,
+              shadowColor: theme.shadow
+            }
+          ]}
+        >
+          <View pointerEvents="none" style={[styles.searchShine, { backgroundColor: `${theme.text}0E` }]} />
+          <View style={[styles.searchIconWell, { backgroundColor: `${theme.fill}A8`, borderColor: `${theme.text}12` }]}>
+            <OneIcon name={mode === 'ask' ? icons.ask : icons.search} size={18} color={mode === 'ask' ? theme.sky : theme.chrome} />
+          </View>
+          <View style={[styles.inputDivider, { backgroundColor: `${theme.text}12` }]} />
           <TextInput
             value={query}
             onChangeText={(value) => {
@@ -149,15 +161,22 @@ export default function SearchScreen() {
               <OneIcon name={icons.close} size={13.5} color={theme.textTertiary} />
             </Pressable>
           ) : null}
-          <View style={[styles.modeDivider, { backgroundColor: theme.border }]} />
+          <View style={[styles.modeDivider, { backgroundColor: `${theme.text}12` }]} />
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={mode === 'ask' ? 'Return to quick search' : 'Switch to Ask NEVER'}
             onPress={toggleMode}
-            style={({ pressed }) => [styles.modeInline, { backgroundColor: theme.fill, opacity: pressed ? 0.62 : 1 }]}
+            style={({ pressed }) => [
+              styles.modeInline,
+              {
+                backgroundColor: mode === 'ask' ? `${theme.sky}1C` : `${theme.fill}A8`,
+                borderColor: mode === 'ask' ? `${theme.sky}42` : `${theme.text}10`,
+                opacity: pressed ? 0.7 : 1
+              }
+            ]}
           >
-            <OneIcon name={mode === 'ask' ? icons.search : icons.ask} size={14} color={theme.chrome} />
-            <Text style={[styles.modeInlineText, { color: theme.textSecondary }]}>{mode === 'ask' ? 'SEARCH' : 'ASK'}</Text>
+            <OneIcon name={mode === 'ask' ? icons.search : icons.ask} size={13.5} color={mode === 'ask' ? theme.sky : theme.chrome} />
+            <Text style={[styles.modeInlineText, { color: mode === 'ask' ? theme.sky : theme.textSecondary }]}>{mode === 'ask' ? 'SEARCH' : 'ASK'}</Text>
           </Pressable>
         </View>
 
@@ -177,9 +196,10 @@ export default function SearchScreen() {
                     style={({ pressed }) => [
                       styles.suggestion,
                       {
-                        backgroundColor: index === 0 ? theme.chrome : theme.fill,
-                        borderColor: index === 0 ? theme.chrome : theme.border,
-                        opacity: pressed ? 0.62 : 1
+                        backgroundColor: index === 0 ? `${theme.chrome}E0` : `${theme.surfaceElevated}A8`,
+                        borderColor: index === 0 ? `${theme.chrome}88` : `${theme.text}12`,
+                        shadowColor: theme.shadow,
+                        opacity: pressed ? 0.68 : 1
                       }
                     ]}
                   >
@@ -209,9 +229,19 @@ export default function SearchScreen() {
                   setMode('ask');
                   setAnswer(null);
                 }}
-                style={({ pressed }) => [styles.askBridge, { borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+                style={({ pressed }) => [
+                  styles.askBridge,
+                  {
+                    backgroundColor: `${theme.surfaceElevated}B8`,
+                    borderColor: `${theme.text}14`,
+                    shadowColor: theme.shadow,
+                    opacity: pressed ? 0.68 : 1
+                  }
+                ]}
               >
-                <OneIcon name={icons.ask} size={16.5} color={theme.chrome} />
+                <View style={[styles.askBridgeIcon, { backgroundColor: `${theme.sky}18`, borderColor: `${theme.sky}34` }]}>
+                  <OneIcon name={icons.ask} size={15} color={theme.sky} />
+                </View>
                 <Text style={[styles.askBridgeTitle, { color: theme.text }]}>Ask NEVER about these results</Text>
                 <OneIcon name={icons.chevron} size={12.5} color={theme.textTertiary} />
               </Pressable>
@@ -220,7 +250,8 @@ export default function SearchScreen() {
         ) : (
           <View style={styles.askBlock}>
             {!answer && !asking ? (
-              <View style={[styles.askIntro, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={[styles.askIntro, { backgroundColor: `${theme.surfaceElevated}C8`, borderColor: `${theme.text}14`, shadowColor: theme.shadow }]}>
+                <View pointerEvents="none" style={[styles.askIntroShine, { backgroundColor: `${theme.text}0D` }]} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.askIntroTitle, { color: theme.text }]}>Ask your own memory.</Text>
                   <Text style={[styles.askIntroBody, { color: theme.textSecondary }]}>Links, dates, documents, ideas and saved context — grounded in what you captured.</Text>
@@ -229,7 +260,14 @@ export default function SearchScreen() {
                   accessibilityRole="button"
                   disabled={!query.trim()}
                   onPress={askNever}
-                  style={({ pressed }) => [styles.askButton, { backgroundColor: query.trim() ? theme.chrome : theme.fillStrong, opacity: !query.trim() ? 0.55 : pressed ? 0.72 : 1 }]}
+                  style={({ pressed }) => [
+                    styles.askButton,
+                    {
+                      backgroundColor: query.trim() ? `${theme.chrome}E8` : `${theme.fillStrong}A8`,
+                      borderColor: query.trim() ? `${theme.text}22` : `${theme.text}0D`,
+                      opacity: !query.trim() ? 0.55 : pressed ? 0.72 : 1
+                    }
+                  ]}
                 >
                   <Text style={[styles.askButtonText, { color: query.trim() ? theme.onAccent : theme.textTertiary }]}>Ask</Text>
                 </Pressable>
@@ -237,7 +275,7 @@ export default function SearchScreen() {
             ) : null}
 
             {asking ? (
-              <View style={[styles.answerCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+              <View style={[styles.answerCard, { backgroundColor: `${theme.surfaceElevated}C8`, borderColor: `${theme.text}14`, shadowColor: theme.shadow }]}>
                 <View style={styles.thinkingRow}>
                   <ActivityIndicator size="small" />
                   <Text style={[styles.thinkingText, { color: theme.textSecondary }]}>Looking through your memory…</Text>
@@ -246,7 +284,7 @@ export default function SearchScreen() {
             ) : null}
 
             {askError ? (
-              <View style={[styles.errorCard, { backgroundColor: theme.dangerSoft, borderColor: `${theme.danger}55` }]}>
+              <View style={[styles.errorCard, { backgroundColor: `${theme.dangerSoft}E8`, borderColor: `${theme.danger}55` }]}>
                 <Text style={[styles.errorText, { color: theme.danger }]}>{askError}</Text>
               </View>
             ) : null}
@@ -265,13 +303,13 @@ export default function SearchScreen() {
         accessibilityRole="button"
         accessibilityLabel={`Open ${item.title}`}
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.row, { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
+        style={({ pressed }) => [styles.row, { borderBottomColor: `${theme.text}10`, opacity: pressed ? 0.58 : 1 }]}
       >
         {previewUri ? (
-          <Image source={{ uri: previewUri }} style={[styles.previewImage, { backgroundColor: theme.fill, borderColor: theme.border }]} resizeMode="cover" />
+          <Image source={{ uri: previewUri }} style={[styles.previewImage, { backgroundColor: theme.fill, borderColor: `${theme.text}12` }]} resizeMode="cover" />
         ) : (
-          <View style={[styles.rowGlyph, { borderColor: theme.border }]}>
-            <OneIcon name={iconForType(item.type)} size={18.5} color={typeColor(item, theme)} />
+          <View style={[styles.rowGlyph, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}12` }]}>
+            <OneIcon name={iconForType(item.type)} size={17.5} color={typeColor(item, theme)} />
           </View>
         )}
         <View style={styles.rowText}>
@@ -279,7 +317,9 @@ export default function SearchScreen() {
           <Text style={[styles.preview, { color: theme.textSecondary }]} numberOfLines={1}>{previewFor(item)}</Text>
           <Text style={[styles.meta, { color: theme.textTertiary }]} numberOfLines={1}>{[reason, formatCaptured(item.capturedAt || item.createdAt)].filter(Boolean).join(' · ')}</Text>
         </View>
-        <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+        <View style={[styles.rowArrow, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}0E` }]}>
+          <OneIcon name={icons.chevron} size={10.5} color={theme.textTertiary} />
+        </View>
       </Pressable>
     );
   }
@@ -289,7 +329,8 @@ export default function SearchScreen() {
     const body = withoutStandaloneUrlLines(current.body);
     const sources = current.sourceIds.map((id) => itemById.get(id)).filter((item): item is OneItem => Boolean(item)).slice(0, 5);
     return (
-      <View style={[styles.answerCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+      <View style={[styles.answerCard, { backgroundColor: `${theme.surfaceElevated}C8`, borderColor: `${theme.text}14`, shadowColor: theme.shadow }]}>
+        <View pointerEvents="none" style={[styles.answerShine, { backgroundColor: `${theme.text}0D` }]} />
         <View style={styles.answerHeader}>
           <Text style={[styles.answerEyebrow, { color: theme.textTertiary }]}>NEVER</Text>
           <Text style={[styles.answerMode, { color: theme.textTertiary }]}>{current.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text>
@@ -306,9 +347,11 @@ export default function SearchScreen() {
                   await Haptics.selectionAsync();
                   await Linking.openURL(url);
                 }}
-                style={({ pressed }) => [styles.answerLink, { borderTopColor: theme.border, opacity: pressed ? 0.6 : 1 }]}
+                style={({ pressed }) => [styles.answerLink, { borderTopColor: `${theme.text}10`, opacity: pressed ? 0.6 : 1 }]}
               >
-                <OneIcon name={icons.link} size={15} color={theme.sky} />
+                <View style={[styles.answerLinkIcon, { backgroundColor: `${theme.sky}18`, borderColor: `${theme.sky}30` }]}>
+                  <OneIcon name={icons.link} size={13.5} color={theme.sky} />
+                </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.answerLinkLabel, { color: theme.text }]}>Open link</Text>
                   <Text style={[styles.answerLinkUrl, { color: theme.textSecondary }]} numberOfLines={1}>{url}</Text>
@@ -320,7 +363,7 @@ export default function SearchScreen() {
         ) : null}
         {current.meta ? <Text style={[styles.answerMeta, { color: theme.textTertiary }]}>{current.meta}</Text> : null}
         {sources.length ? (
-          <View style={[styles.sources, { borderTopColor: theme.border }]}>
+          <View style={[styles.sources, { borderTopColor: `${theme.text}10` }]}>
             <Text style={[styles.sourcesLabel, { color: theme.textTertiary }]}>SOURCES</Text>
             {sources.map((item) => (
               <Pressable key={item.id} onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })} style={({ pressed }) => [styles.sourceRow, { opacity: pressed ? 0.58 : 1 }]}>
@@ -333,7 +376,7 @@ export default function SearchScreen() {
         <Pressable
           accessibilityRole="button"
           onPress={() => router.push({ pathname: '/ask', params: { q: query.trim() } })}
-          style={({ pressed }) => [styles.continueButton, { borderTopColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+          style={({ pressed }) => [styles.continueButton, { borderTopColor: `${theme.text}10`, opacity: pressed ? 0.62 : 1 }]}
         >
           <Text style={[styles.continueText, { color: theme.textSecondary }]}>Continue conversation</Text>
           <OneIcon name={icons.chevron} size={12} color={theme.textTertiary} />
@@ -385,38 +428,58 @@ function withoutStandaloneUrlLines(value: string) {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   intro: { marginTop: -2 },
-  title: { fontFamily: editorialFontFamily, fontSize: 34, lineHeight: 38, fontWeight: '400', letterSpacing: -0.9 },
-  subtitle: { marginTop: 6, fontSize: 12.5, lineHeight: 18 },
-  searchBox: { minHeight: 56, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 15, paddingRight: 7, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  inputDivider: { width: StyleSheet.hairlineWidth, height: 23 },
-  input: { flex: 1, minHeight: 48, fontSize: 14, lineHeight: 18.5 },
+  title: { fontFamily: editorialFontFamily, fontSize: 35, lineHeight: 39, fontWeight: '400', letterSpacing: -0.94 },
+  subtitle: { marginTop: 6, fontSize: 12.6, lineHeight: 18 },
+  searchBox: {
+    minHeight: 66,
+    borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingLeft: 10,
+    paddingRight: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    overflow: 'hidden',
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 4
+  },
+  searchShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth },
+  searchIconWell: { width: 38, height: 38, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  inputDivider: { width: StyleSheet.hairlineWidth, height: 27 },
+  input: { flex: 1, minHeight: 50, fontSize: 14.2, lineHeight: 19 },
   clear: { width: 30, height: 30, alignItems: 'center', justifyContent: 'center' },
-  modeDivider: { width: StyleSheet.hairlineWidth, height: 28 },
-  modeInline: { minWidth: 50, minHeight: 32, borderRadius: 10, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
+  modeDivider: { width: StyleSheet.hairlineWidth, height: 30 },
+  modeInline: { minWidth: 58, minHeight: 36, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 9, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
   modeInlineText: { fontSize: 8.5, lineHeight: 11, fontWeight: '800', letterSpacing: 0.7 },
-  suggestions: { gap: 7, paddingRight: 20 },
-  suggestion: { minHeight: 32, paddingHorizontal: 13, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  suggestions: { gap: 8, paddingRight: 20 },
+  suggestion: { minHeight: 36, paddingHorizontal: 14, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
   suggestionText: { fontSize: 11, fontWeight: '600' },
-  resultsBlock: { gap: 9 },
-  row: { minHeight: 72, paddingHorizontal: 15, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  rowGlyph: { width: 29, height: 38, borderLeftWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  previewImage: { width: 42, height: 42, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth },
+  resultsBlock: { gap: 10 },
+  row: { minHeight: 74, paddingHorizontal: 14, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  rowGlyph: { width: 38, height: 42, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  previewImage: { width: 44, height: 44, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth },
   rowText: { flex: 1, minWidth: 0 },
   rowTitle: { fontSize: 14.5, lineHeight: 17.5, fontWeight: '600', letterSpacing: -0.14 },
   preview: { marginTop: 3, fontSize: 11.2, lineHeight: 14.5 },
   meta: { marginTop: 3, fontSize: 9.8, lineHeight: 12.5, fontWeight: '600' },
-  askBridge: { minHeight: 48, paddingHorizontal: 14, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  rowArrow: { width: 23, height: 23, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  askBridge: { minHeight: 54, paddingHorizontal: 11, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, flexDirection: 'row', alignItems: 'center', gap: 10, shadowOpacity: 0.08, shadowRadius: 16, shadowOffset: { width: 0, height: 7 }, elevation: 3 },
+  askBridgeIcon: { width: 32, height: 32, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   askBridgeTitle: { flex: 1, fontSize: 12.25, fontWeight: '600' },
-  askBlock: { gap: 11 },
-  askIntro: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 13 },
-  askIntroTitle: { fontFamily: editorialFontFamily, fontSize: 18.5, lineHeight: 22.5, fontWeight: '400' },
+  askBlock: { gap: 12 },
+  askIntro: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 20, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 13, overflow: 'hidden', shadowOpacity: 0.1, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 3 },
+  askIntroShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth },
+  askIntroTitle: { fontFamily: editorialFontFamily, fontSize: 19, lineHeight: 23, fontWeight: '400' },
   askIntroBody: { marginTop: 5, fontSize: 11.25, lineHeight: 16 },
-  askButton: { minWidth: 58, minHeight: 38, paddingHorizontal: 13, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  askButton: { minWidth: 60, minHeight: 40, paddingHorizontal: 13, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   askButtonText: { fontSize: 11.75, fontWeight: '700' },
-  answerCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, overflow: 'hidden', paddingTop: 16 },
+  answerCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 20, overflow: 'hidden', paddingTop: 16, shadowOpacity: 0.1, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 3 },
+  answerShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth },
   thinkingRow: { paddingHorizontal: 16, paddingBottom: 16, flexDirection: 'row', alignItems: 'center', gap: 9 },
   thinkingText: { fontSize: 11.75, lineHeight: 15.5 },
-  errorCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, padding: 14 },
+  errorCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, padding: 14 },
   errorText: { fontSize: 11.25, lineHeight: 15.5 },
   answerHeader: { paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   answerEyebrow: { fontSize: 8.25, fontWeight: '800', letterSpacing: 1.5 },
@@ -424,7 +487,8 @@ const styles = StyleSheet.create({
   answerTitle: { paddingHorizontal: 16, marginTop: 11, fontFamily: editorialFontFamily, fontSize: 20.5, lineHeight: 24.5 },
   answerBody: { paddingHorizontal: 16, marginTop: 8, fontSize: 12, lineHeight: 17.5 },
   answerLinks: { marginTop: 13 },
-  answerLink: { minHeight: 56, paddingHorizontal: 16, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  answerLink: { minHeight: 58, paddingHorizontal: 16, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  answerLinkIcon: { width: 30, height: 30, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   answerLinkLabel: { fontSize: 11.75, fontWeight: '600' },
   answerLinkUrl: { marginTop: 2, fontSize: 10, lineHeight: 13 },
   answerMeta: { paddingHorizontal: 16, marginTop: 11, fontSize: 9.25, lineHeight: 13 },
