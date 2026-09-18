@@ -30,16 +30,16 @@ export default function TabsLayout() {
           height: 70,
           paddingTop: 7,
           paddingBottom: 7,
-          backgroundColor: theme.surfaceElevated,
+          backgroundColor: theme.surface,
           borderColor: theme.border,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderTopWidth: StyleSheet.hairlineWidth,
-          borderRadius: 24,
+          borderWidth: 1,
+          borderTopWidth: 1,
+          borderRadius: 20,
           shadowColor: theme.shadow,
-          shadowOpacity: 0.11,
+          shadowOpacity: 0.18,
           shadowRadius: 22,
           shadowOffset: { width: 0, height: 10 },
-          elevation: 12
+          elevation: 14
         },
         tabBarItemStyle: { paddingTop: 1 },
         tabBarLabelStyle: {
@@ -48,23 +48,31 @@ export default function TabsLayout() {
           letterSpacing: 0.08,
           marginTop: 1
         },
-        tabBarActiveTintColor: theme.accent,
+        tabBarActiveTintColor: theme.chrome,
         tabBarInactiveTintColor: theme.textTertiary,
         tabBarIcon: ({ color, focused }) => (
-          <View
-            style={[
-              styles.iconWrap,
-              focused && {
-                backgroundColor: theme.accentSoft,
-                borderColor: `${theme.accent}2F`
-              }
-            ]}
-          >
-            <OneIcon
-              name={tabIcon[route.name as keyof typeof tabIcon]}
-              size={focused ? 19 : 18}
-              color={color}
-            />
+          <View style={styles.iconStack}>
+            <View
+              style={[
+                styles.iconWrap,
+                focused && {
+                  backgroundColor: theme.accentSoft,
+                  borderColor: `${theme.accent}55`
+                }
+              ]}
+            >
+              <OneIcon
+                name={tabIcon[route.name as keyof typeof tabIcon]}
+                size={focused ? 19 : 18}
+                color={focused ? theme.chrome : color}
+              />
+            </View>
+            {focused ? (
+              <View style={styles.activeSignal} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+                <View style={[styles.activeSignalBlue, { backgroundColor: theme.sky }]} />
+                <View style={[styles.activeSignalRed, { backgroundColor: theme.danger }]} />
+              </View>
+            ) : null}
           </View>
         )
       })}
@@ -79,13 +87,17 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
+  iconStack: { alignItems: 'center', justifyContent: 'center' },
   iconWrap: {
     width: 38,
     height: 30,
-    borderRadius: 11,
+    borderRadius: 9,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center'
-  }
+  },
+  activeSignal: { position: 'absolute', bottom: -2, width: 20, height: 3, flexDirection: 'row', gap: 2 },
+  activeSignalBlue: { flex: 2, borderRadius: 2 },
+  activeSignalRed: { flex: 1, borderRadius: 2 }
 });
