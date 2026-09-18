@@ -69,9 +69,21 @@ export default function SavedScreen() {
           </Text>
         </View>
 
-        <View style={[styles.search, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <OneIcon name={icons.search} size={17.5} color={theme.textTertiary} />
-          <View style={[styles.searchDivider, { backgroundColor: theme.border }]} />
+        <View
+          style={[
+            styles.search,
+            {
+              backgroundColor: `${theme.surfaceElevated}D4`,
+              borderColor: `${theme.text}16`,
+              shadowColor: theme.shadow
+            }
+          ]}
+        >
+          <View pointerEvents="none" style={[styles.searchShine, { backgroundColor: `${theme.text}0E` }]} />
+          <View style={[styles.searchIconWell, { backgroundColor: `${theme.fill}9E`, borderColor: `${theme.text}10` }]}>
+            <OneIcon name={icons.search} size={17} color={theme.chrome} />
+          </View>
+          <View style={[styles.searchDivider, { backgroundColor: `${theme.text}12` }]} />
           <TextInput
             value={query}
             onChangeText={setQuery}
@@ -102,8 +114,9 @@ export default function SavedScreen() {
                 style={[
                   styles.filter,
                   {
-                    backgroundColor: active ? theme.chrome : theme.fill,
-                    borderColor: active ? theme.chrome : theme.border
+                    backgroundColor: active ? `${theme.chrome}E2` : `${theme.surfaceElevated}A8`,
+                    borderColor: active ? `${theme.chrome}7A` : `${theme.text}12`,
+                    shadowColor: theme.shadow
                   }
                 ]}
               >
@@ -143,13 +156,25 @@ export default function SavedScreen() {
     const primaryTotal = summary.totals[0];
     return (
       <View style={styles.documents}>
-        <View style={[styles.documentSummary, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+        <View
+          style={[
+            styles.documentSummary,
+            {
+              backgroundColor: `${theme.surfaceElevated}C8`,
+              borderColor: `${theme.text}14`,
+              shadowColor: theme.shadow
+            }
+          ]}
+        >
+          <View pointerEvents="none" style={[styles.summaryShine, { backgroundColor: `${theme.text}0D` }]} />
           <Text style={[styles.summaryEyebrow, { color: theme.textTertiary }]}>{summary.monthLabel.toUpperCase()}</Text>
           <View style={styles.summaryTop}>
             <Text style={[styles.summaryTitle, { color: theme.text }]}>Document memory</Text>
-            <Text style={[styles.summaryCount, { color: theme.textTertiary }]}>{summary.documents.length}</Text>
+            <View style={[styles.summaryCountBadge, { backgroundColor: `${theme.fill}88`, borderColor: `${theme.text}10` }]}>
+              <Text style={[styles.summaryCount, { color: theme.textSecondary }]}>{summary.documents.length}</Text>
+            </View>
           </View>
-          <View style={[styles.summaryFacts, { borderTopColor: theme.border }]}>
+          <View style={[styles.summaryFacts, { borderTopColor: `${theme.text}10` }]}>
             <Fact label="Receipts" value={String(summary.receipts)} />
             <Fact label="Invoices" value={String(summary.invoices)} />
             <Fact label="Captured value" value={primaryTotal ? formatCurrencyTotal(primaryTotal, 'de-DE') : '—'} wide />
@@ -166,7 +191,14 @@ export default function SavedScreen() {
                   await Haptics.selectionAsync();
                   setSelectedFilter(entry.value);
                 }}
-                style={[styles.filter, { backgroundColor: active ? theme.chrome : theme.fill, borderColor: active ? theme.chrome : theme.border }]}
+                style={[
+                  styles.filter,
+                  {
+                    backgroundColor: active ? `${theme.chrome}E2` : `${theme.surfaceElevated}A8`,
+                    borderColor: active ? `${theme.chrome}7A` : `${theme.text}12`,
+                    shadowColor: theme.shadow
+                  }
+                ]}
               >
                 <Text style={[styles.filterText, { color: active ? theme.onAccent : theme.textSecondary }]}>{entry.label}</Text>
               </Pressable>
@@ -206,9 +238,9 @@ export default function SavedScreen() {
         accessibilityRole="button"
         accessibilityLabel={`Open ${item.merchant || item.title}`}
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.documentRow, { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
+        style={({ pressed }) => [styles.documentRow, { borderBottomColor: `${theme.text}10`, opacity: pressed ? 0.58 : 1 }]}
       >
-        <View style={[styles.documentSpine, { backgroundColor: theme.sky }]} />
+        <View style={[styles.documentSpine, { backgroundColor: theme.sky, shadowColor: theme.sky }]} />
         <View style={styles.documentContent}>
           <Text style={[styles.documentTitle, { color: theme.text }]} numberOfLines={1}>{item.merchant || item.title}</Text>
           <Text style={[styles.documentMeta, { color: theme.textSecondary }]} numberOfLines={1}>
@@ -216,7 +248,9 @@ export default function SavedScreen() {
           </Text>
         </View>
         {amount ? <Text style={[styles.documentAmount, { color: theme.text }]}>{amount}</Text> : null}
-        <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+        <View style={[styles.rowArrow, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}0E` }]}>
+          <OneIcon name={icons.chevron} size={10.5} color={theme.textTertiary} />
+        </View>
       </Pressable>
     );
   }
@@ -235,31 +269,50 @@ function prettyDate(iso?: string) {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   intro: { marginTop: -2 },
-  title: { fontFamily: editorialFontFamily, fontSize: 33, lineHeight: 37, fontWeight: '400', letterSpacing: -0.88 },
+  title: { fontFamily: editorialFontFamily, fontSize: 34, lineHeight: 38, fontWeight: '400', letterSpacing: -0.9 },
   subtitle: { marginTop: 6, fontSize: 12.75, lineHeight: 18.5 },
-  search: { minHeight: 54, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 15, paddingRight: 8, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  searchDivider: { width: StyleSheet.hairlineWidth, height: 22 },
-  searchInput: { flex: 1, minHeight: 46, fontSize: 13.75, lineHeight: 18.5 },
+  search: {
+    minHeight: 62,
+    borderRadius: 21,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingLeft: 10,
+    paddingRight: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    overflow: 'hidden',
+    shadowOpacity: 0.11,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 9 },
+    elevation: 4
+  },
+  searchShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth },
+  searchIconWell: { width: 36, height: 36, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  searchDivider: { width: StyleSheet.hairlineWidth, height: 25 },
+  searchInput: { flex: 1, minHeight: 48, fontSize: 13.9, lineHeight: 18.5 },
   clearButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
-  filters: { gap: 7, paddingRight: 18 },
-  filter: { minHeight: 31, paddingHorizontal: 12, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  filters: { gap: 8, paddingRight: 18 },
+  filter: { minHeight: 35, paddingHorizontal: 13, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', shadowOpacity: 0.06, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
   filterText: { fontSize: 10.75, fontWeight: '600' },
-  block: { gap: 9 },
-  documents: { gap: 17 },
-  documentSummary: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, padding: 16 },
+  block: { gap: 10 },
+  documents: { gap: 18 },
+  documentSummary: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 20, padding: 17, overflow: 'hidden', shadowOpacity: 0.1, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 3 },
+  summaryShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth },
   summaryEyebrow: { fontSize: 8.25, fontWeight: '700', letterSpacing: 1.05 },
-  summaryTop: { marginTop: 5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  summaryTop: { marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   summaryTitle: { fontSize: 15.5, lineHeight: 19.5, fontWeight: '600' },
-  summaryCount: { fontSize: 10.75, fontWeight: '600' },
-  summaryFacts: { marginTop: 14, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 12 },
+  summaryCountBadge: { minWidth: 28, height: 28, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  summaryCount: { fontSize: 10.5, fontWeight: '700' },
+  summaryFacts: { marginTop: 15, paddingTop: 13, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 12 },
   fact: { minWidth: 62 },
   factWide: { flex: 1, alignItems: 'flex-end' },
   factValue: { fontSize: 13.25, lineHeight: 16.5, fontWeight: '600' },
   factLabel: { marginTop: 3, fontSize: 9.25, lineHeight: 12 },
-  documentRow: { minHeight: 68, paddingHorizontal: 15, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  documentSpine: { width: 3, height: 30, borderRadius: 2 },
+  documentRow: { minHeight: 70, paddingHorizontal: 15, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  documentSpine: { width: 3, height: 30, borderRadius: 2, shadowOpacity: 0.3, shadowRadius: 5, shadowOffset: { width: 0, height: 0 } },
   documentContent: { flex: 1, minWidth: 0 },
   documentTitle: { fontSize: 14.25, lineHeight: 18, fontWeight: '600', letterSpacing: -0.12 },
   documentMeta: { marginTop: 3, fontSize: 11, lineHeight: 14.5 },
-  documentAmount: { fontSize: 12.25, fontWeight: '600' }
+  documentAmount: { fontSize: 12.25, fontWeight: '600' },
+  rowArrow: { width: 23, height: 23, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' }
 });
