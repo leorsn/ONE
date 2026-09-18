@@ -32,6 +32,7 @@ export const icons = {
   calendar: { ios: 'calendar', android: 'calendar_month', web: 'calendar_month' },
   saved: { ios: 'bookmark', android: 'bookmark', web: 'bookmark' },
   settings: { ios: 'gearshape', android: 'settings', web: 'settings' },
+  info: { ios: 'info.circle', android: 'info', web: 'info' },
   plus: { ios: 'plus', android: 'add', web: 'add' },
   ask: { ios: 'sparkles', android: 'auto_awesome', web: 'auto_awesome' },
   check: { ios: 'checkmark', android: 'check', web: 'check' },
