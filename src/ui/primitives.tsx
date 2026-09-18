@@ -19,6 +19,16 @@ export function NeverSignal({ compact = false }: { compact?: boolean }) {
   );
 }
 
+export function SectionAccent() {
+  const theme = useTheme();
+  return (
+    <View style={styles.sectionAccent} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+      <View style={[styles.sectionAccentBlue, { backgroundColor: theme.sky }]} />
+      <View style={[styles.sectionAccentRed, { backgroundColor: theme.danger }]} />
+    </View>
+  );
+}
+
 export function BrandHeader({ action }: { action?: ReactNode }) {
   const theme = useTheme();
   return (
@@ -61,12 +71,22 @@ export function PageHeader({
   );
 }
 
-export function SectionHeader({ title, meta, action }: { title: string; meta?: string; action?: ReactNode }) {
+export function SectionHeader({
+  title,
+  meta,
+  action,
+  signal = false
+}: {
+  title: string;
+  meta?: string;
+  action?: ReactNode;
+  signal?: boolean;
+}) {
   const theme = useTheme();
   return (
     <View style={styles.sectionHeader}>
       <View style={styles.sectionTitleRow}>
-        <NeverSignal compact />
+        {signal ? <SectionAccent /> : null}
         <Text style={[styles.sectionTitle, { color: theme.text }]}>{title}</Text>
         {meta ? <Text style={[styles.sectionMeta, { color: theme.textTertiary }]}>{meta}</Text> : null}
       </View>
@@ -122,7 +142,7 @@ export function IconTile({
         {
           width: size,
           height: size,
-          borderRadius: Math.max(9, Math.round(size * 0.2)),
+          borderRadius: Math.max(8, Math.round(size * 0.18)),
           backgroundColor: background,
           borderColor: border
         }
@@ -156,7 +176,7 @@ export function RoundIconButton({
       style={({ pressed }) => [
         styles.roundButton,
         {
-          backgroundColor: filled ? theme.chrome : theme.fill,
+          backgroundColor: filled ? theme.chrome : theme.surface,
           borderColor: filled ? theme.chrome : theme.border,
           shadowColor: theme.shadow,
           opacity: pressed ? 0.64 : 1
@@ -172,7 +192,7 @@ export function EmptyState({ icon, title, body }: { icon: IconName; title: strin
   const theme = useTheme();
   return (
     <View style={styles.emptyState}>
-      <OneIcon name={icon} size={22} color={theme.textTertiary} />
+      <OneIcon name={icon} size={21} color={theme.textTertiary} />
       <Text style={[styles.emptyTitle, { color: theme.text }]}>{title}</Text>
       <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>{body}</Text>
     </View>
@@ -219,14 +239,14 @@ export const uiStyles = StyleSheet.create({
     maxWidth: 760,
     alignSelf: 'center',
     paddingHorizontal: 18,
-    paddingTop: 12,
-    paddingBottom: 116,
-    gap: 22
+    paddingTop: 10,
+    paddingBottom: 110,
+    gap: 19
   }
 });
 
 const styles = StyleSheet.create({
-  brandHeader: { minHeight: 68, flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingTop: 2 },
+  brandHeader: { minHeight: 62, flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingTop: 2 },
   wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
   wordmark: { fontSize: 17.5, lineHeight: 21, fontWeight: '700', letterSpacing: 5.4 },
   brandLine: { marginTop: 7, fontSize: 8.1, lineHeight: 11.5, fontWeight: '700', letterSpacing: 1.5 },
@@ -235,25 +255,28 @@ const styles = StyleSheet.create({
   signalGraphite: { width: 24, height: 4, borderRadius: 2 },
   signalBlue: { width: 12, height: 4, borderRadius: 2 },
   signalRed: { width: 7, height: 4, borderRadius: 2 },
+  sectionAccent: { width: 7, height: 21, flexDirection: 'row', alignItems: 'flex-end', gap: 2 },
+  sectionAccentBlue: { width: 3, height: 21, borderRadius: 2 },
+  sectionAccentRed: { width: 2, height: 10, borderRadius: 2 },
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingTop: 2 },
   eyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 2, marginBottom: 8 },
   pageTitle: { fontSize: 30, lineHeight: 35, fontWeight: '600', letterSpacing: -1 },
   editorialTitle: { fontFamily: editorialFontFamily, fontWeight: '400', letterSpacing: -0.78 },
   pageSubtitle: { marginTop: 6, maxWidth: 440, fontSize: 12.5, lineHeight: 18 },
-  sectionHeader: { minHeight: 27, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  sectionTitle: { fontSize: 16.75, lineHeight: 20.5, fontWeight: '600', letterSpacing: -0.26 },
+  sectionHeader: { minHeight: 26, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sectionTitle: { fontSize: 16.25, lineHeight: 20, fontWeight: '600', letterSpacing: -0.24 },
   sectionMeta: { fontSize: 10.25, fontWeight: '600', letterSpacing: 0.12 },
   surface: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 18,
+    borderRadius: 16,
     overflow: 'hidden',
-    shadowOpacity: 0.035,
-    shadowRadius: 15,
+    shadowOpacity: 0.028,
+    shadowRadius: 13,
     shadowOffset: { width: 0, height: 5 },
     elevation: 1
   },
-  surfacePadded: { padding: 17 },
+  surfacePadded: { padding: 16 },
   iconTile: { alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
   roundButton: {
     width: 38,
@@ -262,13 +285,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
+    shadowOpacity: 0.02,
+    shadowRadius: 7,
     shadowOffset: { width: 0, height: 3 }
   },
-  emptyState: { minHeight: 118, paddingHorizontal: 26, paddingVertical: 24, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { marginTop: 10, fontSize: 14.25, fontWeight: '600', letterSpacing: -0.1 },
-  emptyBody: { marginTop: 5, maxWidth: 270, fontSize: 12, lineHeight: 17.5, textAlign: 'center' },
+  emptyState: { minHeight: 104, paddingHorizontal: 24, paddingVertical: 20, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { marginTop: 9, fontSize: 14.1, fontWeight: '600', letterSpacing: -0.1 },
+  emptyBody: { marginTop: 5, maxWidth: 270, fontSize: 11.75, lineHeight: 17.25, textAlign: 'center' },
   primaryButton: { minHeight: 48, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   primaryButtonText: { fontSize: 13.75, fontWeight: '700', letterSpacing: -0.04 }
 });
