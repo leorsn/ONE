@@ -12,10 +12,9 @@ import {
   groupDocumentsByMonth
 } from '@/src/documents/analytics';
 import { OneItemRow } from '@/src/ui/OneItemRow';
-import { BrandHeader, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { BrandHeader, CoreBackdrop, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
-import { editorialFontFamily } from '@/src/theme/typography';
 import type { OneDocumentKind, OneItem } from '@/src/types/item';
 
 const filters = ['All', 'Documents', 'Images', 'Links', 'Ideas'] as const;
@@ -61,6 +60,7 @@ export default function SavedScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
+      <CoreBackdrop />
       <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <BrandHeader />
 
@@ -71,8 +71,9 @@ export default function SavedScreen() {
           </Text>
         </View>
 
-        <View style={[styles.search, { backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFFA', borderColor: dark ? '#FFFFFF12' : '#0000000A', shadowColor: theme.shadow, shadowOpacity: dark ? 0.2 : 0.1 }]}>
-          <View style={[styles.searchIconWell, { backgroundColor: dark ? '#2C2C2EF0' : '#F2F2F7' }]}>
+        <View style={[styles.search, { backgroundColor: dark ? '#1C1C1ED6' : '#FFFFFFDE', borderColor: dark ? '#FFFFFF18' : '#FFFFFFF5', shadowColor: dark ? '#000000' : '#6E7688', shadowOpacity: dark ? 0.34 : 0.16 }]}>
+          <View pointerEvents="none" style={[styles.searchHighlight, { backgroundColor: dark ? '#FFFFFF1C' : '#FFFFFF' }]} />
+          <View style={[styles.searchIconWell, { backgroundColor: dark ? '#2C2C2EC8' : '#F1F2F6DC', borderColor: dark ? '#FFFFFF14' : '#FFFFFFE8' }]}>
             <OneIcon name={icons.search} size={17.5} color={theme.chrome} />
           </View>
           <TextInput
@@ -105,10 +106,10 @@ export default function SavedScreen() {
                 style={({ pressed }) => [
                   styles.filter,
                   {
-                    backgroundColor: active ? (dark ? '#F2F2F7' : '#2F3338') : dark ? '#1C1C1EF2' : '#FFFFFFE8',
-                    borderColor: active ? 'transparent' : dark ? '#FFFFFF0D' : '#00000008',
-                    shadowColor: theme.shadow,
-                    shadowOpacity: active ? (dark ? 0.18 : 0.12) : 0,
+                    backgroundColor: active ? (dark ? '#F2F2F7E8' : '#2F3338E8') : dark ? '#1C1C1EB8' : '#FFFFFFC8',
+                    borderColor: active ? 'transparent' : dark ? '#FFFFFF15' : '#FFFFFFEA',
+                    shadowColor: active ? theme.shadow : 'transparent',
+                    shadowOpacity: active ? (dark ? 0.22 : 0.14) : 0,
                     opacity: pressed ? 0.72 : 1
                   }
                 ]}
@@ -144,11 +145,12 @@ export default function SavedScreen() {
     const primaryTotal = summary.totals[0];
     return (
       <View style={styles.documents}>
-        <View style={[styles.documentSummary, { backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFFA', borderColor: dark ? '#FFFFFF10' : '#00000008', shadowColor: theme.shadow, shadowOpacity: dark ? 0.18 : 0.09 }]}>
+        <View style={[styles.documentSummary, { backgroundColor: dark ? '#1C1C1ECB' : '#FFFFFFDA', borderColor: dark ? '#FFFFFF17' : '#FFFFFFF0', shadowColor: dark ? '#000000' : '#6F7787', shadowOpacity: dark ? 0.28 : 0.13 }]}>
+          <View pointerEvents="none" style={[styles.summaryHighlight, { backgroundColor: dark ? '#FFFFFF18' : '#FFFFFF' }]} />
           <Text style={[styles.summaryEyebrow, { color: theme.textTertiary }]}>{summary.monthLabel.toUpperCase()}</Text>
           <View style={styles.summaryTop}>
             <Text style={[styles.summaryTitle, { color: theme.text }]}>Document memory</Text>
-            <View style={[styles.summaryCountBadge, { backgroundColor: dark ? '#2C2C2EF0' : '#F2F2F7' }]}>
+            <View style={[styles.summaryCountBadge, { backgroundColor: dark ? '#2C2C2EB8' : '#F1F2F6D8' }]}>
               <Text style={[styles.summaryCount, { color: theme.textSecondary }]}>{summary.documents.length}</Text>
             </View>
           </View>
@@ -172,8 +174,8 @@ export default function SavedScreen() {
                 style={({ pressed }) => [
                   styles.filter,
                   {
-                    backgroundColor: active ? (dark ? '#F2F2F7' : '#2F3338') : dark ? '#1C1C1EF2' : '#FFFFFFE8',
-                    borderColor: active ? 'transparent' : dark ? '#FFFFFF0D' : '#00000008',
+                    backgroundColor: active ? (dark ? '#F2F2F7E8' : '#2F3338E8') : dark ? '#1C1C1EB8' : '#FFFFFFC8',
+                    borderColor: active ? 'transparent' : dark ? '#FFFFFF15' : '#FFFFFFEA',
                     opacity: pressed ? 0.72 : 1
                   }
                 ]}
@@ -240,35 +242,38 @@ function prettyDate(iso?: string) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  intro: { marginTop: -1 },
-  title: { fontFamily: editorialFontFamily, fontSize: 36, lineHeight: 40, fontWeight: '400', letterSpacing: -1 },
-  subtitle: { marginTop: 7, fontSize: 13, lineHeight: 18.5 },
+  intro: { marginTop: 5 },
+  title: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.12 },
+  subtitle: { marginTop: 5, fontSize: 12.75, lineHeight: 18.5 },
   search: {
-    minHeight: 60,
-    borderRadius: 20,
+    minHeight: 62,
+    borderRadius: 24,
     borderWidth: StyleSheet.hairlineWidth,
     paddingLeft: 9,
     paddingRight: 8,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 9,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 9 },
-    elevation: 4
+    overflow: 'hidden',
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 5
   },
-  searchIconWell: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  searchHighlight: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth },
+  searchIconWell: { width: 40, height: 40, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   searchInput: { flex: 1, minHeight: 48, fontSize: 14.5, lineHeight: 19 },
   clearButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
-  filters: { gap: 8, paddingRight: 18 },
-  filter: { minHeight: 36, paddingHorizontal: 14, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', shadowRadius: 9, shadowOffset: { width: 0, height: 3 }, elevation: 1 },
+  filters: { gap: 9, paddingRight: 18 },
+  filter: { minHeight: 37, paddingHorizontal: 15, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 1 },
   filterText: { fontSize: 10.75, fontWeight: '600' },
   block: { gap: 10 },
   documents: { gap: 18 },
-  documentSummary: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 22, padding: 18, shadowRadius: 20, shadowOffset: { width: 0, height: 8 }, elevation: 3 },
+  documentSummary: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 24, padding: 18, overflow: 'hidden', shadowRadius: 28, shadowOffset: { width: 0, height: 13 }, elevation: 4 },
+  summaryHighlight: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth },
   summaryEyebrow: { fontSize: 8.25, fontWeight: '700', letterSpacing: 1.05 },
   summaryTop: { marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   summaryTitle: { fontSize: 15.75, lineHeight: 19.5, fontWeight: '600' },
-  summaryCountBadge: { minWidth: 30, height: 30, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  summaryCountBadge: { minWidth: 30, height: 30, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   summaryCount: { fontSize: 10.5, fontWeight: '700' },
   summaryFacts: { marginTop: 15, paddingTop: 13, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 12 },
   fact: { minWidth: 62 },
