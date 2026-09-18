@@ -12,9 +12,10 @@ import {
   saveNotificationPreferences,
   type ReminderLeadMinutes
 } from '@/src/storage/preferences';
-import { SectionHeader, Surface } from '@/src/ui/primitives';
+import { NeverSignal, SectionHeader, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
+import { editorialFontFamily } from '@/src/theme/typography';
 
 const leadOptions: { value: ReminderLeadMinutes; label: string; detail: string }[] = [
   { value: 0, label: 'At time', detail: 'Notify when the item starts.' },
@@ -83,25 +84,28 @@ export default function NotificationSettingsScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             onPress={() => router.back()}
-            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
           >
-            <OneIcon name={icons.chevronLeft} size={17} color={theme.text} />
+            <OneIcon name={icons.chevronLeft} size={16} color={theme.text} />
           </Pressable>
-          <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
-          <View style={{ width: 40 }} />
+          <View style={styles.navBrand}>
+            <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
+            <NeverSignal compact />
+          </View>
+          <View style={{ width: 38 }} />
         </View>
 
         <View style={styles.hero}>
-          <Text style={[styles.eyebrow, { color: theme.chrome }]}>NOTIFICATIONS</Text>
+          <Text style={[styles.eyebrow, { color: theme.textTertiary }]}>NOTIFICATIONS</Text>
           <Text style={[styles.title, { color: theme.text }]}>Useful, not noisy.</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>NEVER only reminds you about information that has a date. You stay in control of when those reminders arrive.</Text>
         </View>
 
         <View style={styles.section}>
           <SectionHeader title="Access" />
-          <View style={[styles.permissionCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
-            <View style={[styles.permissionIcon, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
-              <OneIcon name={icons.bell} size={18} color={theme.chrome} />
+          <View style={[styles.permissionCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
+            <View style={[styles.memoryGlyph, { borderColor: theme.border }]}>
+              <OneIcon name={icons.bell} size={17} color={theme.sky} />
             </View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.permissionTitle, { color: theme.text }]}>Notification access</Text>
@@ -120,7 +124,7 @@ export default function NotificationSettingsScreen() {
                 accessibilityRole="button"
                 accessibilityLabel={permission === 'denied' ? 'Open system notification settings' : 'Enable notifications'}
                 onPress={() => void handlePermissionAction()}
-                style={({ pressed }) => [styles.enableButton, { backgroundColor: theme.accent, opacity: pressed ? 0.72 : 1 }]}
+                style={({ pressed }) => [styles.enableButton, { backgroundColor: theme.chrome, opacity: pressed ? 0.72 : 1 }]}
               >
                 <Text style={[styles.enableText, { color: theme.onAccent }]}>{permission === 'denied' ? 'Settings' : 'Enable'}</Text>
               </Pressable>
@@ -146,8 +150,8 @@ export default function NotificationSettingsScreen() {
                     { opacity: pressed ? 0.58 : 1 }
                   ]}
                 >
-                  <View style={[styles.clockTile, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-                    <OneIcon name={icons.clock} size={15} color={active ? theme.chrome : theme.textSecondary} />
+                  <View style={[styles.memoryGlyph, { borderColor: theme.border }]}>
+                    <OneIcon name={icons.clock} size={16} color={active ? theme.sky : theme.textSecondary} />
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.optionLabel, { color: theme.text }]}>{option.label}</Text>
@@ -161,8 +165,8 @@ export default function NotificationSettingsScreen() {
             })}
           </Surface>
 
-          <View style={[styles.note, { borderTopColor: theme.border }]}>
-            <OneIcon name={icons.bell} size={13} color={theme.chrome} />
+          <View style={styles.note}>
+            <OneIcon name={icons.bell} size={12.5} color={theme.sky} />
             <Text style={[styles.noteText, { color: theme.textTertiary }]}>This timing is applied when a reminder is newly scheduled or edited. Individual items can still use their own reminder details.</Text>
           </View>
         </View>
@@ -185,46 +189,43 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 760,
     alignSelf: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     paddingTop: 10,
-    paddingBottom: 40,
-    gap: 26
+    paddingBottom: 36,
+    gap: 22
   },
-  nav: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  wordmark: { fontSize: 11, fontWeight: '600', letterSpacing: 3.2 },
-  hero: { paddingTop: 10, paddingBottom: 3 },
-  eyebrow: { fontSize: 9, fontWeight: '700', letterSpacing: 2.1 },
-  title: { marginTop: 11, maxWidth: 520, fontSize: 31, lineHeight: 36, fontWeight: '600', letterSpacing: -1.05 },
-  subtitle: { marginTop: 9, maxWidth: 530, fontSize: 13, lineHeight: 19.5 },
-  section: { gap: 10 },
+  nav: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  navButton: { width: 38, height: 38, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  navBrand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  wordmark: { fontSize: 10.75, fontWeight: '700', letterSpacing: 3.2 },
+  hero: { paddingTop: 8, paddingBottom: 2 },
+  eyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 2 },
+  title: { marginTop: 10, maxWidth: 520, fontFamily: editorialFontFamily, fontSize: 31, lineHeight: 35, fontWeight: '400', letterSpacing: -0.8 },
+  subtitle: { marginTop: 8, maxWidth: 530, fontSize: 12.5, lineHeight: 18.5 },
+  section: { gap: 9 },
   permissionCard: {
-    minHeight: 84,
-    borderRadius: 18,
+    minHeight: 76,
+    borderRadius: 15,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 14,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 1
+    gap: 11
   },
-  permissionIcon: { width: 38, height: 38, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  permissionTitle: { fontSize: 14, lineHeight: 18, fontWeight: '600', letterSpacing: -0.08 },
-  permissionBody: { marginTop: 4, fontSize: 11.25, lineHeight: 16 },
+  memoryGlyph: { width: 27, height: 34, borderLeftWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  permissionTitle: { fontSize: 13.75, lineHeight: 17.5, fontWeight: '600', letterSpacing: -0.07 },
+  permissionBody: { marginTop: 3, fontSize: 11, lineHeight: 15.5 },
   statusWrap: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
-  statusText: { fontSize: 10.75, fontWeight: '600' },
-  enableButton: { minHeight: 34, borderRadius: 13, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
-  enableText: { fontSize: 11.5, fontWeight: '600' },
-  optionRow: { minHeight: 72, paddingHorizontal: 15, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  clockTile: { width: 34, height: 34, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  optionLabel: { fontSize: 13.75, lineHeight: 17.5, fontWeight: '600' },
-  optionDetail: { marginTop: 3, fontSize: 10.75, lineHeight: 15 },
-  radio: { width: 21, height: 21, borderRadius: 11, borderWidth: 1.4, alignItems: 'center', justifyContent: 'center' },
-  radioInner: { width: 7, height: 7, borderRadius: 4 },
-  note: { paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  noteText: { flex: 1, fontSize: 10.5, lineHeight: 15 }
+  statusText: { fontSize: 10.5, fontWeight: '600' },
+  enableButton: { minHeight: 32, borderRadius: 10, paddingHorizontal: 11, alignItems: 'center', justifyContent: 'center' },
+  enableText: { fontSize: 11.25, fontWeight: '600' },
+  optionRow: { minHeight: 66, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  optionLabel: { fontSize: 13.5, lineHeight: 17, fontWeight: '600' },
+  optionDetail: { marginTop: 3, fontSize: 10.5, lineHeight: 14.5 },
+  radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.35, alignItems: 'center', justifyContent: 'center' },
+  radioInner: { width: 6.5, height: 6.5, borderRadius: 4 },
+  note: { paddingTop: 2, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  noteText: { flex: 1, fontSize: 10.25, lineHeight: 14.5 }
 });
