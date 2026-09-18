@@ -4,8 +4,9 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
-import { SectionHeader, Surface } from '@/src/ui/primitives';
+import { NeverSignal, SectionHeader, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
+import { editorialFontFamily } from '@/src/theme/typography';
 import type { ThemePreference } from '@/src/context/ThemeContext';
 import {
   getNeverAppIcon,
@@ -19,9 +20,9 @@ const options: {
   title: string;
   body: string;
 }[] = [
-  { value: 'system', title: 'System', body: 'Follow your device appearance automatically.' },
-  { value: 'light', title: 'Light', body: 'Use the platinum NEVER light appearance.' },
-  { value: 'dark', title: 'Dark', body: 'Use the graphite NEVER dark appearance.' }
+  { value: 'system', title: 'Automatic', body: 'Use Core Light or Core Dark with your device.' },
+  { value: 'light', title: 'Core Light', body: 'Soft aluminium, paper surfaces and graphite structure.' },
+  { value: 'dark', title: 'Core Dark', body: 'Smoked graphite, quiet contrast and muted signals.' }
 ];
 
 const iconOptions: {
@@ -76,22 +77,25 @@ export default function AppearanceScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             onPress={() => router.back()}
-            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
           >
-            <OneIcon name={icons.chevronLeft} size={17} color={theme.text} />
+            <OneIcon name={icons.chevronLeft} size={16} color={theme.text} />
           </Pressable>
-          <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
-          <View style={{ width: 40 }} />
+          <View style={styles.navBrand}>
+            <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
+            <NeverSignal compact />
+          </View>
+          <View style={{ width: 38 }} />
         </View>
 
         <View style={styles.hero}>
-          <Text style={[styles.eyebrow, { color: theme.chrome }]}>APPEARANCE</Text>
-          <Text style={[styles.title, { color: theme.text }]}>Make NEVER feel at home.</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Choose the interface and Home Screen icon without changing how your memory works.</Text>
+          <Text style={[styles.eyebrow, { color: theme.textTertiary }]}>APPEARANCE</Text>
+          <Text style={[styles.title, { color: theme.text }]}>Choose how Core feels.</Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Light and Dark share the same NEVER Core structure. Only the material and contrast change.</Text>
         </View>
 
         <View style={styles.section}>
-          <SectionHeader title="Interface" />
+          <SectionHeader title="Core interface" />
           <Surface>
             {options.map((option, index) => {
               const active = preference === option.value;
@@ -109,7 +113,11 @@ export default function AppearanceScreen() {
                   ]}
                 >
                   <View style={[styles.preview, { backgroundColor: previewBackground(option.value, theme.background), borderColor: theme.border }]}>
-                    <View style={[styles.previewHeader, { backgroundColor: previewText(option.value, theme.text) }]} />
+                    <View style={styles.previewSignal}>
+                      <View style={[styles.previewSignalLong, { backgroundColor: previewText(option.value, theme.text) }]} />
+                      <View style={styles.previewSignalBlue} />
+                      <View style={styles.previewSignalRed} />
+                    </View>
                     <View style={[styles.previewCard, { backgroundColor: previewSurface(option.value, theme.surface) }]}>
                       <View style={[styles.previewLine, { backgroundColor: previewText(option.value, theme.text) }]} />
                       <View style={[styles.previewLine, styles.previewLineShort, { backgroundColor: previewText(option.value, theme.text) }]} />
@@ -157,7 +165,7 @@ export default function AppearanceScreen() {
           </Surface>
 
           {!canSwitchAppIcon ? (
-            <View style={[styles.note, { borderTopColor: theme.border }]}>
+            <View style={styles.note}>
               <OneIcon name={icons.appearance} size={13} color={theme.chrome} />
               <Text style={[styles.noteText, { color: theme.textTertiary }]}>Icon switching becomes available in the installed iOS native build.</Text>
             </View>
@@ -178,7 +186,7 @@ export default function AppearanceScreen() {
 }
 
 function previewBackground(mode: ThemePreference, current: string) {
-  if (mode === 'light') return '#F1F3F5';
+  if (mode === 'light') return '#F2F4F5';
   if (mode === 'dark') return '#080A0C';
   return current;
 }
@@ -190,35 +198,39 @@ function previewSurface(mode: ThemePreference, current: string) {
 }
 
 function previewText(mode: ThemePreference, current: string) {
-  if (mode === 'light') return '#101214';
-  if (mode === 'dark') return '#F4F6F7';
+  if (mode === 'light') return '#111418';
+  if (mode === 'dark') return '#F3F4F4';
   return current;
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 36, gap: 26 },
-  nav: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  wordmark: { fontSize: 11, fontWeight: '600', letterSpacing: 3.2 },
-  hero: { paddingTop: 10, paddingBottom: 3 },
-  eyebrow: { fontSize: 9, fontWeight: '700', letterSpacing: 2.1 },
-  title: { marginTop: 11, maxWidth: 520, fontSize: 31, lineHeight: 36, fontWeight: '600', letterSpacing: -1.05 },
-  subtitle: { marginTop: 9, maxWidth: 500, fontSize: 13, lineHeight: 19.5 },
-  section: { gap: 10 },
-  row: { minHeight: 86, paddingHorizontal: 15, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 13 },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 18, paddingTop: 10, paddingBottom: 34, gap: 24 },
+  nav: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  navButton: { width: 38, height: 38, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  navBrand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  wordmark: { fontSize: 10.75, fontWeight: '700', letterSpacing: 3.2 },
+  hero: { paddingTop: 8, paddingBottom: 2 },
+  eyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 2 },
+  title: { marginTop: 10, maxWidth: 520, fontFamily: editorialFontFamily, fontSize: 31, lineHeight: 35, fontWeight: '400', letterSpacing: -0.8 },
+  subtitle: { marginTop: 8, maxWidth: 500, fontSize: 12.5, lineHeight: 18.5 },
+  section: { gap: 9 },
+  row: { minHeight: 82, paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 },
   rowCopy: { flex: 1, minWidth: 0 },
-  preview: { width: 52, height: 52, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, padding: 7 },
-  previewHeader: { width: 18, height: 3, borderRadius: 2, opacity: 0.72 },
-  previewCard: { flex: 1, marginTop: 7, borderRadius: 7, padding: 6 },
-  previewLine: { width: '72%', height: 3, borderRadius: 2, opacity: 0.65 },
-  previewLineShort: { width: '48%', marginTop: 5, opacity: 0.28 },
-  appIconPreview: { width: 52, height: 52, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth },
-  rowTitle: { fontSize: 14.25, lineHeight: 18, fontWeight: '600', letterSpacing: -0.1 },
-  rowBody: { marginTop: 4, fontSize: 11.25, lineHeight: 16 },
-  radio: { width: 21, height: 21, borderRadius: 11, borderWidth: 1.4, alignItems: 'center', justifyContent: 'center' },
-  radioInner: { width: 7, height: 7, borderRadius: 4 },
-  note: { paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  noteText: { flex: 1, fontSize: 10.5, lineHeight: 15 },
-  errorText: { paddingHorizontal: 2, fontSize: 10.75, lineHeight: 15 }
+  preview: { width: 50, height: 50, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, padding: 7 },
+  previewSignal: { height: 3, flexDirection: 'row', alignItems: 'center', gap: 2 },
+  previewSignalLong: { width: 13, height: 2.5, borderRadius: 2 },
+  previewSignalBlue: { width: 7, height: 2.5, borderRadius: 2, backgroundColor: '#7197B4' },
+  previewSignalRed: { width: 4, height: 2.5, borderRadius: 2, backgroundColor: '#BE7077' },
+  previewCard: { flex: 1, marginTop: 6, borderRadius: 6, padding: 6 },
+  previewLine: { width: '72%', height: 3, borderRadius: 2, opacity: 0.62 },
+  previewLineShort: { width: '46%', marginTop: 5, opacity: 0.25 },
+  appIconPreview: { width: 50, height: 50, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth },
+  rowTitle: { fontSize: 14, lineHeight: 17.5, fontWeight: '600', letterSpacing: -0.08 },
+  rowBody: { marginTop: 4, fontSize: 11, lineHeight: 15.5 },
+  radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.35, alignItems: 'center', justifyContent: 'center' },
+  radioInner: { width: 6.5, height: 6.5, borderRadius: 4 },
+  note: { paddingTop: 2, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
+  noteText: { flex: 1, fontSize: 10.25, lineHeight: 14.5 },
+  errorText: { paddingHorizontal: 2, fontSize: 10.5, lineHeight: 14.5 }
 });
