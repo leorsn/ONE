@@ -3,7 +3,9 @@ import type { OneItem } from '../types/item';
 const stopWords = new Set([
   'ich','mir','mich','mein','meine','meinen','nochmal','noch','hatte','habe','was','welche','welcher',
   'wann','war','wo','der','die','das','den','dem','ein','eine','einen','und','oder','für','fuer','von',
-  'the','a','an','my','me','i','what','which','when','where','was','were','did','do','for','of','and'
+  'ist','sind','sein','es','bitte','gib','gebe','zeig','zeige','find','finde','finden','such','suche',
+  'the','a','an','my','me','i','what','which','when','where','was','were','did','do','for','of','and',
+  'is','are','be','please','give','show','find','search'
 ]);
 
 const synonymGroups = [
@@ -36,11 +38,19 @@ export function searchOneItems(
   const terms = expandTerms(tokenize(query));
   if (!terms.length && !phrase) return [];
 
-  return items
+  const ranked = items
     .map((item) => scoreItem(item, terms, phrase, options.now ?? new Date()))
     .filter((result) => result.score > 0)
-    .sort((a, b) => b.score - a.score || new Date(b.item.updatedAt).getTime() - new Date(a.item.updatedAt).getTime())
-    .slice(0, options.limit ?? 12);
+    .sort((a, b) => b.score - a.score || new Date(b.item.updatedAt).getTime() - new Date(a.item.updatedAt).getTime());
+
+  if (!ranked.length) return [];
+
+  // Natural-language quick search should not surface weak one-word accidents far
+  // below a clearly relevant result. Keep all reasonably competitive matches.
+  const topScore = ranked[0].score;
+  const filtered = ranked.filter((result) => result.score >= Math.max(4, topScore * 0.22));
+
+  return filtered.slice(0, options.limit ?? 12);
 }
 
 function scoreItem(item: OneItem, terms: string[], phrase: string, now: Date): SearchResult {
