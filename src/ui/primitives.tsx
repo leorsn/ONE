@@ -15,10 +15,9 @@ export function BrandHeader({ action }: { action?: ReactNode }) {
         <View style={styles.wordmarkRow}>
           <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
           <View style={styles.brandSpectrum} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-            <View style={[styles.spectrumSegment, { backgroundColor: theme.accent }]} />
-            <View style={[styles.spectrumSegment, { backgroundColor: theme.sky }]} />
-            <View style={[styles.spectrumSegment, { backgroundColor: theme.plum }]} />
-            <View style={[styles.spectrumSegment, { backgroundColor: theme.success }]} />
+            <View style={[styles.signalLong, { backgroundColor: theme.chrome }]} />
+            <View style={[styles.signalMedium, { backgroundColor: theme.sky }]} />
+            <View style={[styles.signalShort, { backgroundColor: theme.danger }]} />
           </View>
         </View>
         <Text style={[styles.brandLine, { color: theme.textTertiary }]}>CAPTURE TODAY. REMEMBER TOMORROW.</Text>
@@ -43,7 +42,7 @@ export function PageHeader({
   return (
     <View style={styles.pageHeader}>
       <View style={{ flex: 1 }}>
-        <Text style={[styles.eyebrow, { color: theme.accent }]}>{eyebrow}</Text>
+        <Text style={[styles.eyebrow, { color: theme.chrome }]}>{eyebrow}</Text>
         <Text style={[styles.pageTitle, { color: theme.text }]}>{title}</Text>
         {subtitle ? <Text style={[styles.pageSubtitle, { color: theme.textSecondary }]}>{subtitle}</Text> : null}
       </View>
@@ -57,7 +56,10 @@ export function SectionHeader({ title, meta, action }: { title: string; meta?: s
   return (
     <View style={styles.sectionHeader}>
       <View style={styles.sectionTitleRow}>
-        <View style={[styles.sectionAccent, { backgroundColor: theme.accent }]} />
+        <View style={styles.sectionSignal} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+          <View style={[styles.sectionSignalBlue, { backgroundColor: theme.sky }]} />
+          <View style={[styles.sectionSignalRed, { backgroundColor: theme.danger }]} />
+        </View>
         <Text style={[styles.sectionTitle, { color: theme.text }]}>{title}</Text>
         {meta ? <Text style={[styles.sectionMeta, { color: theme.textTertiary }]}>{meta}</Text> : null}
       </View>
@@ -80,6 +82,11 @@ export function Surface({ children, padded = false }: { children: ReactNode; pad
         padded && styles.surfacePadded
       ]}
     >
+      <View style={styles.surfaceSignal} pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
+        <View style={[styles.surfaceSignalGraphite, { backgroundColor: theme.chrome }]} />
+        <View style={[styles.surfaceSignalBlue, { backgroundColor: theme.sky }]} />
+        <View style={[styles.surfaceSignalRed, { backgroundColor: theme.danger }]} />
+      </View>
       {children}
     </View>
   );
@@ -96,13 +103,13 @@ export function IconTile({
 }) {
   const theme = useTheme();
   const palette = {
-    accent: [theme.accentSoft, theme.accent, `${theme.accent}2F`],
-    neutral: [theme.fill, theme.chrome, theme.border],
-    success: [theme.successSoft, theme.success, `${theme.success}2F`],
-    danger: [theme.dangerSoft, theme.danger, `${theme.danger}2F`],
-    warning: [theme.warningSoft, theme.warning, `${theme.warning}2F`],
-    info: [theme.skySoft, theme.sky, `${theme.sky}2F`],
-    memory: [theme.plumSoft, theme.plum, `${theme.plum}2F`]
+    accent: [theme.accentSoft, theme.accent, `${theme.accent}38`],
+    neutral: [theme.chromeSoft, theme.chrome, `${theme.chrome}2D`],
+    success: [theme.successSoft, theme.success, `${theme.success}38`],
+    danger: [theme.dangerSoft, theme.danger, `${theme.danger}38`],
+    warning: [theme.warningSoft, theme.warning, `${theme.warning}38`],
+    info: [theme.skySoft, theme.sky, `${theme.sky}38`],
+    memory: [theme.plumSoft, theme.plum, `${theme.plum}38`]
   } as const;
   const [background, color, border] = palette[tone];
 
@@ -113,7 +120,7 @@ export function IconTile({
         {
           width: size,
           height: size,
-          borderRadius: Math.round(size * 0.3),
+          borderRadius: Math.round(size * 0.24),
           backgroundColor: background,
           borderColor: border
         }
@@ -147,14 +154,14 @@ export function RoundIconButton({
       style={({ pressed }) => [
         styles.roundButton,
         {
-          backgroundColor: filled ? theme.accent : theme.accentSoft,
-          borderColor: filled ? theme.accent : `${theme.accent}2F`,
-          shadowColor: filled ? theme.accent : theme.shadow,
+          backgroundColor: filled ? theme.chrome : theme.chromeSoft,
+          borderColor: filled ? theme.chrome : `${theme.chrome}32`,
+          shadowColor: theme.shadow,
           opacity: pressed ? 0.64 : 1
         }
       ]}
     >
-      <OneIcon name={icon} size={18} color={filled ? theme.onAccent : theme.accent} />
+      <OneIcon name={icon} size={18} color={filled ? theme.onAccent : theme.chrome} />
     </Pressable>
   );
 }
@@ -163,7 +170,7 @@ export function EmptyState({ icon, title, body }: { icon: IconName; title: strin
   const theme = useTheme();
   return (
     <View style={styles.emptyState}>
-      <IconTile icon={icon} tone="accent" size={44} />
+      <IconTile icon={icon} tone="info" size={44} />
       <Text style={[styles.emptyTitle, { color: theme.text }]}>{title}</Text>
       <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>{body}</Text>
     </View>
@@ -192,9 +199,9 @@ export function PrimaryButton({
       style={({ pressed }) => [
         styles.primaryButton,
         {
-          backgroundColor: theme.accent,
-          borderColor: theme.accent,
-          shadowColor: theme.accent,
+          backgroundColor: theme.chrome,
+          borderColor: theme.chrome,
+          shadowColor: theme.shadow,
           opacity: disabled ? 0.42 : pressed ? 0.76 : 1
         }
       ]}
@@ -219,57 +226,65 @@ export const uiStyles = StyleSheet.create({
 
 const styles = StyleSheet.create({
   brandHeader: { minHeight: 74, flexDirection: 'row', alignItems: 'flex-start', gap: 18, paddingTop: 2 },
-  wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  wordmark: { fontSize: 21, lineHeight: 24, fontWeight: '700', letterSpacing: 5.2 },
+  wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 13 },
+  wordmark: { fontSize: 21, lineHeight: 24, fontWeight: '700', letterSpacing: 5.3 },
   brandSpectrum: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingTop: 1 },
-  spectrumSegment: { width: 9, height: 3, borderRadius: 2 },
+  signalLong: { width: 18, height: 4, borderRadius: 2 },
+  signalMedium: { width: 11, height: 4, borderRadius: 2 },
+  signalShort: { width: 7, height: 4, borderRadius: 2 },
   brandLine: { marginTop: 9, fontSize: 8.5, lineHeight: 12.5, fontWeight: '700', letterSpacing: 1.48 },
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 18, paddingTop: 2 },
   eyebrow: { fontSize: 9.5, fontWeight: '800', letterSpacing: 2.2, marginBottom: 10 },
   pageTitle: { fontSize: 32, lineHeight: 36, fontWeight: '600', letterSpacing: -1.12 },
   pageSubtitle: { marginTop: 8, maxWidth: 420, fontSize: 13, lineHeight: 19 },
   sectionHeader: { minHeight: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  sectionAccent: { width: 3, height: 16, borderRadius: 2 },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  sectionSignal: { width: 7, height: 19, justifyContent: 'space-between', alignItems: 'flex-start' },
+  sectionSignalBlue: { width: 3, height: 19, borderRadius: 2, position: 'absolute', left: 0, top: 0 },
+  sectionSignalRed: { width: 3, height: 8, borderRadius: 2, position: 'absolute', right: 0, bottom: 0 },
   sectionTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.3 },
   sectionMeta: { fontSize: 10.5, fontWeight: '600', letterSpacing: 0.16 },
   surface: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 22,
+    borderRadius: 18,
     overflow: 'hidden',
-    shadowOpacity: 0.055,
+    shadowOpacity: 0.09,
     shadowRadius: 18,
-    shadowOffset: { width: 0, height: 7 },
-    elevation: 2
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3
   },
   surfacePadded: { padding: 18 },
+  surfaceSignal: { height: 3, width: '100%', flexDirection: 'row' },
+  surfaceSignalGraphite: { flex: 6 },
+  surfaceSignalBlue: { flex: 2 },
+  surfaceSignalRed: { flex: 1 },
   iconTile: { alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
   roundButton: {
     width: 42,
     height: 42,
-    borderRadius: 14,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    shadowOpacity: 0.07,
+    shadowOpacity: 0.09,
     shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 }
+    shadowOffset: { width: 0, height: 5 }
   },
   emptyState: { minHeight: 150, paddingHorizontal: 28, paddingVertical: 30, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { marginTop: 13, fontSize: 14.5, fontWeight: '600', letterSpacing: -0.12 },
   emptyBody: { marginTop: 6, maxWidth: 270, fontSize: 12.25, lineHeight: 18, textAlign: 'center' },
   primaryButton: {
     minHeight: 52,
-    borderRadius: 16,
+    borderRadius: 13,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowOpacity: 0.16,
+    shadowOpacity: 0.18,
     shadowRadius: 14,
     shadowOffset: { width: 0, height: 7 },
-    elevation: 2
+    elevation: 3
   },
   primaryButtonText: { fontSize: 14, fontWeight: '700', letterSpacing: -0.05 }
 });
