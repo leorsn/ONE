@@ -4,10 +4,9 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
-import { BrandHeader, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { BrandHeader, CoreBackdrop, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
-import { editorialFontFamily } from '@/src/theme/typography';
 import type { OneItem } from '@/src/types/item';
 
 type CalendarMode = 'day' | 'week' | 'month';
@@ -45,6 +44,7 @@ export default function CalendarScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
+      <CoreBackdrop />
       <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false}>
         <BrandHeader
           action={
@@ -59,10 +59,10 @@ export default function CalendarScreen() {
               style={({ pressed }) => [
                 styles.todayButton,
                 {
-                  backgroundColor: dark ? '#1C1C1EF0' : '#FFFFFFF2',
-                  borderColor: dark ? '#FFFFFF12' : '#0000000A',
-                  shadowColor: theme.shadow,
-                  shadowOpacity: dark ? 0.18 : 0.08,
+                  backgroundColor: dark ? '#1C1C1EBF' : '#FFFFFFC8',
+                  borderColor: dark ? '#FFFFFF19' : '#FFFFFFF3',
+                  shadowColor: dark ? '#000000' : '#6E7688',
+                  shadowOpacity: dark ? 0.3 : 0.14,
                   opacity: pressed ? 0.68 : 1
                 }
               ]}
@@ -83,7 +83,7 @@ export default function CalendarScreen() {
               accessibilityRole="button"
               accessibilityLabel="Previous month"
               onPress={() => moveMonth(-1)}
-              style={({ pressed }) => [styles.monthArrow, { backgroundColor: dark ? '#2C2C2EF0' : '#F2F2F7', opacity: pressed ? 0.6 : 1 }]}
+              style={({ pressed }) => [styles.monthArrow, { backgroundColor: dark ? '#2C2C2EB6' : '#F1F2F6D8', borderColor: dark ? '#FFFFFF14' : '#FFFFFFE8', opacity: pressed ? 0.6 : 1 }]}
             >
               <OneIcon name={icons.chevronLeft} size={13} color={theme.textSecondary} />
             </Pressable>
@@ -94,7 +94,7 @@ export default function CalendarScreen() {
               accessibilityRole="button"
               accessibilityLabel="Next month"
               onPress={() => moveMonth(1)}
-              style={({ pressed }) => [styles.monthArrow, { backgroundColor: dark ? '#2C2C2EF0' : '#F2F2F7', opacity: pressed ? 0.6 : 1 }]}
+              style={({ pressed }) => [styles.monthArrow, { backgroundColor: dark ? '#2C2C2EB6' : '#F1F2F6D8', borderColor: dark ? '#FFFFFF14' : '#FFFFFFE8', opacity: pressed ? 0.6 : 1 }]}
             >
               <OneIcon name={icons.chevron} size={13} color={theme.textSecondary} />
             </Pressable>
@@ -125,7 +125,7 @@ export default function CalendarScreen() {
             })}
           </View>
 
-          <View style={[styles.modeSwitch, { backgroundColor: dark ? '#2C2C2EF0' : '#E9E9EEF0', borderColor: dark ? '#FFFFFF0D' : '#00000008' }]}>
+          <View style={[styles.modeSwitch, { backgroundColor: dark ? '#2C2C2E9E' : '#E9EAF0C8', borderColor: dark ? '#FFFFFF12' : '#FFFFFFD8' }]}>
             {(['day', 'week', 'month'] as CalendarMode[]).map((entry) => {
               const active = mode === entry;
               return (
@@ -140,9 +140,10 @@ export default function CalendarScreen() {
                   style={[
                     styles.modeButton,
                     active && {
-                      backgroundColor: dark ? '#4A4A4CF2' : '#FFFFFF',
+                      backgroundColor: dark ? '#47474ADE' : '#FFFFFFE9',
+                      borderColor: dark ? '#FFFFFF13' : '#FFFFFF',
                       shadowColor: theme.shadow,
-                      shadowOpacity: dark ? 0.18 : 0.1
+                      shadowOpacity: dark ? 0.2 : 0.13
                     }
                   ]}
                 >
@@ -311,22 +312,22 @@ function toIsoDate(date: Date) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  todayButton: { minHeight: 38, paddingHorizontal: 15, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 2 },
+  todayButton: { minHeight: 38, paddingHorizontal: 15, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 3 },
   todayText: { fontSize: 11.5, fontWeight: '600' },
-  intro: { marginTop: -1 },
-  title: { fontFamily: editorialFontFamily, fontSize: 36, lineHeight: 40, fontWeight: '400', letterSpacing: -1 },
-  subtitle: { marginTop: 7, fontSize: 13, lineHeight: 18.5 },
+  intro: { marginTop: 5 },
+  title: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.12 },
+  subtitle: { marginTop: 5, fontSize: 12.75, lineHeight: 18.5 },
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  monthArrow: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  monthArrow: { width: 34, height: 34, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   month: { fontSize: 17.5, lineHeight: 21, fontWeight: '600', letterSpacing: -0.3 },
   dayStrip: { marginTop: 18, flexDirection: 'row', justifyContent: 'space-between' },
   day: { width: 39, alignItems: 'center' },
   weekday: { fontSize: 8.5, lineHeight: 11, fontWeight: '700', letterSpacing: 0.7 },
-  dayNumberWrap: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginTop: 6, shadowOpacity: 0.18, shadowRadius: 9, shadowOffset: { width: 0, height: 3 }, elevation: 2 },
+  dayNumberWrap: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginTop: 6, shadowOpacity: 0.2, shadowRadius: 11, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
   dayNumber: { fontSize: 15, lineHeight: 18, fontWeight: '600' },
   dot: { width: 4, height: 4, borderRadius: 2, marginTop: 5 },
-  modeSwitch: { marginTop: 18, minHeight: 40, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, padding: 3, flexDirection: 'row', gap: 2 },
-  modeButton: { flex: 1, minHeight: 34, borderRadius: 9, alignItems: 'center', justifyContent: 'center', shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 1 },
+  modeSwitch: { marginTop: 18, minHeight: 42, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, padding: 4, flexDirection: 'row', gap: 2 },
+  modeButton: { flex: 1, minHeight: 34, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center', shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 1 },
   modeText: { fontSize: 10.75, fontWeight: '600' },
   timelineBlock: { gap: 10 },
   dateDivider: { minHeight: 30, paddingHorizontal: 16, justifyContent: 'center' },
