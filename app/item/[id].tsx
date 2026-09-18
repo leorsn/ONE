@@ -6,9 +6,10 @@ import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
 import { iconForType } from '@/src/ui/OneItemRow';
-import { EmptyState, IconTile, PrimaryButton, SectionHeader, Surface } from '@/src/ui/primitives';
+import { EmptyState, NeverSignal, PrimaryButton, SectionHeader, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
+import { editorialFontFamily } from '@/src/theme/typography';
 
 export default function ItemDetailScreen() {
   const theme = useTheme();
@@ -112,16 +113,21 @@ export default function ItemDetailScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             onPress={() => router.back()}
-            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
           >
-            <OneIcon name={icons.chevronLeft} size={17} color={theme.text} />
+            <OneIcon name={icons.chevronLeft} size={16} color={theme.text} />
           </Pressable>
-          <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
-          <View style={{ width: 40 }} />
+          <View style={styles.navBrand}>
+            <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
+            <NeverSignal compact />
+          </View>
+          <View style={{ width: 38 }} />
         </View>
 
         <View style={styles.identity}>
-          <IconTile icon={iconForType(currentItem.type)} tone="neutral" size={42} />
+          <View style={[styles.identityGlyph, { borderColor: theme.border }]}>
+            <OneIcon name={iconForType(currentItem.type)} size={18} color={typeColor(currentItem.type, theme)} />
+          </View>
           <View style={{ flex: 1 }}>
             <Text style={[styles.type, { color: theme.chrome }]}>{formatType(currentItem.type)}</Text>
             <Text style={[styles.source, { color: theme.textTertiary }]}>{sourceLabel(currentItem.sourceType)} · Updated {formatUpdated(currentItem.updatedAt)}</Text>
@@ -148,7 +154,7 @@ export default function ItemDetailScreen() {
               accessibilityRole="button"
               accessibilityLabel={sourceExpanded ? 'Collapse original' : 'Open original'}
               onPress={() => setSourceExpanded((value) => !value)}
-              style={({ pressed }) => [styles.sourceCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.74 : 1 }]}
+              style={({ pressed }) => [styles.sourceCard, { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.74 : 1 }]}
             >
               {sourceIsImage ? (
                 <Image
@@ -158,15 +164,15 @@ export default function ItemDetailScreen() {
                 />
               ) : (
                 <View style={styles.sourceFile}>
-                  <IconTile icon={icons.document} tone="neutral" size={40} />
+                  <MemoryGlyph icon={icons.document} color={theme.sky} />
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.sourceFileTitle, { color: theme.text }]}>{currentItem.localAttachmentName || 'Original file'}</Text>
                     <Text style={[styles.sourceFileMeta, { color: theme.textSecondary }]}>Original preserved by NEVER</Text>
                   </View>
                 </View>
               )}
-              <View style={styles.sourceActionRow}>
-                <Text style={[styles.sourceAction, { color: theme.chrome }]}>{sourceExpanded ? 'Close original' : 'Open original'}</Text>
+              <View style={[styles.sourceActionRow, { borderTopColor: theme.border }]}>
+                <Text style={[styles.sourceAction, { color: theme.textSecondary }]}>{sourceExpanded ? 'Close original' : 'Open original'}</Text>
                 <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
               </View>
             </Pressable>
@@ -178,7 +184,7 @@ export default function ItemDetailScreen() {
             <SectionHeader title="Document" />
             <Surface padded>
               <View style={styles.documentHeader}>
-                <IconTile icon={icons.document} tone="neutral" size={38} />
+                <MemoryGlyph icon={icons.document} color={theme.sky} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.documentTitle, { color: theme.text }]}>{formatDocumentKind(currentItem.documentKind)}</Text>
                   <Text style={[styles.documentMeta, { color: theme.textSecondary }]}>{currentItem.merchant || 'Saved document'}</Text>
@@ -209,7 +215,7 @@ export default function ItemDetailScreen() {
           <TextInput
             value={context}
             onChangeText={setContext}
-            style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+            style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
             placeholder="What should NEVER remember this as?"
             placeholderTextColor={theme.textTertiary}
             accessibilityLabel="Memory context"
@@ -222,7 +228,7 @@ export default function ItemDetailScreen() {
           <TextInput
             value={notes}
             onChangeText={setNotes}
-            style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+            style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surface, borderColor: theme.border }]}
             placeholder="Add notes"
             placeholderTextColor={theme.textTertiary}
             accessibilityLabel="Notes"
@@ -233,21 +239,21 @@ export default function ItemDetailScreen() {
         {savedLinks.length ? (
           <View style={styles.section}>
             <SectionHeader title="Links" meta={`${savedLinks.length} found`} />
-            <View style={styles.linksStack}>
+            <Surface>
               {savedLinks.map((link, index) => (
                 <Pressable
                   key={`${link}-${index}`}
                   accessibilityRole="link"
                   accessibilityLabel={`Open saved link ${index + 1}`}
                   onPress={() => Linking.openURL(normalizeWebUrl(link))}
-                  style={({ pressed }) => [styles.extractedLink, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.64 : 1 }]}
+                  style={({ pressed }) => [styles.extractedLink, { borderBottomColor: theme.border, opacity: pressed ? 0.64 : 1 }]}
                 >
-                  <IconTile icon={icons.link} tone="neutral" size={34} />
+                  <MemoryGlyph icon={icons.link} color={theme.sky} />
                   <Text style={[styles.extractedLinkText, { color: theme.text }]} numberOfLines={2}>{link}</Text>
                   <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
                 </Pressable>
               ))}
-            </View>
+            </Surface>
           </View>
         ) : null}
 
@@ -265,9 +271,9 @@ export default function ItemDetailScreen() {
             accessibilityRole="link"
             accessibilityLabel="Open saved link"
             onPress={() => Linking.openURL(currentItem.url!)}
-            style={({ pressed }) => [styles.linkCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+            style={({ pressed }) => [styles.linkCard, { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
           >
-            <IconTile icon={icons.link} tone="neutral" size={36} />
+            <MemoryGlyph icon={icons.link} color={theme.sky} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.linkLabel, { color: theme.textTertiary }]}>SAVED LINK</Text>
               <Text style={[styles.linkText, { color: theme.text }]} numberOfLines={1}>{currentItem.url}</Text>
@@ -293,6 +299,14 @@ export default function ItemDetailScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+
+  function MemoryGlyph({ icon, color }: { icon: (typeof icons)[keyof typeof icons]; color: string }) {
+    return (
+      <View style={[styles.memoryGlyph, { borderColor: theme.border }]}>
+        <OneIcon name={icon} size={17} color={color} />
+      </View>
+    );
+  }
 
   function InfoLine({ label, value }: { label: string; value: string }) {
     return (
@@ -338,7 +352,7 @@ export default function ItemDetailScreen() {
     return (
       <>
         <View style={[styles.fieldRow, { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-          <IconTile icon={icon} tone="neutral" size={34} />
+          <MemoryGlyph icon={icon} color={theme.textSecondary} />
           <Text style={[styles.fieldLabel, { color: theme.text }]}>{label}</Text>
 
           {isWeb ? (
@@ -407,7 +421,7 @@ export default function ItemDetailScreen() {
   }) {
     return (
       <View style={[styles.fieldRow, !last && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-        <IconTile icon={icon} tone="neutral" size={34} />
+        <MemoryGlyph icon={icon} color={theme.textSecondary} />
         <Text style={[styles.fieldLabel, { color: theme.text }]}>{label}</Text>
         <TextInput
           value={value}
@@ -431,7 +445,7 @@ export default function ItemDetailScreen() {
   }) {
     return (
       <View style={[styles.fieldRow, !last && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-        <IconTile icon={icon} tone="neutral" size={34} />
+        <MemoryGlyph icon={icon} color={theme.textSecondary} />
         <Text style={[styles.fieldLabel, { color: theme.text }]}>{label}</Text>
         <Switch accessibilityLabel={label} value={value} onValueChange={onChange} trackColor={{ true: theme.chrome }} />
       </View>
@@ -454,6 +468,13 @@ function sourceLabel(value: string) {
 function formatDocumentKind(value?: string) {
   if (!value) return 'Scanned document';
   return value.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
+}
+
+function typeColor(type: string, theme: ReturnType<typeof useTheme>) {
+  if (type === 'document' || type === 'link') return theme.sky;
+  if (type === 'idea' || type === 'note') return theme.plum;
+  if (type === 'reminder' || type === 'task' || type === 'shopping') return theme.warning;
+  return theme.textSecondary;
 }
 
 function formatMoney(amount: number, currency = 'EUR') {
@@ -502,49 +523,51 @@ function toTime(value: Date) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 24 },
-  nav: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  wordmark: { fontSize: 11, fontWeight: '600', letterSpacing: 3.2 },
-  identity: { flexDirection: 'row', alignItems: 'center', gap: 12, marginTop: 2 },
-  type: { fontSize: 8.75, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.35 },
-  source: { marginTop: 4, fontSize: 10.75, lineHeight: 14 },
-  titleBlock: { gap: 6 },
-  fieldEyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 1.55 },
-  titleInput: { minHeight: 62, paddingVertical: 4, fontSize: 29, lineHeight: 35, fontWeight: '600', letterSpacing: -0.95, textAlignVertical: 'top' },
-  section: { gap: 10 },
-  sourceCard: { borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', padding: 10, gap: 8 },
-  sourceImage: { width: '100%', height: 220, borderRadius: 13 },
-  sourceImageExpanded: { height: 560 },
-  sourceFile: { minHeight: 74, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 8 },
-  sourceFileTitle: { fontSize: 13.5, fontWeight: '600' },
-  sourceFileMeta: { marginTop: 4, fontSize: 11 },
-  sourceActionRow: { minHeight: 34, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
-  sourceAction: { fontSize: 11.5, fontWeight: '600' },
-  linksStack: { gap: 8 },
-  extractedLink: { minHeight: 58, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  extractedLinkText: { flex: 1, fontSize: 11.5, lineHeight: 16, fontWeight: '500' },
-  documentHeader: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  documentTitle: { fontSize: 14.25, lineHeight: 18, fontWeight: '600' },
-  documentMeta: { marginTop: 3, fontSize: 11.25 },
-  documentAmount: { fontSize: 14.5, fontWeight: '600', letterSpacing: -0.15 },
-  documentDetails: { marginTop: 14, paddingTop: 11, borderTopWidth: StyleSheet.hairlineWidth, gap: 9 },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 18, paddingTop: 10, paddingBottom: 38, gap: 20 },
+  nav: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  navButton: { width: 38, height: 38, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  navBrand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  wordmark: { fontSize: 10.75, fontWeight: '700', letterSpacing: 3.2 },
+  identity: { flexDirection: 'row', alignItems: 'center', gap: 11, marginTop: 1 },
+  identityGlyph: { width: 30, height: 36, borderLeftWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  memoryGlyph: { width: 27, height: 34, borderLeftWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  type: { fontSize: 8.5, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 1.3 },
+  source: { marginTop: 3, fontSize: 10.5, lineHeight: 14 },
+  titleBlock: { gap: 5 },
+  fieldEyebrow: { fontSize: 8.25, fontWeight: '700', letterSpacing: 1.5 },
+  titleInput: { minHeight: 58, paddingVertical: 3, fontFamily: editorialFontFamily, fontSize: 29, lineHeight: 33, fontWeight: '400', letterSpacing: -0.8, textAlignVertical: 'top' },
+  section: { gap: 9 },
+  sourceCard: { borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', padding: 9 },
+  sourceImage: { width: '100%', height: 210, borderRadius: 10 },
+  sourceImageExpanded: { height: 540 },
+  sourceFile: { minHeight: 68, flexDirection: 'row', alignItems: 'center', gap: 11, padding: 7 },
+  sourceFileTitle: { fontSize: 13.25, fontWeight: '600' },
+  sourceFileMeta: { marginTop: 3, fontSize: 10.75 },
+  sourceActionRow: { minHeight: 36, marginTop: 3, paddingTop: 7, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
+  sourceAction: { fontSize: 11.25, fontWeight: '600' },
+  extractedLink: { minHeight: 58, paddingHorizontal: 13, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  extractedLinkText: { flex: 1, fontSize: 11.25, lineHeight: 15.5, fontWeight: '500' },
+  documentHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  documentTitle: { fontSize: 14, lineHeight: 17.5, fontWeight: '600' },
+  documentMeta: { marginTop: 3, fontSize: 11 },
+  documentAmount: { fontSize: 14.25, fontWeight: '600', letterSpacing: -0.12 },
+  documentDetails: { marginTop: 13, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, gap: 8 },
   infoLine: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  infoLabel: { width: 76, fontSize: 10.5, fontWeight: '600' },
-  infoValue: { flex: 1, textAlign: 'right', fontSize: 12.25, fontWeight: '500' },
-  fieldRow: { minHeight: 64, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  fieldLabel: { width: 72, fontSize: 13.25, fontWeight: '600' },
-  fieldInput: { flex: 1, fontSize: 13.25, textAlign: 'right', paddingVertical: 10 },
+  infoLabel: { width: 74, fontSize: 10.25, fontWeight: '600' },
+  infoValue: { flex: 1, textAlign: 'right', fontSize: 12, fontWeight: '500' },
+  fieldRow: { minHeight: 60, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  fieldLabel: { width: 68, fontSize: 13, fontWeight: '600' },
+  fieldInput: { flex: 1, fontSize: 13, textAlign: 'right', paddingVertical: 9 },
   nativePickerWrap: { flex: 1, alignItems: 'flex-end' },
-  pickerButton: { flex: 1, minHeight: 36, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 11, alignItems: 'flex-end', justifyContent: 'center' },
-  pickerButtonText: { fontSize: 12.25, fontWeight: '600' },
-  clearButton: { width: 26, height: 32, alignItems: 'center', justifyContent: 'center' },
-  largeInput: { minHeight: 112, borderWidth: StyleSheet.hairlineWidth, borderRadius: 18, padding: 14, fontSize: 13.5, lineHeight: 20, textAlignVertical: 'top' },
-  extracted: { fontSize: 12.25, lineHeight: 19 },
-  linkCard: { minHeight: 64, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  linkLabel: { fontSize: 7.75, fontWeight: '700', letterSpacing: 1.05 },
-  linkText: { marginTop: 3, fontSize: 11.75, fontWeight: '500' },
-  deleteAction: { minHeight: 44, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center' },
-  deleteText: { fontSize: 12.25, fontWeight: '600' },
+  pickerButton: { flex: 1, minHeight: 34, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 10, alignItems: 'flex-end', justifyContent: 'center' },
+  pickerButtonText: { fontSize: 12, fontWeight: '600' },
+  clearButton: { width: 25, height: 30, alignItems: 'center', justifyContent: 'center' },
+  largeInput: { minHeight: 104, borderWidth: StyleSheet.hairlineWidth, borderRadius: 15, padding: 13, fontSize: 13.25, lineHeight: 19.5, textAlignVertical: 'top' },
+  extracted: { fontSize: 12, lineHeight: 18.5 },
+  linkCard: { minHeight: 60, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  linkLabel: { fontSize: 7.5, fontWeight: '700', letterSpacing: 1 },
+  linkText: { marginTop: 3, fontSize: 11.5, fontWeight: '500' },
+  deleteAction: { minHeight: 42, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center' },
+  deleteText: { fontSize: 12, fontWeight: '600' },
   missing: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', padding: 24, gap: 12 }
 });
