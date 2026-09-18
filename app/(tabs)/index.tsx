@@ -452,7 +452,7 @@ const styles = StyleSheet.create({
     shadowRadius: 9,
     shadowOffset: { width: 0, height: 4 }
   },
-  quickLabel: { fontSize: 12, lineHeight: 15, fontWeight: '650', letterSpacing: -0.05 },
+  quickLabel: { fontSize: 12, lineHeight: 15, fontWeight: '600', letterSpacing: -0.05 },
   quickHint: { marginTop: 3, fontSize: 9.75, lineHeight: 12.5 },
   interpretationTop: { padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
   interpretationTitle: { fontSize: 15, lineHeight: 19, fontWeight: '600', letterSpacing: -0.16 },
