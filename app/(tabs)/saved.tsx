@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -11,9 +11,9 @@ import {
   getDocumentSummary,
   groupDocumentsByMonth
 } from '@/src/documents/analytics';
-import { OneItemRow } from '@/src/ui/OneItemRow';
-import { CoreBackdrop, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { BrandHeader, CoreBackdrop, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
+import { iconForType } from '@/src/ui/OneItemRow';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 import type { OneDocumentKind, OneItem } from '@/src/types/item';
 
@@ -62,27 +62,27 @@ export default function SavedScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
       <CoreBackdrop />
       <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <BrandHeader />
+
         <View style={styles.intro}>
           <Text style={[styles.title, { color: theme.text }]}>{filter === 'Documents' ? 'Documents' : 'Saved'}</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            {filter === 'Documents' ? 'Receipts, tickets and important files.' : 'Everything worth keeping, in one place.'}
+            {filter === 'Documents' ? 'Receipts, tickets and important files.' : 'Your curated memory library.'}
           </Text>
         </View>
 
         <View style={[styles.search, {
-          backgroundColor: dark ? '#1C1C1ED6' : '#FFFFFFE0',
-          borderColor: dark ? '#FFFFFF18' : '#FFFFFFF5',
-          shadowColor: dark ? '#000000' : '#6E7688',
-          shadowOpacity: dark ? 0.34 : 0.16
+          backgroundColor: dark ? '#1C1C1EE8' : '#FFFFFFEE',
+          borderColor: dark ? '#FFFFFF18' : '#FFFFFF',
+          shadowColor: dark ? '#000000' : '#788196'
         }]}>
-          <View pointerEvents="none" style={[styles.searchHighlight, { backgroundColor: dark ? '#FFFFFF1C' : '#FFFFFF' }]} />
-          <View style={[styles.searchIconWell, { backgroundColor: dark ? '#2C2C2EC8' : '#F1F2F6DC' }]}>
-            <OneIcon name={icons.search} size={17.5} color={theme.textSecondary} />
+          <View style={[styles.searchIconWell, { backgroundColor: dark ? '#2C2C2ECC' : '#F1F2F6E8' }]}>
+            <OneIcon name={icons.search} size={17.5} color={theme.chrome} />
           </View>
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder={filter === 'Documents' ? 'Search documents…' : 'Search saved memories…'}
+            placeholder={filter === 'Documents' ? 'Search documents…' : 'Search your library…'}
             placeholderTextColor={theme.textTertiary}
             style={[styles.searchInput, { color: theme.text }]}
             returnKeyType="search"
@@ -94,10 +94,7 @@ export default function SavedScreen() {
           ) : null}
         </View>
 
-        <View style={[styles.segmented, {
-          backgroundColor: dark ? '#1C1C1ECC' : '#E8E9EED8',
-          borderColor: dark ? '#FFFFFF14' : '#FFFFFFE8'
-        }]}>
+        <View style={[styles.segmented, { backgroundColor: dark ? '#1C1C1ED8' : '#E8EAF0D8' }]}>
           {filters.map((name) => {
             const active = name === filter;
             return (
@@ -112,14 +109,13 @@ export default function SavedScreen() {
                 style={({ pressed }) => [
                   styles.segment,
                   active && {
-                    backgroundColor: dark ? '#3A3A3E' : '#FFFFFF',
+                    backgroundColor: dark ? '#3A3A3ECC' : '#FFFFFFF2',
                     shadowColor: theme.shadow,
-                    shadowOpacity: dark ? 0.28 : 0.13,
-                    shadowRadius: 9,
-                    shadowOffset: { width: 0, height: 3 },
-                    elevation: 2
+                    shadowOpacity: dark ? 0.2 : 0.12,
+                    shadowRadius: 10,
+                    shadowOffset: { width: 0, height: 4 }
                   },
-                  { opacity: pressed ? 0.72 : 1 }
+                  { opacity: pressed ? 0.7 : 1 }
                 ]}
               >
                 <Text style={[styles.segmentText, { color: active ? theme.text : theme.textSecondary }]} numberOfLines={1}>{name}</Text>
@@ -132,17 +128,57 @@ export default function SavedScreen() {
           <DocumentsView groups={documentGroups} summary={documentSummary} selectedFilter={documentFilter} setSelectedFilter={setDocumentFilter} />
         ) : (
           <View style={styles.block}>
-            <SectionHeader title={filter === 'All' ? 'Your memory' : filter} meta={String(savedItems.length)} />
-            <Surface>
-              {savedItems.length
-                ? savedItems.map((item) => <OneItemRow key={item.id} item={item} />)
-                : <EmptyState icon={icons.saved} title="Nothing here yet" body="Share something to NEVER or save an idea from your inbox." />}
-            </Surface>
+            <SectionHeader title={filter === 'All' ? 'Memory library' : filter} meta={String(savedItems.length)} />
+            {savedItems.length ? (
+              <View style={styles.gallery}>
+                {savedItems.map((item) => <MemoryTile key={item.id} item={item} />)}
+              </View>
+            ) : (
+              <Surface><EmptyState icon={icons.saved} title="Nothing here yet" body="Share something to NEVER or save an idea from your inbox." /></Surface>
+            )}
           </View>
         )}
       </ScrollView>
     </SafeAreaView>
   );
+
+  function MemoryTile({ item }: { item: OneItem }) {
+    const preview = imagePreviewUri(item);
+    const tint = tileTint(item);
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Open ${item.title}`}
+        onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
+        style={({ pressed }) => [styles.tile, {
+          backgroundColor: dark ? '#1C1C1EE8' : '#FFFFFFEE',
+          borderColor: dark ? '#FFFFFF16' : '#FFFFFF',
+          shadowColor: dark ? '#000000' : '#7D8594',
+          opacity: pressed ? 0.72 : 1,
+          transform: [{ scale: pressed ? 0.985 : 1 }]
+        }]}
+      >
+        <View style={[styles.tilePreview, { backgroundColor: preview ? theme.fill : `${tint}${dark ? '22' : '12'}` }]}>
+          {preview ? (
+            <Image source={{ uri: preview }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+          ) : (
+            <OneIcon name={iconForType(item.type)} size={26} color={tint} />
+          )}
+          <View style={[styles.tileBadge, { backgroundColor: dark ? '#00000099' : '#FFFFFFDD' }]}>
+            <Text style={[styles.tileBadgeText, { color: dark ? '#FFFFFF' : theme.textSecondary }]}>{item.type.toUpperCase()}</Text>
+          </View>
+        </View>
+        <View style={styles.tileBody}>
+          <Text style={[styles.tileTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
+          <Text style={[styles.tileMeta, { color: theme.textSecondary }]} numberOfLines={1}>{tileMeta(item)}</Text>
+          <View style={styles.tileFooter}>
+            <Text style={[styles.tileDate, { color: theme.textTertiary }]}>{prettyCaptured(item.updatedAt)}</Text>
+            <OneIcon name={icons.chevron} size={12.5} color={theme.textTertiary} />
+          </View>
+        </View>
+      </Pressable>
+    );
+  }
 
   function DocumentsView({ groups, summary, selectedFilter, setSelectedFilter }: {
     groups: Array<{ label: string; items: OneItem[] }>;
@@ -154,16 +190,14 @@ export default function SavedScreen() {
     return (
       <View style={styles.documents}>
         <View style={[styles.documentSummary, {
-          backgroundColor: dark ? '#1C1C1ED4' : '#FFFFFFDE',
-          borderColor: dark ? '#FFFFFF17' : '#FFFFFFF2',
-          shadowColor: dark ? '#000000' : '#6F7787',
-          shadowOpacity: dark ? 0.28 : 0.13
+          backgroundColor: dark ? '#1C1C1EE8' : '#FFFFFFEE',
+          borderColor: dark ? '#FFFFFF16' : '#FFFFFF',
+          shadowColor: dark ? '#000000' : '#768094'
         }]}>
-          <View pointerEvents="none" style={[styles.summaryHighlight, { backgroundColor: dark ? '#FFFFFF18' : '#FFFFFF' }]} />
           <Text style={[styles.summaryEyebrow, { color: theme.textTertiary }]}>{summary.monthLabel.toUpperCase()}</Text>
           <View style={styles.summaryTop}>
             <Text style={[styles.summaryTitle, { color: theme.text }]}>Document memory</Text>
-            <View style={[styles.summaryCountBadge, { backgroundColor: dark ? '#2C2C2EB8' : '#F1F2F6D8' }]}>
+            <View style={[styles.summaryCountBadge, { backgroundColor: theme.fill }]}>
               <Text style={[styles.summaryCount, { color: theme.textSecondary }]}>{summary.documents.length}</Text>
             </View>
           </View>
@@ -185,12 +219,12 @@ export default function SavedScreen() {
                   setSelectedFilter(entry.value);
                 }}
                 style={({ pressed }) => [styles.documentFilter, {
-                  backgroundColor: active ? `${theme.accent}${dark ? '2E' : '16'}` : dark ? '#1C1C1EB8' : '#FFFFFFBE',
-                  borderColor: active ? `${theme.accent}48` : dark ? '#FFFFFF13' : '#FFFFFFE0',
-                  opacity: pressed ? 0.72 : 1
+                  backgroundColor: active ? theme.accent : (dark ? '#1C1C1ECC' : '#FFFFFFD8'),
+                  borderColor: active ? theme.accent : (dark ? '#FFFFFF14' : '#FFFFFF'),
+                  opacity: pressed ? 0.7 : 1
                 }]}
               >
-                <Text style={[styles.documentFilterText, { color: active ? theme.accent : theme.textSecondary }]}>{entry.label}</Text>
+                <Text style={[styles.documentFilterText, { color: active ? '#FFFFFF' : theme.textSecondary }]}>{entry.label}</Text>
               </Pressable>
             );
           })}
@@ -226,7 +260,7 @@ export default function SavedScreen() {
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
         style={({ pressed }) => [styles.documentRow, { borderBottomColor: `${theme.text}0D`, backgroundColor: pressed ? `${theme.fill}42` : 'transparent' }]}
       >
-        <View style={[styles.documentSpine, { backgroundColor: theme.accent }]} />
+        <View style={[styles.documentSpine, { backgroundColor: theme.sky }]} />
         <View style={styles.documentContent}>
           <Text style={[styles.documentTitle, { color: theme.text }]} numberOfLines={1}>{item.merchant || item.title}</Text>
           <Text style={[styles.documentMeta, { color: theme.textSecondary }]} numberOfLines={1}>
@@ -238,6 +272,29 @@ export default function SavedScreen() {
       </Pressable>
     );
   }
+
+  function tileTint(item: OneItem) {
+    if (item.type === 'document' || item.type === 'link') return theme.sky;
+    if (item.type === 'idea' || item.type === 'note') return theme.plum;
+    if (item.type === 'shopping' || item.type === 'reminder') return theme.warning;
+    return theme.chrome;
+  }
+}
+
+function imagePreviewUri(item: OneItem) {
+  const candidate = item.localAttachmentUri || item.imageUrl;
+  return candidate && /^(file|content|ph|https?):\/\//i.test(candidate) ? candidate : undefined;
+}
+
+function tileMeta(item: OneItem) {
+  return [item.category, item.userContext, item.merchant, item.location].filter(Boolean).join(' · ') || (item.saved ? 'Saved memory' : item.type);
+}
+
+function prettyCaptured(value?: string) {
+  if (!value) return 'Memory';
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return 'Memory';
+  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
 }
 
 function formatKind(kind?: OneDocumentKind) {
@@ -252,24 +309,32 @@ function prettyDate(iso?: string) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  intro: { paddingTop: 12 },
-  title: { fontSize: 35, lineHeight: 40, fontWeight: '700', letterSpacing: -1.2 },
-  subtitle: { marginTop: 5, fontSize: 12.75, lineHeight: 18.5 },
-  search: { minHeight: 62, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 9, paddingRight: 8, flexDirection: 'row', alignItems: 'center', gap: 9, overflow: 'hidden', shadowRadius: 28, shadowOffset: { width: 0, height: 13 }, elevation: 5 },
-  searchHighlight: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth },
-  searchIconWell: { width: 38, height: 38, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  searchInput: { flex: 1, minHeight: 48, fontSize: 14.5, lineHeight: 19 },
+  intro: { marginTop: 2 },
+  title: { fontSize: 34, lineHeight: 39, fontWeight: '800', letterSpacing: -1.15 },
+  subtitle: { marginTop: 5, fontSize: 13, lineHeight: 18.5 },
+  search: { minHeight: 64, borderRadius: 26, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 9, paddingRight: 9, flexDirection: 'row', alignItems: 'center', gap: 10, shadowOpacity: 0.15, shadowRadius: 30, shadowOffset: { width: 0, height: 14 }, elevation: 5 },
+  searchIconWell: { width: 42, height: 42, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  searchInput: { flex: 1, minHeight: 48, fontSize: 15, lineHeight: 20 },
   clearButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
-  segmented: { minHeight: 44, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, padding: 4, flexDirection: 'row', gap: 2 },
-  segment: { flex: 1, minHeight: 35, borderRadius: 11, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 },
-  segmentText: { fontSize: 9.55, fontWeight: '600', letterSpacing: -0.05 },
-  block: { gap: 10 },
+  segmented: { minHeight: 46, borderRadius: 17, padding: 4, flexDirection: 'row', gap: 2 },
+  segment: { flex: 1, minHeight: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  segmentText: { fontSize: 10.3, fontWeight: '600' },
+  block: { gap: 11 },
+  gallery: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  tile: { width: '48.2%', borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', shadowOpacity: 0.14, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 4 },
+  tilePreview: { height: 118, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  tileBadge: { position: 'absolute', top: 10, right: 10, paddingHorizontal: 7, paddingVertical: 4, borderRadius: 9 },
+  tileBadgeText: { fontSize: 7.2, fontWeight: '800', letterSpacing: 0.7 },
+  tileBody: { padding: 13 },
+  tileTitle: { fontSize: 13.7, lineHeight: 17.5, fontWeight: '700', letterSpacing: -0.16 },
+  tileMeta: { marginTop: 5, fontSize: 10.2, lineHeight: 13.5 },
+  tileFooter: { marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  tileDate: { fontSize: 9.1, fontWeight: '600' },
   documents: { gap: 18 },
-  documentSummary: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 22, padding: 18, overflow: 'hidden', shadowRadius: 28, shadowOffset: { width: 0, height: 13 }, elevation: 4 },
-  summaryHighlight: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth },
+  documentSummary: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 24, padding: 18, shadowOpacity: 0.14, shadowRadius: 28, shadowOffset: { width: 0, height: 13 }, elevation: 4 },
   summaryEyebrow: { fontSize: 8.25, fontWeight: '700', letterSpacing: 1.05 },
   summaryTop: { marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  summaryTitle: { fontSize: 15.75, lineHeight: 19.5, fontWeight: '600' },
+  summaryTitle: { fontSize: 15.75, lineHeight: 19.5, fontWeight: '700' },
   summaryCountBadge: { minWidth: 30, height: 30, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   summaryCount: { fontSize: 10.5, fontWeight: '700' },
   summaryFacts: { marginTop: 15, paddingTop: 13, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 12 },
@@ -277,8 +342,8 @@ const styles = StyleSheet.create({
   factWide: { flex: 1, alignItems: 'flex-end' },
   factValue: { fontSize: 13.25, lineHeight: 16.5, fontWeight: '600' },
   factLabel: { marginTop: 3, fontSize: 9.25, lineHeight: 12 },
-  documentFilters: { gap: 8, paddingRight: 18 },
-  documentFilter: { minHeight: 35, paddingHorizontal: 13, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  documentFilters: { gap: 9, paddingRight: 18 },
+  documentFilter: { minHeight: 37, paddingHorizontal: 14, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   documentFilterText: { fontSize: 10.5, fontWeight: '600' },
   documentRow: { minHeight: 72, paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
   documentSpine: { width: 3, height: 30, borderRadius: 2 },
