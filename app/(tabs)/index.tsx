@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,7 +12,6 @@ import { isInboxActive, triageActionChanges, triagePriority } from '@/src/inbox/
 import { buildTodayEntries, todayReasonLabel } from '@/src/inbox/today';
 import { notificationSaveWarning } from '@/src/notifications/status';
 import { TriageRow } from '@/src/ui/TriageRow';
-import { OneItemRow } from '@/src/ui/OneItemRow';
 import { BrandHeader, CoreBackdrop, IconTile, PrimaryButton, RoundIconButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
@@ -34,7 +33,7 @@ export default function InboxScreen() {
   const now = new Date();
   const firstName = displayFirstName(session?.user.user_metadata);
 
-  const recentItems = [...items].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 3);
+  const recentItems = [...items].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()).slice(0, 5);
   const todayEntries = buildTodayEntries(items, now).slice(0, 3);
   const inboxItems = items.filter((item) => !item.completed && isInboxActive(item, now)).sort((a, b) => triagePriority(a) - triagePriority(b) || sortUpdated(a, b)).slice(0, 3);
 
@@ -72,40 +71,38 @@ export default function InboxScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
       <CoreBackdrop />
       <ScrollView contentContainerStyle={uiStyles.screenContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <BrandHeader action={<RoundIconButton icon={icons.person} onPress={() => router.push('/(tabs)/settings')} accessibilityLabel="Open settings" />} />
+        <BrandHeader showTagline action={<RoundIconButton icon={icons.person} onPress={() => router.push('/(tabs)/settings')} accessibilityLabel="Open settings" />} />
 
         <View style={styles.hero}>
           <Text style={[styles.heroTitle, { color: theme.text }]}>{greetingFor(now)}{firstName ? `, ${firstName}` : ''}</Text>
-          <Text style={[styles.heroSubtitle, { color: theme.textSecondary }]}>Your memory, quietly organized.</Text>
+          <Text style={[styles.heroSubtitle, { color: theme.textSecondary }]}>Everything worth remembering, ready when you need it.</Text>
         </View>
 
         <View style={styles.captureGroup}>
           <View style={styles.captureLabelRow}>
-            <Text style={[styles.eyebrow, { color: theme.textTertiary }]}>QUICK CAPTURE</Text>
-            <Text style={[styles.captureHint, { color: theme.textTertiary }]}>Type anything</Text>
+            <Text style={[styles.eyebrow, { color: theme.textTertiary }]}>CAPTURE</Text>
+            <Text style={[styles.captureHint, { color: theme.textTertiary }]}>Text · link · reminder · idea</Text>
           </View>
           <View style={[styles.capture, {
-            backgroundColor: dark ? '#1B1B1DDA' : '#FFFFFFE3',
-            borderColor: draft ? `${theme.success}55` : dark ? '#FFFFFF1A' : '#FFFFFFF5',
-            shadowColor: dark ? '#000000' : '#7A8498'
+            backgroundColor: dark ? '#1B1B1DEA' : '#FFFFFFEE',
+            borderColor: draft ? `${theme.success}55` : dark ? '#FFFFFF1A' : '#FFFFFF',
+            shadowColor: dark ? '#000000' : '#7B8496'
           }]}>
-            <View pointerEvents="none" style={[styles.captureHighlight, { backgroundColor: dark ? '#FFFFFF18' : '#FFFFFF' }]} />
             <Pressable accessibilityRole="button" accessibilityLabel="Start a new capture" onPress={() => focusCapture()} style={styles.captureStart}>
-              <View style={[styles.captureOrb, { backgroundColor: `${theme.accent}${dark ? '28' : '16'}`, borderColor: `${theme.accent}2D` }]}>
-                <OneIcon name={icons.plus} size={21} color={theme.accent} />
+              <View style={[styles.captureOrb, { backgroundColor: `${theme.accent}${dark ? '2E' : '14'}`, borderColor: `${theme.accent}2F` }]}>
+                <OneIcon name={icons.plus} size={22} color={theme.accent} />
               </View>
             </Pressable>
             <TextInput
               ref={captureRef}
               value={input}
               onChangeText={(value) => { setInput(value); setReviewedDraft(null); }}
-              placeholder="What do you want to remember?"
+              placeholder="What should NEVER remember?"
               placeholderTextColor={theme.textTertiary}
               style={[styles.input, { color: theme.text }]}
               returnKeyType={structuredReview ? 'default' : 'done'}
               onSubmitEditing={structuredReview ? undefined : handleSave}
               accessibilityLabel="Quick capture"
-              accessibilityHint="Type a note, reminder, appointment, link or idea"
             />
             {input.trim() ? (
               <Pressable accessibilityRole="button" accessibilityLabel="Save capture" onPress={handleSave} style={({ pressed }) => [styles.captureSubmit, { backgroundColor: theme.accent, opacity: pressed ? 0.72 : 1 }]}>
@@ -118,13 +115,16 @@ export default function InboxScreen() {
         </View>
 
         <View style={[styles.actionDock, {
-          backgroundColor: dark ? '#171719CC' : '#FFFFFFCF',
-          borderColor: dark ? '#FFFFFF18' : '#FFFFFFEE',
+          backgroundColor: dark ? '#171719E8' : '#FFFFFFE7',
+          borderColor: dark ? '#FFFFFF17' : '#FFFFFF',
           shadowColor: dark ? '#000000' : '#7B8497'
         }]} accessibilityRole="toolbar">
           <QuickAction label="Scan" icon={icons.scan} tone="blue" onPress={() => router.push('/scan')} />
+          <DockDivider />
           <QuickAction label="Link" icon={icons.link} tone="neutral" onPress={() => focusCapture('https://')} />
+          <DockDivider />
           <QuickAction label="Note" icon={icons.note} tone="plum" onPress={() => focusCapture('')} />
+          <DockDivider />
           <QuickAction label="Share" icon={icons.upload} tone="red" onPress={() => router.push('/share')} />
         </View>
 
@@ -152,15 +152,17 @@ export default function InboxScreen() {
         ) : null}
 
         <View style={styles.block}>
-          <SectionHeader title="Recent" meta={recentItems.length ? `${recentItems.length}` : undefined} action={<Pressable onPress={() => router.push('/(tabs)/saved')} hitSlop={8}><Text style={[styles.textAction, { color: theme.accent }]}>See all</Text></Pressable>} />
-          <Surface>
-            {recentItems.length ? recentItems.map((item) => <OneItemRow key={item.id} item={item} showDate={false} />) : (
-              <View style={styles.compactEmpty}>
-                <Text style={[styles.compactEmptyTitle, { color: theme.text }]}>Your memory starts here.</Text>
-                <Text style={[styles.compactEmptyBody, { color: theme.textSecondary }]}>Capture, scan or share something to NEVER.</Text>
-              </View>
-            )}
-          </Surface>
+          <SectionHeader title="Recent memory" meta={recentItems.length ? `${recentItems.length}` : undefined} action={<Pressable onPress={() => router.push('/(tabs)/saved')} hitSlop={8}><Text style={[styles.textAction, { color: theme.accent }]}>See all</Text></Pressable>} />
+          {recentItems.length ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentRail} snapToInterval={244} decelerationRate="fast">
+              {recentItems.map((item) => <RecentCard key={item.id} item={item} />)}
+            </ScrollView>
+          ) : (
+            <Surface padded>
+              <Text style={[styles.compactEmptyTitle, { color: theme.text }]}>Your memory starts here.</Text>
+              <Text style={[styles.compactEmptyBody, { color: theme.textSecondary }]}>Capture, scan or share something to NEVER.</Text>
+            </Surface>
+          )}
         </View>
 
         {todayEntries.length ? (
@@ -172,7 +174,7 @@ export default function InboxScreen() {
 
         {inboxItems.length ? (
           <View style={styles.block}>
-            <SectionHeader title="Inbox" meta={`${inboxItems.length}`} action={<Pressable onPress={() => router.push('/inbox')} hitSlop={8}><Text style={[styles.textAction, { color: theme.accent }]}>Review</Text></Pressable>} />
+            <SectionHeader title="Needs review" meta={`${inboxItems.length}`} action={<Pressable onPress={() => router.push('/inbox')} hitSlop={8}><Text style={[styles.textAction, { color: theme.accent }]}>Open inbox</Text></Pressable>} />
             <Surface>{inboxItems.map((item) => <TriageRow key={item.id} item={item} onOpen={() => router.push({ pathname: '/inbox/[id]', params: { id: item.id } })} onExecute={(action) => executeAction(item, action)} />)}</Surface>
           </View>
         ) : null}
@@ -180,19 +182,51 @@ export default function InboxScreen() {
     </SafeAreaView>
   );
 
+  function DockDivider() {
+    return <View style={[styles.dockDivider, { backgroundColor: dark ? '#FFFFFF12' : '#11111110' }]} />;
+  }
+
   function QuickAction({ label, icon, onPress, tone }: { label: string; icon: (typeof icons)[keyof typeof icons]; onPress: () => void; tone: 'blue' | 'neutral' | 'plum' | 'red' }) {
     const tint = tone === 'blue' ? theme.sky : tone === 'plum' ? theme.plum : tone === 'red' ? theme.danger : theme.chrome;
     return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        onPress={async () => { await Haptics.selectionAsync(); onPress(); }}
-        style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.65 : 1, transform: [{ scale: pressed ? 0.96 : 1 }] }]}
-      >
-        <View style={[styles.quickActionIcon, { backgroundColor: `${tint}${dark ? '20' : '12'}`, borderColor: `${tint}24` }]}>
-          <OneIcon name={icon} size={18} color={tint} />
+      <Pressable accessibilityRole="button" accessibilityLabel={label} onPress={async () => { await Haptics.selectionAsync(); onPress(); }} style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.58 : 1 }]}>
+        <View style={[styles.quickActionIcon, { backgroundColor: `${tint}${dark ? '24' : '12'}` }]}>
+          <OneIcon name={icon} size={19} color={tint} />
         </View>
         <Text style={[styles.quickActionLabel, { color: theme.textSecondary }]}>{label}</Text>
+      </Pressable>
+    );
+  }
+
+  function RecentCard({ item }: { item: OneItem }) {
+    const preview = imagePreviewUri(item);
+    return (
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={`Open ${item.title}`}
+        onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
+        style={({ pressed }) => [styles.recentCard, {
+          backgroundColor: dark ? '#1C1C1EEB' : '#FFFFFFEC',
+          borderColor: dark ? '#FFFFFF16' : '#FFFFFF',
+          shadowColor: dark ? '#000000' : '#7C8492',
+          opacity: pressed ? 0.72 : 1,
+          transform: [{ scale: pressed ? 0.985 : 1 }]
+        }]}
+      >
+        <View style={styles.recentCardTop}>
+          {preview ? <Image source={{ uri: preview }} style={[styles.recentThumb, { backgroundColor: theme.fill }]} resizeMode="cover" /> : (
+            <View style={[styles.recentThumb, styles.recentGlyph, { backgroundColor: theme.fill }]}><OneIcon name={iconForRecent(item)} size={18} color={theme.textSecondary} /></View>
+          )}
+          <View style={[styles.recentTypeBadge, { backgroundColor: dark ? '#FFFFFF0F' : '#F1F2F6' }]}>
+            <Text style={[styles.recentTypeText, { color: theme.textTertiary }]}>{item.type.toUpperCase()}</Text>
+          </View>
+        </View>
+        <Text style={[styles.recentTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
+        <Text style={[styles.recentMeta, { color: theme.textSecondary }]} numberOfLines={1}>{[item.category, item.userContext, item.merchant].filter(Boolean).join(' · ') || 'Saved memory'}</Text>
+        <View style={styles.recentFooter}>
+          <Text style={[styles.recentDate, { color: theme.textTertiary }]}>{formatRelative(item.updatedAt)}</Text>
+          <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+        </View>
       </Pressable>
     );
   }
@@ -237,36 +271,64 @@ function iconForDraft(draft: CaptureDraft) {
   return icons.note;
 }
 
+function iconForRecent(item: OneItem) {
+  if (item.type === 'link') return icons.link;
+  if (item.type === 'document') return icons.document;
+  if (item.type === 'idea') return icons.idea;
+  if (item.type === 'reminder') return icons.reminder;
+  return icons.note;
+}
+
+function imagePreviewUri(item: OneItem) {
+  const candidate = item.localAttachmentUri || item.imageUrl;
+  return candidate && /^(file|content|ph|https?):\/\//i.test(candidate) ? candidate : undefined;
+}
+
+function formatRelative(iso: string) {
+  const date = new Date(iso);
+  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
+}
+
 function labelForKind(kind: string) { return kind.charAt(0).toUpperCase() + kind.slice(1); }
 function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(); }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  hero: { paddingTop: 8, paddingHorizontal: 1 },
-  heroTitle: { maxWidth: 460, fontSize: 32, lineHeight: 37, fontWeight: '700', letterSpacing: -1.05 },
-  heroSubtitle: { marginTop: 5, fontSize: 13.2, lineHeight: 18.5 },
+  hero: { paddingTop: 2, paddingHorizontal: 1 },
+  heroTitle: { maxWidth: 520, fontSize: 34, lineHeight: 39, fontWeight: '800', letterSpacing: -1.25 },
+  heroSubtitle: { marginTop: 6, maxWidth: 520, fontSize: 13.5, lineHeight: 19 },
   captureGroup: { gap: 8 },
   captureLabelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  eyebrow: { paddingHorizontal: 1, fontSize: 8.2, lineHeight: 11, fontWeight: '700', letterSpacing: 1.65 },
+  eyebrow: { paddingHorizontal: 1, fontSize: 8.3, lineHeight: 11, fontWeight: '700', letterSpacing: 1.7 },
   captureHint: { fontSize: 9.5, fontWeight: '500' },
-  capture: { minHeight: 64, borderRadius: 21, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', paddingRight: 11, gap: 9, overflow: 'hidden', shadowOpacity: 0.15, shadowRadius: 28, shadowOffset: { width: 0, height: 13 }, elevation: 4 },
-  captureHighlight: { position: 'absolute', top: 0, left: 21, right: 21, height: StyleSheet.hairlineWidth },
-  captureStart: { width: 58, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
-  captureOrb: { width: 38, height: 38, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  input: { flex: 1, minHeight: 46, fontSize: 14.6, lineHeight: 19.5, letterSpacing: -0.1 },
-  captureSubmit: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  moreSlot: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
-  actionDock: { minHeight: 84, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', paddingHorizontal: 6, paddingVertical: 10, shadowOpacity: 0.13, shadowRadius: 28, shadowOffset: { width: 0, height: 13 }, elevation: 4 },
-  quickAction: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 6 },
-  quickActionIcon: { width: 40, height: 40, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  quickActionLabel: { fontSize: 10, lineHeight: 12.5, fontWeight: '600' },
-  block: { gap: 9 },
+  capture: { minHeight: 70, borderRadius: 28, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', paddingRight: 12, gap: 10, shadowOpacity: 0.16, shadowRadius: 34, shadowOffset: { width: 0, height: 18 }, elevation: 6 },
+  captureStart: { width: 66, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
+  captureOrb: { width: 42, height: 42, borderRadius: 21, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  input: { flex: 1, minHeight: 48, fontSize: 15.5, lineHeight: 20, letterSpacing: -0.14 },
+  captureSubmit: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  moreSlot: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
+  actionDock: { minHeight: 82, borderRadius: 28, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 8, shadowOpacity: 0.15, shadowRadius: 30, shadowOffset: { width: 0, height: 15 }, elevation: 5 },
+  quickAction: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 7, paddingVertical: 8 },
+  quickActionIcon: { width: 38, height: 38, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  quickActionLabel: { fontSize: 10.5, lineHeight: 13, fontWeight: '600' },
+  dockDivider: { width: StyleSheet.hairlineWidth, height: 34 },
+  block: { gap: 10 },
+  recentRail: { gap: 12, paddingRight: 22, paddingVertical: 2 },
+  recentCard: { width: 232, minHeight: 154, borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, padding: 15, shadowOpacity: 0.14, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 4 },
+  recentCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  recentThumb: { width: 46, height: 46, borderRadius: 15 },
+  recentGlyph: { alignItems: 'center', justifyContent: 'center' },
+  recentTypeBadge: { paddingHorizontal: 8, paddingVertical: 5, borderRadius: 10 },
+  recentTypeText: { fontSize: 7.5, fontWeight: '700', letterSpacing: 0.8 },
+  recentTitle: { marginTop: 13, fontSize: 14.5, lineHeight: 18.5, fontWeight: '700', letterSpacing: -0.2 },
+  recentMeta: { marginTop: 5, fontSize: 10.5, lineHeight: 14 },
+  recentFooter: { marginTop: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  recentDate: { fontSize: 9.5, fontWeight: '600' },
   interpretationTop: { padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
   interpretationTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.12 },
   interpretationMeta: { fontSize: 11, lineHeight: 14.5, marginTop: 4 },
   saveWrap: { padding: 14, paddingTop: 0 },
   textAction: { fontSize: 11.5, fontWeight: '600' },
-  compactEmpty: { minHeight: 96, paddingHorizontal: 18, justifyContent: 'center' },
   compactEmptyTitle: { fontSize: 13.75, lineHeight: 17.5, fontWeight: '600' },
   compactEmptyBody: { marginTop: 4, fontSize: 11.25, lineHeight: 15.5 },
   todayRow: { minHeight: 68, borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 },
