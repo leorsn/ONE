@@ -89,7 +89,7 @@ export default function InboxScreen() {
 
         <View style={styles.hero}>
           <Text style={[styles.heroTitle, { color: theme.text }]}>
-            {greetingFor(now)}{firstName ? `\n${firstName}.` : ''}
+            {greetingFor(now, Boolean(firstName))}{firstName ? `\n${firstName}.` : ''}
           </Text>
           <Text style={[styles.heroSubtitle, { color: theme.textSecondary }]}>Everything you want to remember, in one place.</Text>
         </View>
@@ -290,11 +290,10 @@ function displayFirstName(metadata?: Record<string, unknown>) {
   return candidate?.trim().split(/\s+/)[0];
 }
 
-function greetingFor(date: Date) {
+function greetingFor(date: Date, personalized: boolean) {
   const hour = date.getHours();
-  if (hour < 12) return 'Good morning,';
-  if (hour < 18) return 'Good afternoon,';
-  return 'Good evening,';
+  const base = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+  return `${base}${personalized ? ',' : '.'}`;
 }
 
 function iconForDraft(draft: CaptureDraft) {
