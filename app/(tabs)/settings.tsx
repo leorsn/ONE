@@ -9,7 +9,7 @@ import { useItems } from '@/src/context/ItemsContext';
 import { useOnboarding } from '@/src/context/OnboardingContext';
 import { usePlan } from '@/src/context/PlanContext';
 import { deleteOneAccount } from '@/src/supabase/account';
-import { BrandHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { BrandHeader, CoreBackdrop, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 
@@ -105,6 +105,7 @@ export default function SettingsScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
+      <CoreBackdrop />
       <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false}>
         <BrandHeader />
 
@@ -120,15 +121,16 @@ export default function SettingsScreen() {
             style={({ pressed }) => [
               styles.profileCard,
               {
-                backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFFA',
-                borderColor: dark ? '#FFFFFF10' : '#00000008',
-                shadowColor: theme.shadow,
-                shadowOpacity: dark ? 0.2 : 0.1,
-                opacity: pressed ? 0.7 : 1
+                backgroundColor: dark ? '#1C1C1ECB' : '#FFFFFFDA',
+                borderColor: dark ? '#FFFFFF17' : '#FFFFFFF0',
+                shadowColor: dark ? '#000000' : '#6E7688',
+                shadowOpacity: dark ? 0.3 : 0.15,
+                opacity: pressed ? 0.72 : 1
               }
             ]}
           >
-            <View style={[styles.avatar, { backgroundColor: dark ? '#2C2C2EF0' : '#F2F2F7' }]}>
+            <View pointerEvents="none" style={[styles.profileHighlight, { backgroundColor: dark ? '#FFFFFF18' : '#FFFFFF' }]} />
+            <View style={[styles.avatar, { backgroundColor: dark ? '#2C2C2EB8' : '#F1F2F6D8', borderColor: dark ? '#FFFFFF12' : '#FFFFFFE8' }]}>
               {initials ? <Text style={[styles.avatarText, { color: theme.chrome }]}>{initials}</Text> : <OneIcon name={icons.person} size={18.5} color={theme.chrome} />}
             </View>
             <View style={styles.profileCopy}>
@@ -136,7 +138,7 @@ export default function SettingsScreen() {
               <Text style={[styles.profileEmail, { color: theme.textSecondary }]} numberOfLines={1}>{session.user.email}</Text>
             </View>
             <View style={styles.profileMeta}>
-              <View style={[styles.planBadge, { backgroundColor: dark ? '#2C2C2EF0' : '#F2F2F7' }]}>
+              <View style={[styles.planBadge, { backgroundColor: dark ? '#2C2C2EB8' : '#F1F2F6D8' }]}>
                 <Text style={[styles.planLabel, { color: theme.textSecondary }]}>{isBetaAccess ? 'BETA' : membershipLabel(plan).toUpperCase()}</Text>
               </View>
               <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
@@ -288,17 +290,18 @@ function appearanceLabel(value: 'system' | 'light' | 'dark') {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  intro: { marginTop: -1 },
-  title: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.1 },
-  subtitle: { marginTop: 6, fontSize: 13, lineHeight: 18.5 },
-  profileCard: { minHeight: 82, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12, shadowRadius: 22, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
-  avatar: { width: 46, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center' },
+  intro: { marginTop: 5 },
+  title: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.12 },
+  subtitle: { marginTop: 5, fontSize: 12.75, lineHeight: 18.5 },
+  profileCard: { minHeight: 84, borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12, overflow: 'hidden', shadowRadius: 30, shadowOffset: { width: 0, height: 14 }, elevation: 5 },
+  profileHighlight: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth },
+  avatar: { width: 46, height: 46, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 13, lineHeight: 16, fontWeight: '700', letterSpacing: 0.35 },
   profileCopy: { flex: 1, minWidth: 0 },
   profileTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   profileEmail: { marginTop: 2, fontSize: 10.9, lineHeight: 14 },
   profileMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  planBadge: { minHeight: 28, paddingHorizontal: 10, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  planBadge: { minHeight: 28, paddingHorizontal: 10, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   planLabel: { fontSize: 8.1, fontWeight: '700', letterSpacing: 0.82 },
   block: { gap: 7 },
   groupTitle: { paddingHorizontal: 7, fontSize: 8.5, lineHeight: 12, fontWeight: '700', letterSpacing: 1.15 },
