@@ -100,19 +100,22 @@ export default function InboxScreen() {
             style={[
               styles.capture,
               {
-                backgroundColor: theme.surface,
-                borderColor: draft ? theme.success : theme.border,
+                backgroundColor: `${theme.surfaceElevated}D8`,
+                borderColor: draft ? `${theme.success}72` : `${theme.text}18`,
                 shadowColor: theme.shadow
               }
             ]}
           >
+            <View pointerEvents="none" style={[styles.captureShine, { backgroundColor: `${theme.text}0E` }]} />
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Start a new capture"
               onPress={() => focusCapture()}
-              style={[styles.captureStart, { borderRightColor: theme.border }]}
+              style={styles.captureStart}
             >
-              <OneIcon name={icons.plus} size={21} color={theme.chrome} />
+              <View style={[styles.captureOrb, { backgroundColor: `${theme.fill}B8`, borderColor: `${theme.text}16` }]}>
+                <OneIcon name={icons.plus} size={20} color={theme.chrome} />
+              </View>
             </Pressable>
             <TextInput
               ref={captureRef}
@@ -134,21 +137,31 @@ export default function InboxScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Save capture"
                 onPress={handleSave}
-                style={({ pressed }) => [styles.captureSubmit, { backgroundColor: theme.chrome, opacity: pressed ? 0.72 : 1 }]}
+                style={({ pressed }) => [
+                  styles.captureSubmit,
+                  {
+                    backgroundColor: `${theme.chrome}E8`,
+                    borderColor: `${theme.text}24`,
+                    shadowColor: theme.shadow,
+                    opacity: pressed ? 0.72 : 1
+                  }
+                ]}
               >
                 <OneIcon name={icons.check} size={15} color={theme.onAccent} />
               </Pressable>
             ) : (
-              <OneIcon name={icons.more} size={18} color={theme.textTertiary} />
+              <View style={styles.moreSlot}>
+                <OneIcon name={icons.more} size={18} color={theme.textTertiary} />
+              </View>
             )}
           </View>
         </View>
 
         <View style={styles.toolGrid} accessibilityRole="toolbar">
-          <ToolCard label="Scan" meta="Paper to memory" icon={icons.scan} onPress={() => router.push('/scan')} />
-          <ToolCard label="Add Link" meta="From any app" icon={icons.link} onPress={() => focusCapture('https://')} />
-          <ToolCard label="New Note" meta="Quick capture" icon={icons.note} onPress={() => focusCapture('')} />
-          <ToolCard label="Share" meta="Send to NEVER" icon={icons.upload} onPress={() => router.push('/share')} />
+          <ToolCard label="Scan" meta="Paper to memory" icon={icons.scan} onPress={() => router.push('/scan')} tone="blue" />
+          <ToolCard label="Add Link" meta="From any app" icon={icons.link} onPress={() => focusCapture('https://')} tone="neutral" />
+          <ToolCard label="New Note" meta="Quick capture" icon={icons.note} onPress={() => focusCapture('')} tone="neutral" />
+          <ToolCard label="Share" meta="Send to NEVER" icon={icons.upload} onPress={() => router.push('/share')} tone="red" />
         </View>
 
         {draft ? (
@@ -253,12 +266,14 @@ export default function InboxScreen() {
     );
   }
 
-  function ToolCard({ label, meta, icon, onPress }: {
+  function ToolCard({ label, meta, icon, onPress, tone }: {
     label: string;
     meta: string;
     icon: (typeof icons)[keyof typeof icons];
     onPress: () => void;
+    tone: 'blue' | 'red' | 'neutral';
   }) {
+    const tint = tone === 'blue' ? theme.sky : tone === 'red' ? theme.danger : theme.chrome;
     return (
       <Pressable
         accessibilityRole="button"
@@ -269,15 +284,26 @@ export default function InboxScreen() {
         }}
         style={({ pressed }) => [
           styles.toolCard,
-          { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }
+          {
+            backgroundColor: `${theme.surfaceElevated}C8`,
+            borderColor: `${theme.text}14`,
+            shadowColor: theme.shadow,
+            opacity: pressed ? 0.7 : 1,
+            transform: [{ scale: pressed ? 0.985 : 1 }]
+          }
         ]}
       >
-        <OneIcon name={icon} size={18.5} color={theme.chrome} />
+        <View pointerEvents="none" style={[styles.toolShine, { backgroundColor: `${theme.text}0C` }]} />
+        <View style={[styles.toolIcon, { backgroundColor: `${tint}12`, borderColor: `${tint}2C` }]}>
+          <OneIcon name={icon} size={18} color={tint} />
+        </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.toolLabel, { color: theme.text }]}>{label}</Text>
           <Text style={[styles.toolMeta, { color: theme.textSecondary }]}>{meta}</Text>
         </View>
-        <OneIcon name={icons.chevron} size={11.5} color={theme.textTertiary} />
+        <View style={[styles.toolArrow, { backgroundColor: `${theme.fill}88`, borderColor: `${theme.text}10` }]}>
+          <OneIcon name={icons.chevron} size={10.5} color={theme.textTertiary} />
+        </View>
       </Pressable>
     );
   }
@@ -312,28 +338,52 @@ function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getT
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   hero: { marginTop: -4, paddingHorizontal: 1 },
-  heroTitle: { maxWidth: 430, fontFamily: editorialFontFamily, fontSize: 31, lineHeight: 33.5, letterSpacing: -0.82 },
-  heroSubtitle: { marginTop: 5, fontSize: 12.25, lineHeight: 17.5 },
+  heroTitle: { maxWidth: 430, fontFamily: editorialFontFamily, fontSize: 33, lineHeight: 35.5, letterSpacing: -0.9 },
+  heroSubtitle: { marginTop: 6, fontSize: 12.4, lineHeight: 18 },
   captureGroup: { gap: 8 },
   eyebrow: { paddingHorizontal: 1, fontSize: 8.35, lineHeight: 11.5, fontWeight: '700', letterSpacing: 1.55 },
   capture: {
-    minHeight: 60,
-    borderRadius: 17,
+    minHeight: 66,
+    borderRadius: 22,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
     paddingRight: 11,
     gap: 10,
-    shadowOpacity: 0.03,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 1
+    overflow: 'hidden',
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 4
   },
-  captureStart: { width: 52, alignSelf: 'stretch', borderRightWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  input: { flex: 1, minHeight: 48, fontSize: 14.25, lineHeight: 18.5, letterSpacing: -0.08 },
-  captureSubmit: { width: 31, height: 31, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  toolGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  toolCard: { width: '48.5%', minHeight: 66, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  captureShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth },
+  captureStart: { width: 58, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
+  captureOrb: { width: 38, height: 38, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  input: { flex: 1, minHeight: 48, fontSize: 14.4, lineHeight: 19, letterSpacing: -0.08 },
+  captureSubmit: { width: 34, height: 34, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', shadowOpacity: 0.1, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+  moreSlot: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
+  toolGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  toolCard: {
+    width: '48.4%',
+    minHeight: 76,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 24,
+    borderBottomRightRadius: 18,
+    borderBottomLeftRadius: 24,
+    paddingHorizontal: 11,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    overflow: 'hidden',
+    shadowOpacity: 0.095,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 3
+  },
+  toolShine: { position: 'absolute', top: 0, left: 14, right: 14, height: StyleSheet.hairlineWidth },
+  toolIcon: { width: 34, height: 34, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  toolArrow: { width: 23, height: 23, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   toolLabel: { fontSize: 13, lineHeight: 16.5, fontWeight: '600', letterSpacing: -0.06 },
   toolMeta: { marginTop: 2.5, fontSize: 10, lineHeight: 13 },
   block: { gap: 9 },
