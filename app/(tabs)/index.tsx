@@ -15,12 +15,14 @@ import { TriageRow } from '@/src/ui/TriageRow';
 import { OneItemRow } from '@/src/ui/OneItemRow';
 import { BrandHeader, IconTile, PrimaryButton, RoundIconButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { useTheme } from '@/src/theme/useTheme';
+import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 import { editorialFontFamily } from '@/src/theme/typography';
 import type { OneInboxAction, OneItem } from '@/src/types/item';
 
 export default function InboxScreen() {
   const theme = useTheme();
+  const { resolvedMode } = useThemePreference();
+  const dark = resolvedMode === 'dark';
   const { session } = useAuth();
   const captureRef = useRef<TextInput>(null);
   const [input, setInput] = useState('');
@@ -47,12 +49,7 @@ export default function InboxScreen() {
 
   async function handleSave() {
     if (!draft || !input.trim()) return;
-    const item = buildItemFromCapture({
-      draft,
-      sourceType: 'manual',
-      rawInput: input,
-      originalText: input
-    });
+    const item = buildItemFromCapture({ draft, sourceType: 'manual', rawInput: input, originalText: input });
     const savedItem = await add(item);
     await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     setInput('');
@@ -100,20 +97,15 @@ export default function InboxScreen() {
             style={[
               styles.capture,
               {
-                backgroundColor: `${theme.surfaceElevated}D8`,
-                borderColor: draft ? `${theme.success}72` : `${theme.text}18`,
-                shadowColor: theme.shadow
+                backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFFA',
+                borderColor: draft ? `${theme.success}70` : dark ? '#FFFFFF12' : '#0000000A',
+                shadowColor: theme.shadow,
+                shadowOpacity: dark ? 0.24 : 0.12
               }
             ]}
           >
-            <View pointerEvents="none" style={[styles.captureShine, { backgroundColor: `${theme.text}0E` }]} />
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Start a new capture"
-              onPress={() => focusCapture()}
-              style={styles.captureStart}
-            >
-              <View style={[styles.captureOrb, { backgroundColor: `${theme.fill}B8`, borderColor: `${theme.text}16` }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Start a new capture" onPress={() => focusCapture()} style={styles.captureStart}>
+              <View style={[styles.captureOrb, { backgroundColor: dark ? '#2C2C2EF0' : '#F2F2F7', borderColor: dark ? '#FFFFFF10' : '#00000008' }]}>
                 <OneIcon name={icons.plus} size={20} color={theme.chrome} />
               </View>
             </Pressable>
@@ -137,22 +129,12 @@ export default function InboxScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Save capture"
                 onPress={handleSave}
-                style={({ pressed }) => [
-                  styles.captureSubmit,
-                  {
-                    backgroundColor: `${theme.chrome}E8`,
-                    borderColor: `${theme.text}24`,
-                    shadowColor: theme.shadow,
-                    opacity: pressed ? 0.72 : 1
-                  }
-                ]}
+                style={({ pressed }) => [styles.captureSubmit, { backgroundColor: theme.chrome, opacity: pressed ? 0.72 : 1 }]}
               >
                 <OneIcon name={icons.check} size={15} color={theme.onAccent} />
               </Pressable>
             ) : (
-              <View style={styles.moreSlot}>
-                <OneIcon name={icons.more} size={18} color={theme.textTertiary} />
-              </View>
+              <View style={styles.moreSlot}><OneIcon name={icons.more} size={18} color={theme.textTertiary} /></View>
             )}
           </View>
         </View>
@@ -176,9 +158,7 @@ export default function InboxScreen() {
                     <Text style={[styles.interpretationMeta, { color: theme.textSecondary }]}>{labelForKind(draft.canonicalKind)} · Inbox first</Text>
                   </View>
                 </View>
-                <View style={styles.saveWrap}>
-                  <PrimaryButton label="Capture to Inbox" icon={icons.check} onPress={handleSave} />
-                </View>
+                <View style={styles.saveWrap}><PrimaryButton label="Capture to Inbox" icon={icons.check} onPress={handleSave} /></View>
               </Surface>
             ) : (
               <>
@@ -193,11 +173,7 @@ export default function InboxScreen() {
           <SectionHeader
             title="Recent"
             meta={recentItems.length ? `${recentItems.length} items` : undefined}
-            action={
-              <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/saved')} hitSlop={8}>
-                <Text style={[styles.textAction, { color: theme.textSecondary }]}>See all</Text>
-              </Pressable>
-            }
+            action={<Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/saved')} hitSlop={8}><Text style={[styles.textAction, { color: theme.sky }]}>See all</Text></Pressable>}
           />
           <Surface>
             {recentItems.length ? recentItems.map((item) => <OneItemRow key={item.id} item={item} showDate={false} />) : (
@@ -212,9 +188,7 @@ export default function InboxScreen() {
         {todayEntries.length ? (
           <View style={styles.block}>
             <SectionHeader title="Today" meta={`${todayEntries.length} items`} />
-            <Surface>
-              {todayEntries.map(({ item, reason }) => <TodayRow key={item.id} item={item} reason={todayReasonLabel(reason)} />)}
-            </Surface>
+            <Surface>{todayEntries.map(({ item, reason }) => <TodayRow key={item.id} item={item} reason={todayReasonLabel(reason)} />)}</Surface>
           </View>
         ) : null}
 
@@ -223,20 +197,11 @@ export default function InboxScreen() {
             <SectionHeader
               title="Inbox"
               meta={`${inboxItems.length} items`}
-              action={
-                <Pressable accessibilityRole="button" onPress={() => router.push('/inbox')} hitSlop={8}>
-                  <Text style={[styles.textAction, { color: theme.textSecondary }]}>Review</Text>
-                </Pressable>
-              }
+              action={<Pressable accessibilityRole="button" onPress={() => router.push('/inbox')} hitSlop={8}><Text style={[styles.textAction, { color: theme.sky }]}>Review</Text></Pressable>}
             />
             <Surface>
               {inboxItems.map((item) => (
-                <TriageRow
-                  key={item.id}
-                  item={item}
-                  onOpen={() => router.push({ pathname: '/inbox/[id]', params: { id: item.id } })}
-                  onExecute={(action) => executeAction(item, action)}
-                />
+                <TriageRow key={item.id} item={item} onOpen={() => router.push({ pathname: '/inbox/[id]', params: { id: item.id } })} onExecute={(action) => executeAction(item, action)} />
               ))}
             </Surface>
           </View>
@@ -253,7 +218,7 @@ export default function InboxScreen() {
         accessibilityRole="button"
         accessibilityLabel={`${reason}. ${item.title}`}
         onPress={() => router.push({ pathname: activeInbox ? '/inbox/[id]' : '/item/[id]', params: { id: item.id } } as never)}
-        style={({ pressed }) => [styles.todayRow, { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
+        style={({ pressed }) => [styles.todayRow, { borderBottomColor: `${theme.text}0D`, backgroundColor: pressed ? `${theme.fill}42` : 'transparent' }]}
       >
         <View style={[styles.todayMarker, { backgroundColor: overdue ? theme.warning : theme.sky }]} />
         <View style={{ flex: 1 }}>
@@ -285,25 +250,22 @@ export default function InboxScreen() {
         style={({ pressed }) => [
           styles.toolCard,
           {
-            backgroundColor: `${theme.surfaceElevated}C8`,
-            borderColor: `${theme.text}14`,
+            backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFF8',
+            borderColor: dark ? '#FFFFFF10' : '#00000008',
             shadowColor: theme.shadow,
-            opacity: pressed ? 0.7 : 1,
+            shadowOpacity: dark ? 0.2 : 0.1,
             transform: [{ scale: pressed ? 0.985 : 1 }]
           }
         ]}
       >
-        <View pointerEvents="none" style={[styles.toolShine, { backgroundColor: `${theme.text}0C` }]} />
-        <View style={[styles.toolIcon, { backgroundColor: `${tint}12`, borderColor: `${tint}2C` }]}>
+        <View style={[styles.toolIcon, { backgroundColor: `${tint}${dark ? '20' : '14'}` }]}>
           <OneIcon name={icon} size={18} color={tint} />
         </View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.toolLabel, { color: theme.text }]}>{label}</Text>
           <Text style={[styles.toolMeta, { color: theme.textSecondary }]}>{meta}</Text>
         </View>
-        <View style={[styles.toolArrow, { backgroundColor: `${theme.fill}88`, borderColor: `${theme.text}10` }]}>
-          <OneIcon name={icons.chevron} size={10.5} color={theme.textTertiary} />
-        </View>
+        <OneIcon name={icons.chevron} size={12} color={theme.textTertiary} />
       </Pressable>
     );
   }
@@ -337,67 +299,57 @@ function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getT
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  hero: { marginTop: -4, paddingHorizontal: 1 },
-  heroTitle: { maxWidth: 430, fontFamily: editorialFontFamily, fontSize: 33, lineHeight: 35.5, letterSpacing: -0.9 },
-  heroSubtitle: { marginTop: 6, fontSize: 12.4, lineHeight: 18 },
-  captureGroup: { gap: 8 },
-  eyebrow: { paddingHorizontal: 1, fontSize: 8.35, lineHeight: 11.5, fontWeight: '700', letterSpacing: 1.55 },
+  hero: { marginTop: -2, paddingHorizontal: 1 },
+  heroTitle: { maxWidth: 430, fontFamily: editorialFontFamily, fontSize: 35, lineHeight: 38, letterSpacing: -1.05 },
+  heroSubtitle: { marginTop: 7, fontSize: 13, lineHeight: 18.5 },
+  captureGroup: { gap: 9 },
+  eyebrow: { paddingHorizontal: 1, fontSize: 8.4, lineHeight: 11.5, fontWeight: '700', letterSpacing: 1.7 },
   capture: {
     minHeight: 66,
     borderRadius: 22,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: 11,
+    paddingRight: 12,
     gap: 10,
-    overflow: 'hidden',
-    shadowOpacity: 0.12,
     shadowRadius: 24,
     shadowOffset: { width: 0, height: 10 },
     elevation: 4
   },
-  captureShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth },
-  captureStart: { width: 58, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
-  captureOrb: { width: 38, height: 38, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  input: { flex: 1, minHeight: 48, fontSize: 14.4, lineHeight: 19, letterSpacing: -0.08 },
-  captureSubmit: { width: 34, height: 34, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', shadowOpacity: 0.1, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+  captureStart: { width: 60, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
+  captureOrb: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  input: { flex: 1, minHeight: 48, fontSize: 15, lineHeight: 20, letterSpacing: -0.12 },
+  captureSubmit: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   moreSlot: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
   toolGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   toolCard: {
     width: '48.4%',
-    minHeight: 76,
+    minHeight: 78,
+    borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
-    borderTopLeftRadius: 18,
-    borderTopRightRadius: 24,
-    borderBottomRightRadius: 18,
-    borderBottomLeftRadius: 24,
-    paddingHorizontal: 11,
+    paddingHorizontal: 13,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 9,
-    overflow: 'hidden',
-    shadowOpacity: 0.095,
+    gap: 10,
     shadowRadius: 18,
     shadowOffset: { width: 0, height: 8 },
     elevation: 3
   },
-  toolShine: { position: 'absolute', top: 0, left: 14, right: 14, height: StyleSheet.hairlineWidth },
-  toolIcon: { width: 34, height: 34, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  toolArrow: { width: 23, height: 23, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  toolLabel: { fontSize: 13, lineHeight: 16.5, fontWeight: '600', letterSpacing: -0.06 },
-  toolMeta: { marginTop: 2.5, fontSize: 10, lineHeight: 13 },
-  block: { gap: 9 },
-  interpretationTop: { padding: 15, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  toolIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  toolLabel: { fontSize: 13.5, lineHeight: 17, fontWeight: '600', letterSpacing: -0.1 },
+  toolMeta: { marginTop: 2.5, fontSize: 10.25, lineHeight: 13.5 },
+  block: { gap: 10 },
+  interpretationTop: { padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
   interpretationTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.12 },
   interpretationMeta: { fontSize: 11, lineHeight: 14.5, marginTop: 4 },
   saveWrap: { padding: 14, paddingTop: 0 },
-  textAction: { fontSize: 11.25, fontWeight: '600' },
-  compactEmpty: { minHeight: 96, paddingHorizontal: 18, justifyContent: 'center' },
+  textAction: { fontSize: 11.5, fontWeight: '600' },
+  compactEmpty: { minHeight: 100, paddingHorizontal: 18, justifyContent: 'center' },
   compactEmptyTitle: { fontSize: 13.75, lineHeight: 17.5, fontWeight: '600' },
   compactEmptyBody: { marginTop: 4, fontSize: 11.25, lineHeight: 15.5 },
-  todayRow: { minHeight: 68, borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  todayRow: { minHeight: 70, borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 },
   todayMarker: { width: 3, height: 28, borderRadius: 2 },
   todayReason: { fontSize: 8.25, lineHeight: 10.5, fontWeight: '700', letterSpacing: 0.85 },
-  todayTitle: { marginTop: 3, fontSize: 14, lineHeight: 17.5, fontWeight: '600', letterSpacing: -0.1 },
-  todayMeta: { marginTop: 3, fontSize: 10.9, lineHeight: 14.5 }
+  todayTitle: { marginTop: 3, fontSize: 14.25, lineHeight: 18, fontWeight: '600', letterSpacing: -0.12 },
+  todayMeta: { marginTop: 3, fontSize: 11, lineHeight: 14.5 }
 });
