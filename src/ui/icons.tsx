@@ -27,6 +27,7 @@ export function OneIcon({
 }
 
 export const icons = {
+  home: { ios: 'square.grid.2x2', android: 'grid_view', web: 'grid_view' },
   inbox: { ios: 'tray', android: 'inbox', web: 'inbox' },
   calendar: { ios: 'calendar', android: 'calendar_month', web: 'calendar_month' },
   saved: { ios: 'bookmark', android: 'bookmark', web: 'bookmark' },
