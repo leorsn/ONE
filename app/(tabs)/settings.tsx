@@ -115,18 +115,31 @@ export default function SettingsScreen() {
           <Pressable
             accessibilityRole="button"
             onPress={() => router.push('/settings/privacy')}
-            style={({ pressed }) => [styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+            style={({ pressed }) => [
+              styles.profileCard,
+              {
+                backgroundColor: `${theme.surfaceElevated}C8`,
+                borderColor: `${theme.text}14`,
+                shadowColor: theme.shadow,
+                opacity: pressed ? 0.68 : 1
+              }
+            ]}
           >
-            <View style={[styles.avatar, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-              {initials ? <Text style={[styles.avatarText, { color: theme.chrome }]}>{initials}</Text> : <OneIcon name={icons.person} size={19} color={theme.chrome} />}
+            <View pointerEvents="none" style={[styles.profileShine, { backgroundColor: `${theme.text}0D` }]} />
+            <View style={[styles.avatar, { backgroundColor: `${theme.fill}A8`, borderColor: `${theme.text}12` }]}>
+              {initials ? <Text style={[styles.avatarText, { color: theme.chrome }]}>{initials}</Text> : <OneIcon name={icons.person} size={18.5} color={theme.chrome} />}
             </View>
             <View style={styles.profileCopy}>
               <Text style={[styles.profileTitle, { color: theme.text }]} numberOfLines={1}>{profileName}</Text>
               <Text style={[styles.profileEmail, { color: theme.textSecondary }]} numberOfLines={1}>{session.user.email}</Text>
             </View>
             <View style={styles.profileMeta}>
-              <Text style={[styles.planLabel, { color: theme.textTertiary }]}>{isBetaAccess ? 'BETA' : membershipLabel(plan).toUpperCase()}</Text>
-              <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+              <View style={[styles.planBadge, { backgroundColor: `${theme.fill}78`, borderColor: `${theme.text}10` }]}>
+                <Text style={[styles.planLabel, { color: theme.textSecondary }]}>{isBetaAccess ? 'BETA' : membershipLabel(plan).toUpperCase()}</Text>
+              </View>
+              <View style={[styles.rowArrow, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}0E` }]}>
+                <OneIcon name={icons.chevron} size={10.5} color={theme.textTertiary} />
+              </View>
             </View>
           </Pressable>
         ) : null}
@@ -171,14 +184,20 @@ export default function SettingsScreen() {
               accessibilityLabel="Delete NEVER account permanently"
               disabled={deletingAccount}
               onPress={confirmDeleteAccount}
-              style={({ pressed }) => [styles.dangerRow, { borderTopColor: theme.border, opacity: pressed || deletingAccount ? 0.58 : 1 }]}
+              style={({ pressed }) => [styles.dangerRow, { borderTopColor: `${theme.text}10`, opacity: pressed || deletingAccount ? 0.58 : 1 }]}
             >
-              <OneIcon name={icons.delete} size={17} color={theme.danger} />
+              <View style={[styles.rowIcon, { backgroundColor: `${theme.danger}13`, borderColor: `${theme.danger}30` }]}>
+                <OneIcon name={icons.delete} size={15.5} color={theme.danger} />
+              </View>
               <View style={styles.rowCopy}>
                 <Text style={[styles.rowLabel, { color: theme.danger }]}>Delete account</Text>
                 <Text style={[styles.rowValue, { color: theme.textTertiary }]}>Permanently delete your NEVER account and synced data</Text>
               </View>
-              {deletingAccount ? <ActivityIndicator size="small" /> : <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />}
+              {deletingAccount ? <ActivityIndicator size="small" /> : (
+                <View style={[styles.rowArrow, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}0E` }]}>
+                  <OneIcon name={icons.chevron} size={10.5} color={theme.textTertiary} />
+                </View>
+              )}
             </Pressable>
           </SettingsSection>
         ) : null}
@@ -206,17 +225,21 @@ export default function SettingsScreen() {
   }) {
     const content = (
       <>
-        <View style={styles.rowIcon}>
-          <OneIcon name={icon} size={16.5} color={theme.textSecondary} />
+        <View style={[styles.rowIcon, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}0E` }]}>
+          <OneIcon name={icon} size={15.5} color={theme.textSecondary} />
         </View>
         <View style={styles.rowCopy}>
           <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
           <Text style={[styles.rowValue, { color: theme.textSecondary }]} numberOfLines={2}>{value}</Text>
         </View>
-        {onPress ? <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} /> : null}
+        {onPress ? (
+          <View style={[styles.rowArrow, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}0E` }]}>
+            <OneIcon name={icons.chevron} size={10.5} color={theme.textTertiary} />
+          </View>
+        ) : null}
       </>
     );
-    const separator = !last ? { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth } : undefined;
+    const separator = !last ? { borderBottomColor: `${theme.text}10`, borderBottomWidth: StyleSheet.hairlineWidth } : undefined;
     if (onPress) {
       return (
         <Pressable onPress={onPress} style={({ pressed }) => [styles.row, separator, { opacity: pressed ? 0.58 : 1 }]} accessibilityRole="button">
@@ -261,22 +284,25 @@ function appearanceLabel(value: 'system' | 'light' | 'dark') {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   intro: { marginTop: -2 },
-  title: { fontFamily: editorialFontFamily, fontSize: 33, lineHeight: 37, fontWeight: '400', letterSpacing: -0.88 },
+  title: { fontFamily: editorialFontFamily, fontSize: 34, lineHeight: 38, fontWeight: '400', letterSpacing: -0.9 },
   subtitle: { marginTop: 6, fontSize: 12.5, lineHeight: 18 },
-  profileCard: { minHeight: 72, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  avatar: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  profileCard: { minHeight: 80, borderRadius: 21, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 11, overflow: 'hidden', shadowOpacity: 0.11, shadowRadius: 22, shadowOffset: { width: 0, height: 9 }, elevation: 4 },
+  profileShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth },
+  avatar: { width: 44, height: 44, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 12.5, lineHeight: 15, fontWeight: '700', letterSpacing: 0.4 },
   profileCopy: { flex: 1, minWidth: 0 },
   profileTitle: { fontSize: 14.25, lineHeight: 18, fontWeight: '600' },
   profileEmail: { marginTop: 2, fontSize: 10.75, lineHeight: 14 },
-  profileMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  profileMeta: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  planBadge: { minHeight: 26, paddingHorizontal: 9, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   planLabel: { fontSize: 8.1, fontWeight: '700', letterSpacing: 0.82 },
-  block: { gap: 9 },
-  row: { minHeight: 59, paddingHorizontal: 14, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  rowIcon: { width: 23, alignItems: 'center', justifyContent: 'center' },
+  block: { gap: 10 },
+  row: { minHeight: 64, paddingHorizontal: 14, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  rowIcon: { width: 34, height: 34, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  rowArrow: { width: 23, height: 23, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   rowCopy: { flex: 1, minWidth: 0 },
   rowLabel: { fontSize: 13.65, lineHeight: 17.25, fontWeight: '600', letterSpacing: -0.06 },
   rowValue: { marginTop: 2, fontSize: 10.6, lineHeight: 14.5 },
-  dangerRow: { minHeight: 64, paddingHorizontal: 14, paddingVertical: 9, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  dangerRow: { minHeight: 68, paddingHorizontal: 14, paddingVertical: 9, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
   footer: { textAlign: 'center', fontSize: 8.35, fontWeight: '600', letterSpacing: 1.18, marginTop: 1 }
 });
