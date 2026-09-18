@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Linking,
   Pressable,
   ScrollView,
@@ -19,7 +20,7 @@ import { answerFromRetrievedItems } from '@/src/recall/service';
 import { retrieveLocalOneItems, retrieveOneItems } from '@/src/search/retrieve';
 import { searchSemantically } from '@/src/search/semantic';
 import { iconForType } from '@/src/ui/OneItemRow';
-import { BrandHeader, EmptyState, IconTile, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { BrandHeader, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 import { editorialFontFamily } from '@/src/theme/typography';
@@ -65,7 +66,6 @@ export default function SearchScreen() {
       router.push('/upgrade');
       return;
     }
-
     await Haptics.selectionAsync();
     setAsking(true);
     setAskError(null);
@@ -115,17 +115,8 @@ export default function SearchScreen() {
           <ModeButton label="Ask NEVER" active={mode === 'ask'} onPress={() => selectMode('ask')} />
         </View>
 
-        <View
-          style={[
-            styles.searchBox,
-            {
-              backgroundColor: theme.surface,
-              borderColor: query.trim() ? theme.fillStrong : theme.border,
-              shadowColor: theme.shadow
-            }
-          ]}
-        >
-          <OneIcon name={mode === 'ask' ? icons.ask : icons.search} size={18} color={theme.chrome} />
+        <View style={[styles.searchBox, { backgroundColor: theme.surface, borderColor: query.trim() ? theme.fillStrong : theme.border }]}>
+          <OneIcon name={mode === 'ask' ? icons.ask : icons.search} size={19} color={theme.chrome} />
           <View style={[styles.inputDivider, { backgroundColor: theme.border }]} />
           <TextInput
             value={query}
@@ -169,8 +160,7 @@ export default function SearchScreen() {
                     accessibilityLabel={`Search ${suggestion}`}
                     onPress={async () => {
                       await Haptics.selectionAsync();
-                      if (index === 0) return;
-                      setQuery(suggestion);
+                      if (index > 0) setQuery(suggestion);
                     }}
                     style={({ pressed }) => [
                       styles.suggestion,
@@ -227,10 +217,7 @@ export default function SearchScreen() {
                   accessibilityRole="button"
                   disabled={!query.trim()}
                   onPress={askNever}
-                  style={({ pressed }) => [
-                    styles.askButton,
-                    { backgroundColor: query.trim() ? theme.chrome : theme.fillStrong, opacity: !query.trim() ? 0.55 : pressed ? 0.72 : 1 }
-                  ]}
+                  style={({ pressed }) => [styles.askButton, { backgroundColor: query.trim() ? theme.chrome : theme.fillStrong, opacity: !query.trim() ? 0.55 : pressed ? 0.72 : 1 }]}
                 >
                   <Text style={[styles.askButtonText, { color: query.trim() ? theme.onAccent : theme.textTertiary }]}>Ask</Text>
                 </Pressable>
@@ -268,14 +255,7 @@ export default function SearchScreen() {
           await Haptics.selectionAsync();
           onPress();
         }}
-        style={({ pressed }) => [
-          styles.modeButton,
-          {
-            backgroundColor: active ? theme.surfaceElevated : 'transparent',
-            borderColor: active ? theme.border : 'transparent',
-            opacity: pressed ? 0.65 : 1
-          }
-        ]}
+        style={({ pressed }) => [styles.modeButton, { backgroundColor: active ? theme.surfaceElevated : 'transparent', borderColor: active ? theme.border : 'transparent', opacity: pressed ? 0.65 : 1 }]}
       >
         <Text style={[styles.modeButtonText, { color: active ? theme.text : theme.textTertiary }]}>{label}</Text>
       </Pressable>
@@ -283,7 +263,7 @@ export default function SearchScreen() {
   }
 
   function SearchRow({ item, reason }: { item: OneItem; reason?: string }) {
-    const tone = item.type === 'document' ? 'info' : item.type === 'idea' ? 'memory' : 'neutral';
+    const previewUri = imagePreviewUri(item);
     return (
       <Pressable
         accessibilityRole="button"
@@ -291,7 +271,13 @@ export default function SearchScreen() {
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
         style={({ pressed }) => [styles.row, { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
       >
-        <IconTile icon={iconForType(item.type)} tone={tone} size={38} />
+        {previewUri ? (
+          <Image source={{ uri: previewUri }} style={[styles.previewImage, { backgroundColor: theme.fill, borderColor: theme.border }]} resizeMode="cover" />
+        ) : (
+          <View style={[styles.rowGlyph, { borderColor: theme.border }]}>
+            <OneIcon name={iconForType(item.type)} size={19} color={typeColor(item, theme)} />
+          </View>
+        )}
         <View style={styles.rowText}>
           <Text style={[styles.rowTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
           <Text style={[styles.preview, { color: theme.textSecondary }]} numberOfLines={1}>{previewFor(item)}</Text>
@@ -306,7 +292,6 @@ export default function SearchScreen() {
     const urls = extractHttpUrls(current.body);
     const body = withoutStandaloneUrlLines(current.body);
     const sources = current.sourceIds.map((id) => itemById.get(id)).filter((item): item is OneItem => Boolean(item)).slice(0, 5);
-
     return (
       <View style={[styles.answerCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.answerHeader}>
@@ -315,7 +300,6 @@ export default function SearchScreen() {
         </View>
         <Text style={[styles.answerTitle, { color: theme.text }]}>{current.title}</Text>
         {body ? <Text style={[styles.answerBody, { color: theme.textSecondary }]}>{body}</Text> : null}
-
         {urls.length ? (
           <View style={styles.answerLinks}>
             {urls.map((url) => (
@@ -326,9 +310,9 @@ export default function SearchScreen() {
                   await Haptics.selectionAsync();
                   await Linking.openURL(url);
                 }}
-                style={({ pressed }) => [styles.answerLink, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.6 : 1 }]}
+                style={({ pressed }) => [styles.answerLink, { borderTopColor: theme.border, opacity: pressed ? 0.6 : 1 }]}
               >
-                <OneIcon name={icons.link} size={16} color={theme.sky} />
+                <OneIcon name={icons.link} size={15} color={theme.sky} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.answerLinkLabel, { color: theme.text }]}>Open link</Text>
                   <Text style={[styles.answerLinkUrl, { color: theme.textSecondary }]} numberOfLines={1}>{url}</Text>
@@ -338,25 +322,18 @@ export default function SearchScreen() {
             ))}
           </View>
         ) : null}
-
         {current.meta ? <Text style={[styles.answerMeta, { color: theme.textTertiary }]}>{current.meta}</Text> : null}
-
         {sources.length ? (
           <View style={[styles.sources, { borderTopColor: theme.border }]}>
             <Text style={[styles.sourcesLabel, { color: theme.textTertiary }]}>SOURCES</Text>
             {sources.map((item) => (
-              <Pressable
-                key={item.id}
-                onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-                style={({ pressed }) => [styles.sourceRow, { opacity: pressed ? 0.58 : 1 }]}
-              >
+              <Pressable key={item.id} onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })} style={({ pressed }) => [styles.sourceRow, { opacity: pressed ? 0.58 : 1 }]}>
                 <Text style={[styles.sourceTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
                 <OneIcon name={icons.chevron} size={12} color={theme.textTertiary} />
               </Pressable>
             ))}
           </View>
         ) : null}
-
         <Pressable
           accessibilityRole="button"
           onPress={() => router.push({ pathname: '/ask', params: { q: query.trim() } })}
@@ -370,85 +347,95 @@ export default function SearchScreen() {
   }
 }
 
+function imagePreviewUri(item: OneItem) {
+  const candidate = item.localAttachmentUri || item.imageUrl;
+  return candidate && /^(file|content|ph|https?):\/\//i.test(candidate) ? candidate : undefined;
+}
+
+function typeColor(item: OneItem, theme: ReturnType<typeof useTheme>) {
+  if (item.type === 'document' || item.type === 'link') return theme.sky;
+  if (item.type === 'idea' || item.type === 'note') return theme.plum;
+  if (item.type === 'reminder' || item.type === 'task') return theme.warning;
+  return theme.textSecondary;
+}
+
 function previewFor(item: OneItem) {
-  return item.summary || item.originalText || item.rawInput || item.url || item.extractedText || item.category || 'Saved in NEVER';
+  return item.summary || item.userContext || item.originalText || item.extractedText || item.category || item.url || item.type;
 }
 
-function reasonLabel(reasons: string[]) {
-  if (reasons.includes('exact-title') || reasons.includes('title')) return 'Title';
-  if (reasons.includes('context') || reasons.includes('exact-context')) return 'Context';
-  if (reasons.includes('people') || reasons.includes('entities')) return 'Person / entity';
-  if (reasons.includes('url')) return 'Link';
-  if (reasons.includes('time-context')) return 'Time';
-  if (reasons.includes('recent')) return 'Recent';
-  return undefined;
-}
-
-function formatCaptured(value: string) {
-  const date = new Date(value);
-  if (!Number.isFinite(date.getTime())) return undefined;
-  return new Intl.DateTimeFormat(undefined, { month: 'short', day: 'numeric' }).format(date);
-}
-
-function extractHttpUrls(value?: string) {
-  if (!value) return [];
-  return Array.from(new Set((value.match(/https?:\/\/[^\s<>"')\]}]+/gi) || []).map((url) => url.replace(/[.,;:!?]+$/g, ''))));
-}
-
-function withoutStandaloneUrlLines(value?: string) {
+function formatCaptured(value?: string) {
   if (!value) return undefined;
-  const remaining = value.split('\n').filter((line) => !/^https?:\/\/\S+$/i.test(line.trim())).join('\n').trim();
-  return remaining || undefined;
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return undefined;
+  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
+}
+
+function reasonLabel(reasons?: string[]) {
+  if (!reasons?.length) return undefined;
+  if (reasons.some((reason) => reason.includes('exact'))) return 'Exact match';
+  if (reasons.some((reason) => reason.includes('title'))) return 'Title match';
+  return 'Relevant';
+}
+
+function extractHttpUrls(value: string) {
+  const matches = value.match(/https?:\/\/[^\s)\]}>,]+/gi) || [];
+  return Array.from(new Set(matches.map((url) => url.replace(/[.,;:!?]+$/, ''))));
+}
+
+function withoutStandaloneUrlLines(value: string) {
+  return value.split('\n').filter((line) => !/^\s*https?:\/\/\S+\s*$/.test(line)).join('\n').trim();
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  intro: { marginTop: -4 },
-  title: { fontFamily: editorialFontFamily, fontSize: 34, lineHeight: 38, letterSpacing: -1.05 },
-  subtitle: { marginTop: 4, fontSize: 12.75, lineHeight: 18.5 },
-  modeSwitch: { alignSelf: 'flex-start', minHeight: 39, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, padding: 3, flexDirection: 'row', alignItems: 'center', gap: 3 },
-  modeButton: { minHeight: 31, paddingHorizontal: 14, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  modeButtonText: { fontSize: 11.25, lineHeight: 14, fontWeight: '600' },
-  searchBox: { minHeight: 58, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 16, paddingRight: 10, flexDirection: 'row', alignItems: 'center', gap: 10, shadowOpacity: 0.035, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 1 },
-  inputDivider: { width: StyleSheet.hairlineWidth, height: 25 },
-  input: { flex: 1, fontSize: 14.75, minHeight: 50, letterSpacing: -0.1 },
-  clear: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  suggestions: { gap: 7, paddingRight: 20 },
-  suggestion: { minHeight: 34, paddingHorizontal: 13, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  intro: { marginTop: -2 },
+  title: { fontFamily: editorialFontFamily, fontSize: 34, lineHeight: 38, fontWeight: '400', letterSpacing: -0.9 },
+  subtitle: { marginTop: 6, fontSize: 12.75, lineHeight: 18.5 },
+  modeSwitch: { width: 190, minHeight: 40, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, padding: 3, flexDirection: 'row' },
+  modeButton: { flex: 1, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  modeButtonText: { fontSize: 10.75, fontWeight: '700' },
+  searchBox: { minHeight: 58, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 16, paddingRight: 8, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  inputDivider: { width: StyleSheet.hairlineWidth, height: 24 },
+  input: { flex: 1, minHeight: 50, fontSize: 14.25, lineHeight: 19 },
+  clear: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
+  suggestions: { gap: 8, paddingRight: 20 },
+  suggestion: { minHeight: 34, paddingHorizontal: 14, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   suggestionText: { fontSize: 11.25, fontWeight: '600' },
   resultsBlock: { gap: 10 },
-  row: { minHeight: 80, paddingHorizontal: 15, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
-  rowText: { flex: 1, gap: 2 },
-  rowTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.15 },
-  preview: { fontSize: 11.75, lineHeight: 16 },
-  meta: { marginTop: 1, fontSize: 10.1, lineHeight: 13, fontWeight: '600' },
-  askBridge: { minHeight: 50, paddingHorizontal: 4, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  askBridgeTitle: { flex: 1, fontSize: 12.25, fontWeight: '600' },
+  row: { minHeight: 78, paddingHorizontal: 16, paddingVertical: 11, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 13 },
+  rowGlyph: { width: 31, height: 40, borderLeftWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  previewImage: { width: 44, height: 44, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth },
+  rowText: { flex: 1, minWidth: 0 },
+  rowTitle: { fontSize: 14.75, lineHeight: 18, fontWeight: '600', letterSpacing: -0.16 },
+  preview: { marginTop: 3, fontSize: 11.4, lineHeight: 15 },
+  meta: { marginTop: 3, fontSize: 10, lineHeight: 13, fontWeight: '600' },
+  askBridge: { minHeight: 50, paddingHorizontal: 15, borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  askBridgeTitle: { flex: 1, fontSize: 12.5, fontWeight: '600' },
   askBlock: { gap: 12 },
-  askIntro: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 },
-  askIntroTitle: { fontFamily: editorialFontFamily, fontSize: 20, lineHeight: 24 },
-  askIntroBody: { marginTop: 4, fontSize: 11.5, lineHeight: 16.5 },
-  askButton: { minHeight: 38, paddingHorizontal: 16, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  askIntro: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 20, padding: 17, flexDirection: 'row', alignItems: 'center', gap: 14 },
+  askIntroTitle: { fontFamily: editorialFontFamily, fontSize: 19, lineHeight: 23, fontWeight: '400' },
+  askIntroBody: { marginTop: 5, fontSize: 11.5, lineHeight: 16.5 },
+  askButton: { minWidth: 60, minHeight: 40, paddingHorizontal: 14, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   askButtonText: { fontSize: 12, fontWeight: '700' },
-  answerCard: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 16, gap: 11 },
-  answerHeader: { flexDirection: 'row', alignItems: 'center' },
-  answerEyebrow: { fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
-  answerMode: { marginLeft: 'auto', fontSize: 8.5, fontWeight: '700', letterSpacing: 0.8 },
-  answerTitle: { fontFamily: editorialFontFamily, fontSize: 21, lineHeight: 25 },
-  answerBody: { fontSize: 13.1, lineHeight: 20 },
-  answerLinks: { gap: 7 },
-  answerLink: { minHeight: 56, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  answerLinkLabel: { fontSize: 12.25, lineHeight: 15, fontWeight: '600' },
-  answerLinkUrl: { marginTop: 2, fontSize: 10.3, lineHeight: 14 },
-  answerMeta: { fontSize: 10.1, lineHeight: 14.5 },
-  sources: { marginTop: 2, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 2 },
-  sourcesLabel: { fontSize: 8.6, fontWeight: '700', letterSpacing: 1.05, marginBottom: 4 },
+  answerCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 20, overflow: 'hidden', paddingTop: 17 },
+  thinkingRow: { paddingHorizontal: 17, paddingBottom: 17, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  thinkingText: { fontSize: 12, lineHeight: 16 },
+  errorCard: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, padding: 15 },
+  errorText: { fontSize: 11.5, lineHeight: 16 },
+  answerHeader: { paddingHorizontal: 17, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  answerEyebrow: { fontSize: 8.5, fontWeight: '800', letterSpacing: 1.6 },
+  answerMode: { fontSize: 8, fontWeight: '700', letterSpacing: 1.0 },
+  answerTitle: { paddingHorizontal: 17, marginTop: 12, fontFamily: editorialFontFamily, fontSize: 21, lineHeight: 25 },
+  answerBody: { paddingHorizontal: 17, marginTop: 8, fontSize: 12.25, lineHeight: 18 },
+  answerLinks: { marginTop: 14 },
+  answerLink: { minHeight: 58, paddingHorizontal: 17, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  answerLinkLabel: { fontSize: 12, fontWeight: '600' },
+  answerLinkUrl: { marginTop: 2, fontSize: 10.25, lineHeight: 13.5 },
+  answerMeta: { paddingHorizontal: 17, marginTop: 12, fontSize: 9.5, lineHeight: 13.5 },
+  sources: { marginTop: 14, paddingTop: 12, paddingHorizontal: 17, borderTopWidth: StyleSheet.hairlineWidth },
+  sourcesLabel: { fontSize: 8.25, fontWeight: '800', letterSpacing: 1.2, marginBottom: 4 },
   sourceRow: { minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sourceTitle: { flex: 1, fontSize: 12.25, lineHeight: 16, fontWeight: '600' },
-  continueButton: { minHeight: 42, marginTop: 3, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  continueText: { fontSize: 11.5, fontWeight: '600' },
-  thinkingRow: { minHeight: 34, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  thinkingText: { fontSize: 12 },
-  errorCard: { borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, padding: 14 },
-  errorText: { fontSize: 11.5, lineHeight: 17 }
+  sourceTitle: { flex: 1, fontSize: 11.5, fontWeight: '600' },
+  continueButton: { marginTop: 10, minHeight: 48, paddingHorizontal: 17, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  continueText: { flex: 1, fontSize: 11.5, fontWeight: '600' }
 });
