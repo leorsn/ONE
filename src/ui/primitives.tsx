@@ -13,7 +13,7 @@ export function CoreBackdrop() {
   const { resolvedMode } = useThemePreference();
   const dark = resolvedMode === 'dark';
   return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFillObject}>
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
       <View
         style={[
           styles.ambientOrb,
