@@ -43,14 +43,17 @@ export function SectionAccent() {
 
 export function BrandHeader({ action, showTagline = false }: { action?: ReactNode; showTagline?: boolean }) {
   const theme = useTheme();
+  if (!showTagline) {
+    return action ? <View style={styles.utilityHeader}>{action}</View> : null;
+  }
   return (
-    <View style={[styles.brandHeader, showTagline && styles.brandHeaderWithTagline]}>
+    <View style={[styles.brandHeader, styles.brandHeaderWithTagline]}>
       <View style={{ flex: 1 }}>
         <View style={styles.wordmarkRow}>
           <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
           <NeverSignal compact />
         </View>
-        {showTagline ? <Text style={[styles.brandLine, { color: theme.textTertiary }]}>CAPTURE TODAY. REMEMBER TOMORROW.</Text> : null}
+        <Text style={[styles.brandLine, { color: theme.textTertiary }]}>CAPTURE TODAY. REMEMBER TOMORROW.</Text>
       </View>
       {action}
     </View>
@@ -178,6 +181,7 @@ const styles = StyleSheet.create({
   ambientTop: { width: 240, height: 240, top: -125, right: -95 },
   ambientMid: { width: 210, height: 210, top: 330, left: -145 },
   ambientBottom: { width: 180, height: 180, bottom: 70, right: -115 },
+  utilityHeader: { minHeight: 38, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
   brandHeader: { minHeight: 34, flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingTop: 2 },
   brandHeaderWithTagline: { minHeight: 56 },
   wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
