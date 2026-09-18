@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -266,6 +267,8 @@ export default function AskOneScreen() {
       .map((id) => itemById.get(id))
       .filter((item): item is OneItem => Boolean(item))
       .slice(0, 6);
+    const answerUrls = extractHttpUrls(message.body);
+    const bodyText = withoutStandaloneUrlLines(message.body);
 
     return (
       <View style={[styles.assistant, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
@@ -275,7 +278,36 @@ export default function AskOneScreen() {
           {message.mode ? <Text style={[styles.mode, { color: theme.textTertiary }]}>{message.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text> : null}
         </View>
         {message.title ? <Text style={[styles.answerTitle, { color: theme.text }]}>{message.title}</Text> : null}
-        {message.body ? <Text style={[styles.answerBody, { color: theme.textSecondary }]}>{message.body}</Text> : null}
+        {bodyText ? <Text style={[styles.answerBody, { color: theme.textSecondary }]}>{bodyText}</Text> : null}
+        {answerUrls.length ? (
+          <View style={styles.answerLinks}>
+            {answerUrls.map((url) => (
+              <Pressable
+                key={url}
+                accessibilityRole="link"
+                accessibilityLabel={`Open ${url}`}
+                onPress={async () => {
+                  await Haptics.selectionAsync();
+                  await Linking.openURL(url);
+                }}
+                style={({ pressed }) => [
+                  styles.answerLink,
+                  {
+                    backgroundColor: theme.chromeSoft,
+                    borderColor: theme.border,
+                    opacity: pressed ? 0.58 : 1
+                  }
+                ]}
+              >
+                <View style={styles.answerLinkText}>
+                  <Text style={[styles.answerLinkLabel, { color: theme.text }]}>Open link</Text>
+                  <Text style={[styles.answerLinkUrl, { color: theme.textSecondary }]} numberOfLines={2}>{url}</Text>
+                </View>
+                <OneIcon name={icons.chevron} size={13} color={theme.chrome} />
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
         {message.meta ? <Text style={[styles.answerMeta, { color: theme.textTertiary }]}>{message.meta}</Text> : null}
 
         {sources.length ? (
@@ -315,6 +347,21 @@ function sourceMeta(item: OneItem) {
   return [item.userContext, item.type, capturedLabel].filter(Boolean).join(' · ');
 }
 
+function extractHttpUrls(value?: string) {
+  if (!value) return [];
+  return Array.from(new Set((value.match(/https?:\/\/[^\s<>"')\]}]+/gi) || []).map((url) => url.replace(/[.,;:!?]+$/g, ''))));
+}
+
+function withoutStandaloneUrlLines(value?: string) {
+  if (!value) return undefined;
+  const remaining = value
+    .split('\n')
+    .filter((line) => !/^https?:\/\/\S+$/i.test(line.trim()))
+    .join('\n')
+    .trim();
+  return remaining || undefined;
+}
+
 function makeId(prefix: string) {
   return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`;
 }
@@ -350,6 +397,11 @@ const styles = StyleSheet.create({
   mode: { marginLeft: 'auto', fontSize: 8.5, fontWeight: '700', letterSpacing: 0.75 },
   answerTitle: { fontSize: 17.5, lineHeight: 23, fontWeight: '600', letterSpacing: -0.26 },
   answerBody: { fontSize: 13.5, lineHeight: 20.5 },
+  answerLinks: { gap: 7 },
+  answerLink: { minHeight: 58, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  answerLinkText: { flex: 1, gap: 3 },
+  answerLinkLabel: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
+  answerLinkUrl: { fontSize: 10.75, lineHeight: 15 },
   answerMeta: { fontSize: 10.5, lineHeight: 15.5 },
   thinking: { fontSize: 12 },
   sources: { marginTop: 6, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 4 },
