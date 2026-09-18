@@ -1,12 +1,9 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { IconTile } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 import type { OneItem } from '@/src/types/item';
-
-type RowTone = 'accent' | 'neutral' | 'success' | 'warning' | 'info' | 'memory';
 
 export function OneItemRow({
   item,
@@ -22,7 +19,6 @@ export function OneItemRow({
   const theme = useTheme();
   const meta = metaFor(item, showDate);
   const previewUri = imagePreviewUri(item);
-  const tone = toneFor(item);
 
   return (
     <Pressable
@@ -43,25 +39,45 @@ export function OneItemRow({
             await Haptics.selectionAsync();
             await onToggle(item.id);
           }}
-          style={[styles.check, { borderColor: item.completed ? theme.chrome : theme.fillStrong, backgroundColor: item.completed ? theme.chrome : 'transparent' }]}
+          style={[
+            styles.check,
+            {
+              borderColor: item.completed ? theme.success : theme.fillStrong,
+              backgroundColor: item.completed ? theme.success : 'transparent'
+            }
+          ]}
         >
-          {item.completed ? <OneIcon name={icons.check} size={11} color={theme.background} /> : null}
+          {item.completed ? <OneIcon name={icons.check} size={11} color={theme.onAccent} /> : null}
         </Pressable>
       ) : previewUri ? (
         <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill, borderColor: theme.border }]} resizeMode="cover" />
       ) : (
-        <IconTile icon={iconForType(item.type)} tone={tone} size={36} />
+        <View style={[styles.glyph, { borderColor: theme.border }]}> 
+          <OneIcon name={iconForType(item.type)} size={19} color={iconColor(item, theme)} />
+        </View>
       )}
 
       <View style={styles.content}>
-        <Text style={[styles.title, { color: item.completed ? theme.textTertiary : theme.text, textDecorationLine: item.completed ? 'line-through' : 'none' }]} numberOfLines={1}>
+        <Text
+          style={[
+            styles.title,
+            {
+              color: item.completed ? theme.textTertiary : theme.text,
+              textDecorationLine: item.completed ? 'line-through' : 'none'
+            }
+          ]}
+          numberOfLines={1}
+        >
           {item.title}
         </Text>
         <Text style={[styles.meta, { color: theme.textSecondary }]} numberOfLines={1}>{meta}</Text>
       </View>
 
-      {item.time ? <Text style={[styles.time, { color: theme.textTertiary }]}>{item.time}</Text> : null}
-      {showChevron ? <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} /> : null}
+      {item.time ? (
+        <Text style={[styles.time, { color: theme.textTertiary }]}>{item.time}</Text>
+      ) : null}
+
+      {showChevron ? <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} /> : null}
     </Pressable>
   );
 }
@@ -79,13 +95,11 @@ export function iconForType(type: OneItem['type']) {
   return icons.task;
 }
 
-function toneFor(item: OneItem): RowTone {
-  if (item.type === 'link' || item.type === 'document') return 'info';
-  if (item.type === 'idea' || item.type === 'note') return 'memory';
-  if (item.type === 'reminder' || item.type === 'task' || item.type === 'shopping') return 'warning';
-  if (item.type === 'appointment' || item.type === 'event' || item.type === 'travel') return 'accent';
-  if (item.completed) return 'success';
-  return 'neutral';
+function iconColor(item: OneItem, theme: ReturnType<typeof useTheme>) {
+  if (item.type === 'document' || item.type === 'link') return theme.sky;
+  if (item.type === 'idea' || item.type === 'note') return theme.plum;
+  if (item.type === 'reminder' || item.type === 'task' || item.type === 'shopping') return theme.warning;
+  return theme.textSecondary;
 }
 
 function metaFor(item: OneItem, showDate: boolean) {
@@ -136,11 +150,20 @@ function formatType(type: string) {
 }
 
 const styles = StyleSheet.create({
-  row: { minHeight: 72, paddingHorizontal: 15, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  check: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.3, alignItems: 'center', justifyContent: 'center' },
-  preview: { width: 40, height: 40, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth },
+  row: {
+    minHeight: 74,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 13
+  },
+  check: { width: 23, height: 23, borderRadius: 7, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
+  preview: { width: 44, height: 44, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth },
+  glyph: { width: 31, height: 38, borderLeftWidth: 2, alignItems: 'center', justifyContent: 'center' },
   content: { flex: 1, minWidth: 0 },
-  title: { fontSize: 14.4, lineHeight: 18, fontWeight: '600', letterSpacing: -0.15 },
-  meta: { fontSize: 11.25, lineHeight: 15, marginTop: 3 },
-  time: { fontSize: 10.75, lineHeight: 14, fontWeight: '600', letterSpacing: 0.04 }
+  title: { fontSize: 14.75, lineHeight: 18, fontWeight: '600', letterSpacing: -0.17 },
+  meta: { fontSize: 11.5, lineHeight: 15.5, marginTop: 4 },
+  time: { fontSize: 10.5, lineHeight: 13, fontWeight: '600', letterSpacing: 0.04 }
 });
