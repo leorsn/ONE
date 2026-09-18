@@ -22,6 +22,7 @@ import { iconForType } from '@/src/ui/OneItemRow';
 import { BrandHeader, EmptyState, IconTile, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
+import { editorialFontFamily } from '@/src/theme/typography';
 import type { OneItem } from '@/src/types/item';
 
 type SearchMode = 'quick' | 'ask';
@@ -33,7 +34,7 @@ type AskAnswer = {
   mode?: 'ai' | 'deterministic';
 };
 
-const suggestions = ['Papa', 'Studium', 'Recent links', 'Saved yesterday'];
+const suggestions = ['Recent', 'Documents', 'Links', 'Ideas'];
 
 export default function SearchScreen() {
   const theme = useTheme();
@@ -56,7 +57,6 @@ export default function SearchScreen() {
     [query, items]
   );
   const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
-  const heading = query.trim() ? 'Quick search' : 'Recent';
 
   async function askNever() {
     const clean = query.trim();
@@ -102,74 +102,60 @@ export default function SearchScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
-      <ScrollView
-        contentContainerStyle={uiStyles.screenContent}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-      >
+      <ScrollView contentContainerStyle={uiStyles.screenContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <BrandHeader />
 
-        <View style={styles.searchGroup}>
-          <View style={styles.searchHeadingRow}>
-            <Text style={[styles.searchTitle, { color: theme.text }]}>
-              {mode === 'quick' ? 'Find it again.' : 'Ask your memory.'}
-            </Text>
-            <Text style={[styles.searchSubtitle, { color: theme.textSecondary }]}>
-              {mode === 'quick'
-                ? 'Fast, exact retrieval across everything you saved.'
-                : 'NEVER answers from your own saved memories and sources.'}
-            </Text>
-          </View>
+        <View style={styles.intro}>
+          <Text style={[styles.title, { color: theme.text }]}>Search</Text>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Find anything in your memory.</Text>
+        </View>
 
-          <View style={[styles.modeSwitch, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-            <ModeButton label="Quick search" active={mode === 'quick'} onPress={() => selectMode('quick')} />
-            <ModeButton label="Ask NEVER" active={mode === 'ask'} onPress={() => selectMode('ask')} />
-          </View>
+        <View style={[styles.modeSwitch, { backgroundColor: theme.fill, borderColor: theme.border }]}>
+          <ModeButton label="Quick search" active={mode === 'quick'} onPress={() => selectMode('quick')} />
+          <ModeButton label="Ask NEVER" active={mode === 'ask'} onPress={() => selectMode('ask')} />
+        </View>
 
-          <View
-            style={[
-              styles.searchBox,
-              {
-                backgroundColor: theme.surfaceElevated,
-                borderColor: query.trim() ? (mode === 'ask' ? theme.plum : theme.accent) : theme.border,
-                shadowColor: theme.shadow
-              }
-            ]}
-          >
-            <OneIcon name={mode === 'ask' ? icons.ask : icons.search} size={18} color={mode === 'ask' ? theme.plum : theme.accent} />
-            <TextInput
-              value={query}
-              onChangeText={(value) => {
-                setQuery(value);
-                if (answer) setAnswer(null);
+        <View
+          style={[
+            styles.searchBox,
+            {
+              backgroundColor: theme.surface,
+              borderColor: query.trim() ? theme.fillStrong : theme.border,
+              shadowColor: theme.shadow
+            }
+          ]}
+        >
+          <OneIcon name={mode === 'ask' ? icons.ask : icons.search} size={18} color={theme.chrome} />
+          <View style={[styles.inputDivider, { backgroundColor: theme.border }]} />
+          <TextInput
+            value={query}
+            onChangeText={(value) => {
+              setQuery(value);
+              if (answer) setAnswer(null);
+              setAskError(null);
+            }}
+            placeholder={mode === 'ask' ? 'Ask something about your memory…' : 'Search your memory…'}
+            placeholderTextColor={theme.textTertiary}
+            style={[styles.input, { color: theme.text }]}
+            autoCorrect={false}
+            returnKeyType={mode === 'ask' ? 'send' : 'search'}
+            onSubmitEditing={mode === 'ask' ? askNever : undefined}
+            accessibilityLabel={mode === 'ask' ? 'Ask NEVER' : 'Search NEVER'}
+          />
+          {query ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Clear search"
+              onPress={() => {
+                setQuery('');
+                setAnswer(null);
                 setAskError(null);
               }}
-              placeholder={mode === 'ask' ? 'Ask something about your memory…' : 'Search your memory'}
-              placeholderTextColor={theme.textTertiary}
-              style={[styles.input, { color: theme.text }]}
-              autoCorrect={false}
-              returnKeyType={mode === 'ask' ? 'send' : 'search'}
-              onSubmitEditing={mode === 'ask' ? askNever : undefined}
-              accessibilityLabel={mode === 'ask' ? 'Ask NEVER' : 'Search NEVER'}
-              accessibilityHint={mode === 'ask'
-                ? 'Ask a grounded question about your saved memories'
-                : 'Search titles, text, links, tags, contexts, people and dates'}
-            />
-            {query ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Clear search"
-                onPress={() => {
-                  setQuery('');
-                  setAnswer(null);
-                  setAskError(null);
-                }}
-                style={({ pressed }) => [styles.clear, { backgroundColor: theme.fill, opacity: pressed ? 0.58 : 1 }]}
-              >
-                <OneIcon name={icons.close} size={14} color={theme.textTertiary} />
-              </Pressable>
-            ) : null}
-          </View>
+              style={({ pressed }) => [styles.clear, { opacity: pressed ? 0.58 : 1 }]}
+            >
+              <OneIcon name={icons.close} size={14} color={theme.textTertiary} />
+            </Pressable>
+          ) : null}
         </View>
 
         {mode === 'quick' ? (
@@ -180,37 +166,34 @@ export default function SearchScreen() {
                   <Pressable
                     key={suggestion}
                     accessibilityRole="button"
-                    accessibilityLabel={`Search for ${suggestion}`}
+                    accessibilityLabel={`Search ${suggestion}`}
                     onPress={async () => {
                       await Haptics.selectionAsync();
+                      if (index === 0) return;
                       setQuery(suggestion);
                     }}
                     style={({ pressed }) => [
                       styles.suggestion,
                       {
-                        backgroundColor: index % 2 === 0 ? theme.skySoft : theme.plumSoft,
-                        borderColor: index % 2 === 0 ? `${theme.sky}44` : `${theme.plum}44`,
+                        backgroundColor: index === 0 ? theme.chrome : theme.fill,
+                        borderColor: index === 0 ? theme.chrome : theme.border,
                         opacity: pressed ? 0.62 : 1
                       }
                     ]}
                   >
-                    <Text style={[styles.suggestionText, { color: theme.textSecondary }]}>{suggestion}</Text>
+                    <Text style={[styles.suggestionText, { color: index === 0 ? theme.onAccent : theme.textSecondary }]}>{suggestion}</Text>
                   </Pressable>
                 ))}
               </ScrollView>
             ) : null}
 
             <View style={styles.resultsBlock}>
-              <SectionHeader title={heading} meta={results.length ? `${results.length} ${results.length === 1 ? 'match' : 'matches'}` : undefined} />
+              <SectionHeader title={query.trim() ? 'Results' : 'Recent'} meta={`${results.length} ${results.length === 1 ? 'match' : 'matches'}`} />
               <Surface>
                 {results.length ? results.map(({ item, reasons }) => (
                   <SearchRow key={item.id} item={item} reason={reasonLabel(reasons)} />
                 )) : (
-                  <EmptyState
-                    icon={icons.search}
-                    title="Nothing matched"
-                    body="Try another wording. Quick search only shows memories with a meaningful match."
-                  />
+                  <EmptyState icon={icons.search} title="Nothing matched" body="Try another wording. NEVER only shows memories with a meaningful match." />
                 )}
               </Surface>
             </View>
@@ -224,56 +207,38 @@ export default function SearchScreen() {
                   setMode('ask');
                   setAnswer(null);
                 }}
-                style={({ pressed }) => [
-                  styles.askBridge,
-                  {
-                    backgroundColor: theme.plumSoft,
-                    borderColor: `${theme.plum}55`,
-                    opacity: pressed ? 0.62 : 1
-                  }
-                ]}
+                style={({ pressed }) => [styles.askBridge, { borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
               >
-                <IconTile icon={icons.ask} tone="memory" size={40} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.askBridgeTitle, { color: theme.text }]}>Ask NEVER instead</Text>
-                  <Text style={[styles.askBridgeBody, { color: theme.textSecondary }]} numberOfLines={2}>
-                    Get a direct answer grounded in the matching memories.
-                  </Text>
-                </View>
-                <OneIcon name={icons.chevron} size={14} color={theme.plum} />
+                <OneIcon name={icons.ask} size={17} color={theme.chrome} />
+                <Text style={[styles.askBridgeTitle, { color: theme.text }]}>Ask NEVER about these results</Text>
+                <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
               </Pressable>
             ) : null}
           </>
         ) : (
           <View style={styles.askBlock}>
             {!answer && !asking ? (
-              <View style={[styles.askIntro, { backgroundColor: theme.plumSoft, borderColor: `${theme.plum}55` }]}>
-                <IconTile icon={icons.ask} tone="memory" size={46} />
+              <View style={[styles.askIntro, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <View style={{ flex: 1 }}>
-                  <Text style={[styles.askIntroTitle, { color: theme.text }]}>One question. Your own memory.</Text>
-                  <Text style={[styles.askIntroBody, { color: theme.textSecondary }]}>Ask for a link, date, place, document, idea or anything else you saved.</Text>
+                  <Text style={[styles.askIntroTitle, { color: theme.text }]}>Ask your own memory.</Text>
+                  <Text style={[styles.askIntroBody, { color: theme.textSecondary }]}>Links, dates, documents, ideas and saved context — grounded in what you captured.</Text>
                 </View>
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel="Ask NEVER now"
                   disabled={!query.trim()}
                   onPress={askNever}
                   style={({ pressed }) => [
                     styles.askButton,
-                    {
-                      backgroundColor: query.trim() ? theme.accent : theme.fillStrong,
-                      opacity: !query.trim() ? 0.55 : pressed ? 0.72 : 1
-                    }
+                    { backgroundColor: query.trim() ? theme.chrome : theme.fillStrong, opacity: !query.trim() ? 0.55 : pressed ? 0.72 : 1 }
                   ]}
                 >
-                  <OneIcon name={icons.ask} size={15} color={query.trim() ? theme.onAccent : theme.textTertiary} />
                   <Text style={[styles.askButtonText, { color: query.trim() ? theme.onAccent : theme.textTertiary }]}>Ask</Text>
                 </Pressable>
               </View>
             ) : null}
 
             {asking ? (
-              <View style={[styles.answerCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
+              <View style={[styles.answerCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
                 <View style={styles.thinkingRow}>
                   <ActivityIndicator size="small" />
                   <Text style={[styles.thinkingText, { color: theme.textSecondary }]}>Looking through your memory…</Text>
@@ -299,7 +264,6 @@ export default function SearchScreen() {
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ selected: active }}
-        accessibilityLabel={label}
         onPress={async () => {
           await Haptics.selectionAsync();
           onPress();
@@ -309,7 +273,6 @@ export default function SearchScreen() {
           {
             backgroundColor: active ? theme.surfaceElevated : 'transparent',
             borderColor: active ? theme.border : 'transparent',
-            shadowColor: theme.shadow,
             opacity: pressed ? 0.65 : 1
           }
         ]}
@@ -320,34 +283,21 @@ export default function SearchScreen() {
   }
 
   function SearchRow({ item, reason }: { item: OneItem; reason?: string }) {
-    const tone = item.type === 'document'
-      ? 'info'
-      : item.type === 'idea'
-        ? 'memory'
-        : item.type === 'reminder' || item.type === 'task'
-          ? 'warning'
-          : 'neutral';
+    const tone = item.type === 'document' ? 'info' : item.type === 'idea' ? 'memory' : 'neutral';
     return (
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Open ${item.title}`}
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [
-          styles.row,
-          { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }
-        ]}
+        style={({ pressed }) => [styles.row, { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
       >
-        <IconTile icon={iconForType(item.type)} tone={tone} size={42} />
+        <IconTile icon={iconForType(item.type)} tone={tone} size={38} />
         <View style={styles.rowText}>
           <Text style={[styles.rowTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
-          <Text style={[styles.preview, { color: theme.textSecondary }]} numberOfLines={2}>
-            {previewFor(item)}
-          </Text>
-          <Text style={[styles.meta, { color: theme.textTertiary }]} numberOfLines={1}>
-            {[item.userContext, reason, formatCaptured(item.capturedAt || item.createdAt)].filter(Boolean).join(' · ')}
-          </Text>
+          <Text style={[styles.preview, { color: theme.textSecondary }]} numberOfLines={1}>{previewFor(item)}</Text>
+          <Text style={[styles.meta, { color: theme.textTertiary }]} numberOfLines={1}>{[reason, formatCaptured(item.capturedAt || item.createdAt)].filter(Boolean).join(' · ')}</Text>
         </View>
-        <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />
+        <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
       </Pressable>
     );
   }
@@ -355,16 +305,12 @@ export default function SearchScreen() {
   function AnswerCard({ answer: current }: { answer: AskAnswer }) {
     const urls = extractHttpUrls(current.body);
     const body = withoutStandaloneUrlLines(current.body);
-    const sources = current.sourceIds
-      .map((id) => itemById.get(id))
-      .filter((item): item is OneItem => Boolean(item))
-      .slice(0, 5);
+    const sources = current.sourceIds.map((id) => itemById.get(id)).filter((item): item is OneItem => Boolean(item)).slice(0, 5);
 
     return (
-      <View style={[styles.answerCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
+      <View style={[styles.answerCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
         <View style={styles.answerHeader}>
-          <IconTile icon={icons.ask} tone="memory" size={30} />
-          <Text style={[styles.answerEyebrow, { color: theme.plum }]}>NEVER</Text>
+          <Text style={[styles.answerEyebrow, { color: theme.textTertiary }]}>NEVER</Text>
           <Text style={[styles.answerMode, { color: theme.textTertiary }]}>{current.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text>
         </View>
         <Text style={[styles.answerTitle, { color: theme.text }]}>{current.title}</Text>
@@ -376,22 +322,18 @@ export default function SearchScreen() {
               <Pressable
                 key={url}
                 accessibilityRole="link"
-                accessibilityLabel={`Open ${url}`}
                 onPress={async () => {
                   await Haptics.selectionAsync();
                   await Linking.openURL(url);
                 }}
-                style={({ pressed }) => [
-                  styles.answerLink,
-                  { backgroundColor: theme.skySoft, borderColor: `${theme.sky}55`, opacity: pressed ? 0.6 : 1 }
-                ]}
+                style={({ pressed }) => [styles.answerLink, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.6 : 1 }]}
               >
-                <IconTile icon={icons.link} tone="info" size={34} />
+                <OneIcon name={icons.link} size={16} color={theme.sky} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.answerLinkLabel, { color: theme.text }]}>Open link</Text>
-                  <Text style={[styles.answerLinkUrl, { color: theme.textSecondary }]} numberOfLines={2}>{url}</Text>
+                  <Text style={[styles.answerLinkUrl, { color: theme.textSecondary }]} numberOfLines={1}>{url}</Text>
                 </View>
-                <OneIcon name={icons.chevron} size={13} color={theme.sky} />
+                <OneIcon name={icons.chevron} size={12} color={theme.textTertiary} />
               </Pressable>
             ))}
           </View>
@@ -401,24 +343,15 @@ export default function SearchScreen() {
 
         {sources.length ? (
           <View style={[styles.sources, { borderTopColor: theme.border }]}>
-            <View style={styles.sourcesHeader}>
-              <Text style={[styles.sourcesLabel, { color: theme.textTertiary }]}>SOURCES</Text>
-              <Text style={[styles.sourcesCount, { color: theme.textTertiary }]}>{sources.length} {sources.length === 1 ? 'memory' : 'memories'}</Text>
-            </View>
+            <Text style={[styles.sourcesLabel, { color: theme.textTertiary }]}>SOURCES</Text>
             {sources.map((item) => (
               <Pressable
                 key={item.id}
-                accessibilityRole="button"
-                accessibilityLabel={`Open source ${item.title}`}
                 onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
                 style={({ pressed }) => [styles.sourceRow, { opacity: pressed ? 0.58 : 1 }]}
               >
-                <IconTile icon={iconForType(item.type)} tone="neutral" size={34} />
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.sourceTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
-                  <Text style={[styles.sourceMeta, { color: theme.textSecondary }]} numberOfLines={1}>{previewFor(item)}</Text>
-                </View>
-                <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+                <Text style={[styles.sourceTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
+                <OneIcon name={icons.chevron} size={12} color={theme.textTertiary} />
               </Pressable>
             ))}
           </View>
@@ -426,12 +359,11 @@ export default function SearchScreen() {
 
         <Pressable
           accessibilityRole="button"
-          accessibilityLabel="Continue in Ask NEVER conversation"
           onPress={() => router.push({ pathname: '/ask', params: { q: query.trim() } })}
-          style={({ pressed }) => [styles.continueButton, { backgroundColor: theme.plumSoft, opacity: pressed ? 0.62 : 1 }]}
+          style={({ pressed }) => [styles.continueButton, { borderTopColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
         >
-          <Text style={[styles.continueText, { color: theme.plum }]}>Continue conversation</Text>
-          <OneIcon name={icons.chevron} size={13} color={theme.plum} />
+          <Text style={[styles.continueText, { color: theme.textSecondary }]}>Continue conversation</Text>
+          <OneIcon name={icons.chevron} size={12} color={theme.textTertiary} />
         </Pressable>
       </View>
     );
@@ -449,7 +381,7 @@ function reasonLabel(reasons: string[]) {
   if (reasons.includes('url')) return 'Link';
   if (reasons.includes('time-context')) return 'Time';
   if (reasons.includes('recent')) return 'Recent';
-  return reasons[0] ? reasons[0].replace(/(^|_)(\w)/g, (_, prefix, letter) => `${prefix ? ' ' : ''}${letter.toUpperCase()}`) : undefined;
+  return undefined;
 }
 
 function formatCaptured(value: string) {
@@ -465,77 +397,56 @@ function extractHttpUrls(value?: string) {
 
 function withoutStandaloneUrlLines(value?: string) {
   if (!value) return undefined;
-  const remaining = value
-    .split('\n')
-    .filter((line) => !/^https?:\/\/\S+$/i.test(line.trim()))
-    .join('\n')
-    .trim();
+  const remaining = value.split('\n').filter((line) => !/^https?:\/\/\S+$/i.test(line.trim())).join('\n').trim();
   return remaining || undefined;
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  searchGroup: { gap: 14 },
-  searchHeadingRow: { paddingHorizontal: 2 },
-  searchTitle: { fontSize: 29, lineHeight: 34, fontWeight: '600', letterSpacing: -0.98 },
-  searchSubtitle: { marginTop: 6, maxWidth: 390, fontSize: 12.75, lineHeight: 18.5 },
-  modeSwitch: { alignSelf: 'flex-start', minHeight: 42, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, padding: 3, flexDirection: 'row', alignItems: 'center', gap: 3 },
-  modeButton: { minHeight: 34, paddingHorizontal: 14, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', shadowOpacity: 0.025, shadowRadius: 7, shadowOffset: { width: 0, height: 3 } },
-  modeButtonText: { fontSize: 11.5, lineHeight: 14, fontWeight: '600' },
-  searchBox: {
-    minHeight: 58,
-    borderRadius: 18,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingLeft: 16,
-    paddingRight: 10,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    shadowOpacity: 0.045,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 1
-  },
-  input: { flex: 1, fontSize: 15, minHeight: 50, letterSpacing: -0.12 },
-  clear: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  suggestions: { gap: 8, paddingRight: 20 },
-  suggestion: { minHeight: 35, paddingHorizontal: 13, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
-  suggestionText: { fontSize: 11.5, fontWeight: '600' },
+  intro: { marginTop: -4 },
+  title: { fontFamily: editorialFontFamily, fontSize: 34, lineHeight: 38, letterSpacing: -1.05 },
+  subtitle: { marginTop: 4, fontSize: 12.75, lineHeight: 18.5 },
+  modeSwitch: { alignSelf: 'flex-start', minHeight: 39, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, padding: 3, flexDirection: 'row', alignItems: 'center', gap: 3 },
+  modeButton: { minHeight: 31, paddingHorizontal: 14, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  modeButtonText: { fontSize: 11.25, lineHeight: 14, fontWeight: '600' },
+  searchBox: { minHeight: 58, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 16, paddingRight: 10, flexDirection: 'row', alignItems: 'center', gap: 10, shadowOpacity: 0.035, shadowRadius: 14, shadowOffset: { width: 0, height: 5 }, elevation: 1 },
+  inputDivider: { width: StyleSheet.hairlineWidth, height: 25 },
+  input: { flex: 1, fontSize: 14.75, minHeight: 50, letterSpacing: -0.1 },
+  clear: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
+  suggestions: { gap: 7, paddingRight: 20 },
+  suggestion: { minHeight: 34, paddingHorizontal: 13, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, justifyContent: 'center' },
+  suggestionText: { fontSize: 11.25, fontWeight: '600' },
   resultsBlock: { gap: 10 },
-  row: { minHeight: 88, paddingHorizontal: 15, paddingVertical: 13, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
-  rowText: { flex: 1, gap: 3 },
-  rowTitle: { fontSize: 14.75, lineHeight: 18, fontWeight: '600', letterSpacing: -0.16 },
-  preview: { fontSize: 12, lineHeight: 17 },
-  meta: { marginTop: 1, fontSize: 10.25, lineHeight: 13.5, fontWeight: '600' },
-  askBridge: { minHeight: 72, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  askBridgeTitle: { fontSize: 13, lineHeight: 16, fontWeight: '600' },
-  askBridgeBody: { marginTop: 3, fontSize: 10.75, lineHeight: 15 },
+  row: { minHeight: 80, paddingHorizontal: 15, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
+  rowText: { flex: 1, gap: 2 },
+  rowTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.15 },
+  preview: { fontSize: 11.75, lineHeight: 16 },
+  meta: { marginTop: 1, fontSize: 10.1, lineHeight: 13, fontWeight: '600' },
+  askBridge: { minHeight: 50, paddingHorizontal: 4, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  askBridgeTitle: { flex: 1, fontSize: 12.25, fontWeight: '600' },
   askBlock: { gap: 12 },
-  askIntro: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 12, flexWrap: 'wrap' },
-  askIntroTitle: { fontSize: 15, lineHeight: 19, fontWeight: '600', letterSpacing: -0.16 },
+  askIntro: { borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, padding: 16, flexDirection: 'row', alignItems: 'center', gap: 14 },
+  askIntroTitle: { fontFamily: editorialFontFamily, fontSize: 20, lineHeight: 24 },
   askIntroBody: { marginTop: 4, fontSize: 11.5, lineHeight: 16.5 },
-  askButton: { width: '100%', minHeight: 46, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
-  askButtonText: { fontSize: 13, fontWeight: '600' },
-  answerCard: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 16, gap: 11, shadowOpacity: 0.04, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 1 },
-  answerHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  answerEyebrow: { fontSize: 9.25, lineHeight: 12, fontWeight: '700', letterSpacing: 1.35 },
-  answerMode: { marginLeft: 'auto', fontSize: 8.5, lineHeight: 11, fontWeight: '700', letterSpacing: 0.8 },
-  answerTitle: { fontSize: 19, lineHeight: 24, fontWeight: '600', letterSpacing: -0.34 },
-  answerBody: { fontSize: 13.25, lineHeight: 20 },
+  askButton: { minHeight: 38, paddingHorizontal: 16, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  askButtonText: { fontSize: 12, fontWeight: '700' },
+  answerCard: { borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 16, gap: 11 },
+  answerHeader: { flexDirection: 'row', alignItems: 'center' },
+  answerEyebrow: { fontSize: 9, fontWeight: '700', letterSpacing: 1.5 },
+  answerMode: { marginLeft: 'auto', fontSize: 8.5, fontWeight: '700', letterSpacing: 0.8 },
+  answerTitle: { fontFamily: editorialFontFamily, fontSize: 21, lineHeight: 25 },
+  answerBody: { fontSize: 13.1, lineHeight: 20 },
   answerLinks: { gap: 7 },
-  answerLink: { minHeight: 62, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 11, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  answerLinkLabel: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
-  answerLinkUrl: { marginTop: 2, fontSize: 10.5, lineHeight: 14.5 },
-  answerMeta: { fontSize: 10.25, lineHeight: 15 },
-  sources: { marginTop: 3, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 4 },
-  sourcesHeader: { minHeight: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sourcesLabel: { fontSize: 8.75, fontWeight: '700', letterSpacing: 0.95 },
-  sourcesCount: { fontSize: 10, lineHeight: 13 },
-  sourceRow: { minHeight: 52, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sourceTitle: { fontSize: 13, lineHeight: 16, fontWeight: '600' },
-  sourceMeta: { marginTop: 2, fontSize: 10.75, lineHeight: 14 },
-  continueButton: { minHeight: 44, borderRadius: 13, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  continueText: { fontSize: 11.75, fontWeight: '600' },
+  answerLink: { minHeight: 56, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  answerLinkLabel: { fontSize: 12.25, lineHeight: 15, fontWeight: '600' },
+  answerLinkUrl: { marginTop: 2, fontSize: 10.3, lineHeight: 14 },
+  answerMeta: { fontSize: 10.1, lineHeight: 14.5 },
+  sources: { marginTop: 2, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, gap: 2 },
+  sourcesLabel: { fontSize: 8.6, fontWeight: '700', letterSpacing: 1.05, marginBottom: 4 },
+  sourceRow: { minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  sourceTitle: { flex: 1, fontSize: 12.25, lineHeight: 16, fontWeight: '600' },
+  continueButton: { minHeight: 42, marginTop: 3, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  continueText: { fontSize: 11.5, fontWeight: '600' },
   thinkingRow: { minHeight: 34, flexDirection: 'row', alignItems: 'center', gap: 10 },
   thinkingText: { fontSize: 12 },
   errorCard: { borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, padding: 14 },
