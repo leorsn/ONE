@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
@@ -111,7 +112,7 @@ export default function CalendarScreen() {
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Open ${item.title}`}
-        onPress={() => {}}
+        onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
         style={({ pressed }) => [styles.timelineRow, { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
       >
         <Text style={[styles.time, { color: theme.textTertiary }]}>{item.time || '—'}</Text>
