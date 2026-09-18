@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   sectionAccentRed: { width: 2, height: 9, borderRadius: 2 },
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingTop: 2 },
   eyebrow: { fontSize: 8.2, fontWeight: '700', letterSpacing: 1.9, marginBottom: 7 },
-  pageTitle: { fontSize: 34, lineHeight: 39, fontWeight: '750', letterSpacing: -1.15 },
+  pageTitle: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.15 },
   pageSubtitle: { marginTop: 5, maxWidth: 440, fontSize: 12.5, lineHeight: 18.5 },
   sectionHeader: { minHeight: 26, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
