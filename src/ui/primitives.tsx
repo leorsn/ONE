@@ -105,13 +105,13 @@ export function IconTile({
 }) {
   const theme = useTheme();
   const palette = {
-    accent: [theme.accentSoft, theme.chrome, `${theme.chrome}26`],
+    accent: [theme.accentSoft, theme.chrome, `${theme.chrome}22`],
     neutral: [theme.fill, theme.textSecondary, theme.border],
-    success: [theme.successSoft, theme.success, `${theme.success}2C`],
-    danger: [theme.dangerSoft, theme.danger, `${theme.danger}2C`],
-    warning: [theme.warningSoft, theme.warning, `${theme.warning}2C`],
-    info: [theme.skySoft, theme.sky, `${theme.sky}2C`],
-    memory: [theme.plumSoft, theme.plum, `${theme.plum}2C`]
+    success: [theme.successSoft, theme.success, `${theme.success}28`],
+    danger: [theme.dangerSoft, theme.danger, `${theme.danger}28`],
+    warning: [theme.warningSoft, theme.warning, `${theme.warning}28`],
+    info: [theme.skySoft, theme.sky, `${theme.sky}28`],
+    memory: [theme.plumSoft, theme.plum, `${theme.plum}28`]
   } as const;
   const [background, color, border] = palette[tone];
 
@@ -122,13 +122,13 @@ export function IconTile({
         {
           width: size,
           height: size,
-          borderRadius: Math.round(size * 0.22),
+          borderRadius: Math.max(9, Math.round(size * 0.2)),
           backgroundColor: background,
           borderColor: border
         }
       ]}
     >
-      <OneIcon name={icon} size={Math.round(size * 0.44)} color={color} />
+      <OneIcon name={icon} size={Math.round(size * 0.43)} color={color} />
     </View>
   );
 }
@@ -163,7 +163,7 @@ export function RoundIconButton({
         }
       ]}
     >
-      <OneIcon name={icon} size={17} color={filled ? theme.onAccent : theme.chrome} />
+      <OneIcon name={icon} size={16.5} color={filled ? theme.onAccent : theme.chrome} />
     </Pressable>
   );
 }
@@ -172,7 +172,7 @@ export function EmptyState({ icon, title, body }: { icon: IconName; title: strin
   const theme = useTheme();
   return (
     <View style={styles.emptyState}>
-      <OneIcon name={icon} size={24} color={theme.textTertiary} />
+      <OneIcon name={icon} size={22} color={theme.textTertiary} />
       <Text style={[styles.emptyTitle, { color: theme.text }]}>{title}</Text>
       <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>{body}</Text>
     </View>
@@ -207,7 +207,7 @@ export function PrimaryButton({
         }
       ]}
     >
-      {icon ? <OneIcon name={icon} size={16} color={theme.onAccent} /> : null}
+      {icon ? <OneIcon name={icon} size={15.5} color={theme.onAccent} /> : null}
       <Text style={[styles.primaryButtonText, { color: theme.onAccent }]}>{label}</Text>
     </Pressable>
   );
@@ -220,55 +220,55 @@ export const uiStyles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: 18,
     paddingTop: 12,
-    paddingBottom: 126,
-    gap: 24
+    paddingBottom: 116,
+    gap: 22
   }
 });
 
 const styles = StyleSheet.create({
-  brandHeader: { minHeight: 72, flexDirection: 'row', alignItems: 'flex-start', gap: 18, paddingTop: 2 },
-  wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  wordmark: { fontSize: 18, lineHeight: 22, fontWeight: '700', letterSpacing: 5.6 },
-  brandLine: { marginTop: 8, fontSize: 8.25, lineHeight: 12, fontWeight: '700', letterSpacing: 1.55 },
+  brandHeader: { minHeight: 68, flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingTop: 2 },
+  wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
+  wordmark: { fontSize: 17.5, lineHeight: 21, fontWeight: '700', letterSpacing: 5.4 },
+  brandLine: { marginTop: 7, fontSize: 8.1, lineHeight: 11.5, fontWeight: '700', letterSpacing: 1.5 },
   signal: { height: 4, width: 49, flexDirection: 'row', alignItems: 'center', gap: 3 },
-  signalCompact: { transform: [{ scaleX: 0.82 }, { scaleY: 0.82 }] },
+  signalCompact: { transform: [{ scaleX: 0.8 }, { scaleY: 0.8 }] },
   signalGraphite: { width: 24, height: 4, borderRadius: 2 },
   signalBlue: { width: 12, height: 4, borderRadius: 2 },
   signalRed: { width: 7, height: 4, borderRadius: 2 },
-  pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 18, paddingTop: 2 },
-  eyebrow: { fontSize: 8.75, fontWeight: '700', letterSpacing: 2.05, marginBottom: 9 },
-  pageTitle: { fontSize: 31, lineHeight: 36, fontWeight: '600', letterSpacing: -1.05 },
-  editorialTitle: { fontFamily: editorialFontFamily, fontWeight: '400', letterSpacing: -0.8 },
-  pageSubtitle: { marginTop: 6, maxWidth: 440, fontSize: 12.75, lineHeight: 18.5 },
-  sectionHeader: { minHeight: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.28 },
-  sectionMeta: { fontSize: 10.5, fontWeight: '600', letterSpacing: 0.16 },
+  pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingTop: 2 },
+  eyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 2, marginBottom: 8 },
+  pageTitle: { fontSize: 30, lineHeight: 35, fontWeight: '600', letterSpacing: -1 },
+  editorialTitle: { fontFamily: editorialFontFamily, fontWeight: '400', letterSpacing: -0.78 },
+  pageSubtitle: { marginTop: 6, maxWidth: 440, fontSize: 12.5, lineHeight: 18 },
+  sectionHeader: { minHeight: 27, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  sectionTitle: { fontSize: 16.75, lineHeight: 20.5, fontWeight: '600', letterSpacing: -0.26 },
+  sectionMeta: { fontSize: 10.25, fontWeight: '600', letterSpacing: 0.12 },
   surface: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 20,
+    borderRadius: 18,
     overflow: 'hidden',
-    shadowOpacity: 0.045,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 7 },
+    shadowOpacity: 0.035,
+    shadowRadius: 15,
+    shadowOffset: { width: 0, height: 5 },
     elevation: 1
   },
-  surfacePadded: { padding: 18 },
+  surfacePadded: { padding: 17 },
   iconTile: { alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
   roundButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 38,
+    height: 38,
+    borderRadius: 19,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    shadowOpacity: 0.04,
-    shadowRadius: 9,
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
     shadowOffset: { width: 0, height: 3 }
   },
-  emptyState: { minHeight: 140, paddingHorizontal: 28, paddingVertical: 28, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { marginTop: 12, fontSize: 14.5, fontWeight: '600', letterSpacing: -0.12 },
-  emptyBody: { marginTop: 6, maxWidth: 270, fontSize: 12.25, lineHeight: 18, textAlign: 'center' },
-  primaryButton: { minHeight: 50, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  primaryButtonText: { fontSize: 14, fontWeight: '700', letterSpacing: -0.05 }
+  emptyState: { minHeight: 118, paddingHorizontal: 26, paddingVertical: 24, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { marginTop: 10, fontSize: 14.25, fontWeight: '600', letterSpacing: -0.1 },
+  emptyBody: { marginTop: 5, maxWidth: 270, fontSize: 12, lineHeight: 17.5, textAlign: 'center' },
+  primaryButton: { minHeight: 48, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  primaryButtonText: { fontSize: 13.75, fontWeight: '700', letterSpacing: -0.04 }
 });
