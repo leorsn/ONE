@@ -56,7 +56,12 @@ export default function CalendarScreen() {
               }}
               style={({ pressed }) => [
                 styles.todayButton,
-                { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }
+                {
+                  backgroundColor: `${theme.surfaceElevated}C8`,
+                  borderColor: `${theme.text}16`,
+                  shadowColor: theme.shadow,
+                  opacity: pressed ? 0.68 : 1
+                }
               ]}
             >
               <Text style={[styles.todayText, { color: theme.text }]}>Today</Text>
@@ -71,14 +76,24 @@ export default function CalendarScreen() {
 
         <Surface padded>
           <View style={styles.monthRow}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => moveMonth(-1)} hitSlop={10}>
-              <OneIcon name={icons.chevronLeft} size={14} color={theme.textTertiary} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Previous month"
+              onPress={() => moveMonth(-1)}
+              style={({ pressed }) => [styles.monthArrow, { backgroundColor: `${theme.fill}7D`, borderColor: `${theme.text}10`, opacity: pressed ? 0.6 : 1 }]}
+            >
+              <OneIcon name={icons.chevronLeft} size={13} color={theme.textTertiary} />
             </Pressable>
             <Text style={[styles.month, { color: theme.text }]}>
               {new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(selected)}
             </Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => moveMonth(1)} hitSlop={10}>
-              <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Next month"
+              onPress={() => moveMonth(1)}
+              style={({ pressed }) => [styles.monthArrow, { backgroundColor: `${theme.fill}7D`, borderColor: `${theme.text}10`, opacity: pressed ? 0.6 : 1 }]}
+            >
+              <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
             </Pressable>
           </View>
 
@@ -98,7 +113,16 @@ export default function CalendarScreen() {
                   style={({ pressed }) => [styles.day, { opacity: pressed ? 0.58 : 1 }]}
                 >
                   <Text style={[styles.weekday, { color: active ? theme.text : theme.textTertiary }]}>{day.weekday}</Text>
-                  <View style={[styles.dayNumberWrap, active && { backgroundColor: theme.chrome }]}>
+                  <View
+                    style={[
+                      styles.dayNumberWrap,
+                      {
+                        backgroundColor: active ? `${theme.chrome}E2` : 'transparent',
+                        borderColor: active ? `${theme.text}22` : 'transparent',
+                        shadowColor: theme.shadow
+                      }
+                    ]}
+                  >
                     <Text style={[styles.dayNumber, { color: active ? theme.onAccent : theme.text }]}>{day.number}</Text>
                   </View>
                   <View style={[styles.dot, { backgroundColor: hasItems ? theme.danger : 'transparent' }]} />
@@ -107,26 +131,33 @@ export default function CalendarScreen() {
             })}
           </View>
 
-          <View style={[styles.modeSwitch, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-            {(['day', 'week', 'month'] as CalendarMode[]).map((entry) => (
-              <Pressable
-                key={entry}
-                accessibilityRole="button"
-                accessibilityState={{ selected: mode === entry }}
-                onPress={async () => {
-                  await Haptics.selectionAsync();
-                  setMode(entry);
-                }}
-                style={[
-                  styles.modeButton,
-                  mode === entry && { backgroundColor: theme.chrome, shadowColor: theme.shadow }
-                ]}
-              >
-                <Text style={[styles.modeText, { color: mode === entry ? theme.onAccent : theme.textSecondary }]}>
-                  {entry.charAt(0).toUpperCase() + entry.slice(1)}
-                </Text>
-              </Pressable>
-            ))}
+          <View style={[styles.modeSwitch, { backgroundColor: `${theme.fill}8A`, borderColor: `${theme.text}12` }]}>
+            {(['day', 'week', 'month'] as CalendarMode[]).map((entry) => {
+              const active = mode === entry;
+              return (
+                <Pressable
+                  key={entry}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: active }}
+                  onPress={async () => {
+                    await Haptics.selectionAsync();
+                    setMode(entry);
+                  }}
+                  style={[
+                    styles.modeButton,
+                    active && {
+                      backgroundColor: `${theme.surfaceElevated}E8`,
+                      borderColor: `${theme.text}16`,
+                      shadowColor: theme.shadow
+                    }
+                  ]}
+                >
+                  <Text style={[styles.modeText, { color: active ? theme.text : theme.textSecondary }]}>
+                    {entry.charAt(0).toUpperCase() + entry.slice(1)}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </Surface>
 
@@ -156,7 +187,7 @@ export default function CalendarScreen() {
               <Surface>
                 {grouped.map((group, groupIndex) => (
                   <View key={group.date}>
-                    <View style={[styles.dateDivider, groupIndex > 0 && { borderTopColor: theme.border, borderTopWidth: StyleSheet.hairlineWidth }]}>
+                    <View style={[styles.dateDivider, groupIndex > 0 && { borderTopColor: `${theme.text}10`, borderTopWidth: StyleSheet.hairlineWidth }]}>
                       <Text style={[styles.dateDividerText, { color: theme.textTertiary }]}>{prettyGroupDate(group.date)}</Text>
                     </View>
                     {group.items.map((item) => <TimelineRow key={item.id} item={item} />)}
@@ -203,20 +234,22 @@ export default function CalendarScreen() {
         accessibilityRole="button"
         accessibilityLabel={`Open ${item.title}`}
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.timelineRow, { borderBottomColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
+        style={({ pressed }) => [styles.timelineRow, { borderBottomColor: `${theme.text}10`, opacity: pressed ? 0.58 : 1 }]}
       >
         <View style={styles.timeColumn}>
           <Text style={[styles.time, { color: theme.textTertiary }]}>{item.time || '—'}</Text>
-          <View style={[styles.timelineDot, { backgroundColor: timelineColor(item, theme) }]} />
+          <View style={[styles.timelineDot, { backgroundColor: timelineColor(item, theme), shadowColor: timelineColor(item, theme) }]} />
         </View>
-        <View style={[styles.timelineSpine, { backgroundColor: theme.border }]} />
+        <View style={[styles.timelineSpine, { backgroundColor: `${theme.text}12` }]} />
         <View style={styles.timelineCopy}>
           <Text style={[styles.itemTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
           <Text style={[styles.itemMeta, { color: theme.textSecondary }]} numberOfLines={1}>
             {[item.location, item.summary, item.category].filter(Boolean).join(' · ') || item.type}
           </Text>
         </View>
-        <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+        <View style={[styles.rowArrow, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}0E` }]}>
+          <OneIcon name={icons.chevron} size={10.5} color={theme.textTertiary} />
+        </View>
       </Pressable>
     );
   }
@@ -294,31 +327,33 @@ function toIsoDate(date: Date) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  todayButton: { minHeight: 36, paddingHorizontal: 14, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  todayButton: { minHeight: 38, paddingHorizontal: 15, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', shadowOpacity: 0.08, shadowRadius: 14, shadowOffset: { width: 0, height: 6 }, elevation: 3 },
   todayText: { fontSize: 11.5, fontWeight: '600' },
   intro: { marginTop: -2 },
-  title: { fontFamily: editorialFontFamily, fontSize: 33, lineHeight: 37, fontWeight: '400', letterSpacing: -0.88 },
+  title: { fontFamily: editorialFontFamily, fontSize: 34, lineHeight: 38, fontWeight: '400', letterSpacing: -0.9 },
   subtitle: { marginTop: 6, fontSize: 12.75, lineHeight: 18.5 },
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  monthArrow: { width: 30, height: 30, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   month: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.26 },
-  dayStrip: { marginTop: 16, flexDirection: 'row', justifyContent: 'space-between' },
+  dayStrip: { marginTop: 17, flexDirection: 'row', justifyContent: 'space-between' },
   day: { width: 39, alignItems: 'center' },
   weekday: { fontSize: 8.5, lineHeight: 11, fontWeight: '700', letterSpacing: 0.7 },
-  dayNumberWrap: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center', marginTop: 6 },
+  dayNumberWrap: { width: 34, height: 34, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginTop: 6, shadowOpacity: 0.1, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
   dayNumber: { fontSize: 15, lineHeight: 18, fontWeight: '600' },
   dot: { width: 4, height: 4, borderRadius: 2, marginTop: 5 },
-  modeSwitch: { marginTop: 16, minHeight: 34, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, padding: 3, flexDirection: 'row' },
-  modeButton: { flex: 1, minHeight: 27, borderRadius: 8, alignItems: 'center', justifyContent: 'center', shadowOpacity: 0.03, shadowRadius: 5 },
+  modeSwitch: { marginTop: 17, minHeight: 40, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, padding: 4, flexDirection: 'row' },
+  modeButton: { flex: 1, minHeight: 31, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center', shadowOpacity: 0.1, shadowRadius: 10, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
   modeText: { fontSize: 10.5, fontWeight: '600' },
-  timelineBlock: { gap: 9 },
+  timelineBlock: { gap: 10 },
   dateDivider: { minHeight: 30, paddingHorizontal: 15, justifyContent: 'center' },
   dateDividerText: { fontSize: 8.25, fontWeight: '700', letterSpacing: 0.95 },
-  timelineRow: { minHeight: 70, paddingHorizontal: 15, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  timelineRow: { minHeight: 72, paddingHorizontal: 15, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 9 },
   timeColumn: { width: 40, alignItems: 'flex-end', justifyContent: 'center' },
   time: { fontSize: 9.5, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  timelineDot: { width: 5, height: 5, borderRadius: 3, marginTop: 5 },
+  timelineDot: { width: 5, height: 5, borderRadius: 3, marginTop: 5, shadowOpacity: 0.35, shadowRadius: 5, shadowOffset: { width: 0, height: 0 } },
   timelineSpine: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch' },
   timelineCopy: { flex: 1, minWidth: 0 },
   itemTitle: { fontSize: 14.25, lineHeight: 18, fontWeight: '600', letterSpacing: -0.12 },
-  itemMeta: { marginTop: 3, fontSize: 11, lineHeight: 14.5 }
+  itemMeta: { marginTop: 3, fontSize: 11, lineHeight: 14.5 },
+  rowArrow: { width: 23, height: 23, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' }
 });
