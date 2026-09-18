@@ -27,39 +27,39 @@ export type OneTheme = {
 };
 
 // NEVER CORE / MONOLITH — light
-// Aluminium paper, graphite structure and restrained signal colors.
+// Soft aluminium, quiet paper surfaces and graphite structure.
 export const lightTheme: OneTheme = {
-  background: '#EEF0F2',
-  surface: '#F7F8F9',
-  surfaceElevated: '#FCFCFC',
-  fill: '#E7EAED',
-  fillStrong: '#D7DBDF',
+  background: '#F2F4F5',
+  surface: '#FAFBFC',
+  surfaceElevated: '#FFFFFF',
+  fill: '#E8EBED',
+  fillStrong: '#D8DDE1',
   text: '#111418',
-  textSecondary: '#646B73',
-  textTertiary: '#9299A1',
-  border: '#D2D6DA',
+  textSecondary: '#626A72',
+  textTertiary: '#929AA2',
+  border: '#D5DADF',
   accent: '#343B43',
-  accentSoft: '#E1E5E8',
+  accentSoft: '#E3E7EA',
   onAccent: '#FFFFFF',
   chrome: '#343B43',
-  chromeSoft: '#E2E5E8',
-  shadow: '#1B2026',
+  chromeSoft: '#E4E8EB',
+  shadow: '#1A2026',
   success: '#526F66',
-  successSoft: '#E1EAE6',
+  successSoft: '#E3EBE7',
   danger: '#BE7077',
-  dangerSoft: '#F2E0E2',
+  dangerSoft: '#F3E2E4',
   warning: '#A97955',
-  warningSoft: '#F1E7DE',
+  warningSoft: '#F1E8E0',
   sky: '#7197B4',
-  skySoft: '#E0EBF2',
+  skySoft: '#E2ECF3',
   plum: '#8C788F',
-  plumSoft: '#ECE7ED'
+  plumSoft: '#EEE9EF'
 };
 
 // NEVER CORE / MONOLITH — dark
-// Smoked graphite with the same structure and muted signal accents.
+// Smoked graphite with the same quiet hierarchy and muted signal accents.
 export const darkTheme: OneTheme = {
-  background: '#090B0D',
+  background: '#080A0C',
   surface: '#101316',
   surfaceElevated: '#171B1F',
   fill: '#20252A',
