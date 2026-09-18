@@ -243,7 +243,7 @@ function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getT
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   hero: { paddingTop: 8, paddingHorizontal: 1 },
-  heroTitle: { maxWidth: 460, fontSize: 32, lineHeight: 37, fontWeight: '750', letterSpacing: -1.05 },
+  heroTitle: { maxWidth: 460, fontSize: 32, lineHeight: 37, fontWeight: '700', letterSpacing: -1.05 },
   heroSubtitle: { marginTop: 5, fontSize: 13.2, lineHeight: 18.5 },
   captureGroup: { gap: 8 },
   captureLabelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
