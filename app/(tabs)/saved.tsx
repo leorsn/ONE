@@ -12,13 +12,13 @@ import {
   groupDocumentsByMonth
 } from '@/src/documents/analytics';
 import { OneItemRow } from '@/src/ui/OneItemRow';
-import { BrandHeader, EmptyState, NeverSignal, Surface, uiStyles } from '@/src/ui/primitives';
+import { BrandHeader, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 import { editorialFontFamily } from '@/src/theme/typography';
 import type { OneDocumentKind, OneItem } from '@/src/types/item';
 
-const filters = ['All', 'Documents', 'Links', 'Ideas', 'Images'] as const;
+const filters = ['All', 'Documents', 'Images', 'Links', 'Ideas'] as const;
 const documentFilters: Array<{ label: string; value: 'all' | OneDocumentKind }> = [
   { label: 'All', value: 'all' },
   { label: 'Receipts', value: 'receipt' },
@@ -52,9 +52,9 @@ export default function SavedScreen() {
 
     if (filter === 'All') return base;
     if (filter === 'Documents') return [];
+    if (filter === 'Images') return base.filter((item) => item.kind === 'image' || item.sourceType === 'screenshot' || Boolean(item.imageUrl || item.localAttachmentUri));
     if (filter === 'Links') return base.filter((item) => item.type === 'link');
-    if (filter === 'Ideas') return base.filter((item) => item.type === 'idea');
-    return base.filter((item) => item.kind === 'image' || item.sourceType === 'screenshot' || Boolean(item.imageUrl || item.localAttachmentUri));
+    return base.filter((item) => item.type === 'idea');
   }, [items, filter, query]);
 
   return (
@@ -70,7 +70,7 @@ export default function SavedScreen() {
         </View>
 
         <View style={[styles.search, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-          <OneIcon name={icons.search} size={18} color={theme.textTertiary} />
+          <OneIcon name={icons.search} size={17.5} color={theme.textTertiary} />
           <View style={[styles.searchDivider, { backgroundColor: theme.border }]} />
           <TextInput
             value={query}
@@ -82,7 +82,7 @@ export default function SavedScreen() {
           />
           {query ? (
             <Pressable onPress={() => setQuery('')} style={styles.clearButton} accessibilityRole="button" accessibilityLabel="Clear search">
-              <OneIcon name={icons.close} size={14} color={theme.textTertiary} />
+              <OneIcon name={icons.close} size={13.5} color={theme.textTertiary} />
             </Pressable>
           ) : null}
         </View>
@@ -117,13 +117,7 @@ export default function SavedScreen() {
           <DocumentsView groups={documentGroups} summary={documentSummary} selectedFilter={documentFilter} setSelectedFilter={setDocumentFilter} />
         ) : (
           <View style={styles.block}>
-            <View style={styles.sectionHeading}>
-              <View style={styles.sectionLeft}>
-                <NeverSignal compact />
-                <Text style={[styles.sectionTitle, { color: theme.text }]}>{filter === 'All' ? 'Your memory' : filter}</Text>
-                <Text style={[styles.sectionMeta, { color: theme.textTertiary }]}>{savedItems.length}</Text>
-              </View>
-            </View>
+            <SectionHeader title={filter === 'All' ? 'Your memory' : filter} meta={String(savedItems.length)} />
             <Surface>
               {savedItems.length
                 ? savedItems.map((item) => <OneItemRow key={item.id} item={item} />)
@@ -182,13 +176,7 @@ export default function SavedScreen() {
 
         {groups.length ? groups.map((group) => (
           <View key={group.label} style={styles.block}>
-            <View style={styles.sectionHeading}>
-              <View style={styles.sectionLeft}>
-                <NeverSignal compact />
-                <Text style={[styles.sectionTitle, { color: theme.text }]}>{group.label}</Text>
-                <Text style={[styles.sectionMeta, { color: theme.textTertiary }]}>{group.items.length}</Text>
-              </View>
-            </View>
+            <SectionHeader title={group.label} meta={String(group.items.length)} />
             <Surface>
               {group.items.map((item) => <DocumentRow key={item.id} item={item} />)}
             </Surface>
@@ -247,35 +235,31 @@ function prettyDate(iso?: string) {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   intro: { marginTop: -2 },
-  title: { fontFamily: editorialFontFamily, fontSize: 34, lineHeight: 38, fontWeight: '400', letterSpacing: -0.9 },
+  title: { fontFamily: editorialFontFamily, fontSize: 33, lineHeight: 37, fontWeight: '400', letterSpacing: -0.88 },
   subtitle: { marginTop: 6, fontSize: 12.75, lineHeight: 18.5 },
-  search: { minHeight: 56, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 16, paddingRight: 8, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  searchDivider: { width: StyleSheet.hairlineWidth, height: 24 },
-  searchInput: { flex: 1, minHeight: 48, fontSize: 14.25, lineHeight: 19 },
-  clearButton: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  filters: { gap: 8, paddingRight: 20 },
-  filter: { minHeight: 34, paddingHorizontal: 14, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  filterText: { fontSize: 11.25, fontWeight: '600' },
-  block: { gap: 10 },
-  sectionHeading: { minHeight: 28, flexDirection: 'row', alignItems: 'center' },
-  sectionLeft: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.28 },
-  sectionMeta: { fontSize: 10.5, fontWeight: '600' },
-  documents: { gap: 20 },
-  documentSummary: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 20, padding: 18 },
-  summaryEyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 1.1 },
+  search: { minHeight: 54, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 15, paddingRight: 8, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  searchDivider: { width: StyleSheet.hairlineWidth, height: 22 },
+  searchInput: { flex: 1, minHeight: 46, fontSize: 13.75, lineHeight: 18.5 },
+  clearButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
+  filters: { gap: 7, paddingRight: 18 },
+  filter: { minHeight: 31, paddingHorizontal: 12, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  filterText: { fontSize: 10.75, fontWeight: '600' },
+  block: { gap: 9 },
+  documents: { gap: 17 },
+  documentSummary: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, padding: 16 },
+  summaryEyebrow: { fontSize: 8.25, fontWeight: '700', letterSpacing: 1.05 },
   summaryTop: { marginTop: 5, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  summaryTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
-  summaryCount: { fontSize: 11, fontWeight: '600' },
-  summaryFacts: { marginTop: 16, paddingTop: 14, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 12 },
-  fact: { minWidth: 64 },
+  summaryTitle: { fontSize: 15.5, lineHeight: 19.5, fontWeight: '600' },
+  summaryCount: { fontSize: 10.75, fontWeight: '600' },
+  summaryFacts: { marginTop: 14, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 12 },
+  fact: { minWidth: 62 },
   factWide: { flex: 1, alignItems: 'flex-end' },
-  factValue: { fontSize: 13.75, lineHeight: 17, fontWeight: '600' },
-  factLabel: { marginTop: 3, fontSize: 9.5, lineHeight: 12.5 },
-  documentRow: { minHeight: 74, paddingHorizontal: 16, paddingVertical: 11, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  documentSpine: { width: 3, height: 34, borderRadius: 2 },
+  factValue: { fontSize: 13.25, lineHeight: 16.5, fontWeight: '600' },
+  factLabel: { marginTop: 3, fontSize: 9.25, lineHeight: 12 },
+  documentRow: { minHeight: 68, paddingHorizontal: 15, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  documentSpine: { width: 3, height: 30, borderRadius: 2 },
   documentContent: { flex: 1, minWidth: 0 },
-  documentTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.14 },
-  documentMeta: { marginTop: 4, fontSize: 11.25, lineHeight: 15 },
-  documentAmount: { fontSize: 12.5, fontWeight: '600' }
+  documentTitle: { fontSize: 14.25, lineHeight: 18, fontWeight: '600', letterSpacing: -0.12 },
+  documentMeta: { marginTop: 3, fontSize: 11, lineHeight: 14.5 },
+  documentAmount: { fontSize: 12.25, fontWeight: '600' }
 });
