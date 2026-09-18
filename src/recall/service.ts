@@ -26,8 +26,26 @@ export async function answerFromRetrievedItems({
   now?: Date;
 }): Promise<GroundedRecallAnswer> {
   const retrievedItems = retrieval.map((result) => result.item);
+  const linkQuestion = asksForExactLink(query);
 
-  if (previousSourceIds.length) {
+  // Exact saved URLs are a retrieval task, not a synthesis task. Prefer the
+  // deterministic saved value so the model cannot replace it with a source card
+  // or paraphrase it away.
+  const direct = buildDirectAnswer(query, allItems, retrievedItems[0], now);
+  if (direct && (direct.kind !== 'memory' || linkQuestion)) {
+    return {
+      title: direct.title,
+      body: direct.body,
+      sourceIds: direct.itemIds,
+      evidence: 'saved',
+      mode: 'deterministic',
+      meta: direct.meta || (linkQuestion
+        ? 'Exact URL from your saved NEVER memory'
+        : 'Calculated from your saved NEVER items')
+    };
+  }
+
+  if (previousSourceIds.length && !linkQuestion) {
     const followUp = buildFollowUpAnswer(query, allItems, previousSourceIds);
     if (followUp) {
       return {
@@ -39,18 +57,6 @@ export async function answerFromRetrievedItems({
         meta: followUp.meta || 'Follow-up grounded in your previous sources'
       };
     }
-  }
-
-  const direct = buildDirectAnswer(query, allItems, retrievedItems[0], now);
-  if (direct && direct.kind !== 'memory') {
-    return {
-      title: direct.title,
-      body: direct.body,
-      sourceIds: direct.itemIds,
-      evidence: 'saved',
-      mode: 'deterministic',
-      meta: direct.meta || 'Calculated from your saved NEVER items'
-    };
   }
 
   if (!retrievedItems.length) return direct
@@ -105,4 +111,9 @@ export async function answerFromRetrievedItems({
       meta: [fallback.meta, 'AI synthesis unavailable; showing grounded local recall'].filter(Boolean).join(' · ')
     };
   }
+}
+
+function asksForExactLink(value: string) {
+  const clean = value.toLowerCase().normalize('NFKD').replace(/[\u0300-\u036f]/g, '');
+  return /\b(link|url|webseite|website)\b/.test(clean);
 }
