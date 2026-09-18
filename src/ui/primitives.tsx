@@ -12,7 +12,7 @@ export function BrandHeader({ action }: { action?: ReactNode }) {
     <View style={styles.brandHeader}>
       <View style={{ flex: 1 }}>
         <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
-        <Text style={[styles.brandLine, { color: theme.textTertiary }]}>CAPTURE TODAY.\nREMEMBER TOMORROW.</Text>
+        <Text style={[styles.brandLine, { color: theme.textTertiary }]}>CAPTURE TODAY. REMEMBER TOMORROW.</Text>
       </View>
       {action}
     </View>

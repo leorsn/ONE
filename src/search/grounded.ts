@@ -21,6 +21,9 @@ export function buildGroundedRecallAnswer(
   const reminderAnswer = buildReminderAnswer(clean, items, german, now);
   if (reminderAnswer) return reminderAnswer;
 
+  const linkAnswer = buildSavedLinkAnswer(clean, bestMatch, german);
+  if (linkAnswer) return linkAnswer;
+
   const specificDocumentAnswer = buildSpecificDocumentAnswer(clean, bestMatch, german);
   if (specificDocumentAnswer) return specificDocumentAnswer;
 
@@ -146,6 +149,23 @@ export function buildGroundedRecallAnswer(
   return undefined;
 }
 
+function buildSavedLinkAnswer(clean: string, bestMatch: OneItem | undefined, german: boolean) {
+  if (!bestMatch || !/(link|url|webseite|website|adresse)/.test(clean)) return undefined;
+  const urls = Array.from(new Set([
+    bestMatch.url,
+    ...(bestMatch.extractedUrls || []),
+    ...bestMatch.entities.filter((entity) => entity.startsWith('url:')).map((entity) => entity.slice(4))
+  ].filter((value): value is string => Boolean(value))));
+  if (!urls.length) return undefined;
+
+  return {
+    title: bestMatch.title,
+    body: urls.join('\n'),
+    meta: german ? 'Exakt aus deiner gespeicherten NEVER-Erinnerung' : 'Exact URLs from your saved NEVER memory',
+    itemIds: [bestMatch.id]
+  } satisfies GroundedRecallAnswer;
+}
+
 function buildReminderAnswer(clean: string, items: OneItem[], german: boolean, now: Date) {
   if (!/remind|reminder|erinner|erinnerung/.test(clean)) return undefined;
 
@@ -253,7 +273,7 @@ function formatKind(value: string) {
 }
 
 function looksGerman(value: string) {
-  return /\b(wo|wann|geschenk|geburtstag|idee|ideen|gespeichert|beleg|rechnung|hatte|habe|erinnerung|morgen|betrag|wieviel)\b/.test(value);
+  return /\b(wo|wann|geschenk|geburtstag|idee|ideen|gespeichert|beleg|rechnung|hatte|habe|erinnerung|morgen|betrag|wieviel|link|url|webseite)\b/.test(value);
 }
 
 function uniqueText(value: string, index: number, values: string[]) {

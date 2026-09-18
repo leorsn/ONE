@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import DateTimePicker from '@expo/ui/community/datetime-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -26,6 +26,7 @@ export default function ItemDetailScreen() {
   const [saved, setSaved] = useState(false);
   const [completed, setCompleted] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [sourceExpanded, setSourceExpanded] = useState(false);
   const [activePicker, setActivePicker] = useState<'date' | 'time' | null>(null);
 
   useEffect(() => {
@@ -35,7 +36,7 @@ export default function ItemDetailScreen() {
     setTime(item.time || '');
     setCategory(item.category || '');
     setLocation(item.location || '');
-    setContext(item.userContext || '');
+    setContext(item.userContext || item.summary || '');
     setNotes(item.notes || '');
     setSaved(item.saved);
     setCompleted(item.completed);
@@ -55,6 +56,16 @@ export default function ItemDetailScreen() {
   }
 
   const currentItem = item;
+  const sourceUri = currentItem.localAttachmentUri || currentItem.imageUrl || currentItem.attachmentUrl;
+  const sourceIsImage = Boolean(sourceUri && (
+    currentItem.localAttachmentMimeType?.startsWith('image/') ||
+    ['scan', 'photo', 'screenshot'].includes(currentItem.sourceType)
+  ));
+  const savedLinks = Array.from(new Set([
+    currentItem.url,
+    ...(currentItem.extractedUrls || []),
+    ...currentItem.entities.filter((entity) => entity.startsWith('url:')).map((entity) => entity.slice(4))
+  ].filter((value): value is string => Boolean(value))));
 
   async function saveChanges() {
     if (!title.trim() || saving) return;
@@ -130,6 +141,38 @@ export default function ItemDetailScreen() {
           />
         </View>
 
+        {sourceUri ? (
+          <View style={styles.section}>
+            <SectionHeader title="Original" meta={currentItem.localAttachmentName || undefined} />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={sourceExpanded ? 'Collapse original' : 'Open original'}
+              onPress={() => setSourceExpanded((value) => !value)}
+              style={({ pressed }) => [styles.sourceCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.74 : 1 }]}
+            >
+              {sourceIsImage ? (
+                <Image
+                  source={{ uri: sourceUri }}
+                  style={[styles.sourceImage, sourceExpanded && styles.sourceImageExpanded, { backgroundColor: theme.fill }]}
+                  resizeMode="contain"
+                />
+              ) : (
+                <View style={styles.sourceFile}>
+                  <IconTile icon={icons.document} tone="neutral" size={40} />
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.sourceFileTitle, { color: theme.text }]}>{currentItem.localAttachmentName || 'Original file'}</Text>
+                    <Text style={[styles.sourceFileMeta, { color: theme.textSecondary }]}>Original preserved by NEVER</Text>
+                  </View>
+                </View>
+              )}
+              <View style={styles.sourceActionRow}>
+                <Text style={[styles.sourceAction, { color: theme.chrome }]}>{sourceExpanded ? 'Close original' : 'Open original'}</Text>
+                <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+              </View>
+            </Pressable>
+          </View>
+        ) : null}
+
         {(currentItem.type === 'document' || currentItem.merchant || currentItem.amount !== undefined) ? (
           <View style={styles.section}>
             <SectionHeader title="Document" />
@@ -187,6 +230,27 @@ export default function ItemDetailScreen() {
           />
         </View>
 
+        {savedLinks.length ? (
+          <View style={styles.section}>
+            <SectionHeader title="Links" meta={`${savedLinks.length} found`} />
+            <View style={styles.linksStack}>
+              {savedLinks.map((link, index) => (
+                <Pressable
+                  key={`${link}-${index}`}
+                  accessibilityRole="link"
+                  accessibilityLabel={`Open saved link ${index + 1}`}
+                  onPress={() => Linking.openURL(normalizeWebUrl(link))}
+                  style={({ pressed }) => [styles.extractedLink, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.64 : 1 }]}
+                >
+                  <IconTile icon={icons.link} tone="neutral" size={34} />
+                  <Text style={[styles.extractedLinkText, { color: theme.text }]} numberOfLines={2}>{link}</Text>
+                  <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+                </Pressable>
+              ))}
+            </View>
+          </View>
+        ) : null}
+
         {currentItem.extractedText ? (
           <View style={styles.section}>
             <SectionHeader title="Recognized text" />
@@ -196,7 +260,7 @@ export default function ItemDetailScreen() {
           </View>
         ) : null}
 
-        {currentItem.url ? (
+        {currentItem.url && !savedLinks.length ? (
           <Pressable
             accessibilityRole="link"
             accessibilityLabel="Open saved link"
@@ -375,6 +439,10 @@ export default function ItemDetailScreen() {
   }
 }
 
+function normalizeWebUrl(value: string) {
+  return /^https?:\/\//i.test(value) ? value : `https://${value}`;
+}
+
 function clean(value: string) { return value.trim() || undefined; }
 function formatType(value: string) { return value.charAt(0).toUpperCase() + value.slice(1); }
 function sourceLabel(value: string) {
@@ -445,6 +513,17 @@ const styles = StyleSheet.create({
   fieldEyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 1.55 },
   titleInput: { minHeight: 62, paddingVertical: 4, fontSize: 29, lineHeight: 35, fontWeight: '600', letterSpacing: -0.95, textAlignVertical: 'top' },
   section: { gap: 10 },
+  sourceCard: { borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', padding: 10, gap: 8 },
+  sourceImage: { width: '100%', height: 220, borderRadius: 13 },
+  sourceImageExpanded: { height: 560 },
+  sourceFile: { minHeight: 74, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 8 },
+  sourceFileTitle: { fontSize: 13.5, fontWeight: '600' },
+  sourceFileMeta: { marginTop: 4, fontSize: 11 },
+  sourceActionRow: { minHeight: 34, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
+  sourceAction: { fontSize: 11.5, fontWeight: '600' },
+  linksStack: { gap: 8 },
+  extractedLink: { minHeight: 58, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  extractedLinkText: { flex: 1, fontSize: 11.5, lineHeight: 16, fontWeight: '500' },
   documentHeader: { flexDirection: 'row', alignItems: 'center', gap: 11 },
   documentTitle: { fontSize: 14.25, lineHeight: 18, fontWeight: '600' },
   documentMeta: { marginTop: 3, fontSize: 11.25 },

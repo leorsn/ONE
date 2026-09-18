@@ -9,6 +9,7 @@ export type OneAIInterpretationPayload = {
   context?: string;
   people?: string[];
   entities?: string[];
+  urls?: string[];
   dates?: string[];
   times?: string[];
   taskIntent?: boolean;
@@ -90,9 +91,10 @@ export function validateAIInterpretation(value: unknown): OneAIInterpretationPay
   if (typeof source.summary === 'string') result.summary = source.summary.trim().slice(0, 600);
   if (classification) result.classification = classification as OneAIInterpretationPayload['classification'];
   if (Array.isArray(source.tags) && source.tags.every((item) => typeof item === 'string')) result.tags = source.tags.slice(0, 12) as string[];
-  if (typeof source.context === 'string') result.context = source.context.trim().slice(0, 120);
+  if (typeof source.context === 'string') result.context = source.context.trim().slice(0, 320);
   if (Array.isArray(source.people) && source.people.every((item) => typeof item === 'string')) result.people = source.people.slice(0, 12) as string[];
   if (Array.isArray(source.entities) && source.entities.every((item) => typeof item === 'string')) result.entities = source.entities.slice(0, 20) as string[];
+  if (Array.isArray(source.urls) && source.urls.every((item) => typeof item === 'string')) result.urls = source.urls.map((item) => item.trim()).filter(isWebUrl).slice(0, 12) as string[];
   if (Array.isArray(source.dates) && source.dates.every(isIsoDate)) result.dates = source.dates.slice(0, 8) as string[];
   if (Array.isArray(source.times) && source.times.every(isClockTime)) result.times = source.times.slice(0, 8) as string[];
   if (typeof source.taskIntent === 'boolean') result.taskIntent = source.taskIntent;
@@ -105,6 +107,7 @@ export function validateAIInterpretation(value: unknown): OneAIInterpretationPay
 function mergeAIInterpretation(draft: CaptureDraft, ai: OneAIInterpretationPayload): CaptureDraft {
   const mappedKind = ai.classification ? captureKindForClassification(ai.classification) : draft.captureKind;
   const context = normalizeContextLabel(ai.context || draft.userContext);
+  const aiUrls = unique(ai.urls || []);
   const next: CaptureDraft = {
     ...draft,
     title: ai.title || draft.title,
@@ -115,7 +118,8 @@ function mergeAIInterpretation(draft: CaptureDraft, ai: OneAIInterpretationPaylo
     userContext: context,
     tags: normalizeTags([...(draft.tags || []), ...(ai.tags || [])]),
     people: unique([...(draft.people || []), ...(ai.people || [])]),
-    entities: unique([...(draft.entities || []), ...(ai.entities || [])]),
+    entities: unique([...(draft.entities || []), ...(ai.entities || []), ...aiUrls.map((value) => `url:${value}`)]),
+    url: draft.url || aiUrls[0],
     date: draft.date || ai.dates?.[0],
     time: draft.time || ai.times?.[0],
     overallConfidence: ai.confidence || draft.overallConfidence
@@ -148,6 +152,10 @@ function canonicalKindFor(kind: CaptureKind, fallback: CaptureDraft['canonicalKi
   if (kind === 'image' || kind === 'screenshot') return 'image';
   if (kind === 'note' || kind === 'idea' || kind === 'task') return 'note';
   return fallback;
+}
+
+function isWebUrl(value: unknown) {
+  return typeof value === 'string' && /^(?:https?:\/\/|www\.)\S+$/i.test(value.trim());
 }
 
 function isIsoDate(value: unknown) {

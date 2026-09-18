@@ -54,7 +54,7 @@ Deno.serve(async (req: Request) => {
     const supabase = userClient(req)
     const { data, error } = await supabase
       .from('items')
-      .select('id,title,summary,raw_input,user_context,tags,entities,people,item_date,item_time,captured_at,url,source_type,category')
+      .select('id,title,summary,raw_input,user_context,tags,entities,people,item_date,item_time,captured_at,url,extracted_text,extracted_urls,source_type,category')
       .in('id', itemIds)
 
     if (error) throw error
@@ -78,6 +78,8 @@ Deno.serve(async (req: Request) => {
       time: row.item_time,
       capturedAt: row.captured_at,
       url: clip(row.url, 500),
+      extractedText: clip(row.extracted_text, 1200),
+      extractedUrls: Array.isArray(row.extracted_urls) ? row.extracted_urls.slice(0, 12) : [],
       sourceType: row.source_type,
       category: clip(row.category, 120),
     }))
@@ -104,6 +106,7 @@ Deno.serve(async (req: Request) => {
                 'Never use general knowledge to invent a saved fact.',
                 'If you infer something rather than quote a stored fact, set evidence to inferred and phrase it cautiously.',
                 'Use only source IDs that directly support the answer.',
+                'When the user asks for a link or URL, reproduce the exact stored URL from url, extractedUrls, entities, or saved text; never rewrite, shorten, or invent it.',
                 'Answer in the language of the user question. Be concise.'
               ].join(' '),
             }],

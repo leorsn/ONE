@@ -19,6 +19,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { buildItemFromCapture } from '@/src/capture/buildItem';
 import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
 import { interpretCapture, type CaptureDraft } from '@/src/capture/core';
+import { interpretCaptureWithIntelligence } from '@/src/capture/intelligence';
+import { remoteCaptureIntelligenceProvider } from '@/src/capture/remoteIntelligence';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { recordLastNativeError, recordNativeAcceptanceEvent } from '@/src/native/acceptance';
@@ -143,12 +145,13 @@ export default function ScanScreen() {
           return;
         }
 
-        const interpreted = interpretCapture({
+        const intelligence = await interpretCaptureWithIntelligence({
           rawText: stableAsset.fileName || 'Scanned document',
           extractedText: text,
           sourceType: 'scan',
           isImage: true
-        });
+        }, remoteCaptureIntelligenceProvider);
+        const interpreted = intelligence.draft;
 
         if (revision !== processingRevisionRef.current) return;
         setDraft((current) => mergeLateOcrDraft({

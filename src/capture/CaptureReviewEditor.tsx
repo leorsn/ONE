@@ -137,17 +137,17 @@ export function CaptureReviewEditor({
       ) : null}
 
       <View style={styles.textBlock}>
-        <FieldLabel label="Your context" confidence={draft.userContext ? 'high' : undefined} />
+        <FieldLabel label="Context" confidence={draft.userContext ? 'high' : undefined} />
         <TextInput
           value={draft.userContext || ''}
           onChangeText={(value) => onChange(applyUserContextPriority(draft, value))}
-          placeholder="Gift Dad, Barcelona, Tax 2026…"
+          placeholder="NEVER will summarize what this is about…"
           placeholderTextColor={theme.textTertiary}
           style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
           multiline
           accessibilityLabel="Your context"
         />
-        <Text style={[styles.help, { color: theme.textTertiary }]}>Your words take priority over uncertain automatic classification.</Text>
+        <Text style={[styles.help, { color: theme.textTertiary }]}>NEVER drafts this automatically. Your edits always take priority.</Text>
       </View>
 
       <View style={styles.section}>
