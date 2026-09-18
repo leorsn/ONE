@@ -26,7 +26,13 @@ export function OneItemRow({
       accessibilityLabel={`${item.title}. ${meta}`}
       accessibilityHint="Opens item details"
       onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-      style={({ pressed }) => [styles.row, { borderBottomColor: `${theme.text}10`, opacity: pressed ? 0.58 : 1 }]}
+      style={({ pressed }) => [
+        styles.row,
+        {
+          borderBottomColor: `${theme.text}0D`,
+          backgroundColor: pressed ? `${theme.fill}4A` : 'transparent'
+        }
+      ]}
     >
       {onToggle && !item.saved ? (
         <Pressable
@@ -42,18 +48,18 @@ export function OneItemRow({
           style={[
             styles.check,
             {
-              borderColor: item.completed ? `${theme.success}88` : `${theme.text}16`,
-              backgroundColor: item.completed ? `${theme.success}E8` : `${theme.fill}72`
+              borderColor: item.completed ? `${theme.success}88` : `${theme.text}18`,
+              backgroundColor: item.completed ? theme.success : `${theme.fill}72`
             }
           ]}
         >
           {item.completed ? <OneIcon name={icons.check} size={10.5} color={theme.onAccent} /> : null}
         </Pressable>
       ) : previewUri ? (
-        <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill, borderColor: `${theme.text}12` }]} resizeMode="cover" />
+        <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill }]} resizeMode="cover" />
       ) : (
-        <View style={[styles.glyph, { backgroundColor: `${iconColor(item, theme)}12`, borderColor: `${iconColor(item, theme)}2C` }]}>
-          <OneIcon name={iconForType(item.type)} size={17.5} color={iconColor(item, theme)} />
+        <View style={[styles.glyph, { backgroundColor: `${iconColor(item, theme)}16` }]}>
+          <OneIcon name={iconForType(item.type)} size={18} color={iconColor(item, theme)} />
         </View>
       )}
 
@@ -73,15 +79,8 @@ export function OneItemRow({
         <Text style={[styles.meta, { color: theme.textSecondary }]} numberOfLines={1}>{meta}</Text>
       </View>
 
-      {item.time ? (
-        <Text style={[styles.time, { color: theme.textTertiary }]}>{item.time}</Text>
-      ) : null}
-
-      {showChevron ? (
-        <View style={[styles.arrow, { backgroundColor: `${theme.fill}72`, borderColor: `${theme.text}0E` }]}>
-          <OneIcon name={icons.chevron} size={10.5} color={theme.textTertiary} />
-        </View>
-      ) : null}
+      {item.time ? <Text style={[styles.time, { color: theme.textTertiary }]}>{item.time}</Text> : null}
+      {showChevron ? <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} /> : null}
     </Pressable>
   );
 }
@@ -155,20 +154,19 @@ function formatType(type: string) {
 
 const styles = StyleSheet.create({
   row: {
-    minHeight: 68,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
+    minHeight: 72,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 11
+    gap: 12
   },
   check: { width: 26, height: 26, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  preview: { width: 42, height: 42, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth },
-  glyph: { width: 36, height: 36, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  preview: { width: 44, height: 44, borderRadius: 12 },
+  glyph: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
   content: { flex: 1, minWidth: 0 },
-  title: { fontSize: 14.25, lineHeight: 17.5, fontWeight: '600', letterSpacing: -0.13 },
-  meta: { fontSize: 10.9, lineHeight: 14.5, marginTop: 3 },
-  time: { fontSize: 10.25, lineHeight: 13, fontWeight: '600', letterSpacing: 0.03 },
-  arrow: { width: 23, height: 23, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' }
+  title: { fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.16 },
+  meta: { fontSize: 11, lineHeight: 14.5, marginTop: 3 },
+  time: { fontSize: 10.25, lineHeight: 13, fontWeight: '600', letterSpacing: 0.03 }
 });
