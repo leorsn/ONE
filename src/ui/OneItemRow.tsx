@@ -6,6 +6,8 @@ import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 import type { OneItem } from '@/src/types/item';
 
+type RowTone = 'accent' | 'neutral' | 'success' | 'warning' | 'info' | 'memory';
+
 export function OneItemRow({
   item,
   onToggle,
@@ -20,6 +22,7 @@ export function OneItemRow({
   const theme = useTheme();
   const meta = metaFor(item, showDate);
   const previewUri = imagePreviewUri(item);
+  const tone = toneFor(item);
 
   return (
     <Pressable
@@ -43,17 +46,17 @@ export function OneItemRow({
           style={[
             styles.check,
             {
-              borderColor: item.completed ? theme.chrome : theme.fillStrong,
-              backgroundColor: item.completed ? theme.chrome : 'transparent'
+              borderColor: item.completed ? theme.success : theme.fillStrong,
+              backgroundColor: item.completed ? theme.success : theme.surfaceElevated
             }
           ]}
         >
-          {item.completed ? <OneIcon name={icons.check} size={11} color={theme.background} /> : null}
+          {item.completed ? <OneIcon name={icons.check} size={11} color={theme.onAccent} /> : null}
         </Pressable>
       ) : previewUri ? (
-        <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill }]} resizeMode="cover" />
+        <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill, borderColor: theme.border }]} resizeMode="cover" />
       ) : (
-        <IconTile icon={iconForType(item.type)} tone="neutral" size={42} />
+        <IconTile icon={iconForType(item.type)} tone={tone} size={42} />
       )}
 
       <View style={styles.content}>
@@ -73,7 +76,9 @@ export function OneItemRow({
       </View>
 
       {item.time ? (
-        <Text style={[styles.time, { color: theme.textTertiary }]}>{item.time}</Text>
+        <View style={[styles.timeBadge, { backgroundColor: theme.accentSoft }]}>
+          <Text style={[styles.time, { color: theme.accent }]}>{item.time}</Text>
+        </View>
       ) : null}
 
       {showChevron ? <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} /> : null}
@@ -92,6 +97,15 @@ export function iconForType(type: OneItem['type']) {
   if (type === 'note') return icons.note;
   if (type === 'document') return icons.document;
   return icons.task;
+}
+
+function toneFor(item: OneItem): RowTone {
+  if (item.type === 'link' || item.type === 'document') return 'info';
+  if (item.type === 'idea' || item.type === 'note') return 'memory';
+  if (item.type === 'reminder' || item.type === 'task' || item.type === 'shopping') return 'warning';
+  if (item.type === 'appointment' || item.type === 'event' || item.type === 'travel') return 'accent';
+  if (item.completed) return 'success';
+  return 'neutral';
 }
 
 function metaFor(item: OneItem, showDate: boolean) {
@@ -143,18 +157,19 @@ function formatType(type: string) {
 
 const styles = StyleSheet.create({
   row: {
-    minHeight: 76,
+    minHeight: 78,
     paddingHorizontal: 15,
-    paddingVertical: 11,
+    paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12
   },
-  check: { width: 23, height: 23, borderRadius: 12, borderWidth: 1.35, alignItems: 'center', justifyContent: 'center' },
-  preview: { width: 44, height: 44, borderRadius: 12 },
+  check: { width: 24, height: 24, borderRadius: 8, borderWidth: 1.35, alignItems: 'center', justifyContent: 'center' },
+  preview: { width: 44, height: 44, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth },
   content: { flex: 1, minWidth: 0 },
   title: { fontSize: 14.75, lineHeight: 18, fontWeight: '600', letterSpacing: -0.17 },
   meta: { fontSize: 11.5, lineHeight: 15.5, marginTop: 4 },
-  time: { fontSize: 11, lineHeight: 14, fontWeight: '600', letterSpacing: 0.05 }
+  timeBadge: { minHeight: 26, paddingHorizontal: 8, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  time: { fontSize: 10.5, lineHeight: 13, fontWeight: '700', letterSpacing: 0.04 }
 });
