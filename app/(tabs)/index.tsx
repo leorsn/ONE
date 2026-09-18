@@ -13,7 +13,7 @@ import { buildTodayEntries, todayReasonLabel } from '@/src/inbox/today';
 import { notificationSaveWarning } from '@/src/notifications/status';
 import { TriageRow } from '@/src/ui/TriageRow';
 import { OneItemRow } from '@/src/ui/OneItemRow';
-import { BrandHeader, IconTile, PrimaryButton, RoundIconButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { BrandHeader, CoreBackdrop, IconTile, PrimaryButton, RoundIconButton, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 import { editorialFontFamily } from '@/src/theme/typography';
@@ -79,8 +79,10 @@ export default function InboxScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
+      <CoreBackdrop />
       <ScrollView contentContainerStyle={uiStyles.screenContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
         <BrandHeader
+          showTagline
           action={<RoundIconButton icon={icons.person} onPress={() => router.push('/(tabs)/settings')} accessibilityLabel="Open settings" />}
         />
 
@@ -97,16 +99,17 @@ export default function InboxScreen() {
             style={[
               styles.capture,
               {
-                backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFFA',
-                borderColor: draft ? `${theme.success}70` : dark ? '#FFFFFF12' : '#0000000A',
-                shadowColor: theme.shadow,
-                shadowOpacity: dark ? 0.24 : 0.12
+                backgroundColor: dark ? '#1C1C1ED6' : '#FFFFFFDE',
+                borderColor: draft ? `${theme.success}70` : dark ? '#FFFFFF18' : '#FFFFFFF5',
+                shadowColor: dark ? '#000000' : '#72798A',
+                shadowOpacity: dark ? 0.34 : 0.16
               }
             ]}
           >
+            <View pointerEvents="none" style={[styles.captureHighlight, { backgroundColor: dark ? '#FFFFFF1C' : '#FFFFFF' }]} />
             <Pressable accessibilityRole="button" accessibilityLabel="Start a new capture" onPress={() => focusCapture()} style={styles.captureStart}>
-              <View style={[styles.captureOrb, { backgroundColor: dark ? '#2C2C2EF0' : '#F2F2F7', borderColor: dark ? '#FFFFFF10' : '#00000008' }]}>
-                <OneIcon name={icons.plus} size={20} color={theme.chrome} />
+              <View style={[styles.captureOrb, { backgroundColor: dark ? '#2C2C2EBC' : '#F1F2F6D8', borderColor: dark ? '#FFFFFF18' : '#FFFFFFE8' }]}>
+                <OneIcon name={icons.plus} size={21} color={theme.chrome} />
               </View>
             </Pressable>
             <TextInput
@@ -129,9 +132,9 @@ export default function InboxScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Save capture"
                 onPress={handleSave}
-                style={({ pressed }) => [styles.captureSubmit, { backgroundColor: theme.chrome, opacity: pressed ? 0.72 : 1 }]}
+                style={({ pressed }) => [styles.captureSubmit, { backgroundColor: theme.sky, opacity: pressed ? 0.72 : 1 }]}
               >
-                <OneIcon name={icons.check} size={15} color={theme.onAccent} />
+                <OneIcon name={icons.check} size={15} color="#FFFFFF" />
               </Pressable>
             ) : (
               <View style={styles.moreSlot}><OneIcon name={icons.more} size={18} color={theme.textTertiary} /></View>
@@ -250,15 +253,16 @@ export default function InboxScreen() {
         style={({ pressed }) => [
           styles.toolCard,
           {
-            backgroundColor: dark ? '#1C1C1EF7' : '#FFFFFFF8',
-            borderColor: dark ? '#FFFFFF10' : '#00000008',
-            shadowColor: theme.shadow,
-            shadowOpacity: dark ? 0.2 : 0.1,
-            transform: [{ scale: pressed ? 0.985 : 1 }]
+            backgroundColor: dark ? '#1C1C1EC9' : '#FFFFFFD8',
+            borderColor: dark ? '#FFFFFF17' : '#FFFFFFF5',
+            shadowColor: dark ? '#000000' : '#6D7484',
+            shadowOpacity: dark ? 0.3 : 0.13,
+            transform: [{ scale: pressed ? 0.976 : 1 }]
           }
         ]}
       >
-        <View style={[styles.toolIcon, { backgroundColor: `${tint}${dark ? '20' : '14'}` }]}>
+        <View pointerEvents="none" style={[styles.toolHighlight, { backgroundColor: dark ? '#FFFFFF16' : '#FFFFFF' }]} />
+        <View style={[styles.toolIcon, { backgroundColor: `${tint}${dark ? '24' : '18'}`, borderColor: `${tint}${dark ? '28' : '18'}` }]}>
           <OneIcon name={icon} size={18} color={tint} />
         </View>
         <View style={{ flex: 1 }}>
@@ -299,43 +303,47 @@ function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getT
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  hero: { marginTop: -2, paddingHorizontal: 1 },
+  hero: { marginTop: 2, paddingHorizontal: 1 },
   heroTitle: { maxWidth: 430, fontFamily: editorialFontFamily, fontSize: 35, lineHeight: 38, letterSpacing: -1.05 },
   heroSubtitle: { marginTop: 7, fontSize: 13, lineHeight: 18.5 },
   captureGroup: { gap: 9 },
   eyebrow: { paddingHorizontal: 1, fontSize: 8.4, lineHeight: 11.5, fontWeight: '700', letterSpacing: 1.7 },
   capture: {
-    minHeight: 66,
-    borderRadius: 22,
+    minHeight: 68,
+    borderRadius: 24,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
     paddingRight: 12,
     gap: 10,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 4
+    overflow: 'hidden',
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 5
   },
-  captureStart: { width: 60, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
-  captureOrb: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  captureHighlight: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth },
+  captureStart: { width: 62, alignSelf: 'stretch', alignItems: 'center', justifyContent: 'center' },
+  captureOrb: { width: 42, height: 42, borderRadius: 21, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   input: { flex: 1, minHeight: 48, fontSize: 15, lineHeight: 20, letterSpacing: -0.12 },
-  captureSubmit: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  captureSubmit: { width: 35, height: 35, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
   moreSlot: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
-  toolGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  toolGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 11 },
   toolCard: {
-    width: '48.4%',
-    minHeight: 78,
-    borderRadius: 20,
+    width: '48.35%',
+    minHeight: 79,
+    borderRadius: 22,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 13,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3
+    overflow: 'hidden',
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 11 },
+    elevation: 4
   },
-  toolIcon: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
+  toolHighlight: { position: 'absolute', top: 0, left: 16, right: 16, height: StyleSheet.hairlineWidth },
+  toolIcon: { width: 39, height: 39, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   toolLabel: { fontSize: 13.5, lineHeight: 17, fontWeight: '600', letterSpacing: -0.1 },
   toolMeta: { marginTop: 2.5, fontSize: 10.25, lineHeight: 13.5 },
   block: { gap: 10 },
