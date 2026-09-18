@@ -27,6 +27,8 @@ export default function SettingsScreen() {
   const [deletingAccount, setDeletingAccount] = useState(false);
   const hasStoreSubscription = billingConfigured && plan !== 'none';
   const subscriptionManagementUrl = managementUrl || (hasStoreSubscription && Platform.OS === 'ios' ? APPLE_SUBSCRIPTIONS_URL : undefined);
+  const profileName = displayName(session?.user.user_metadata) || 'NEVER Account';
+  const initials = initialsFor(profileName);
 
   async function openSubscriptionManagement() {
     if (!subscriptionManagementUrl) return;
@@ -116,10 +118,10 @@ export default function SettingsScreen() {
             style={({ pressed }) => [styles.profileCard, { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
           >
             <View style={[styles.avatar, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-              <OneIcon name={icons.person} size={20} color={theme.chrome} />
+              {initials ? <Text style={[styles.avatarText, { color: theme.chrome }]}>{initials}</Text> : <OneIcon name={icons.person} size={19} color={theme.chrome} />}
             </View>
             <View style={styles.profileCopy}>
-              <Text style={[styles.profileTitle, { color: theme.text }]}>NEVER Account</Text>
+              <Text style={[styles.profileTitle, { color: theme.text }]} numberOfLines={1}>{profileName}</Text>
               <Text style={[styles.profileEmail, { color: theme.textSecondary }]} numberOfLines={1}>{session.user.email}</Text>
             </View>
             <View style={styles.profileMeta}>
@@ -171,7 +173,7 @@ export default function SettingsScreen() {
               onPress={confirmDeleteAccount}
               style={({ pressed }) => [styles.dangerRow, { borderTopColor: theme.border, opacity: pressed || deletingAccount ? 0.58 : 1 }]}
             >
-              <OneIcon name={icons.delete} size={18} color={theme.danger} />
+              <OneIcon name={icons.delete} size={17} color={theme.danger} />
               <View style={styles.rowCopy}>
                 <Text style={[styles.rowLabel, { color: theme.danger }]}>Delete account</Text>
                 <Text style={[styles.rowValue, { color: theme.textTertiary }]}>Permanently delete your NEVER account and synced data</Text>
@@ -207,7 +209,7 @@ export default function SettingsScreen() {
   }) {
     const content = (
       <>
-        <OneIcon name={icon} size={18} color={theme.textSecondary} />
+        <OneIcon name={icon} size={17} color={theme.textSecondary} />
         <View style={styles.rowCopy}>
           <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
           <Text style={[styles.rowValue, { color: theme.textSecondary }]} numberOfLines={2}>{value}</Text>
@@ -227,6 +229,18 @@ export default function SettingsScreen() {
   }
 }
 
+function displayName(metadata?: Record<string, unknown>) {
+  if (!metadata) return undefined;
+  const value = [metadata.full_name, metadata.name, metadata.first_name]
+    .find((candidate) => typeof candidate === 'string' && candidate.trim()) as string | undefined;
+  return value?.trim();
+}
+
+function initialsFor(name: string) {
+  if (!name || name === 'NEVER Account') return undefined;
+  return name.split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join('');
+}
+
 function membershipLabel(plan: 'none' | 'one' | 'one_ai') {
   if (plan === 'one_ai') return 'NEVER AI';
   if (plan === 'one') return 'NEVER';
@@ -240,8 +254,8 @@ function membershipValue(plan: 'none' | 'one' | 'one_ai', localizedPrices: Parti
 }
 
 function appearanceLabel(value: 'system' | 'light' | 'dark') {
-  if (value === 'light') return 'Light';
-  if (value === 'dark') return 'Dark';
+  if (value === 'light') return 'Core Light';
+  if (value === 'dark') return 'Core Dark';
   return 'Follow device';
 }
 
@@ -249,21 +263,22 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   intro: { marginTop: -2 },
   title: { fontFamily: editorialFontFamily, fontSize: 34, lineHeight: 38, fontWeight: '400', letterSpacing: -0.9 },
-  subtitle: { marginTop: 6, fontSize: 12.75, lineHeight: 18.5 },
-  profileCard: { minHeight: 78, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingVertical: 13, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  avatar: { width: 42, height: 42, borderRadius: 21, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  subtitle: { marginTop: 6, fontSize: 12.5, lineHeight: 18 },
+  profileCard: { minHeight: 74, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  avatar: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 12.5, lineHeight: 15, fontWeight: '700', letterSpacing: 0.4 },
   profileCopy: { flex: 1, minWidth: 0 },
-  profileTitle: { fontSize: 14.75, lineHeight: 18, fontWeight: '600' },
-  profileEmail: { marginTop: 3, fontSize: 11.25, lineHeight: 15 },
+  profileTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  profileEmail: { marginTop: 3, fontSize: 11, lineHeight: 14.5 },
   profileMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  planLabel: { fontSize: 8.5, fontWeight: '700', letterSpacing: 0.9 },
-  block: { gap: 10 },
-  sectionHeading: { minHeight: 28, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.28 },
-  row: { minHeight: 66, paddingHorizontal: 16, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 13 },
+  planLabel: { fontSize: 8.25, fontWeight: '700', letterSpacing: 0.85 },
+  block: { gap: 9 },
+  sectionHeading: { minHeight: 27, flexDirection: 'row', alignItems: 'center', gap: 7 },
+  sectionTitle: { fontSize: 16.75, lineHeight: 20.5, fontWeight: '600', letterSpacing: -0.26 },
+  row: { minHeight: 62, paddingHorizontal: 15, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 12 },
   rowCopy: { flex: 1, minWidth: 0 },
-  rowLabel: { fontSize: 14.1, lineHeight: 18, fontWeight: '600', letterSpacing: -0.1 },
-  rowValue: { marginTop: 3, fontSize: 11.1, lineHeight: 15.5 },
-  dangerRow: { minHeight: 72, paddingHorizontal: 16, paddingVertical: 11, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 13 },
-  footer: { textAlign: 'center', fontSize: 8.75, fontWeight: '600', letterSpacing: 1.25, marginTop: 2 }
+  rowLabel: { fontSize: 13.9, lineHeight: 17.5, fontWeight: '600', letterSpacing: -0.08 },
+  rowValue: { marginTop: 3, fontSize: 10.9, lineHeight: 15 },
+  dangerRow: { minHeight: 68, paddingHorizontal: 15, paddingVertical: 10, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  footer: { textAlign: 'center', fontSize: 8.5, fontWeight: '600', letterSpacing: 1.2, marginTop: 1 }
 });
