@@ -160,7 +160,7 @@ export default function SavedScreen() {
       >
         <View style={[styles.tilePreview, { backgroundColor: preview ? theme.fill : `${tint}${dark ? '22' : '12'}` }]}>
           {preview ? (
-            <Image source={{ uri: preview }} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+            <Image source={{ uri: preview }} style={styles.tileImage} resizeMode="cover" />
           ) : (
             <OneIcon name={iconForType(item.type)} size={26} color={tint} />
           )}
@@ -323,6 +323,7 @@ const styles = StyleSheet.create({
   gallery: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   tile: { width: '48.2%', borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', shadowOpacity: 0.14, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 4 },
   tilePreview: { height: 118, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  tileImage: { width: '100%', height: '100%' },
   tileBadge: { position: 'absolute', top: 10, right: 10, paddingHorizontal: 7, paddingVertical: 4, borderRadius: 9 },
   tileBadgeText: { fontSize: 7.2, fontWeight: '800', letterSpacing: 0.7 },
   tileBody: { padding: 13 },
