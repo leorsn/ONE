@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
-import { BrandHeader, CoreBackdrop, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { CoreBackdrop, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 import type { OneItem } from '@/src/types/item';
@@ -21,12 +21,9 @@ export default function CalendarScreen() {
   const [mode, setMode] = useState<CalendarMode>('day');
 
   const datedItems = useMemo(
-    () => items
-      .filter((item) => item.date && !item.completed)
-      .sort((a, b) => `${a.date}T${a.time || '23:59'}`.localeCompare(`${b.date}T${b.time || '23:59'}`)),
+    () => items.filter((item) => item.date && !item.completed).sort((a, b) => `${a.date}T${a.time || '23:59'}`.localeCompare(`${b.date}T${b.time || '23:59'}`)),
     [items]
   );
-
   const selected = new Date(`${selectedDate}T12:00:00`);
   const strip = getDays(selected, 7);
   const selectedItems = useMemo(() => datedItems.filter((item) => item.date === selectedDate), [datedItems, selectedDate]);
@@ -46,56 +43,36 @@ export default function CalendarScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
       <CoreBackdrop />
       <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false}>
-        <BrandHeader
-          action={
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Jump to today"
-              onPress={async () => {
-                await Haptics.selectionAsync();
-                setSelectedDate(today);
-                setMode('day');
-              }}
-              style={({ pressed }) => [
-                styles.todayButton,
-                {
-                  backgroundColor: dark ? '#1C1C1EBF' : '#FFFFFFC8',
-                  borderColor: dark ? '#FFFFFF19' : '#FFFFFFF3',
-                  shadowColor: dark ? '#000000' : '#6E7688',
-                  shadowOpacity: dark ? 0.3 : 0.14,
-                  opacity: pressed ? 0.68 : 1
-                }
-              ]}
-            >
-              <Text style={[styles.todayText, { color: theme.text }]}>Today</Text>
-            </Pressable>
-          }
-        />
-
-        <View style={styles.intro}>
-          <Text style={[styles.title, { color: theme.text }]}>Calendar</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>See your day in context.</Text>
+        <View style={styles.header}>
+          <View style={{ flex: 1 }}>
+            <Text style={[styles.eyebrow, { color: theme.textTertiary }]}>SCHEDULE</Text>
+            <Text style={[styles.title, { color: theme.text }]}>Calendar</Text>
+            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>See your plans in context.</Text>
+          </View>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Jump to today"
+            onPress={async () => { await Haptics.selectionAsync(); setSelectedDate(today); setMode('day'); }}
+            style={({ pressed }) => [styles.todayButton, { backgroundColor: dark ? '#1C1C1EE8' : '#FFFFFFEE', borderColor: dark ? '#FFFFFF16' : '#FFFFFF', opacity: pressed ? 0.65 : 1 }]}
+          >
+            <Text style={[styles.todayText, { color: theme.accent }]}>Today</Text>
+          </Pressable>
         </View>
 
-        <Surface padded>
+        <View style={[styles.calendarPanel, {
+          backgroundColor: dark ? '#1C1C1EE8' : '#FFFFFFEE',
+          borderColor: dark ? '#FFFFFF16' : '#FFFFFF',
+          shadowColor: dark ? '#000000' : '#7A8394'
+        }]}>
           <View style={styles.monthRow}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Previous month"
-              onPress={() => moveMonth(-1)}
-              style={({ pressed }) => [styles.monthArrow, { backgroundColor: dark ? '#2C2C2EB6' : '#F1F2F6D8', borderColor: dark ? '#FFFFFF14' : '#FFFFFFE8', opacity: pressed ? 0.6 : 1 }]}
-            >
+            <Pressable onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: theme.fill, opacity: pressed ? 0.6 : 1 }]} accessibilityRole="button" accessibilityLabel="Previous month">
               <OneIcon name={icons.chevronLeft} size={13} color={theme.textSecondary} />
             </Pressable>
-            <Text style={[styles.month, { color: theme.text }]}>
-              {new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(selected)}
-            </Text>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Next month"
-              onPress={() => moveMonth(1)}
-              style={({ pressed }) => [styles.monthArrow, { backgroundColor: dark ? '#2C2C2EB6' : '#F1F2F6D8', borderColor: dark ? '#FFFFFF14' : '#FFFFFFE8', opacity: pressed ? 0.6 : 1 }]}
-            >
+            <View style={styles.monthCopy}>
+              <Text style={[styles.month, { color: theme.text }]}>{new Intl.DateTimeFormat('en', { month: 'long' }).format(selected)}</Text>
+              <Text style={[styles.year, { color: theme.textTertiary }]}>{selected.getFullYear()}</Text>
+            </View>
+            <Pressable onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: theme.fill, opacity: pressed ? 0.6 : 1 }]} accessibilityRole="button" accessibilityLabel="Next month">
               <OneIcon name={icons.chevron} size={13} color={theme.textSecondary} />
             </Pressable>
           </View>
@@ -105,18 +82,9 @@ export default function CalendarScreen() {
               const active = day.iso === selectedDate;
               const hasItems = datedItems.some((item) => item.date === day.iso);
               return (
-                <Pressable
-                  key={day.iso}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${day.weekday} ${day.number}${hasItems ? ', has items' : ''}`}
-                  onPress={async () => {
-                    await Haptics.selectionAsync();
-                    setSelectedDate(day.iso);
-                  }}
-                  style={({ pressed }) => [styles.day, { opacity: pressed ? 0.58 : 1 }]}
-                >
+                <Pressable key={day.iso} onPress={async () => { await Haptics.selectionAsync(); setSelectedDate(day.iso); }} style={({ pressed }) => [styles.day, { opacity: pressed ? 0.55 : 1 }]}>
                   <Text style={[styles.weekday, { color: active ? theme.text : theme.textTertiary }]}>{day.weekday}</Text>
-                  <View style={[styles.dayNumberWrap, active && { backgroundColor: theme.sky, shadowColor: theme.sky }]}> 
+                  <View style={[styles.dayNumberWrap, active && { backgroundColor: theme.accent, shadowColor: theme.accent }]}>
                     <Text style={[styles.dayNumber, { color: active ? '#FFFFFF' : theme.text }]}>{day.number}</Text>
                   </View>
                   <View style={[styles.dot, { backgroundColor: hasItems ? theme.danger : 'transparent' }]} />
@@ -125,114 +93,73 @@ export default function CalendarScreen() {
             })}
           </View>
 
-          <View style={[styles.modeSwitch, { backgroundColor: dark ? '#2C2C2E9E' : '#E9EAF0C8', borderColor: dark ? '#FFFFFF12' : '#FFFFFFD8' }]}>
+          <View style={[styles.modeSwitch, { backgroundColor: dark ? '#2C2C2EB0' : '#ECEEF3' }]}>
             {(['day', 'week', 'month'] as CalendarMode[]).map((entry) => {
               const active = mode === entry;
               return (
                 <Pressable
                   key={entry}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: active }}
-                  onPress={async () => {
-                    await Haptics.selectionAsync();
-                    setMode(entry);
-                  }}
-                  style={[
-                    styles.modeButton,
-                    active && {
-                      backgroundColor: dark ? '#47474ADE' : '#FFFFFFE9',
-                      borderColor: dark ? '#FFFFFF13' : '#FFFFFF',
-                      shadowColor: theme.shadow,
-                      shadowOpacity: dark ? 0.2 : 0.13
-                    }
-                  ]}
+                  onPress={async () => { await Haptics.selectionAsync(); setMode(entry); }}
+                  style={[styles.modeButton, active && { backgroundColor: dark ? '#49494DDC' : '#FFFFFF', shadowColor: theme.shadow, shadowOpacity: dark ? 0.2 : 0.12 }]}
                 >
-                  <Text style={[styles.modeText, { color: active ? theme.text : theme.textSecondary }]}>
-                    {entry.charAt(0).toUpperCase() + entry.slice(1)}
-                  </Text>
+                  <Text style={[styles.modeText, { color: active ? theme.text : theme.textSecondary }]}>{entry.charAt(0).toUpperCase() + entry.slice(1)}</Text>
                 </Pressable>
               );
             })}
           </View>
-        </Surface>
+        </View>
 
         {mode === 'day' ? (
-          <>
-            <AgendaSection
-              title={selectedDate === today ? 'Today' : new Intl.DateTimeFormat('en', { weekday: 'long' }).format(selected)}
-              items={selectedItems}
-              emptyTitle="No plans here"
-              emptyBody="Capture something with a date and it will appear here."
-            />
-            <AgendaSection
-              title={selectedDate === today ? 'Tomorrow' : prettyNextLabel(nextDate)}
-              items={nextItems}
-              emptyTitle="Nothing ahead"
-              emptyBody="The next day is clear."
-            />
-          </>
+          <View style={styles.agendaStack}>
+            <AgendaSection title={selectedDate === today ? 'Today' : new Intl.DateTimeFormat('en', { weekday: 'long' }).format(selected)} items={selectedItems} emptyTitle="No plans here" emptyBody="Capture something with a date and it will appear here." />
+            <AgendaSection title={selectedDate === today ? 'Tomorrow' : prettyNextLabel(nextDate)} items={nextItems} emptyTitle="Nothing ahead" emptyBody="The next day is clear." />
+          </View>
         ) : (
           <View style={styles.timelineBlock}>
-            <SectionHeader
-              title={mode === 'week' ? 'This week' : new Intl.DateTimeFormat('en', { month: 'long' }).format(selected)}
-              meta={`${visibleItems.length} ${visibleItems.length === 1 ? 'item' : 'items'}`}
-            />
+            <SectionHeader title={mode === 'week' ? 'This week' : new Intl.DateTimeFormat('en', { month: 'long' }).format(selected)} meta={`${visibleItems.length} ${visibleItems.length === 1 ? 'item' : 'items'}`} />
             {visibleItems.length ? (
-              <Surface>
-                {grouped.map((group, groupIndex) => (
-                  <View key={group.date}>
-                    <View style={[styles.dateDivider, groupIndex > 0 && { borderTopColor: `${theme.text}0D`, borderTopWidth: StyleSheet.hairlineWidth }]}>
-                      <Text style={[styles.dateDividerText, { color: theme.textTertiary }]}>{prettyGroupDate(group.date)}</Text>
-                    </View>
-                    {group.items.map((item) => <TimelineRow key={item.id} item={item} />)}
+              <View style={styles.timelineStack}>
+                {grouped.map((group) => (
+                  <View key={group.date} style={styles.groupBlock}>
+                    <Text style={[styles.dateDividerText, { color: theme.textTertiary }]}>{prettyGroupDate(group.date)}</Text>
+                    {group.items.map((item) => <TimelineCard key={item.id} item={item} />)}
                   </View>
                 ))}
-              </Surface>
-            ) : (
-              <Surface><EmptyState icon={icons.calendar} title="Nothing scheduled" body="Your schedule is clear for this view." /></Surface>
-            )}
+              </View>
+            ) : <Surface><EmptyState icon={icons.calendar} title="Nothing scheduled" body="Your schedule is clear for this view." /></Surface>}
           </View>
         )}
       </ScrollView>
     </SafeAreaView>
   );
 
-  function AgendaSection({ title: sectionTitle, items: sectionItems, emptyTitle, emptyBody }: {
-    title: string;
-    items: OneItem[];
-    emptyTitle: string;
-    emptyBody: string;
-  }) {
+  function AgendaSection({ title: sectionTitle, items: sectionItems, emptyTitle, emptyBody }: { title: string; items: OneItem[]; emptyTitle: string; emptyBody: string }) {
     return (
       <View style={styles.timelineBlock}>
         <SectionHeader title={sectionTitle} meta={`${sectionItems.length} ${sectionItems.length === 1 ? 'item' : 'items'}`} />
-        <Surface>
-          {sectionItems.length
-            ? sectionItems.map((item) => <TimelineRow key={item.id} item={item} />)
-            : <EmptyState icon={icons.clock} title={emptyTitle} body={emptyBody} />}
-        </Surface>
+        {sectionItems.length ? <View style={styles.timelineStack}>{sectionItems.map((item) => <TimelineCard key={item.id} item={item} />)}</View> : (
+          <View style={[styles.emptyCard, { backgroundColor: dark ? '#1C1C1ED8' : '#FFFFFFE4', borderColor: dark ? '#FFFFFF12' : '#FFFFFF' }]}>
+            <View style={[styles.emptyIcon, { backgroundColor: theme.fill }]}><OneIcon name={icons.clock} size={17} color={theme.textTertiary} /></View>
+            <View style={{ flex: 1 }}>
+              <Text style={[styles.emptyTitle, { color: theme.text }]}>{emptyTitle}</Text>
+              <Text style={[styles.emptyBody, { color: theme.textSecondary }]} numberOfLines={2}>{emptyBody}</Text>
+            </View>
+          </View>
+        )}
       </View>
     );
   }
 
-  function TimelineRow({ item }: { item: OneItem }) {
+  function TimelineCard({ item }: { item: OneItem }) {
+    const tint = timelineColor(item, theme);
     return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Open ${item.title}`}
-        onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.timelineRow, { borderBottomColor: `${theme.text}0D`, backgroundColor: pressed ? `${theme.fill}42` : 'transparent' }]}
-      >
-        <View style={styles.timeColumn}>
-          <Text style={[styles.time, { color: theme.textTertiary }]}>{item.time || '—'}</Text>
-          <View style={[styles.timelineDot, { backgroundColor: timelineColor(item, theme) }]} />
+      <Pressable onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })} style={({ pressed }) => [styles.timelineCard, { backgroundColor: dark ? '#1C1C1EE8' : '#FFFFFFEE', borderColor: dark ? '#FFFFFF14' : '#FFFFFF', opacity: pressed ? 0.7 : 1 }]}>
+        <View style={[styles.timeBadge, { backgroundColor: `${tint}${dark ? '24' : '12'}` }]}>
+          <Text style={[styles.time, { color: tint }]}>{item.time || '—'}</Text>
         </View>
-        <View style={[styles.timelineSpine, { backgroundColor: `${theme.text}12` }]} />
         <View style={styles.timelineCopy}>
           <Text style={[styles.itemTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
-          <Text style={[styles.itemMeta, { color: theme.textSecondary }]} numberOfLines={1}>
-            {[item.location, item.summary, item.category].filter(Boolean).join(' · ') || item.type}
-          </Text>
+          <Text style={[styles.itemMeta, { color: theme.textSecondary }]} numberOfLines={1}>{[item.location, item.summary, item.category].filter(Boolean).join(' · ') || item.type}</Text>
         </View>
         <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />
       </Pressable>
@@ -295,11 +222,7 @@ function getDays(center: Date, count: number) {
   return Array.from({ length: count }, (_, index) => {
     const date = new Date(start);
     date.setDate(start.getDate() + index);
-    return {
-      iso: toIsoDate(date),
-      weekday: new Intl.DateTimeFormat('en', { weekday: 'short' }).format(date).slice(0, 2).toUpperCase(),
-      number: date.getDate()
-    };
+    return { iso: toIsoDate(date), weekday: new Intl.DateTimeFormat('en', { weekday: 'short' }).format(date).slice(0, 2).toUpperCase(), number: date.getDate() };
   });
 }
 
@@ -312,32 +235,40 @@ function toIsoDate(date: Date) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  todayButton: { minHeight: 38, paddingHorizontal: 15, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 3 },
-  todayText: { fontSize: 11.5, fontWeight: '600' },
-  intro: { marginTop: 5 },
-  title: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.12 },
-  subtitle: { marginTop: 5, fontSize: 12.75, lineHeight: 18.5 },
+  header: { paddingTop: 4, flexDirection: 'row', alignItems: 'flex-start', gap: 16 },
+  eyebrow: { fontSize: 8.2, lineHeight: 11, fontWeight: '800', letterSpacing: 1.55 },
+  title: { marginTop: 6, fontSize: 36, lineHeight: 40, fontWeight: '800', letterSpacing: -1.3 },
+  subtitle: { marginTop: 6, fontSize: 13.25, lineHeight: 18.5 },
+  todayButton: { minHeight: 40, paddingHorizontal: 16, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  todayText: { fontSize: 11.5, fontWeight: '700' },
+  calendarPanel: { borderRadius: 28, borderWidth: StyleSheet.hairlineWidth, padding: 16, shadowOpacity: 0.14, shadowRadius: 28, shadowOffset: { width: 0, height: 13 }, elevation: 4 },
   monthRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  monthArrow: { width: 34, height: 34, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  month: { fontSize: 17.5, lineHeight: 21, fontWeight: '600', letterSpacing: -0.3 },
+  monthArrow: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  monthCopy: { alignItems: 'center' },
+  month: { fontSize: 18, lineHeight: 21, fontWeight: '800', letterSpacing: -0.35 },
+  year: { marginTop: 1, fontSize: 9.5, fontWeight: '600' },
   dayStrip: { marginTop: 18, flexDirection: 'row', justifyContent: 'space-between' },
-  day: { width: 39, alignItems: 'center' },
-  weekday: { fontSize: 8.5, lineHeight: 11, fontWeight: '700', letterSpacing: 0.7 },
-  dayNumberWrap: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginTop: 6, shadowOpacity: 0.2, shadowRadius: 11, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
-  dayNumber: { fontSize: 15, lineHeight: 18, fontWeight: '600' },
+  day: { width: 40, alignItems: 'center' },
+  weekday: { fontSize: 8.3, lineHeight: 11, fontWeight: '700', letterSpacing: 0.6 },
+  dayNumberWrap: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', marginTop: 6, shadowOpacity: 0.2, shadowRadius: 10, shadowOffset: { width: 0, height: 4 } },
+  dayNumber: { fontSize: 15.2, lineHeight: 18, fontWeight: '700' },
   dot: { width: 4, height: 4, borderRadius: 2, marginTop: 5 },
-  modeSwitch: { marginTop: 18, minHeight: 42, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, padding: 4, flexDirection: 'row', gap: 2 },
-  modeButton: { flex: 1, minHeight: 34, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center', shadowRadius: 10, shadowOffset: { width: 0, height: 3 }, elevation: 1 },
+  modeSwitch: { marginTop: 18, minHeight: 44, borderRadius: 16, padding: 4, flexDirection: 'row', gap: 2 },
+  modeButton: { flex: 1, minHeight: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center', shadowRadius: 10, shadowOffset: { width: 0, height: 3 } },
   modeText: { fontSize: 10.75, fontWeight: '600' },
+  agendaStack: { gap: 18 },
   timelineBlock: { gap: 10 },
-  dateDivider: { minHeight: 30, paddingHorizontal: 16, justifyContent: 'center' },
-  dateDividerText: { fontSize: 8.25, fontWeight: '700', letterSpacing: 0.95 },
-  timelineRow: { minHeight: 72, paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  timeColumn: { width: 40, alignItems: 'flex-end', justifyContent: 'center' },
-  time: { fontSize: 9.5, fontWeight: '600', fontVariant: ['tabular-nums'] },
-  timelineDot: { width: 6, height: 6, borderRadius: 3, marginTop: 5 },
-  timelineSpine: { width: StyleSheet.hairlineWidth, alignSelf: 'stretch' },
+  timelineStack: { gap: 9 },
+  groupBlock: { gap: 8 },
+  dateDividerText: { fontSize: 8.2, fontWeight: '800', letterSpacing: 1 },
+  timelineCard: { minHeight: 72, paddingHorizontal: 13, paddingVertical: 11, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  timeBadge: { minWidth: 52, minHeight: 34, paddingHorizontal: 9, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  time: { fontSize: 10, fontWeight: '700', fontVariant: ['tabular-nums'] },
   timelineCopy: { flex: 1, minWidth: 0 },
-  itemTitle: { fontSize: 14.25, lineHeight: 18, fontWeight: '600', letterSpacing: -0.12 },
-  itemMeta: { marginTop: 3, fontSize: 11, lineHeight: 14.5 }
+  itemTitle: { fontSize: 14.3, lineHeight: 18, fontWeight: '700', letterSpacing: -0.14 },
+  itemMeta: { marginTop: 3, fontSize: 10.8, lineHeight: 14.3 },
+  emptyCard: { minHeight: 88, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  emptyIcon: { width: 40, height: 40, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { fontSize: 13.3, fontWeight: '700' },
+  emptyBody: { marginTop: 3, fontSize: 10.7, lineHeight: 14.5 }
 });
