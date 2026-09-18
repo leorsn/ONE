@@ -5,7 +5,7 @@ on:
     branches:
       - dev/foundation
     paths:
-      - .github/never-upgrade-trigger-v2
+      - .github/never-upgrade-trigger-v3
 
 permissions:
   contents: write
@@ -20,8 +20,23 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Fix patch script
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          p = Path('scripts/upgrade_never_capture.py')
+          text = p.read_text()
+          text = text.replace(r"    body: urls.join('\n'),", r"    body: urls.join('\\n'),")
+          text = text.replace(
+              "  if (!current || !userEdited) return enriched;",
+              "  if (!current || !userEdited) return isGenericTitle(interpreted.title) ? enriched : interpreted;"
+          )
+          p.write_text(text)
+          PY
       - name: Apply patch
-        run: python scripts/upgrade_never_capture.py
+        run: |
+          python scripts/upgrade_never_capture.py
+          rm -f .github/never-upgrade-trigger-v3
       - name: Validate
         run: |
           npm ci
