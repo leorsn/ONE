@@ -24,29 +24,29 @@ export default function TabsLayout() {
         tabBarHideOnKeyboard: true,
         tabBarStyle: {
           position: 'absolute',
-          left: 12,
-          right: 12,
-          bottom: Math.max(10, insets.bottom - 7),
-          height: 68,
-          paddingTop: 8,
-          paddingBottom: 7,
+          left: 10,
+          right: 10,
+          bottom: Math.max(8, insets.bottom - 8),
+          height: 62,
+          paddingTop: 7,
+          paddingBottom: 6,
           backgroundColor: theme.surface,
           borderColor: theme.border,
           borderWidth: StyleSheet.hairlineWidth,
           borderTopWidth: StyleSheet.hairlineWidth,
-          borderRadius: 22,
+          borderRadius: 18,
           shadowColor: theme.shadow,
-          shadowOpacity: 0.08,
-          shadowRadius: 20,
-          shadowOffset: { width: 0, height: 8 },
-          elevation: 8
+          shadowOpacity: 0.065,
+          shadowRadius: 16,
+          shadowOffset: { width: 0, height: 6 },
+          elevation: 6
         },
         tabBarItemStyle: { paddingTop: 1 },
         tabBarLabelStyle: {
-          fontSize: 9.25,
+          fontSize: 9,
           fontWeight: '600',
-          letterSpacing: 0.04,
-          marginTop: 1
+          letterSpacing: 0.02,
+          marginTop: 0
         },
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textTertiary,
@@ -54,7 +54,7 @@ export default function TabsLayout() {
           <View style={styles.iconStack}>
             <OneIcon
               name={tabIcon[route.name as keyof typeof tabIcon]}
-              size={focused ? 19 : 18}
+              size={focused ? 18.5 : 17.5}
               color={focused ? theme.text : color}
             />
             {focused ? (
@@ -77,8 +77,8 @@ export default function TabsLayout() {
 }
 
 const styles = StyleSheet.create({
-  iconStack: { minWidth: 36, minHeight: 26, alignItems: 'center', justifyContent: 'center' },
-  activeSignal: { position: 'absolute', bottom: -5, width: 18, height: 3, flexDirection: 'row', gap: 2 },
+  iconStack: { minWidth: 34, minHeight: 24, alignItems: 'center', justifyContent: 'center' },
+  activeSignal: { position: 'absolute', bottom: -5, width: 17, height: 2.5, flexDirection: 'row', gap: 2 },
   activeSignalBlue: { flex: 2, borderRadius: 2 },
   activeSignalRed: { flex: 1, borderRadius: 2 }
 });
