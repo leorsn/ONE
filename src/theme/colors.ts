@@ -15,48 +15,69 @@ export type OneTheme = {
   chromeSoft: string;
   shadow: string;
   success: string;
+  successSoft: string;
   danger: string;
+  dangerSoft: string;
   warning: string;
+  warningSoft: string;
+  sky: string;
+  skySoft: string;
+  plum: string;
+  plumSoft: string;
 };
 
 export const lightTheme: OneTheme = {
-  background: '#F1F3F5',
-  surface: '#FAFBFC',
+  background: '#F6F5F1',
+  surface: '#FBFAF7',
   surfaceElevated: '#FFFFFF',
-  fill: '#ECEFF2',
-  fillStrong: '#DDE1E5',
-  text: '#101214',
-  textSecondary: '#5D6268',
-  textTertiary: '#8A9097',
-  border: '#D8DDE2',
-  accent: '#2A2E33',
-  accentSoft: '#E5E8EB',
+  fill: '#EEF1F4',
+  fillStrong: '#DDE3E9',
+  text: '#121820',
+  textSecondary: '#5E6670',
+  textTertiary: '#8C949D',
+  border: '#DFE3E7',
+  accent: '#244F73',
+  accentSoft: '#E8F0F6',
   onAccent: '#FFFFFF',
-  chrome: '#6E747B',
-  chromeSoft: '#EEF0F2',
-  shadow: '#5D6268',
-  success: '#267A56',
-  danger: '#B93F4B',
-  warning: '#9A6A24'
+  chrome: '#637C91',
+  chromeSoft: '#EDF3F7',
+  shadow: '#6E7781',
+  success: '#3E7864',
+  successSoft: '#E9F3EF',
+  danger: '#B54D5B',
+  dangerSoft: '#F8E9EC',
+  warning: '#A36F2F',
+  warningSoft: '#F8F0E3',
+  sky: '#4D7398',
+  skySoft: '#EAF1F7',
+  plum: '#765F83',
+  plumSoft: '#F2EDF5'
 };
 
 export const darkTheme: OneTheme = {
-  background: '#080A0C',
-  surface: '#111417',
-  surfaceElevated: '#171B1F',
-  fill: '#1B2025',
-  fillStrong: '#262C32',
-  text: '#F4F6F7',
-  textSecondary: '#A7ADB4',
-  textTertiary: '#717880',
-  border: '#2A3036',
-  accent: '#D9DDE1',
-  accentSoft: '#252A2F',
-  onAccent: '#0A0C0E',
-  chrome: '#F2F4F5',
-  chromeSoft: '#30363C',
+  background: '#0C0F13',
+  surface: '#12161B',
+  surfaceElevated: '#181D23',
+  fill: '#20262D',
+  fillStrong: '#2B333C',
+  text: '#F4F5F3',
+  textSecondary: '#A8AFB6',
+  textTertiary: '#747D86',
+  border: '#2B323A',
+  accent: '#88B1D2',
+  accentSoft: '#1B2A36',
+  onAccent: '#0D151B',
+  chrome: '#B7C8D5',
+  chromeSoft: '#222D35',
   shadow: '#000000',
-  success: '#55B98A',
-  danger: '#FF737D',
-  warning: '#D8A65D'
+  success: '#72B496',
+  successSoft: '#1C3028',
+  danger: '#E77B86',
+  dangerSoft: '#352126',
+  warning: '#D6A15E',
+  warningSoft: '#34291B',
+  sky: '#83A9CC',
+  skySoft: '#1E2A35',
+  plum: '#B49AC0',
+  plumSoft: '#2C2430'
 };
