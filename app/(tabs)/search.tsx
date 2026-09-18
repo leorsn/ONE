@@ -23,7 +23,7 @@ export default function SearchScreen() {
     [query, items]
   );
 
-  const heading = query.trim() ? 'Results' : 'Recent';
+  const heading = query.trim() ? 'Quick search' : 'Recent';
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
@@ -108,7 +108,7 @@ export default function SearchScreen() {
         ) : null}
 
         <View style={styles.resultsBlock}>
-          <SectionHeader title={heading} meta={results.length ? `${results.length} items` : undefined} />
+          <SectionHeader title={heading} meta={results.length ? `${results.length} ${results.length === 1 ? 'match' : 'matches'}` : undefined} />
           <Surface>
             {results.length ? results.map(({ item, reasons }) => (
               <SearchRow key={item.id} item={item} reason={reasonLabel(reasons)} />
@@ -116,7 +116,7 @@ export default function SearchScreen() {
               <EmptyState
                 icon={icons.search}
                 title="Nothing matched"
-                body="Try another wording. NEVER searches titles, original content, links, tags, context and extracted details."
+                body="Try another wording. Quick search only shows memories with a meaningful match in their title, original content, links, context or extracted details."
               />
             )}
           </Surface>
