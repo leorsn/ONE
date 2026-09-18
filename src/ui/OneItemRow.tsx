@@ -47,13 +47,13 @@ export function OneItemRow({
             }
           ]}
         >
-          {item.completed ? <OneIcon name={icons.check} size={11} color={theme.onAccent} /> : null}
+          {item.completed ? <OneIcon name={icons.check} size={10.5} color={theme.onAccent} /> : null}
         </Pressable>
       ) : previewUri ? (
         <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill, borderColor: theme.border }]} resizeMode="cover" />
       ) : (
         <View style={[styles.glyph, { borderColor: theme.border }]}> 
-          <OneIcon name={iconForType(item.type)} size={19} color={iconColor(item, theme)} />
+          <OneIcon name={iconForType(item.type)} size={18} color={iconColor(item, theme)} />
         </View>
       )}
 
@@ -77,7 +77,7 @@ export function OneItemRow({
         <Text style={[styles.time, { color: theme.textTertiary }]}>{item.time}</Text>
       ) : null}
 
-      {showChevron ? <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} /> : null}
+      {showChevron ? <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} /> : null}
     </Pressable>
   );
 }
@@ -151,19 +151,19 @@ function formatType(type: string) {
 
 const styles = StyleSheet.create({
   row: {
-    minHeight: 74,
-    paddingHorizontal: 16,
-    paddingVertical: 11,
+    minHeight: 66,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 13
+    gap: 11
   },
-  check: { width: 23, height: 23, borderRadius: 7, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
-  preview: { width: 44, height: 44, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth },
-  glyph: { width: 31, height: 38, borderLeftWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  check: { width: 22, height: 22, borderRadius: 7, borderWidth: 1.2, alignItems: 'center', justifyContent: 'center' },
+  preview: { width: 40, height: 40, borderRadius: 9, borderWidth: StyleSheet.hairlineWidth },
+  glyph: { width: 27, height: 34, borderLeftWidth: 2, alignItems: 'center', justifyContent: 'center' },
   content: { flex: 1, minWidth: 0 },
-  title: { fontSize: 14.75, lineHeight: 18, fontWeight: '600', letterSpacing: -0.17 },
-  meta: { fontSize: 11.5, lineHeight: 15.5, marginTop: 4 },
-  time: { fontSize: 10.5, lineHeight: 13, fontWeight: '600', letterSpacing: 0.04 }
+  title: { fontSize: 14.25, lineHeight: 17.5, fontWeight: '600', letterSpacing: -0.13 },
+  meta: { fontSize: 10.9, lineHeight: 14.5, marginTop: 3 },
+  time: { fontSize: 10.25, lineHeight: 13, fontWeight: '600', letterSpacing: 0.03 }
 });
