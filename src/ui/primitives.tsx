@@ -102,13 +102,14 @@ export function Surface({ children, padded = false }: { children: ReactNode; pad
       style={[
         styles.surface,
         {
-          backgroundColor: `${theme.surface}E8`,
+          backgroundColor: `${theme.surfaceElevated}D6`,
           borderColor: `${theme.text}14`,
           shadowColor: theme.shadow
         },
         padded && styles.surfacePadded
       ]}
     >
+      <View pointerEvents="none" style={[styles.surfaceShine, { backgroundColor: `${theme.text}0D` }]} />
       {children}
     </View>
   );
@@ -133,7 +134,7 @@ export function IconTile({
     info: [theme.skySoft, theme.sky, `${theme.sky}28`],
     memory: [theme.plumSoft, theme.plum, `${theme.plum}28`]
   } as const;
-  const [background, color, border] = palette[tone];
+  const [background, color] = palette[tone];
 
   return (
     <View
@@ -142,9 +143,10 @@ export function IconTile({
         {
           width: size,
           height: size,
-          borderRadius: Math.max(8, Math.round(size * 0.18)),
-          backgroundColor: `${background}D9`,
-          borderColor: `${color}24`
+          borderRadius: Math.max(10, Math.round(size * 0.24)),
+          backgroundColor: `${background}C8`,
+          borderColor: `${color}26`,
+          shadowColor: theme.shadow
         }
       ]}
     >
@@ -176,13 +178,15 @@ export function RoundIconButton({
       style={({ pressed }) => [
         styles.roundButton,
         {
-          backgroundColor: filled ? `${theme.chrome}E8` : `${theme.surfaceElevated}D9`,
+          backgroundColor: filled ? `${theme.chrome}E2` : `${theme.surfaceElevated}C8`,
           borderColor: filled ? `${theme.chrome}88` : `${theme.text}18`,
           shadowColor: theme.shadow,
-          opacity: pressed ? 0.64 : 1
+          opacity: pressed ? 0.64 : 1,
+          transform: [{ scale: pressed ? 0.97 : 1 }]
         }
       ]}
     >
+      <View pointerEvents="none" style={[styles.roundShine, { backgroundColor: `${theme.text}0F` }]} />
       <OneIcon name={icon} size={16.5} color={filled ? theme.onAccent : theme.chrome} />
     </Pressable>
   );
@@ -221,13 +225,15 @@ export function PrimaryButton({
       style={({ pressed }) => [
         styles.primaryButton,
         {
-          backgroundColor: `${theme.chrome}E8`,
+          backgroundColor: `${theme.chrome}E2`,
           borderColor: `${theme.text}22`,
           shadowColor: theme.shadow,
-          opacity: disabled ? 0.42 : pressed ? 0.76 : 1
+          opacity: disabled ? 0.42 : pressed ? 0.76 : 1,
+          transform: [{ scale: pressed ? 0.992 : 1 }]
         }
       ]}
     >
+      <View pointerEvents="none" style={[styles.primaryShine, { backgroundColor: `${theme.onAccent}18` }]} />
       {icon ? <OneIcon name={icon} size={15.5} color={theme.onAccent} /> : null}
       <Text style={[styles.primaryButtonText, { color: theme.onAccent }]}>{label}</Text>
     </Pressable>
@@ -270,48 +276,55 @@ const styles = StyleSheet.create({
   sectionMeta: { fontSize: 10.25, fontWeight: '600', letterSpacing: 0.12 },
   surface: {
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 17,
-    shadowOpacity: 0.08,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 3
+    borderRadius: 19,
+    overflow: 'hidden',
+    shadowOpacity: 0.11,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 4
   },
+  surfaceShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth, zIndex: 2 },
   surfacePadded: { padding: 16 },
   iconTile: {
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    shadowOpacity: 0.04,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 }
+    shadowOpacity: 0.07,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2
   },
   roundButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    shadowOpacity: 0.1,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 5 },
-    elevation: 3
+    overflow: 'hidden',
+    shadowOpacity: 0.13,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 7 },
+    elevation: 4
   },
+  roundShine: { position: 'absolute', top: 0, left: 8, right: 8, height: StyleSheet.hairlineWidth },
   emptyState: { minHeight: 104, paddingHorizontal: 24, paddingVertical: 20, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { marginTop: 9, fontSize: 14.1, fontWeight: '600', letterSpacing: -0.1 },
   emptyBody: { marginTop: 5, maxWidth: 270, fontSize: 11.75, lineHeight: 17.25, textAlign: 'center' },
   primaryButton: {
-    minHeight: 48,
-    borderRadius: 14,
+    minHeight: 50,
+    borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
-    shadowOpacity: 0.08,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3
+    overflow: 'hidden',
+    shadowOpacity: 0.11,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 4
   },
+  primaryShine: { position: 'absolute', top: 0, left: 18, right: 18, height: StyleSheet.hairlineWidth },
   primaryButtonText: { fontSize: 13.75, fontWeight: '700', letterSpacing: -0.04 }
 });
