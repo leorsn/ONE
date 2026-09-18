@@ -12,7 +12,7 @@ import {
   groupDocumentsByMonth
 } from '@/src/documents/analytics';
 import { OneItemRow } from '@/src/ui/OneItemRow';
-import { BrandHeader, CoreBackdrop, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
+import { CoreBackdrop, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 import type { OneDocumentKind, OneItem } from '@/src/types/item';
@@ -62,24 +62,27 @@ export default function SavedScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
       <CoreBackdrop />
       <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <BrandHeader />
-
         <View style={styles.intro}>
           <Text style={[styles.title, { color: theme.text }]}>{filter === 'Documents' ? 'Documents' : 'Saved'}</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            {filter === 'Documents' ? 'Receipts, tickets and important files.' : 'Your curated memory library.'}
+            {filter === 'Documents' ? 'Receipts, tickets and important files.' : 'Everything worth keeping, in one place.'}
           </Text>
         </View>
 
-        <View style={[styles.search, { backgroundColor: dark ? '#1C1C1ED6' : '#FFFFFFDE', borderColor: dark ? '#FFFFFF18' : '#FFFFFFF5', shadowColor: dark ? '#000000' : '#6E7688', shadowOpacity: dark ? 0.34 : 0.16 }]}>
+        <View style={[styles.search, {
+          backgroundColor: dark ? '#1C1C1ED6' : '#FFFFFFE0',
+          borderColor: dark ? '#FFFFFF18' : '#FFFFFFF5',
+          shadowColor: dark ? '#000000' : '#6E7688',
+          shadowOpacity: dark ? 0.34 : 0.16
+        }]}>
           <View pointerEvents="none" style={[styles.searchHighlight, { backgroundColor: dark ? '#FFFFFF1C' : '#FFFFFF' }]} />
-          <View style={[styles.searchIconWell, { backgroundColor: dark ? '#2C2C2EC8' : '#F1F2F6DC', borderColor: dark ? '#FFFFFF14' : '#FFFFFFE8' }]}>
-            <OneIcon name={icons.search} size={17.5} color={theme.chrome} />
+          <View style={[styles.searchIconWell, { backgroundColor: dark ? '#2C2C2EC8' : '#F1F2F6DC' }]}>
+            <OneIcon name={icons.search} size={17.5} color={theme.textSecondary} />
           </View>
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder={filter === 'Documents' ? 'Search documents…' : 'Search your saved items…'}
+            placeholder={filter === 'Documents' ? 'Search documents…' : 'Search saved memories…'}
             placeholderTextColor={theme.textTertiary}
             style={[styles.searchInput, { color: theme.text }]}
             returnKeyType="search"
@@ -91,7 +94,10 @@ export default function SavedScreen() {
           ) : null}
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+        <View style={[styles.segmented, {
+          backgroundColor: dark ? '#1C1C1ECC' : '#E8E9EED8',
+          borderColor: dark ? '#FFFFFF14' : '#FFFFFFE8'
+        }]}>
           {filters.map((name) => {
             const active = name === filter;
             return (
@@ -104,21 +110,23 @@ export default function SavedScreen() {
                   setFilter(name);
                 }}
                 style={({ pressed }) => [
-                  styles.filter,
-                  {
-                    backgroundColor: active ? (dark ? '#F2F2F7E8' : '#2F3338E8') : dark ? '#1C1C1EB8' : '#FFFFFFC8',
-                    borderColor: active ? 'transparent' : dark ? '#FFFFFF15' : '#FFFFFFEA',
-                    shadowColor: active ? theme.shadow : 'transparent',
-                    shadowOpacity: active ? (dark ? 0.22 : 0.14) : 0,
-                    opacity: pressed ? 0.72 : 1
-                  }
+                  styles.segment,
+                  active && {
+                    backgroundColor: dark ? '#3A3A3E' : '#FFFFFF',
+                    shadowColor: theme.shadow,
+                    shadowOpacity: dark ? 0.28 : 0.13,
+                    shadowRadius: 9,
+                    shadowOffset: { width: 0, height: 3 },
+                    elevation: 2
+                  },
+                  { opacity: pressed ? 0.72 : 1 }
                 ]}
               >
-                <Text style={[styles.filterText, { color: active ? (dark ? '#111114' : '#FFFFFF') : theme.textSecondary }]}>{name}</Text>
+                <Text style={[styles.segmentText, { color: active ? theme.text : theme.textSecondary }]} numberOfLines={1}>{name}</Text>
               </Pressable>
             );
           })}
-        </ScrollView>
+        </View>
 
         {filter === 'Documents' ? (
           <DocumentsView groups={documentGroups} summary={documentSummary} selectedFilter={documentFilter} setSelectedFilter={setDocumentFilter} />
@@ -145,7 +153,12 @@ export default function SavedScreen() {
     const primaryTotal = summary.totals[0];
     return (
       <View style={styles.documents}>
-        <View style={[styles.documentSummary, { backgroundColor: dark ? '#1C1C1ECB' : '#FFFFFFDA', borderColor: dark ? '#FFFFFF17' : '#FFFFFFF0', shadowColor: dark ? '#000000' : '#6F7787', shadowOpacity: dark ? 0.28 : 0.13 }]}>
+        <View style={[styles.documentSummary, {
+          backgroundColor: dark ? '#1C1C1ED4' : '#FFFFFFDE',
+          borderColor: dark ? '#FFFFFF17' : '#FFFFFFF2',
+          shadowColor: dark ? '#000000' : '#6F7787',
+          shadowOpacity: dark ? 0.28 : 0.13
+        }]}>
           <View pointerEvents="none" style={[styles.summaryHighlight, { backgroundColor: dark ? '#FFFFFF18' : '#FFFFFF' }]} />
           <Text style={[styles.summaryEyebrow, { color: theme.textTertiary }]}>{summary.monthLabel.toUpperCase()}</Text>
           <View style={styles.summaryTop}>
@@ -161,7 +174,7 @@ export default function SavedScreen() {
           </View>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.documentFilters}>
           {documentFilters.map((entry) => {
             const active = selectedFilter === entry.value;
             return (
@@ -171,16 +184,13 @@ export default function SavedScreen() {
                   await Haptics.selectionAsync();
                   setSelectedFilter(entry.value);
                 }}
-                style={({ pressed }) => [
-                  styles.filter,
-                  {
-                    backgroundColor: active ? (dark ? '#F2F2F7E8' : '#2F3338E8') : dark ? '#1C1C1EB8' : '#FFFFFFC8',
-                    borderColor: active ? 'transparent' : dark ? '#FFFFFF15' : '#FFFFFFEA',
-                    opacity: pressed ? 0.72 : 1
-                  }
-                ]}
+                style={({ pressed }) => [styles.documentFilter, {
+                  backgroundColor: active ? `${theme.accent}${dark ? '2E' : '16'}` : dark ? '#1C1C1EB8' : '#FFFFFFBE',
+                  borderColor: active ? `${theme.accent}48` : dark ? '#FFFFFF13' : '#FFFFFFE0',
+                  opacity: pressed ? 0.72 : 1
+                }]}
               >
-                <Text style={[styles.filterText, { color: active ? (dark ? '#111114' : '#FFFFFF') : theme.textSecondary }]}>{entry.label}</Text>
+                <Text style={[styles.documentFilterText, { color: active ? theme.accent : theme.textSecondary }]}>{entry.label}</Text>
               </Pressable>
             );
           })}
@@ -216,7 +226,7 @@ export default function SavedScreen() {
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
         style={({ pressed }) => [styles.documentRow, { borderBottomColor: `${theme.text}0D`, backgroundColor: pressed ? `${theme.fill}42` : 'transparent' }]}
       >
-        <View style={[styles.documentSpine, { backgroundColor: theme.sky }]} />
+        <View style={[styles.documentSpine, { backgroundColor: theme.accent }]} />
         <View style={styles.documentContent}>
           <Text style={[styles.documentTitle, { color: theme.text }]} numberOfLines={1}>{item.merchant || item.title}</Text>
           <Text style={[styles.documentMeta, { color: theme.textSecondary }]} numberOfLines={1}>
@@ -242,33 +252,20 @@ function prettyDate(iso?: string) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  intro: { marginTop: 5 },
-  title: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.12 },
+  intro: { paddingTop: 12 },
+  title: { fontSize: 35, lineHeight: 40, fontWeight: '700', letterSpacing: -1.2 },
   subtitle: { marginTop: 5, fontSize: 12.75, lineHeight: 18.5 },
-  search: {
-    minHeight: 62,
-    borderRadius: 24,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingLeft: 9,
-    paddingRight: 8,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 9,
-    overflow: 'hidden',
-    shadowRadius: 30,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 5
-  },
+  search: { minHeight: 62, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 9, paddingRight: 8, flexDirection: 'row', alignItems: 'center', gap: 9, overflow: 'hidden', shadowRadius: 28, shadowOffset: { width: 0, height: 13 }, elevation: 5 },
   searchHighlight: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth },
-  searchIconWell: { width: 40, height: 40, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  searchIconWell: { width: 38, height: 38, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   searchInput: { flex: 1, minHeight: 48, fontSize: 14.5, lineHeight: 19 },
   clearButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
-  filters: { gap: 9, paddingRight: 18 },
-  filter: { minHeight: 37, paddingHorizontal: 15, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', shadowRadius: 12, shadowOffset: { width: 0, height: 5 }, elevation: 1 },
-  filterText: { fontSize: 10.75, fontWeight: '600' },
+  segmented: { minHeight: 44, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, padding: 4, flexDirection: 'row', gap: 2 },
+  segment: { flex: 1, minHeight: 35, borderRadius: 11, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 2 },
+  segmentText: { fontSize: 9.55, fontWeight: '600', letterSpacing: -0.05 },
   block: { gap: 10 },
   documents: { gap: 18 },
-  documentSummary: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 24, padding: 18, overflow: 'hidden', shadowRadius: 28, shadowOffset: { width: 0, height: 13 }, elevation: 4 },
+  documentSummary: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 22, padding: 18, overflow: 'hidden', shadowRadius: 28, shadowOffset: { width: 0, height: 13 }, elevation: 4 },
   summaryHighlight: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth },
   summaryEyebrow: { fontSize: 8.25, fontWeight: '700', letterSpacing: 1.05 },
   summaryTop: { marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
@@ -280,6 +277,9 @@ const styles = StyleSheet.create({
   factWide: { flex: 1, alignItems: 'flex-end' },
   factValue: { fontSize: 13.25, lineHeight: 16.5, fontWeight: '600' },
   factLabel: { marginTop: 3, fontSize: 9.25, lineHeight: 12 },
+  documentFilters: { gap: 8, paddingRight: 18 },
+  documentFilter: { minHeight: 35, paddingHorizontal: 13, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  documentFilterText: { fontSize: 10.5, fontWeight: '600' },
   documentRow: { minHeight: 72, paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
   documentSpine: { width: 3, height: 30, borderRadius: 2 },
   documentContent: { flex: 1, minWidth: 0 },
