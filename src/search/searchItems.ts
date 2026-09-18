@@ -35,7 +35,8 @@ export function searchOneItems(
   options: { limit?: number; now?: Date } = {}
 ): SearchResult[] {
   const phrase = normalizeSearchText(query);
-  const terms = expandTerms(tokenize(query));
+  const coreTerms = tokenize(query);
+  const terms = expandTerms(coreTerms);
   if (!terms.length && !phrase) return [];
 
   const ranked = items
@@ -45,10 +46,25 @@ export function searchOneItems(
 
   if (!ranked.length) return [];
 
-  // Natural-language quick search should not surface weak one-word accidents far
-  // below a clearly relevant result. Keep all reasonably competitive matches.
-  const topScore = ranked[0].score;
-  const filtered = ranked.filter((result) => result.score >= Math.max(4, topScore * 0.22));
+  // For multi-term natural-language queries, require more than a single accidental
+  // overlap. Example: "link aletax stempel" must not surface an unrelated gift
+  // merely because that memory also happens to contain a URL.
+  const relevant = coreTerms.length >= 2
+    ? ranked.filter((result) => {
+        const directMatches = countDirectTermMatches(result.item, coreTerms);
+        const strongStructuredMatch = result.reasons.some((reason) =>
+          ['exact-title', 'title-phrase', 'exact-context'].includes(reason)
+        );
+        return directMatches >= Math.min(2, coreTerms.length) || strongStructuredMatch;
+      })
+    : ranked;
+
+  if (!relevant.length) return ranked.slice(0, options.limit ?? 12);
+
+  // Natural-language quick search should not surface weak accidents far below a
+  // clearly relevant result. Keep all reasonably competitive relevant matches.
+  const topScore = relevant[0].score;
+  const filtered = relevant.filter((result) => result.score >= Math.max(4, topScore * 0.22));
 
   return filtered.slice(0, options.limit ?? 12);
 }
@@ -137,6 +153,27 @@ function scoreItem(item: OneItem, terms: string[], phrase: string, now: Date): S
     matchedTerms: Array.from(matched),
     reasons: Array.from(reasons)
   };
+}
+
+function countDirectTermMatches(item: OneItem, terms: string[]) {
+  const haystack = normalizeSearchText([
+    item.title,
+    item.summary,
+    item.userContext,
+    item.rawInput,
+    item.originalText,
+    item.extractedText,
+    item.notes,
+    item.category,
+    item.people?.join(' '),
+    item.tags.join(' '),
+    item.entities.join(' '),
+    item.merchant,
+    item.url,
+    ...(item.extractedUrls || [])
+  ].filter(Boolean).join(' '));
+
+  return terms.filter((term) => termVariants(term).some((variant) => haystack.includes(variant))).length;
 }
 
 function tokenize(value: string) {
