@@ -5,35 +5,20 @@ import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
 import { exportOneData } from '@/src/export/exportOneData';
-import { IconTile, SectionHeader, Surface } from '@/src/ui/primitives';
+import { NeverSignal, SectionHeader, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
+import { editorialFontFamily } from '@/src/theme/typography';
 
 const PRIVACY_POLICY_URL = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL?.trim();
 const TERMS_URL = process.env.EXPO_PUBLIC_TERMS_URL?.trim();
 const SUPPORT_URL = process.env.EXPO_PUBLIC_SUPPORT_URL?.trim();
 
 const protections = [
-  {
-    icon: icons.lock,
-    title: 'Your account, your memory',
-    body: 'Synced memories are scoped to the signed-in account that owns them.'
-  },
-  {
-    icon: icons.screenshot,
-    title: 'Private attachments',
-    body: 'Shared screenshots and documents are stored within your private account space.'
-  },
-  {
-    icon: icons.ask,
-    title: 'Grounded recall',
-    body: 'Ask NEVER answers from memories retrieved from your own saved information.'
-  },
-  {
-    icon: icons.cloud,
-    title: 'Useful without the cloud',
-    body: 'Core capture and local recall can continue when cloud services are unavailable.'
-  }
+  { icon: icons.lock, title: 'Your account, your memory', body: 'Synced memories are scoped to the signed-in account that owns them.' },
+  { icon: icons.screenshot, title: 'Private attachments', body: 'Shared screenshots and documents are stored within your private account space.' },
+  { icon: icons.ask, title: 'Grounded recall', body: 'Ask NEVER answers from memories retrieved from your own saved information.' },
+  { icon: icons.cloud, title: 'Useful without the cloud', body: 'Core capture and local recall can continue when cloud services are unavailable.' }
 ] as const;
 
 export default function PrivacyScreen() {
@@ -79,16 +64,19 @@ export default function PrivacyScreen() {
             accessibilityRole="button"
             accessibilityLabel="Go back"
             onPress={() => router.back()}
-            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
           >
-            <OneIcon name={icons.chevronLeft} size={17} color={theme.text} />
+            <OneIcon name={icons.chevronLeft} size={16} color={theme.text} />
           </Pressable>
-          <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
-          <View style={{ width: 40 }} />
+          <View style={styles.navBrand}>
+            <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
+            <NeverSignal compact />
+          </View>
+          <View style={{ width: 38 }} />
         </View>
 
         <View style={styles.hero}>
-          <Text style={[styles.eyebrow, { color: theme.chrome }]}>PRIVACY</Text>
+          <Text style={[styles.eyebrow, { color: theme.textTertiary }]}>PRIVACY</Text>
           <Text style={[styles.title, { color: theme.text }]}>Private by design.</Text>
           <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Your personal memory should remain under your control. NEVER keeps privacy controls visible, understandable and reversible where possible.</Text>
         </View>
@@ -104,7 +92,7 @@ export default function PrivacyScreen() {
                   index < protections.length - 1 && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth }
                 ]}
               >
-                <IconTile icon={protection.icon} tone="neutral" size={36} />
+                <MemoryGlyph icon={protection.icon} color={index % 2 === 0 ? theme.sky : theme.textSecondary} />
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.rowTitle, { color: theme.text }]}>{protection.title}</Text>
                   <Text style={[styles.rowBody, { color: theme.textSecondary }]}>{protection.body}</Text>
@@ -124,7 +112,7 @@ export default function PrivacyScreen() {
               onPress={() => void runExport()}
               style={({ pressed }) => [styles.controlRow, { borderBottomColor: theme.border, opacity: pressed || exporting ? 0.58 : 1 }]}
             >
-              <IconTile icon={icons.upload} tone="neutral" size={36} />
+              <MemoryGlyph icon={icons.upload} color={theme.sky} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.rowTitle, { color: theme.text }]}>Export your data</Text>
                 <Text style={[styles.rowBody, { color: theme.textSecondary }]}>
@@ -137,9 +125,9 @@ export default function PrivacyScreen() {
               accessibilityRole="button"
               accessibilityLabel="Open account settings to delete account"
               onPress={() => router.replace('/(tabs)/settings')}
-              style={({ pressed }) => [styles.controlRow, { opacity: pressed ? 0.58 : 1 }]}
+              style={({ pressed }) => [styles.controlRow, styles.controlRowLast, { opacity: pressed ? 0.58 : 1 }]}
             >
-              <IconTile icon={icons.delete} tone="danger" size={36} />
+              <MemoryGlyph icon={icons.delete} color={theme.danger} />
               <View style={{ flex: 1 }}>
                 <Text style={[styles.rowTitle, { color: theme.text }]}>Delete your account</Text>
                 <Text style={[styles.rowBody, { color: theme.textSecondary }]}>Account deletion and subscription guidance are available in Settings.</Text>
@@ -160,7 +148,7 @@ export default function PrivacyScreen() {
 
         {__DEV__ && !legalReady ? (
           <View style={[styles.devNotice, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-            <OneIcon name={icons.shield} size={15} color={theme.warning} />
+            <OneIcon name={icons.shield} size={14} color={theme.warning} />
             <Text style={[styles.devNoticeText, { color: theme.textSecondary }]}>Development: privacy policy and support URLs are not fully configured.</Text>
           </View>
         ) : null}
@@ -169,6 +157,14 @@ export default function PrivacyScreen() {
       </ScrollView>
     </SafeAreaView>
   );
+
+  function MemoryGlyph({ icon, color }: { icon: (typeof icons)[keyof typeof icons]; color: string }) {
+    return (
+      <View style={[styles.memoryGlyph, { borderColor: theme.border }]}>
+        <OneIcon name={icon} size={16.5} color={color} />
+      </View>
+    );
+  }
 
   function PolicyRow({ label, detail, url, icon, last = false }: {
     label: string;
@@ -188,7 +184,7 @@ export default function PrivacyScreen() {
           { opacity: pressed ? 0.58 : 1 }
         ]}
       >
-        <IconTile icon={icon} tone="neutral" size={36} />
+        <MemoryGlyph icon={icon} color={theme.textSecondary} />
         <View style={{ flex: 1 }}>
           <Text style={[styles.rowTitle, { color: theme.text }]}>{label}</Text>
           <Text style={[styles.rowBody, { color: theme.textSecondary }]}>{url ? detail : 'Not configured in this build.'}</Text>
@@ -205,25 +201,28 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 760,
     alignSelf: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: 18,
     paddingTop: 10,
-    paddingBottom: 42,
-    gap: 26
+    paddingBottom: 38,
+    gap: 22
   },
-  nav: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  wordmark: { fontSize: 11, fontWeight: '600', letterSpacing: 3.2 },
-  hero: { paddingTop: 10, paddingBottom: 4 },
-  eyebrow: { fontSize: 9, fontWeight: '700', letterSpacing: 2.2 },
-  title: { marginTop: 11, fontSize: 31, lineHeight: 36, fontWeight: '600', letterSpacing: -1.05 },
-  subtitle: { marginTop: 9, maxWidth: 510, fontSize: 13, lineHeight: 19.5 },
-  block: { gap: 10 },
-  row: { minHeight: 78, paddingHorizontal: 15, paddingVertical: 12, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  controlRow: { minHeight: 76, paddingHorizontal: 15, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth },
-  linkRow: { minHeight: 74, paddingHorizontal: 15, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  rowTitle: { fontSize: 14, lineHeight: 18, fontWeight: '600', letterSpacing: -0.08 },
-  rowBody: { marginTop: 4, fontSize: 11.5, lineHeight: 16.5 },
-  devNotice: { minHeight: 54, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  devNoticeText: { flex: 1, fontSize: 10.75, lineHeight: 15 },
-  footer: { textAlign: 'center', fontSize: 8.5, fontWeight: '600', letterSpacing: 1.1 }
+  nav: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  navButton: { width: 38, height: 38, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  navBrand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
+  wordmark: { fontSize: 10.75, fontWeight: '700', letterSpacing: 3.2 },
+  hero: { paddingTop: 8, paddingBottom: 2 },
+  eyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 2 },
+  title: { marginTop: 10, fontFamily: editorialFontFamily, fontSize: 31, lineHeight: 35, fontWeight: '400', letterSpacing: -0.8 },
+  subtitle: { marginTop: 8, maxWidth: 510, fontSize: 12.5, lineHeight: 18.5 },
+  block: { gap: 9 },
+  row: { minHeight: 70, paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  memoryGlyph: { width: 27, height: 34, borderLeftWidth: 2, alignItems: 'center', justifyContent: 'center' },
+  controlRow: { minHeight: 68, paddingHorizontal: 14, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 11, borderBottomWidth: StyleSheet.hairlineWidth },
+  controlRowLast: { borderBottomWidth: 0 },
+  linkRow: { minHeight: 66, paddingHorizontal: 14, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  rowTitle: { fontSize: 13.75, lineHeight: 17.5, fontWeight: '600', letterSpacing: -0.07 },
+  rowBody: { marginTop: 3, fontSize: 11, lineHeight: 15.5 },
+  devNotice: { minHeight: 50, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  devNoticeText: { flex: 1, fontSize: 10.5, lineHeight: 14.5 },
+  footer: { textAlign: 'center', fontSize: 8.35, fontWeight: '600', letterSpacing: 1.08 }
 });
