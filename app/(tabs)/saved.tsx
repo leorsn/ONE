@@ -11,10 +11,11 @@ import {
   getDocumentSummary,
   groupDocumentsByMonth
 } from '@/src/documents/analytics';
-import { BrandHeader, CoreBackdrop, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { iconForType } from '@/src/ui/OneItemRow';
-import { useTheme, useThemePreference } from '@/src/theme/useTheme';
+import { NeverGlass, NeverSectionLabel, NeverWordmark } from '@/src/ui/never';
+import { useTheme } from '@/src/theme/useTheme';
+import { neverType } from '@/src/theme/typography';
 import type { OneDocumentKind, OneItem } from '@/src/types/item';
 
 const filters = ['All', 'Documents', 'Images', 'Links', 'Ideas'] as const;
@@ -29,8 +30,6 @@ const documentFilters: Array<{ label: string; value: 'all' | OneDocumentKind }> 
 
 export default function SavedScreen() {
   const theme = useTheme();
-  const { resolvedMode } = useThemePreference();
-  const dark = resolvedMode === 'dark';
   const { items } = useItems();
   const [filter, setFilter] = useState<(typeof filters)[number]>('All');
   const [documentFilter, setDocumentFilter] = useState<'all' | OneDocumentKind>('all');
@@ -60,41 +59,39 @@ export default function SavedScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
-      <CoreBackdrop />
-      <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <BrandHeader />
-
-        <View style={styles.intro}>
-          <Text style={[styles.title, { color: theme.text }]}>{filter === 'Documents' ? 'Documents' : 'Saved'}</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>
-            {filter === 'Documents' ? 'Receipts, tickets and important files.' : 'Your curated memory library.'}
-          </Text>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <View style={styles.topBar}>
+          <NeverWordmark />
         </View>
 
-        <View style={[styles.search, {
-          backgroundColor: dark ? '#1C1C1EE8' : '#FFFFFFEE',
-          borderColor: dark ? '#FFFFFF18' : '#FFFFFF',
-          shadowColor: dark ? '#000000' : '#788196'
-        }]}>
-          <View style={[styles.searchIconWell, { backgroundColor: dark ? '#2C2C2ECC' : '#F1F2F6E8' }]}>
-            <OneIcon name={icons.search} size={17.5} color={theme.chrome} />
+        <View style={styles.intro}>
+          <Text style={[styles.eyebrow, { color: theme.textTertiary }]}>MEMORY LIBRARY</Text>
+          <View style={styles.titleRow}>
+            <Text style={[styles.title, { color: theme.text }]}>{filter === 'Documents' ? 'Documents' : 'Saved'}</Text>
+            <Text style={[styles.count, { color: theme.textTertiary }]}>{filter === 'Documents' ? documents.length : savedItems.length}</Text>
           </View>
+          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Everything NEVER has kept for you.</Text>
+        </View>
+
+        <View style={[styles.search, { backgroundColor: theme.glassStrong, borderColor: theme.glassBorder, shadowColor: theme.shadow }]}>
+          <OneIcon name={icons.search} size={16} color={theme.chrome} />
           <TextInput
             value={query}
             onChangeText={setQuery}
-            placeholder={filter === 'Documents' ? 'Search documents…' : 'Search your library…'}
+            placeholder={filter === 'Documents' ? 'Search documents…' : 'Search memories…'}
             placeholderTextColor={theme.textTertiary}
             style={[styles.searchInput, { color: theme.text }]}
             returnKeyType="search"
           />
           {query ? (
             <Pressable onPress={() => setQuery('')} style={styles.clearButton} accessibilityRole="button" accessibilityLabel="Clear search">
-              <OneIcon name={icons.close} size={13.5} color={theme.textTertiary} />
+              <OneIcon name={icons.close} size={13} color={theme.textTertiary} />
             </Pressable>
           ) : null}
+          <View pointerEvents="none" style={[styles.reflection, { backgroundColor: theme.reflection }]} />
         </View>
 
-        <View style={[styles.segmented, { backgroundColor: dark ? '#1C1C1ED8' : '#E8EAF0D8' }]}>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filters}>
           {filters.map((name) => {
             const active = name === filter;
             return (
@@ -107,34 +104,37 @@ export default function SavedScreen() {
                   setFilter(name);
                 }}
                 style={({ pressed }) => [
-                  styles.segment,
-                  active && {
-                    backgroundColor: dark ? '#3A3A3ECC' : '#FFFFFFF2',
-                    shadowColor: theme.shadow,
-                    shadowOpacity: dark ? 0.2 : 0.12,
-                    shadowRadius: 10,
-                    shadowOffset: { width: 0, height: 4 }
-                  },
-                  { opacity: pressed ? 0.7 : 1 }
+                  styles.filter,
+                  {
+                    backgroundColor: active ? theme.platinumSoft : 'transparent',
+                    borderColor: active ? theme.glassBorder : theme.border,
+                    opacity: pressed ? 0.62 : 1
+                  }
                 ]}
               >
-                <Text style={[styles.segmentText, { color: active ? theme.text : theme.textSecondary }]} numberOfLines={1}>{name}</Text>
+                <Text style={[styles.filterText, { color: active ? theme.text : theme.textSecondary }]}>{name}</Text>
               </Pressable>
             );
           })}
-        </View>
+        </ScrollView>
 
         {filter === 'Documents' ? (
           <DocumentsView groups={documentGroups} summary={documentSummary} selectedFilter={documentFilter} setSelectedFilter={setDocumentFilter} />
         ) : (
-          <View style={styles.block}>
-            <SectionHeader title={filter === 'All' ? 'Memory library' : filter} meta={String(savedItems.length)} />
+          <View style={styles.section}>
+            <NeverSectionLabel meta={String(savedItems.length)}>{filter === 'All' ? 'Memories' : filter}</NeverSectionLabel>
             {savedItems.length ? (
               <View style={styles.gallery}>
                 {savedItems.map((item) => <MemoryTile key={item.id} item={item} />)}
               </View>
             ) : (
-              <Surface><EmptyState icon={icons.saved} title="Nothing here yet" body="Share something to NEVER or save an idea from your inbox." /></Surface>
+              <NeverGlass tone="quiet" padded>
+                <View style={styles.emptyState}>
+                  <OneIcon name={icons.saved} size={19} color={theme.chrome} />
+                  <Text style={[styles.emptyTitle, { color: theme.text }]}>Nothing here yet</Text>
+                  <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>Capture or save something and it will appear here.</Text>
+                </View>
+              </NeverGlass>
             )}
           </View>
         )}
@@ -144,38 +144,33 @@ export default function SavedScreen() {
 
   function MemoryTile({ item }: { item: OneItem }) {
     const preview = imagePreviewUri(item);
-    const tint = tileTint(item);
     return (
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Open ${item.title}`}
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.tile, {
-          backgroundColor: dark ? '#1C1C1EE8' : '#FFFFFFEE',
-          borderColor: dark ? '#FFFFFF16' : '#FFFFFF',
-          shadowColor: dark ? '#000000' : '#7D8594',
-          opacity: pressed ? 0.72 : 1,
-          transform: [{ scale: pressed ? 0.985 : 1 }]
-        }]}
+        style={({ pressed }) => [styles.tile, { opacity: pressed ? 0.72 : 1, transform: [{ scale: pressed ? 0.987 : 1 }] }]}
       >
-        <View style={[styles.tilePreview, { backgroundColor: preview ? theme.fill : `${tint}${dark ? '22' : '12'}` }]}>
-          {preview ? (
-            <Image source={{ uri: preview }} style={styles.tileImage} resizeMode="cover" />
-          ) : (
-            <OneIcon name={iconForType(item.type)} size={26} color={tint} />
-          )}
-          <View style={[styles.tileBadge, { backgroundColor: dark ? '#00000099' : '#FFFFFFDD' }]}>
-            <Text style={[styles.tileBadgeText, { color: dark ? '#FFFFFF' : theme.textSecondary }]}>{item.type.toUpperCase()}</Text>
+        <NeverGlass tone="strong" style={styles.tileGlass}>
+          <View style={[styles.tilePreview, { backgroundColor: theme.fill }]}>
+            {preview ? (
+              <Image source={{ uri: preview }} style={styles.tileImage} resizeMode="cover" />
+            ) : (
+              <OneIcon name={iconForType(item.type)} size={24} color={theme.platinum} />
+            )}
+            <View style={[styles.tileBadge, { backgroundColor: theme.glassStrong, borderColor: theme.glassBorder }]}>
+              <Text style={[styles.tileBadgeText, { color: theme.textSecondary }]}>{item.type.toUpperCase()}</Text>
+            </View>
           </View>
-        </View>
-        <View style={styles.tileBody}>
-          <Text style={[styles.tileTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
-          <Text style={[styles.tileMeta, { color: theme.textSecondary }]} numberOfLines={1}>{tileMeta(item)}</Text>
-          <View style={styles.tileFooter}>
-            <Text style={[styles.tileDate, { color: theme.textTertiary }]}>{prettyCaptured(item.updatedAt)}</Text>
-            <OneIcon name={icons.chevron} size={12.5} color={theme.textTertiary} />
+          <View style={styles.tileBody}>
+            <Text style={[styles.tileTitle, { color: theme.text }]} numberOfLines={2}>{item.title}</Text>
+            <Text style={[styles.tileMeta, { color: theme.textSecondary }]} numberOfLines={1}>{tileMeta(item)}</Text>
+            <View style={styles.tileFooter}>
+              <Text style={[styles.tileDate, { color: theme.textTertiary }]}>{prettyCaptured(item.updatedAt)}</Text>
+              <OneIcon name={icons.chevron} size={12} color={theme.textTertiary} />
+            </View>
           </View>
-        </View>
+        </NeverGlass>
       </Pressable>
     );
   }
@@ -189,24 +184,18 @@ export default function SavedScreen() {
     const primaryTotal = summary.totals[0];
     return (
       <View style={styles.documents}>
-        <View style={[styles.documentSummary, {
-          backgroundColor: dark ? '#1C1C1EE8' : '#FFFFFFEE',
-          borderColor: dark ? '#FFFFFF16' : '#FFFFFF',
-          shadowColor: dark ? '#000000' : '#768094'
-        }]}>
+        <NeverGlass tone="strong" padded>
           <Text style={[styles.summaryEyebrow, { color: theme.textTertiary }]}>{summary.monthLabel.toUpperCase()}</Text>
           <View style={styles.summaryTop}>
             <Text style={[styles.summaryTitle, { color: theme.text }]}>Document memory</Text>
-            <View style={[styles.summaryCountBadge, { backgroundColor: theme.fill }]}>
-              <Text style={[styles.summaryCount, { color: theme.textSecondary }]}>{summary.documents.length}</Text>
-            </View>
+            <Text style={[styles.summaryCount, { color: theme.textTertiary }]}>{summary.documents.length}</Text>
           </View>
-          <View style={[styles.summaryFacts, { borderTopColor: `${theme.text}0D` }]}>
+          <View style={[styles.summaryFacts, { borderTopColor: theme.border }]}>
             <Fact label="Receipts" value={String(summary.receipts)} />
             <Fact label="Invoices" value={String(summary.invoices)} />
             <Fact label="Captured value" value={primaryTotal ? formatCurrencyTotal(primaryTotal, 'de-DE') : '—'} wide />
           </View>
-        </View>
+        </NeverGlass>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.documentFilters}>
           {documentFilters.map((entry) => {
@@ -218,25 +207,36 @@ export default function SavedScreen() {
                   await Haptics.selectionAsync();
                   setSelectedFilter(entry.value);
                 }}
-                style={({ pressed }) => [styles.documentFilter, {
-                  backgroundColor: active ? theme.accent : (dark ? '#1C1C1ECC' : '#FFFFFFD8'),
-                  borderColor: active ? theme.accent : (dark ? '#FFFFFF14' : '#FFFFFF'),
-                  opacity: pressed ? 0.7 : 1
-                }]}
+                style={({ pressed }) => [
+                  styles.documentFilter,
+                  {
+                    backgroundColor: active ? theme.platinumSoft : 'transparent',
+                    borderColor: active ? theme.glassBorder : theme.border,
+                    opacity: pressed ? 0.66 : 1
+                  }
+                ]}
               >
-                <Text style={[styles.documentFilterText, { color: active ? '#FFFFFF' : theme.textSecondary }]}>{entry.label}</Text>
+                <Text style={[styles.documentFilterText, { color: active ? theme.text : theme.textSecondary }]}>{entry.label}</Text>
               </Pressable>
             );
           })}
         </ScrollView>
 
         {groups.length ? groups.map((group) => (
-          <View key={group.label} style={styles.block}>
-            <SectionHeader title={group.label} meta={String(group.items.length)} />
-            <Surface>{group.items.map((item) => <DocumentRow key={item.id} item={item} />)}</Surface>
+          <View key={group.label} style={styles.section}>
+            <NeverSectionLabel meta={String(group.items.length)}>{group.label}</NeverSectionLabel>
+            <NeverGlass tone="quiet">
+              {group.items.map((item) => <DocumentRow key={item.id} item={item} />)}
+            </NeverGlass>
           </View>
         )) : (
-          <Surface><EmptyState icon={icons.document} title="No matching documents" body="Try another search or document filter." /></Surface>
+          <NeverGlass tone="quiet" padded>
+            <View style={styles.emptyState}>
+              <OneIcon name={icons.document} size={19} color={theme.chrome} />
+              <Text style={[styles.emptyTitle, { color: theme.text }]}>No matching documents</Text>
+              <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>Try another search or document filter.</Text>
+            </View>
+          </NeverGlass>
         )}
       </View>
     );
@@ -258,26 +258,19 @@ export default function SavedScreen() {
         accessibilityRole="button"
         accessibilityLabel={`Open ${item.merchant || item.title}`}
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.documentRow, { borderBottomColor: `${theme.text}0D`, backgroundColor: pressed ? `${theme.fill}42` : 'transparent' }]}
+        style={({ pressed }) => [styles.documentRow, { borderBottomColor: theme.border, backgroundColor: pressed ? theme.fill : 'transparent' }]}
       >
-        <View style={[styles.documentSpine, { backgroundColor: theme.sky }]} />
+        <View style={[styles.documentDot, { backgroundColor: theme.platinum }]} />
         <View style={styles.documentContent}>
           <Text style={[styles.documentTitle, { color: theme.text }]} numberOfLines={1}>{item.merchant || item.title}</Text>
           <Text style={[styles.documentMeta, { color: theme.textSecondary }]} numberOfLines={1}>
             {[formatKind(item.documentKind), prettyDate(item.date), item.category].filter(Boolean).join(' · ')}
           </Text>
         </View>
-        {amount ? <Text style={[styles.documentAmount, { color: theme.text }]}>{amount}</Text> : null}
-        <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} />
+        {amount ? <Text style={[styles.documentAmount, { color: theme.textSecondary }]}>{amount}</Text> : null}
+        <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
       </Pressable>
     );
-  }
-
-  function tileTint(item: OneItem) {
-    if (item.type === 'document' || item.type === 'link') return theme.sky;
-    if (item.type === 'idea' || item.type === 'note') return theme.plum;
-    if (item.type === 'shopping' || item.type === 'reminder') return theme.warning;
-    return theme.chrome;
   }
 }
 
@@ -309,47 +302,266 @@ function prettyDate(iso?: string) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  intro: { marginTop: 2 },
-  title: { fontSize: 34, lineHeight: 39, fontWeight: '800', letterSpacing: -1.15 },
-  subtitle: { marginTop: 5, fontSize: 13, lineHeight: 18.5 },
-  search: { minHeight: 64, borderRadius: 26, borderWidth: StyleSheet.hairlineWidth, paddingLeft: 9, paddingRight: 9, flexDirection: 'row', alignItems: 'center', gap: 10, shadowOpacity: 0.15, shadowRadius: 30, shadowOffset: { width: 0, height: 14 }, elevation: 5 },
-  searchIconWell: { width: 42, height: 42, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  searchInput: { flex: 1, minHeight: 48, fontSize: 15, lineHeight: 20 },
-  clearButton: { width: 34, height: 34, alignItems: 'center', justifyContent: 'center' },
-  segmented: { minHeight: 46, borderRadius: 17, padding: 4, flexDirection: 'row', gap: 2 },
-  segment: { flex: 1, minHeight: 38, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  segmentText: { fontSize: 10.3, fontWeight: '600' },
-  block: { gap: 11 },
-  gallery: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  tile: { width: '48.2%', borderRadius: 24, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', shadowOpacity: 0.14, shadowRadius: 24, shadowOffset: { width: 0, height: 12 }, elevation: 4 },
-  tilePreview: { height: 118, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  tileImage: { width: '100%', height: '100%' },
-  tileBadge: { position: 'absolute', top: 10, right: 10, paddingHorizontal: 7, paddingVertical: 4, borderRadius: 9 },
-  tileBadgeText: { fontSize: 7.2, fontWeight: '800', letterSpacing: 0.7 },
-  tileBody: { padding: 13 },
-  tileTitle: { fontSize: 13.7, lineHeight: 17.5, fontWeight: '700', letterSpacing: -0.16 },
-  tileMeta: { marginTop: 5, fontSize: 10.2, lineHeight: 13.5 },
-  tileFooter: { marginTop: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  tileDate: { fontSize: 9.1, fontWeight: '600' },
-  documents: { gap: 18 },
-  documentSummary: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 24, padding: 18, shadowOpacity: 0.14, shadowRadius: 28, shadowOffset: { width: 0, height: 13 }, elevation: 4 },
-  summaryEyebrow: { fontSize: 8.25, fontWeight: '700', letterSpacing: 1.05 },
-  summaryTop: { marginTop: 6, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  summaryTitle: { fontSize: 15.75, lineHeight: 19.5, fontWeight: '700' },
-  summaryCountBadge: { minWidth: 30, height: 30, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  summaryCount: { fontSize: 10.5, fontWeight: '700' },
-  summaryFacts: { marginTop: 15, paddingTop: 13, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', gap: 12 },
-  fact: { minWidth: 62 },
-  factWide: { flex: 1, alignItems: 'flex-end' },
-  factValue: { fontSize: 13.25, lineHeight: 16.5, fontWeight: '600' },
-  factLabel: { marginTop: 3, fontSize: 9.25, lineHeight: 12 },
-  documentFilters: { gap: 9, paddingRight: 18 },
-  documentFilter: { minHeight: 37, paddingHorizontal: 14, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  documentFilterText: { fontSize: 10.5, fontWeight: '600' },
-  documentRow: { minHeight: 72, paddingHorizontal: 16, paddingVertical: 10, borderBottomWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  documentSpine: { width: 3, height: 30, borderRadius: 2 },
-  documentContent: { flex: 1, minWidth: 0 },
-  documentTitle: { fontSize: 14.25, lineHeight: 18, fontWeight: '600', letterSpacing: -0.12 },
-  documentMeta: { marginTop: 3, fontSize: 11, lineHeight: 14.5 },
-  documentAmount: { fontSize: 12.25, fontWeight: '600' }
+  content: {
+    width: '100%',
+    maxWidth: 760,
+    alignSelf: 'center',
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    paddingBottom: 132,
+    gap: 24
+  },
+  topBar: {
+    minHeight: 42,
+    justifyContent: 'center'
+  },
+  intro: {
+    paddingTop: 10
+  },
+  eyebrow: {
+    ...neverType.eyebrow,
+    marginBottom: 8
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    justifyContent: 'space-between'
+  },
+  title: {
+    ...neverType.display,
+    fontSize: 36,
+    lineHeight: 41
+  },
+  count: {
+    ...neverType.caption,
+    fontWeight: '600'
+  },
+  subtitle: {
+    ...neverType.body,
+    marginTop: 4
+  },
+  search: {
+    minHeight: 58,
+    borderRadius: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingHorizontal: 15,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    overflow: 'hidden',
+    shadowOpacity: 0.12,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 11 },
+    elevation: 4
+  },
+  searchInput: {
+    flex: 1,
+    minHeight: 44,
+    fontSize: 14,
+    lineHeight: 19
+  },
+  clearButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  reflection: {
+    position: 'absolute',
+    top: 0,
+    left: 20,
+    right: 20,
+    height: StyleSheet.hairlineWidth
+  },
+  filters: {
+    gap: 8,
+    paddingRight: 20
+  },
+  filter: {
+    minHeight: 34,
+    paddingHorizontal: 13,
+    borderRadius: 13,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  filterText: {
+    fontSize: 10.5,
+    lineHeight: 13,
+    fontWeight: '600'
+  },
+  section: {
+    gap: 11
+  },
+  gallery: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12
+  },
+  tile: {
+    width: '48.2%',
+    borderRadius: 22
+  },
+  tileGlass: {
+    borderRadius: 22
+  },
+  tilePreview: {
+    height: 142,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden'
+  },
+  tileImage: {
+    width: '100%',
+    height: '100%'
+  },
+  tileBadge: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 9,
+    borderWidth: StyleSheet.hairlineWidth
+  },
+  tileBadgeText: {
+    fontSize: 7,
+    fontWeight: '700',
+    letterSpacing: 0.8
+  },
+  tileBody: {
+    paddingHorizontal: 14,
+    paddingTop: 13,
+    paddingBottom: 14
+  },
+  tileTitle: {
+    ...neverType.bodyStrong,
+    fontSize: 13.75,
+    lineHeight: 17.5
+  },
+  tileMeta: {
+    ...neverType.caption,
+    marginTop: 5,
+    fontSize: 10.25,
+    lineHeight: 13.5
+  },
+  tileFooter: {
+    marginTop: 11,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  tileDate: {
+    ...neverType.caption,
+    fontSize: 9.25,
+    fontWeight: '600'
+  },
+  documents: {
+    gap: 18
+  },
+  summaryEyebrow: {
+    ...neverType.eyebrow,
+    fontSize: 8.2
+  },
+  summaryTop: {
+    marginTop: 7,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  summaryTitle: {
+    ...neverType.section,
+    fontSize: 17
+  },
+  summaryCount: {
+    ...neverType.caption,
+    fontWeight: '600'
+  },
+  summaryFacts: {
+    marginTop: 16,
+    paddingTop: 14,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    gap: 12
+  },
+  fact: {
+    minWidth: 62
+  },
+  factWide: {
+    flex: 1,
+    alignItems: 'flex-end'
+  },
+  factValue: {
+    ...neverType.bodyStrong,
+    fontSize: 13
+  },
+  factLabel: {
+    ...neverType.caption,
+    marginTop: 3,
+    fontSize: 9.25
+  },
+  documentFilters: {
+    gap: 8,
+    paddingRight: 18
+  },
+  documentFilter: {
+    minHeight: 34,
+    paddingHorizontal: 13,
+    borderRadius: 13,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  documentFilterText: {
+    fontSize: 10.25,
+    fontWeight: '600'
+  },
+  documentRow: {
+    minHeight: 70,
+    paddingHorizontal: 16,
+    paddingVertical: 11,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 11
+  },
+  documentDot: {
+    width: 5,
+    height: 5,
+    borderRadius: 3
+  },
+  documentContent: {
+    flex: 1,
+    minWidth: 0
+  },
+  documentTitle: {
+    ...neverType.bodyStrong,
+    fontSize: 14,
+    lineHeight: 18
+  },
+  documentMeta: {
+    ...neverType.caption,
+    marginTop: 3,
+    fontSize: 10.5,
+    lineHeight: 14
+  },
+  documentAmount: {
+    ...neverType.caption,
+    fontWeight: '600'
+  },
+  emptyState: {
+    minHeight: 120,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 7
+  },
+  emptyTitle: {
+    ...neverType.bodyStrong,
+    marginTop: 4
+  },
+  emptyBody: {
+    ...neverType.caption,
+    maxWidth: 280,
+    textAlign: 'center'
+  }
 });
