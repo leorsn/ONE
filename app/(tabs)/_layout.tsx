@@ -51,7 +51,7 @@ function NeverTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
       pointerEvents="box-none"
       style={[
         styles.tabBarWrap,
-        { bottom: Math.max(10, insets.bottom - 3) }
+        { bottom: Math.max(8, insets.bottom - 5) }
       ]}
     >
       <View
@@ -108,49 +108,34 @@ function NeverTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
               onLongPress={onLongPress}
               style={({ pressed }) => [
                 styles.tabItem,
-                focused ? styles.tabItemActive : styles.tabItemInactive,
+                focused && [
+                  styles.tabItemActive,
+                  {
+                    backgroundColor: theme.platinumSoft,
+                    borderColor: theme.glassBorder
+                  }
+                ],
                 {
-                  backgroundColor: focused ? theme.platinumSoft : 'transparent',
-                  borderColor: focused ? theme.glassBorder : 'transparent',
                   opacity: pressed ? 0.62 : 1,
-                  transform: [{ scale: pressed ? 0.97 : 1 }]
+                  transform: [{ scale: pressed ? 0.975 : 1 }]
                 }
               ]}
             >
-              {focused ? (
-                <>
-                  <View
-                    style={[
-                      styles.activeIconWell,
-                      {
-                        backgroundColor: theme.chromeSoft,
-                        borderColor: theme.glassBorder
-                      }
-                    ]}
-                  >
-                    <OneIcon
-                      name={tabIcon[routeName]}
-                      size={16.5}
-                      color={theme.chrome}
-                    />
-                  </View>
-                  <Text
-                    style={[
-                      styles.activeLabel,
-                      { color: theme.text }
-                    ]}
-                    numberOfLines={1}
-                  >
-                    {label}
-                  </Text>
-                </>
-              ) : (
-                <OneIcon
-                  name={tabIcon[routeName]}
-                  size={17}
-                  color={theme.textTertiary}
-                />
-              )}
+              <OneIcon
+                name={tabIcon[routeName]}
+                size={focused ? 17.5 : 17}
+                color={focused ? theme.chrome : theme.textTertiary}
+              />
+              <Text
+                style={[
+                  styles.tabLabel,
+                  focused ? styles.tabLabelActive : styles.tabLabelInactive,
+                  { color: focused ? theme.text : theme.textTertiary }
+                ]}
+                numberOfLines={1}
+              >
+                {label}
+              </Text>
             </Pressable>
           );
         })}
@@ -162,60 +147,54 @@ function NeverTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
 const styles = StyleSheet.create({
   tabBarWrap: {
     position: 'absolute',
-    left: 18,
-    right: 18
+    left: 16,
+    right: 16
   },
   tabBar: {
     height: 58,
-    borderRadius: 23,
+    borderRadius: 22,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 7,
-    paddingVertical: 7,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 3,
     overflow: 'hidden',
-    shadowOpacity: 0.16,
-    shadowRadius: 26,
-    shadowOffset: { width: 0, height: 13 },
-    elevation: 10
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 9 },
+    elevation: 5
   },
   reflection: {
     position: 'absolute',
     top: 0,
-    left: 24,
-    right: 24,
+    left: 26,
+    right: 26,
     height: StyleSheet.hairlineWidth,
-    opacity: 0.9
+    opacity: 0.7
   },
   tabItem: {
-    height: 44,
-    borderRadius: 17,
+    flex: 1,
+    height: 46,
+    borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'transparent',
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    gap: 3
   },
   tabItemActive: {
-    flex: 1.72,
-    flexDirection: 'row',
-    gap: 7,
-    paddingHorizontal: 9
+    borderWidth: StyleSheet.hairlineWidth
   },
-  tabItemInactive: {
-    flex: 1
+  tabLabel: {
+    fontSize: 9.25,
+    lineHeight: 11,
+    letterSpacing: -0.04
   },
-  activeIconWell: {
-    width: 29,
-    height: 29,
-    borderRadius: 11,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center'
+  tabLabelActive: {
+    fontWeight: '700'
   },
-  activeLabel: {
-    fontSize: 10.5,
-    lineHeight: 13,
-    fontWeight: '700',
-    letterSpacing: -0.05
+  tabLabelInactive: {
+    fontWeight: '600'
   }
 });
