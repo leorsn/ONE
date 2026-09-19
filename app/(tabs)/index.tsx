@@ -16,7 +16,6 @@ import { OneIcon, icons } from '@/src/ui/icons';
 import {
   NeverChromeButton,
   NeverGlass,
-  NeverIconButton,
   NeverSectionLabel,
   NeverWordmark
 } from '@/src/ui/never';
@@ -90,11 +89,6 @@ export default function InboxScreen() {
       >
         <View style={styles.topBar}>
           <NeverWordmark />
-          <NeverIconButton
-            icon={icons.person}
-            accessibilityLabel="Open settings"
-            onPress={() => router.push('/(tabs)/settings')}
-          />
         </View>
 
         <View style={styles.hero}>
@@ -119,12 +113,12 @@ export default function InboxScreen() {
             }
           ]}
         >
-          <View style={[styles.askGlyph, { backgroundColor: theme.platinumSoft, borderColor: theme.border }]}>
-            <OneIcon name={icons.ask} size={16} color={theme.chrome} />
+          <View style={[styles.askGlyph, { backgroundColor: theme.platinumSoft, borderColor: theme.glassBorder }]}>
+            <OneIcon name={icons.ask} size={15} color={theme.chrome} />
           </View>
           <Text style={[styles.askText, { color: theme.textSecondary }]}>Ask NEVER anything you saved</Text>
           <View style={[styles.askAction, { backgroundColor: theme.chrome }]}>
-            <OneIcon name={icons.chevron} size={13} color={theme.background} />
+            <OneIcon name={icons.chevron} size={12} color={theme.background} />
           </View>
           <View pointerEvents="none" style={[styles.reflection, { backgroundColor: theme.reflection }]} />
         </Pressable>
@@ -171,7 +165,7 @@ export default function InboxScreen() {
           </View>
         </View>
 
-        <View style={styles.quickActions}>
+        <View style={[styles.quickActions, { backgroundColor: theme.glass, borderColor: theme.glassBorder }]}>
           <QuickAction label="Scan" icon={icons.scan} onPress={() => router.push('/scan')} />
           <QuickAction label="Link" icon={icons.link} onPress={() => focusCapture('https://')} />
           <QuickAction label="Note" icon={icons.note} onPress={() => focusCapture('')} />
@@ -277,11 +271,9 @@ export default function InboxScreen() {
           await Haptics.selectionAsync();
           onPress();
         }}
-        style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.58 : 1 }]}
+        style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.52 : 1 }]}
       >
-        <View style={[styles.quickActionIcon, { backgroundColor: theme.glass, borderColor: theme.glassBorder }]}>
-          <OneIcon name={icon} size={17} color={theme.chrome} />
-        </View>
+        <OneIcon name={icon} size={15} color={theme.chrome} />
         <Text style={[styles.quickActionLabel, { color: theme.textSecondary }]}>{label}</Text>
       </Pressable>
     );
@@ -327,6 +319,7 @@ export default function InboxScreen() {
   function TodayRow({ item, reason, last }: { item: OneItem; reason: string; last: boolean }) {
     const activeInbox = isInboxActive(item, now);
     const overdue = reason === 'Overdue';
+    const detail = [item.time, item.location, item.summary].filter(Boolean).join(' · ') || reason;
     return (
       <Pressable
         accessibilityRole="button"
@@ -338,15 +331,12 @@ export default function InboxScreen() {
           { backgroundColor: pressed ? theme.fill : 'transparent' }
         ]}
       >
-        <View style={styles.todayTimeRail}>
-          <Text style={[styles.todayTime, { color: overdue ? theme.warning : theme.textSecondary }]}>{item.time || reason}</Text>
+        <View style={styles.todayRail}>
           <View style={[styles.todayDot, { backgroundColor: overdue ? theme.warning : theme.platinum }]} />
         </View>
         <View style={styles.todayCopy}>
           <Text style={[styles.todayTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
-          <Text style={[styles.todayMeta, { color: theme.textSecondary }]} numberOfLines={1}>
-            {[item.location, item.summary].filter(Boolean).join(' · ') || reason}
-          </Text>
+          <Text style={[styles.todayMeta, { color: theme.textSecondary }]} numberOfLines={1}>{detail}</Text>
         </View>
         <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
       </Pressable>
@@ -412,18 +402,17 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 136,
-    gap: 28
+    paddingBottom: 126,
+    gap: 27
   },
   topBar: {
-    minHeight: 42,
+    minHeight: 34,
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between'
+    alignItems: 'center'
   },
   hero: {
-    paddingTop: 18,
-    paddingRight: 10
+    paddingTop: 14,
+    paddingRight: 4
   },
   greeting: {
     ...neverType.bodyStrong,
@@ -431,27 +420,27 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     ...neverType.hero,
-    maxWidth: 520
+    maxWidth: 500
   },
   askBar: {
-    minHeight: 70,
+    minHeight: 66,
     borderRadius: 19,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingVertical: 11,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
     overflow: 'hidden',
-    shadowOpacity: 0.24,
-    shadowRadius: 26,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 5
+    shadowOpacity: 0.13,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 11 },
+    elevation: 4
   },
   askGlyph: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center'
@@ -459,12 +448,12 @@ const styles = StyleSheet.create({
   askText: {
     ...neverType.bodyStrong,
     flex: 1,
-    fontSize: 14.5
+    fontSize: 14
   },
   askAction: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -477,7 +466,7 @@ const styles = StyleSheet.create({
   },
   captureBlock: { gap: 9 },
   captureComposer: {
-    minHeight: 58,
+    minHeight: 56,
     borderRadius: 17,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 10,
@@ -487,8 +476,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden'
   },
   captureStart: {
-    width: 38,
-    height: 38,
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -513,26 +502,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center'
   },
   quickActions: {
+    minHeight: 54,
+    borderRadius: 17,
+    borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 10
+    paddingHorizontal: 5,
+    overflow: 'hidden'
   },
   quickAction: {
     flex: 1,
+    minHeight: 44,
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 7
-  },
-  quickActionIcon: {
-    width: 46,
-    height: 46,
-    borderRadius: 23,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    gap: 6
   },
   quickActionLabel: {
-    ...neverType.caption,
+    fontSize: 10.5,
+    lineHeight: 13,
     fontWeight: '600'
   },
   section: { gap: 11 },
@@ -565,25 +553,19 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth
   },
   todayRow: {
-    minHeight: 76,
-    paddingVertical: 12,
+    minHeight: 70,
+    paddingVertical: 11,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 14
+    gap: 12
   },
-  todayTimeRail: {
-    width: 66,
+  todayRail: {
+    width: 14,
     alignSelf: 'stretch',
-    justifyContent: 'center',
-    position: 'relative'
-  },
-  todayTime: {
-    ...neverType.caption,
-    fontWeight: '600'
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   todayDot: {
-    position: 'absolute',
-    right: 0,
     width: 5,
     height: 5,
     borderRadius: 3
@@ -600,7 +582,7 @@ const styles = StyleSheet.create({
     borderRadius: 24
   },
   recentVisual: {
-    height: 178,
+    height: 192,
     position: 'relative'
   },
   recentImage: {
