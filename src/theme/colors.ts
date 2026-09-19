@@ -13,6 +13,12 @@ export type OneTheme = {
   onAccent: string;
   chrome: string;
   chromeSoft: string;
+  platinum: string;
+  platinumSoft: string;
+  glass: string;
+  glassStrong: string;
+  glassBorder: string;
+  reflection: string;
   shadow: string;
   success: string;
   successSoft: string;
@@ -26,62 +32,77 @@ export type OneTheme = {
   plumSoft: string;
 };
 
-// NEVER CORE — light
-// Frosted silver canvas, native graphite text and a restrained iOS-blue signal.
+// NEVER v1 — Light
+// Platinum canvas, graphite typography and restrained chrome materials.
+// accent/sky remain available for semantic AI and active states, but they are
+// intentionally no longer the dominant visual language.
 export const lightTheme: OneTheme = {
-  background: '#F5F5F7',
-  surface: '#F9F9FB',
+  background: '#F3F4F6',
+  surface: '#F8F9FA',
   surfaceElevated: '#FFFFFF',
-  fill: '#ECECF1',
-  fillStrong: '#DCDCE3',
-  text: '#0C0C0D',
-  textSecondary: '#62626A',
-  textTertiary: '#96969D',
-  border: '#D9D9E0',
-  accent: '#0A84FF',
-  accentSoft: '#E7F2FF',
+  fill: '#ECEEF1',
+  fillStrong: '#D8DCE2',
+  text: '#111317',
+  textSecondary: '#5E6670',
+  textTertiary: '#8D959F',
+  border: '#D7DBE1',
+  accent: '#73808D',
+  accentSoft: '#E8EBEE',
   onAccent: '#FFFFFF',
-  chrome: '#30323A',
-  chromeSoft: '#E8E9ED',
-  shadow: '#1C1C1E',
-  success: '#30A46C',
-  successSoft: '#E7F6EE',
-  danger: '#D05D69',
-  dangerSoft: '#FBECEF',
-  warning: '#C68A35',
-  warningSoft: '#FBF2E4',
-  sky: '#0A84FF',
-  skySoft: '#E7F2FF',
-  plum: '#8B5FBF',
-  plumSoft: '#F2EAF9'
+  chrome: '#6B7581',
+  chromeSoft: '#E6E9ED',
+  platinum: '#AEB6C1',
+  platinumSoft: '#F0F2F4',
+  glass: '#FFFFFFD9',
+  glassStrong: '#FFFFFFF2',
+  glassBorder: '#FFFFFFF5',
+  reflection: '#FFFFFF',
+  shadow: '#20242A',
+  success: '#3BAE76',
+  successSoft: '#E8F6EE',
+  danger: '#D65F68',
+  dangerSoft: '#FAEAEC',
+  warning: '#B88442',
+  warningSoft: '#F8F0E5',
+  sky: '#6AAFE8',
+  skySoft: '#EAF4FC',
+  plum: '#8A8393',
+  plumSoft: '#F0EDF2'
 };
 
-// NEVER CORE — dark
-// True black canvas with elevated glass-like graphite materials and native blue highlights.
+// NEVER v1 — Dark
+// Graphite rather than pure black. Platinum/chrome carry the identity while
+// color is reserved for semantic state and intelligence feedback.
 export const darkTheme: OneTheme = {
-  background: '#000000',
-  surface: '#141416',
-  surfaceElevated: '#1C1C1E',
-  fill: '#262629',
-  fillStrong: '#343438',
-  text: '#F7F7F8',
-  textSecondary: '#B0B0B7',
-  textTertiary: '#7C7C84',
-  border: '#303034',
-  accent: '#0A84FF',
-  accentSoft: '#10253B',
-  onAccent: '#FFFFFF',
-  chrome: '#D8D8DE',
-  chromeSoft: '#242428',
+  background: '#090A0C',
+  surface: '#0E1013',
+  surfaceElevated: '#14171B',
+  fill: '#1A1E23',
+  fillStrong: '#272C33',
+  text: '#F7F8FA',
+  textSecondary: '#BCC2CB',
+  textTertiary: '#747E89',
+  border: '#2C3239',
+  accent: '#AEB6C1',
+  accentSoft: '#20252B',
+  onAccent: '#090A0C',
+  chrome: '#DDE1E6',
+  chromeSoft: '#1B2026',
+  platinum: '#AEB6C1',
+  platinumSoft: '#20252B',
+  glass: '#14171BD9',
+  glassStrong: '#1A1E23EE',
+  glassBorder: '#FFFFFF17',
+  reflection: '#FFFFFF1F',
   shadow: '#000000',
-  success: '#64D2A1',
-  successSoft: '#173127',
-  danger: '#FF7B86',
-  dangerSoft: '#3A1E23',
-  warning: '#E8A552',
-  warningSoft: '#382A1C',
-  sky: '#64B5FF',
-  skySoft: '#11283D',
-  plum: '#C09AE8',
-  plumSoft: '#2B2037'
+  success: '#55C78A',
+  successSoft: '#142A20',
+  danger: '#FF6B6B',
+  dangerSoft: '#351B1C',
+  warning: '#D8A45C',
+  warningSoft: '#332719',
+  sky: '#8CC8FF',
+  skySoft: '#14283A',
+  plum: '#A59CAC',
+  plumSoft: '#28242C'
 };
