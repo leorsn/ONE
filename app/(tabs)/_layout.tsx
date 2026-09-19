@@ -1,5 +1,5 @@
+import type { ComponentProps } from 'react';
 import { Tabs } from 'expo-router';
-import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OneIcon, icons } from '@/src/ui/icons';
@@ -20,6 +20,8 @@ const tabLabel = {
   saved: 'Saved',
   settings: 'Settings'
 } as const;
+
+type NeverTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
 export default function TabsLayout() {
   const theme = useTheme();
@@ -42,7 +44,7 @@ export default function TabsLayout() {
   );
 }
 
-function NeverTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
+function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
 
@@ -72,7 +74,8 @@ function NeverTabBar({ state, descriptors, navigation }: BottomTabBarProps) {
           ]}
         />
 
-        {state.routes.map((route, index) => {
+        {state.routes.map((route) => {
+          const index = state.routes.indexOf(route);
           const focused = state.index === index;
           const routeName = route.name as keyof typeof tabIcon;
           const label = tabLabel[routeName] ?? route.name;
