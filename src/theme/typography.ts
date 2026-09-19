@@ -17,16 +17,16 @@ export const uiFontFamily = Platform.select({
 
 export const neverType = {
   hero: {
-    fontSize: 42,
-    lineHeight: 46,
+    fontSize: 38,
+    lineHeight: 42,
     fontWeight: '700' as const,
-    letterSpacing: -1.7
+    letterSpacing: -1.45
   },
   display: {
-    fontSize: 34,
-    lineHeight: 39,
+    fontSize: 32,
+    lineHeight: 37,
     fontWeight: '700' as const,
-    letterSpacing: -1.15
+    letterSpacing: -1.05
   },
   title: {
     fontSize: 24,
