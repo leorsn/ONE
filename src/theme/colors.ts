@@ -34,13 +34,12 @@ export type OneTheme = {
 
 // NEVER v1 — Light
 // Platinum canvas, graphite typography and restrained chrome materials.
-// accent/sky remain available for semantic AI and active states, but they are
-// intentionally no longer the dominant visual language.
+// Color is semantic; material and hierarchy carry the brand.
 export const lightTheme: OneTheme = {
-  background: '#F3F4F6',
-  surface: '#F8F9FA',
-  surfaceElevated: '#FFFFFF',
-  fill: '#ECEEF1',
+  background: '#F2F3F5',
+  surface: '#F6F7F8',
+  surfaceElevated: '#FAFBFC',
+  fill: '#E9ECEF',
   fillStrong: '#D8DCE2',
   text: '#111317',
   textSecondary: '#5E6670',
@@ -50,13 +49,13 @@ export const lightTheme: OneTheme = {
   accentSoft: '#E8EBEE',
   onAccent: '#FFFFFF',
   chrome: '#6B7581',
-  chromeSoft: '#E6E9ED',
+  chromeSoft: '#E2E6EA',
   platinum: '#AEB6C1',
-  platinumSoft: '#F0F2F4',
-  glass: '#FFFFFFD9',
-  glassStrong: '#FFFFFFF2',
-  glassBorder: '#FFFFFFF5',
-  reflection: '#FFFFFF',
+  platinumSoft: '#E9ECEF',
+  glass: '#FAFBFCC2',
+  glassStrong: '#FCFDFEE0',
+  glassBorder: '#FFFFFFC7',
+  reflection: '#FFFFFFE8',
   shadow: '#20242A',
   success: '#3BAE76',
   successSoft: '#E8F6EE',
@@ -90,10 +89,10 @@ export const darkTheme: OneTheme = {
   chromeSoft: '#1B2026',
   platinum: '#AEB6C1',
   platinumSoft: '#20252B',
-  glass: '#14171BD9',
-  glassStrong: '#1A1E23EE',
-  glassBorder: '#FFFFFF17',
-  reflection: '#FFFFFF1F',
+  glass: '#14171BCC',
+  glassStrong: '#1A1E23E6',
+  glassBorder: '#FFFFFF15',
+  reflection: '#FFFFFF1C',
   shadow: '#000000',
   success: '#55C78A',
   successSoft: '#142A20',
