@@ -29,10 +29,10 @@ import { notificationSaveWarning } from '@/src/notifications/status';
 import { extractTextFromImage } from '@/src/ocr/extractText';
 import { mergeLateOcrDraft } from '@/src/ocr/mergeLateOcr';
 import { persistLocalAttachment, removeLocalAttachment } from '@/src/storage/attachments';
-import { NeverSignal, PrimaryButton, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
+import { NeverChromeButton, NeverGlass, NeverSectionLabel, NeverWordmark } from '@/src/ui/never';
 import { useTheme } from '@/src/theme/useTheme';
-import { editorialFontFamily } from '@/src/theme/typography';
+import { neverType } from '@/src/theme/typography';
 
 type ScanState = 'empty' | 'reading' | 'ready' | 'no_text' | 'failed';
 
@@ -236,78 +236,94 @@ export default function ScanScreen() {
               accessibilityRole="button"
               accessibilityLabel="Go back"
               onPress={() => router.back()}
-              style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surface, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
+              style={({ pressed }) => [
+                styles.navButton,
+                {
+                  backgroundColor: theme.glass,
+                  borderColor: theme.glassBorder,
+                  opacity: pressed ? 0.62 : 1
+                }
+              ]}
             >
-              <OneIcon name={icons.chevronLeft} size={16} color={theme.text} />
+              <OneIcon name={icons.chevronLeft} size={17} color={theme.text} />
             </Pressable>
-            <View style={styles.navBrand}>
-              <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
-              <NeverSignal compact />
-            </View>
-            <View style={{ width: 38 }} />
+            <NeverWordmark compact />
+            <View style={{ width: 40 }} />
           </View>
 
           <View style={styles.hero}>
-            <Text style={[styles.eyebrow, { color: theme.textTertiary }]}>SCAN</Text>
-            <Text style={[styles.title, { color: theme.text }]}>Turn paper into memory.</Text>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Capture a receipt, ticket or document. NEVER preserves the original, reads what it can and lets you review the result before saving.</Text>
+            <Text style={[styles.eyebrow, { color: theme.textTertiary }]}>CAPTURE</Text>
+            <Text style={[styles.title, { color: theme.text }]}>Scan into memory.</Text>
+            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Photograph a document. NEVER keeps the original and organizes what it reads.</Text>
           </View>
 
           {!asset ? (
-            <Surface padded>
-              <View style={styles.emptyScan}>
-                <View style={[styles.documentStage, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-                  <View style={[styles.paper, { backgroundColor: theme.surfaceElevated, borderColor: theme.fillStrong, shadowColor: theme.shadow }]}>
-                    <View style={styles.paperHeader}>
-                      <OneIcon name={icons.document} size={15} color={theme.chrome} />
-                      <Text style={[styles.paperLabel, { color: theme.textTertiary }]}>DOCUMENT</Text>
-                    </View>
-                    <View style={[styles.paperLine, styles.paperLineStrong, { backgroundColor: theme.text }]} />
-                    <View style={[styles.paperLine, { backgroundColor: theme.textTertiary }]} />
-                    <View style={[styles.paperLine, styles.paperLineShort, { backgroundColor: theme.textTertiary }]} />
+            <NeverGlass tone="strong" style={styles.capturePanel}>
+              <View style={[styles.documentStage, { backgroundColor: theme.fill, borderColor: theme.glassBorder }]}>
+                <View style={[styles.paperShadow, { backgroundColor: theme.surfaceElevated, shadowColor: theme.shadow }]}>
+                  <View style={styles.paperHeader}>
+                    <OneIcon name={icons.document} size={16} color={theme.chrome} />
+                    <Text style={[styles.paperLabel, { color: theme.textTertiary }]}>DOCUMENT</Text>
                   </View>
-                  <View style={[styles.scanCorners, { borderColor: theme.sky }]} />
+                  <View style={[styles.paperLine, styles.paperLineStrong, { backgroundColor: theme.text }]} />
+                  <View style={[styles.paperLine, { backgroundColor: theme.textTertiary }]} />
+                  <View style={[styles.paperLine, styles.paperLineShort, { backgroundColor: theme.textTertiary }]} />
                 </View>
-
-                <Text style={[styles.emptyTitle, { color: theme.text }]}>Ready when the document is.</Text>
-                <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>Keep important text visible and avoid strong glare. You can also choose an existing image.</Text>
-
-                <View style={styles.actions}>
-                  <PrimaryButton label="Open camera" icon={icons.scan} onPress={takePhoto} />
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Choose a photo"
-                    onPress={choosePhoto}
-                    style={({ pressed }) => [styles.secondaryButton, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
-                  >
-                    <OneIcon name={icons.screenshot} size={15.5} color={theme.text} />
-                    <Text style={[styles.secondaryText, { color: theme.text }]}>Choose photo</Text>
-                  </Pressable>
-                </View>
+                <View style={[styles.scanFrame, { borderColor: theme.platinum }]} />
+                <View style={[styles.scanGlow, { backgroundColor: theme.reflection }]} />
               </View>
-            </Surface>
+
+              <View style={styles.captureCopy}>
+                <Text style={[styles.emptyTitle, { color: theme.text }]}>Ready when the document is.</Text>
+                <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>Keep the page flat and readable. The original stays attached to the memory after saving.</Text>
+              </View>
+
+              <View style={styles.actions}>
+                <NeverChromeButton label="Open camera" icon={icons.scan} onPress={takePhoto} />
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Choose a photo"
+                  onPress={choosePhoto}
+                  style={({ pressed }) => [
+                    styles.secondaryButton,
+                    {
+                      backgroundColor: theme.platinumSoft,
+                      borderColor: theme.glassBorder,
+                      opacity: pressed ? 0.62 : 1
+                    }
+                  ]}
+                >
+                  <OneIcon name={icons.screenshot} size={15} color={theme.chrome} />
+                  <Text style={[styles.secondaryText, { color: theme.textSecondary }]}>Choose photo</Text>
+                </Pressable>
+              </View>
+            </NeverGlass>
           ) : (
             <>
-              <View style={styles.previewBlock}>
-                <Text style={[styles.sectionEyebrow, { color: theme.textTertiary }]}>ORIGINAL</Text>
-                <Image source={{ uri: asset.uri }} style={[styles.preview, { backgroundColor: theme.fill, borderColor: theme.border }]} resizeMode="cover" />
+              <View style={styles.section}>
+                <NeverSectionLabel meta={stateLabel(state)}>Original</NeverSectionLabel>
+                <View style={styles.previewShell}>
+                  <Image source={{ uri: asset.uri }} style={[styles.preview, { backgroundColor: theme.fill }]} resizeMode="cover" />
+                  <View style={[styles.previewBadge, { backgroundColor: theme.glassStrong, borderColor: theme.glassBorder }]}>
+                    {state === 'reading' ? <ActivityIndicator size="small" color={theme.chrome} /> : <OneIcon name={state === 'ready' ? icons.check : icons.document} size={13} color={state === 'ready' ? theme.success : theme.chrome} />}
+                    <Text style={[styles.previewBadgeText, { color: theme.textSecondary }]}>{stateLabel(state)}</Text>
+                  </View>
+                </View>
               </View>
 
-              <View style={[styles.statusCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-                <View style={[styles.statusGlyph, { borderColor: theme.border }]}>
-                  <OneIcon name={state === 'ready' ? icons.check : icons.scan} size={17} color={state === 'ready' ? theme.success : theme.sky} />
+              <NeverGlass tone="quiet" padded>
+                <View style={styles.statusRow}>
+                  <View style={[styles.statusDot, { backgroundColor: state === 'ready' ? theme.success : theme.platinum }]} />
+                  <View style={styles.statusCopy}>
+                    <Text style={[styles.noticeTitle, { color: theme.text }]}>{scanHeadline(state)}</Text>
+                    <Text style={[styles.noticeText, { color: theme.textSecondary }]}>{scanMeta(state)}</Text>
+                  </View>
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.statusEyebrow, { color: state === 'ready' ? theme.success : theme.textTertiary }]}>NEVER · {state === 'ready' ? 'RECOGNIZED' : 'PROCESSING'}</Text>
-                  <Text style={[styles.noticeTitle, { color: theme.text }]}>{scanHeadline(state)}</Text>
-                  <Text style={[styles.noticeText, { color: theme.textSecondary }]}>{scanMeta(state)}</Text>
-                </View>
-                {state === 'reading' ? <ActivityIndicator size="small" /> : null}
-              </View>
+              </NeverGlass>
 
               {draft ? (
-                <View style={styles.reviewBlock}>
-                  <Text style={[styles.sectionEyebrow, { color: theme.textTertiary }]}>RECOGNIZED AND ORGANIZED</Text>
+                <View style={styles.section}>
+                  <NeverSectionLabel>NEVER understood</NeverSectionLabel>
                   <CaptureReviewEditor
                     draft={draft}
                     onChange={(nextDraft) => {
@@ -320,7 +336,7 @@ export default function ScanScreen() {
               ) : null}
 
               <View style={styles.storageLine}>
-                <OneIcon name={icons.lock} size={13} color={theme.sky} />
+                <OneIcon name={icons.lock} size={12.5} color={theme.chrome} />
                 <Text style={[styles.storageText, { color: theme.textTertiary }]}>
                   {session
                     ? 'Original secured locally. Cloud upload can retry if the network is unavailable.'
@@ -328,7 +344,7 @@ export default function ScanScreen() {
                 </Text>
               </View>
 
-              <PrimaryButton label={saving ? 'Saving…' : 'Save to NEVER'} icon={icons.check} onPress={saveScan} disabled={saving || !draft?.title.trim()} />
+              <NeverChromeButton label={saving ? 'Saving…' : 'Save to NEVER'} icon={icons.check} onPress={saveScan} disabled={saving || !draft?.title.trim()} />
 
               <Pressable accessibilityRole="button" accessibilityLabel="Scan again" onPress={takePhoto} style={styles.rescan}>
                 <Text style={[styles.rescanText, { color: theme.textSecondary }]}>Scan another document</Text>
@@ -339,6 +355,14 @@ export default function ScanScreen() {
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
+}
+
+function stateLabel(state: ScanState) {
+  if (state === 'reading') return 'Reading';
+  if (state === 'ready') return 'Recognized';
+  if (state === 'no_text') return 'Needs input';
+  if (state === 'failed') return 'Manual review';
+  return 'Ready';
 }
 
 function scanHeadline(state: ScanState) {
@@ -363,44 +387,213 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 760,
     alignSelf: 'center',
-    paddingHorizontal: 18,
+    paddingHorizontal: 20,
     paddingTop: 10,
-    paddingBottom: 42,
-    gap: 20
+    paddingBottom: 46,
+    gap: 26
   },
-  nav: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 38, height: 38, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  navBrand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  wordmark: { fontSize: 10.75, fontWeight: '700', letterSpacing: 3.2 },
-  hero: { paddingTop: 8, paddingBottom: 2 },
-  eyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 2 },
-  title: { marginTop: 10, maxWidth: 520, fontFamily: editorialFontFamily, fontSize: 31, lineHeight: 35, fontWeight: '400', letterSpacing: -0.8 },
-  subtitle: { marginTop: 8, maxWidth: 560, fontSize: 12.5, lineHeight: 18.5 },
-  emptyScan: { paddingVertical: 2 },
-  documentStage: { height: 178, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  paper: { width: 118, height: 144, borderRadius: 7, borderWidth: StyleSheet.hairlineWidth, padding: 14, shadowOpacity: 0.05, shadowRadius: 10, shadowOffset: { width: 0, height: 5 }, elevation: 1 },
-  paperHeader: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  paperLabel: { fontSize: 7.25, fontWeight: '700', letterSpacing: 1.0 },
-  paperLine: { width: '78%', height: 3, borderRadius: 2, marginTop: 13, opacity: 0.26 },
-  paperLineStrong: { width: '62%', marginTop: 18, opacity: 0.68 },
-  paperLineShort: { width: '46%' },
-  scanCorners: { position: 'absolute', width: 144, height: 166, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, opacity: 0.5 },
-  emptyTitle: { marginTop: 17, fontSize: 16, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
-  emptyBody: { marginTop: 6, maxWidth: 430, fontSize: 11.75, lineHeight: 17.5 },
-  actions: { width: '100%', marginTop: 17, gap: 8 },
-  secondaryButton: { minHeight: 47, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  secondaryText: { fontSize: 12.75, fontWeight: '600' },
-  previewBlock: { gap: 8 },
-  sectionEyebrow: { fontSize: 8.25, fontWeight: '700', letterSpacing: 1.4 },
-  preview: { width: '100%', height: 300, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth },
-  statusCard: { minHeight: 76, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  statusGlyph: { width: 28, height: 36, borderLeftWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  statusEyebrow: { fontSize: 7.8, fontWeight: '700', letterSpacing: 1.05 },
-  noticeTitle: { marginTop: 4, fontSize: 13.25, lineHeight: 16.5, fontWeight: '600' },
-  noticeText: { marginTop: 3, fontSize: 11, lineHeight: 15.5 },
-  reviewBlock: { gap: 8 },
-  storageLine: { paddingTop: 2, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  storageText: { flex: 1, fontSize: 10.25, lineHeight: 14.5 },
-  rescan: { minHeight: 40, alignItems: 'center', justifyContent: 'center' },
-  rescanText: { fontSize: 11.75, fontWeight: '600' }
+  nav: {
+    minHeight: 42,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between'
+  },
+  navButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  hero: {
+    paddingTop: 12,
+    paddingBottom: 2
+  },
+  eyebrow: {
+    ...neverType.eyebrow,
+    marginBottom: 10
+  },
+  title: {
+    ...neverType.display,
+    maxWidth: 520,
+    fontSize: 35,
+    lineHeight: 40
+  },
+  subtitle: {
+    ...neverType.body,
+    marginTop: 9,
+    maxWidth: 540,
+    fontSize: 13,
+    lineHeight: 19
+  },
+  capturePanel: {
+    padding: 16
+  },
+  documentStage: {
+    height: 248,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden'
+  },
+  paperShadow: {
+    width: 138,
+    height: 174,
+    borderRadius: 10,
+    padding: 18,
+    shadowOpacity: 0.13,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 4
+  },
+  paperHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8
+  },
+  paperLabel: {
+    fontSize: 7.5,
+    fontWeight: '700',
+    letterSpacing: 1.3
+  },
+  paperLine: {
+    width: '82%',
+    height: 3,
+    borderRadius: 2,
+    marginTop: 16,
+    opacity: 0.24
+  },
+  paperLineStrong: {
+    width: '66%',
+    marginTop: 24,
+    opacity: 0.58
+  },
+  paperLineShort: {
+    width: '48%'
+  },
+  scanFrame: {
+    position: 'absolute',
+    width: 166,
+    height: 204,
+    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
+    opacity: 0.48
+  },
+  scanGlow: {
+    position: 'absolute',
+    left: 72,
+    right: 72,
+    top: 33,
+    height: StyleSheet.hairlineWidth,
+    opacity: 0.9
+  },
+  captureCopy: {
+    paddingTop: 20,
+    paddingHorizontal: 2
+  },
+  emptyTitle: {
+    ...neverType.section,
+    fontSize: 17,
+    lineHeight: 21
+  },
+  emptyBody: {
+    ...neverType.body,
+    marginTop: 6,
+    fontSize: 12.25,
+    lineHeight: 18
+  },
+  actions: {
+    marginTop: 20,
+    gap: 9
+  },
+  secondaryButton: {
+    minHeight: 48,
+    borderRadius: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8
+  },
+  secondaryText: {
+    ...neverType.bodyStrong,
+    fontSize: 12.75
+  },
+  section: {
+    gap: 10
+  },
+  previewShell: {
+    position: 'relative',
+    borderRadius: 24,
+    overflow: 'hidden'
+  },
+  preview: {
+    width: '100%',
+    height: 360,
+    borderRadius: 24
+  },
+  previewBadge: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    minHeight: 32,
+    paddingHorizontal: 11,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7
+  },
+  previewBadgeText: {
+    ...neverType.caption,
+    fontSize: 9.75,
+    fontWeight: '600'
+  },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 11
+  },
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    marginTop: 7
+  },
+  statusCopy: {
+    flex: 1
+  },
+  noticeTitle: {
+    ...neverType.bodyStrong,
+    fontSize: 14
+  },
+  noticeText: {
+    ...neverType.caption,
+    marginTop: 4,
+    fontSize: 11,
+    lineHeight: 16
+  },
+  storageLine: {
+    paddingHorizontal: 2,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8
+  },
+  storageText: {
+    ...neverType.caption,
+    flex: 1,
+    fontSize: 10,
+    lineHeight: 14.5
+  },
+  rescan: {
+    minHeight: 40,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  rescanText: {
+    ...neverType.caption,
+    fontWeight: '600'
+  }
 });
