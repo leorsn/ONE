@@ -31,7 +31,7 @@ export const neverType = {
   title: {
     fontSize: 24,
     lineHeight: 29,
-    fontWeight: '650' as const,
+    fontWeight: '600' as const,
     letterSpacing: -0.65
   },
   section: {
