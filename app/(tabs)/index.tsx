@@ -108,17 +108,22 @@ export default function InboxScreen() {
               backgroundColor: theme.glassStrong,
               borderColor: theme.glassBorder,
               shadowColor: theme.shadow,
-              opacity: pressed ? 0.76 : 1,
-              transform: [{ scale: pressed ? 0.994 : 1 }]
+              opacity: pressed ? 0.78 : 1,
+              transform: [{ scale: pressed ? 0.995 : 1 }]
             }
           ]}
         >
           <View style={[styles.askGlyph, { backgroundColor: theme.platinumSoft, borderColor: theme.glassBorder }]}>
             <OneIcon name={icons.ask} size={15} color={theme.chrome} />
           </View>
-          <Text style={[styles.askText, { color: theme.textSecondary }]}>Ask NEVER anything you saved</Text>
-          <View style={[styles.askAction, { backgroundColor: theme.chrome }]}>
-            <OneIcon name={icons.chevron} size={12} color={theme.background} />
+          <View style={styles.askCopy}>
+            <Text style={[styles.askTitle, { color: theme.text }]}>Ask NEVER</Text>
+            <Text style={[styles.askHint, { color: theme.textTertiary }]} numberOfLines={1}>
+              What did I save today?
+            </Text>
+          </View>
+          <View style={[styles.askAction, { borderColor: theme.border }]}>
+            <OneIcon name={icons.chevron} size={11.5} color={theme.textSecondary} />
           </View>
           <View pointerEvents="none" style={[styles.reflection, { backgroundColor: theme.reflection }]} />
         </Pressable>
@@ -132,7 +137,7 @@ export default function InboxScreen() {
               onPress={() => focusCapture()}
               style={styles.captureStart}
             >
-              <OneIcon name={icons.plus} size={18} color={theme.chrome} />
+              <OneIcon name={icons.plus} size={17} color={theme.chrome} />
             </Pressable>
             <TextInput
               ref={captureRef}
@@ -159,14 +164,14 @@ export default function InboxScreen() {
               </Pressable>
             ) : (
               <View style={styles.captureMore}>
-                <OneIcon name={icons.more} size={17} color={theme.textTertiary} />
+                <OneIcon name={icons.more} size={16} color={theme.textTertiary} />
               </View>
             )}
           </View>
         </View>
 
-        <View style={[styles.quickActions, { backgroundColor: theme.glass, borderColor: theme.glassBorder }]}>
-          <QuickAction label="Scan" icon={icons.scan} onPress={() => router.push('/scan')} />
+        <View style={styles.quickActions}>
+          <QuickAction label="Scan" icon={icons.scan} primary onPress={() => router.push('/scan')} />
           <QuickAction label="Link" icon={icons.link} onPress={() => focusCapture('https://')} />
           <QuickAction label="Note" icon={icons.note} onPress={() => focusCapture('')} />
           <QuickAction label="Share" icon={icons.upload} onPress={() => router.push('/share')} />
@@ -202,7 +207,7 @@ export default function InboxScreen() {
         {todayEntries.length ? (
           <View style={styles.section}>
             <NeverSectionLabel meta={`${todayEntries.length}`}>Today</NeverSectionLabel>
-            <View style={styles.timeline}>
+            <View style={[styles.timeline, { borderColor: theme.border }]}>
               {todayEntries.map(({ item, reason }, index) => (
                 <TodayRow
                   key={item.id}
@@ -257,10 +262,12 @@ export default function InboxScreen() {
   function QuickAction({
     label,
     icon,
+    primary = false,
     onPress
   }: {
     label: string;
     icon: (typeof icons)[keyof typeof icons];
+    primary?: boolean;
     onPress: () => void;
   }) {
     return (
@@ -271,10 +278,14 @@ export default function InboxScreen() {
           await Haptics.selectionAsync();
           onPress();
         }}
-        style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.52 : 1 }]}
+        style={({ pressed }) => [
+          styles.quickAction,
+          primary && [styles.quickActionPrimary, { backgroundColor: theme.platinumSoft, borderColor: theme.glassBorder }],
+          { opacity: pressed ? 0.52 : 1 }
+        ]}
       >
-        <OneIcon name={icon} size={15} color={theme.chrome} />
-        <Text style={[styles.quickActionLabel, { color: theme.textSecondary }]}>{label}</Text>
+        <OneIcon name={icon} size={primary ? 15.5 : 14.5} color={primary ? theme.chrome : theme.textSecondary} />
+        <Text style={[styles.quickActionLabel, { color: primary ? theme.text : theme.textSecondary }]}>{label}</Text>
       </Pressable>
     );
   }
@@ -294,7 +305,7 @@ export default function InboxScreen() {
               <Image source={{ uri: preview }} style={styles.recentImage} resizeMode="cover" />
             ) : (
               <View style={styles.recentPlaceholder}>
-                <OneIcon name={iconForRecent(item)} size={28} color={theme.platinum} />
+                <OneIcon name={iconForRecent(item)} size={26} color={theme.platinum} />
               </View>
             )}
             <View style={[styles.recentBadge, { backgroundColor: theme.glassStrong, borderColor: theme.glassBorder }]}>
@@ -308,7 +319,7 @@ export default function InboxScreen() {
             </Text>
             <View style={styles.recentFooter}>
               <Text style={[styles.recentDate, { color: theme.textTertiary }]}>{formatRelative(item.updatedAt)}</Text>
-              <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+              <OneIcon name={icons.chevron} size={12.5} color={theme.textTertiary} />
             </View>
           </View>
         </NeverGlass>
@@ -319,7 +330,8 @@ export default function InboxScreen() {
   function TodayRow({ item, reason, last }: { item: OneItem; reason: string; last: boolean }) {
     const activeInbox = isInboxActive(item, now);
     const overdue = reason === 'Overdue';
-    const detail = [item.time, item.location, item.summary].filter(Boolean).join(' · ') || reason;
+    const detail = [item.location, item.summary].filter(Boolean).join(' · ') || reason;
+    const timeLabel = item.time || (overdue ? 'Past' : reason);
     return (
       <Pressable
         accessibilityRole="button"
@@ -331,14 +343,15 @@ export default function InboxScreen() {
           { backgroundColor: pressed ? theme.fill : 'transparent' }
         ]}
       >
-        <View style={styles.todayRail}>
+        <View style={styles.todayTimeColumn}>
+          <Text style={[styles.todayTime, { color: overdue ? theme.warning : theme.textTertiary }]} numberOfLines={1}>{timeLabel}</Text>
           <View style={[styles.todayDot, { backgroundColor: overdue ? theme.warning : theme.platinum }]} />
         </View>
         <View style={styles.todayCopy}>
           <Text style={[styles.todayTitle, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
           <Text style={[styles.todayMeta, { color: theme.textSecondary }]} numberOfLines={1}>{detail}</Text>
         </View>
-        <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+        <OneIcon name={icons.chevron} size={12.5} color={theme.textTertiary} />
       </Pressable>
     );
   }
@@ -401,129 +414,147 @@ const styles = StyleSheet.create({
     maxWidth: 760,
     alignSelf: 'center',
     paddingHorizontal: 20,
-    paddingTop: 10,
-    paddingBottom: 126,
-    gap: 27
+    paddingTop: 8,
+    paddingBottom: 120,
+    gap: 22
   },
   topBar: {
-    minHeight: 34,
+    minHeight: 32,
     flexDirection: 'row',
     alignItems: 'center'
   },
   hero: {
-    paddingTop: 14,
-    paddingRight: 4
+    paddingTop: 10,
+    paddingRight: 8
   },
   greeting: {
-    ...neverType.bodyStrong,
-    marginBottom: 8
+    ...neverType.caption,
+    fontWeight: '600',
+    marginBottom: 7
   },
   heroTitle: {
     ...neverType.hero,
-    maxWidth: 500
+    maxWidth: 470,
+    fontSize: 35,
+    lineHeight: 39,
+    letterSpacing: -1.15
   },
   askBar: {
-    minHeight: 66,
-    borderRadius: 19,
+    minHeight: 62,
+    borderRadius: 18,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 14,
-    paddingVertical: 11,
+    paddingHorizontal: 13,
+    paddingVertical: 9,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 11,
     overflow: 'hidden',
-    shadowOpacity: 0.13,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 11 },
-    elevation: 4
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    shadowOffset: { width: 0, height: 8 },
+    elevation: 2
   },
   askGlyph: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  askText: {
-    ...neverType.bodyStrong,
+  askCopy: {
     flex: 1,
-    fontSize: 14
+    minWidth: 0
+  },
+  askTitle: {
+    ...neverType.bodyStrong,
+    fontSize: 14.5,
+    lineHeight: 18
+  },
+  askHint: {
+    ...neverType.caption,
+    marginTop: 1,
+    fontSize: 11,
+    lineHeight: 14
   },
   askAction: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center'
   },
   reflection: {
     position: 'absolute',
     top: 0,
-    left: 22,
-    right: 22,
-    height: StyleSheet.hairlineWidth
+    left: 24,
+    right: 24,
+    height: StyleSheet.hairlineWidth,
+    opacity: 0.72
   },
-  captureBlock: { gap: 9 },
+  captureBlock: { gap: 8 },
   captureComposer: {
-    minHeight: 56,
-    borderRadius: 17,
+    minHeight: 52,
+    borderRadius: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 10,
+    paddingHorizontal: 9,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 7,
     overflow: 'hidden'
   },
   captureStart: {
-    width: 36,
-    height: 36,
+    width: 34,
+    height: 34,
     alignItems: 'center',
     justifyContent: 'center'
   },
   input: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 42,
     fontSize: 14.5,
     lineHeight: 19,
     letterSpacing: -0.1
   },
   captureSubmit: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     alignItems: 'center',
     justifyContent: 'center'
   },
   captureMore: {
-    width: 34,
-    height: 34,
+    width: 32,
+    height: 32,
     alignItems: 'center',
     justifyContent: 'center'
   },
   quickActions: {
-    minHeight: 54,
-    borderRadius: 17,
-    borderWidth: StyleSheet.hairlineWidth,
+    minHeight: 48,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 5,
-    overflow: 'hidden'
+    gap: 7
   },
   quickAction: {
     flex: 1,
-    minHeight: 44,
+    minHeight: 42,
+    borderRadius: 14,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6
+    gap: 5
+  },
+  quickActionPrimary: {
+    flex: 1.14,
+    borderWidth: StyleSheet.hairlineWidth
   },
   quickActionLabel: {
     fontSize: 10.5,
     lineHeight: 13,
     fontWeight: '600'
   },
-  section: { gap: 11 },
+  section: { gap: 10 },
   interpretationRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -553,36 +584,43 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth
   },
   todayRow: {
-    minHeight: 70,
-    paddingVertical: 11,
+    minHeight: 64,
+    paddingVertical: 9,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12
+    gap: 11
   },
-  todayRail: {
-    width: 14,
+  todayTimeColumn: {
+    width: 62,
     alignSelf: 'stretch',
-    alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    gap: 5
+  },
+  todayTime: {
+    ...neverType.caption,
+    fontSize: 10.5,
+    lineHeight: 13,
+    fontWeight: '600'
   },
   todayDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 3
+    width: 4,
+    height: 4,
+    borderRadius: 2
   },
   todayCopy: { flex: 1 },
   todayTitle: {
-    ...neverType.bodyStrong
+    ...neverType.bodyStrong,
+    fontSize: 14.5
   },
   todayMeta: {
     ...neverType.caption,
-    marginTop: 4
+    marginTop: 3
   },
   recentPressable: {
-    borderRadius: 24
+    borderRadius: 22
   },
   recentVisual: {
-    height: 192,
+    height: 156,
     position: 'relative'
   },
   recentImage: {
@@ -596,34 +634,36 @@ const styles = StyleSheet.create({
   },
   recentBadge: {
     position: 'absolute',
-    top: 12,
-    right: 12,
-    paddingHorizontal: 9,
-    paddingVertical: 5,
-    borderRadius: 10,
+    top: 10,
+    right: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 9,
     borderWidth: StyleSheet.hairlineWidth
   },
   recentBadgeText: {
-    fontSize: 7.5,
+    fontSize: 7,
     fontWeight: '700',
-    letterSpacing: 0.85
+    letterSpacing: 0.75
   },
   recentCopy: {
-    paddingHorizontal: 18,
-    paddingTop: 16,
-    paddingBottom: 17
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 15
   },
   recentTitle: {
     ...neverType.section,
-    fontSize: 17,
-    lineHeight: 21
+    fontSize: 16.5,
+    lineHeight: 20
   },
   recentMeta: {
     ...neverType.body,
-    marginTop: 5
+    marginTop: 4,
+    fontSize: 13.5,
+    lineHeight: 19
   },
   recentFooter: {
-    marginTop: 15,
+    marginTop: 13,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between'
@@ -633,7 +673,7 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   inlineLink: {
-    minHeight: 30,
+    minHeight: 28,
     flexDirection: 'row',
     alignItems: 'center',
     alignSelf: 'flex-start',
