@@ -52,7 +52,7 @@ export function TriageRow({
           <View style={styles.footer}>
             {metaLine(item) ? (
               <Text style={[styles.meta, { color: theme.textTertiary }]} numberOfLines={1}>{metaLine(item)}</Text>
-            ) : <View style={{ flex: 1 }} />}
+            ) : <View style={styles.metaSpacer} />}
 
             {action ? (
               <Pressable
@@ -196,6 +196,9 @@ const styles = StyleSheet.create({
     fontSize: 9.75,
     lineHeight: 13
   },
+  metaSpacer: {
+    flex: 1
+  },
   action: {
     minHeight: 28,
     paddingHorizontal: 10,
@@ -208,6 +211,6 @@ const styles = StyleSheet.create({
   actionText: {
     fontSize: 9.75,
     lineHeight: 12,
-    fontWeight: '650'
+    fontWeight: '600'
   }
 });
