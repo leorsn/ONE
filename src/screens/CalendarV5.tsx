@@ -11,7 +11,6 @@ import {
   V5LargeHeader,
   V5SectionHeader,
   V5Segmented,
-  V5Wordmark,
   useNeverV5Palette
 } from '@/src/ui/appleV5';
 import type { OneItem } from '@/src/types/item';
@@ -53,7 +52,6 @@ export default function CalendarV5() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.brandBar}><V5Wordmark /></View>
         <V5LargeHeader
           title="Calendar"
           subtitle="Dates and reminders from everything you've saved."
@@ -67,14 +65,14 @@ export default function CalendarV5() {
         <V5Group>
           <View style={styles.monthRow}>
             <Pressable onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { opacity: pressed ? 0.5 : 1 }]}>
-              <OneIcon name={icons.chevronLeft} size={14} color={p.chrome} />
+              <OneIcon name={icons.chevronLeft} size={13.5} color={p.chrome} />
             </Pressable>
             <View style={styles.monthCopy}>
               <Text style={[styles.month, { color: p.label }]}>{new Intl.DateTimeFormat('en', { month: 'long' }).format(selected)}</Text>
               <Text style={[styles.year, { color: p.tertiary }]}>{selected.getFullYear()}</Text>
             </View>
             <Pressable onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { opacity: pressed ? 0.5 : 1 }]}>
-              <OneIcon name={icons.chevron} size={14} color={p.chrome} />
+              <OneIcon name={icons.chevron} size={13.5} color={p.chrome} />
             </Pressable>
           </View>
 
@@ -171,7 +169,7 @@ export default function CalendarV5() {
   function EmptyAgenda({ title, body }: { title: string; body: string }) {
     return (
       <View style={styles.emptyRow}>
-        <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.calendar} size={17} color={p.chrome} /></View>
+        <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.calendar} size={16} color={p.chrome} /></View>
         <View style={{ flex: 1 }}>
           <Text style={[styles.emptyTitle, { color: p.label }]}>{title}</Text>
           <Text style={[styles.emptyBody, { color: p.secondary }]}>{body}</Text>
@@ -229,33 +227,32 @@ function toIsoDate(date: Date) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 118, gap: 22 },
-  brandBar: { minHeight: 32, justifyContent: 'center' },
-  todayButton: { minHeight: 34, paddingHorizontal: 13, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  todayText: { fontSize: 14, lineHeight: 18, fontWeight: '600' },
-  monthRow: { minHeight: 58, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  monthArrow: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center' },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 118, gap: 18 },
+  todayButton: { minHeight: 32, paddingHorizontal: 12, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  todayText: { fontSize: 13.5, lineHeight: 17, fontWeight: '600' },
+  monthRow: { minHeight: 52, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  monthArrow: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   monthCopy: { alignItems: 'center' },
-  month: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.2 },
-  year: { marginTop: 1, fontSize: 12, lineHeight: 15 },
-  dayStrip: { paddingHorizontal: 8, paddingBottom: 14, flexDirection: 'row', justifyContent: 'space-between' },
-  day: { width: 42, alignItems: 'center' },
-  weekday: { fontSize: 10, lineHeight: 13, fontWeight: '600' },
-  dayNumberWrap: { width: 36, height: 36, marginTop: 5, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
-  dayNumber: { fontSize: 15, lineHeight: 18, fontWeight: '600' },
-  dot: { width: 4, height: 4, borderRadius: 2, marginTop: 4 },
-  segmentWrap: { padding: 10, borderTopWidth: StyleSheet.hairlineWidth },
-  section: { gap: 8 },
-  groupBlock: { gap: 6 },
-  dateLabel: { paddingHorizontal: 4, fontSize: 12, lineHeight: 15, fontWeight: '600' },
-  agendaRow: { minHeight: 68, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  timeBadge: { width: 48, minHeight: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  time: { fontSize: 12, lineHeight: 15, fontWeight: '600' },
-  agendaContent: { flex: 1, minHeight: 68, paddingRight: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  itemTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
-  itemMeta: { marginTop: 2, fontSize: 13, lineHeight: 17 },
-  emptyRow: { minHeight: 88, padding: 15, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  emptyIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { fontSize: 15, lineHeight: 19, fontWeight: '600' },
-  emptyBody: { marginTop: 2, fontSize: 13, lineHeight: 17 }
+  month: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.2 },
+  year: { marginTop: 1, fontSize: 11.5, lineHeight: 14 },
+  dayStrip: { paddingHorizontal: 7, paddingBottom: 12, flexDirection: 'row', justifyContent: 'space-between' },
+  day: { width: 40, alignItems: 'center' },
+  weekday: { fontSize: 9.5, lineHeight: 12, fontWeight: '600' },
+  dayNumberWrap: { width: 34, height: 34, marginTop: 4, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  dayNumber: { fontSize: 14.5, lineHeight: 17, fontWeight: '600' },
+  dot: { width: 3.5, height: 3.5, borderRadius: 2, marginTop: 3 },
+  segmentWrap: { padding: 8, borderTopWidth: StyleSheet.hairlineWidth },
+  section: { gap: 7 },
+  groupBlock: { gap: 5 },
+  dateLabel: { paddingHorizontal: 4, fontSize: 11.5, lineHeight: 14, fontWeight: '600' },
+  agendaRow: { minHeight: 62, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  timeBadge: { width: 44, minHeight: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  time: { fontSize: 11.5, lineHeight: 14, fontWeight: '600' },
+  agendaContent: { flex: 1, minHeight: 62, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  itemTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
+  itemMeta: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
+  emptyRow: { minHeight: 78, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  emptyIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  emptyBody: { marginTop: 1, fontSize: 12.5, lineHeight: 16 }
 });
