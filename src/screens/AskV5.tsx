@@ -103,7 +103,7 @@ export default function AskV5() {
           <V5Group>
             <View style={styles.lockedBody}>
               <View style={[styles.lockedIcon, { backgroundColor: p.fillSoft }]}>
-                <OneIcon name={icons.crown} size={22} color={p.chrome} />
+                <OneIcon name={icons.crown} size={21} color={p.chrome} />
               </View>
               <Text style={[styles.lockedTitle, { color: p.label }]}>NEVER AI</Text>
               <Text style={[styles.lockedText, { color: p.secondary }]}>Ask questions about your saved documents, links, dates and ideas.</Text>
@@ -113,7 +113,7 @@ export default function AskV5() {
             </View>
           </V5Group>
           <Pressable onPress={() => router.back()} style={styles.backLink}>
-            <OneIcon name={icons.chevronLeft} size={12} color={p.secondary} />
+            <OneIcon name={icons.chevronLeft} size={11.5} color={p.secondary} />
             <Text style={[styles.backLinkText, { color: p.secondary }]}>Back</Text>
           </Pressable>
         </View>
@@ -128,9 +128,7 @@ export default function AskV5() {
           <View style={[styles.nav, { borderBottomColor: p.separator }]}>
             <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.back()} />
             <Text style={[styles.navTitle, { color: p.label }]}>Ask NEVER</Text>
-            {messages.length ? (
-              <V5IconButton icon={icons.close} accessibilityLabel="Clear conversation" onPress={() => setMessages([])} />
-            ) : <View style={{ width: 40 }} />}
+            {messages.length ? <V5IconButton icon={icons.close} accessibilityLabel="Clear conversation" onPress={() => setMessages([])} /> : <View style={{ width: 38 }} />}
           </View>
 
           <ScrollView
@@ -143,33 +141,24 @@ export default function AskV5() {
             {!messages.length ? (
               <>
                 <V5LargeHeader
-                  title="Ask anything you've saved."
-                  subtitle="NEVER searches your memory first and answers from the evidence it finds."
+                  title="Ask your memory."
+                  subtitle="NEVER searches what you've saved first and answers from the evidence it finds."
                 />
 
-                <V5Group>
-                  <View style={styles.groundedRow}>
-                    <View style={[styles.groundedIcon, { backgroundColor: p.fillSoft }]}>
-                      <OneIcon name={icons.shield} size={17} color={p.chrome} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.groundedTitle, { color: p.label }]}>Grounded by design</Text>
-                      <Text style={[styles.groundedText, { color: p.secondary }]}>If your saved information is not enough, NEVER should say so instead of inventing an answer.</Text>
-                    </View>
+                <View style={styles.groundedInline}>
+                  <View style={[styles.groundedIcon, { backgroundColor: p.fillSoft }]}>
+                    <OneIcon name={icons.shield} size={15} color={p.chrome} />
                   </View>
-                </V5Group>
+                  <Text style={[styles.groundedText, { color: p.secondary }]}>Grounded by design. If the saved evidence is not enough, NEVER should say so.</Text>
+                </View>
 
                 <View style={styles.section}>
-                  <V5SectionHeader title="Suggestions" />
+                  <V5SectionHeader title="Try Asking" />
                   <V5Group>
                     {examples.map((example, index) => (
-                      <Pressable
-                        key={example.text}
-                        onPress={() => submitQuestion(example.text)}
-                        style={({ pressed }) => [styles.suggestionRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
-                      >
+                      <Pressable key={example.text} onPress={() => submitQuestion(example.text)} style={({ pressed }) => [styles.suggestionRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
                         <View style={[styles.suggestionIcon, { backgroundColor: p.fillSoft }]}>
-                          <OneIcon name={example.icon} size={16} color={p.chrome} />
+                          <OneIcon name={example.icon} size={15} color={p.chrome} />
                         </View>
                         <View style={[styles.suggestionContent, index !== examples.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.separator }]}>
                           <Text style={[styles.suggestionText, { color: p.label }]}>{example.text}</Text>
@@ -185,9 +174,7 @@ export default function AskV5() {
             {sending ? (
               <View style={styles.assistantBlock}>
                 <View style={styles.assistantHeader}>
-                  <View style={[styles.assistantMark, { backgroundColor: p.fillSoft }]}>
-                    <OneIcon name={icons.ask} size={13} color={p.chrome} />
-                  </View>
+                  <View style={[styles.assistantMark, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.ask} size={12.5} color={p.chrome} /></View>
                   <Text style={[styles.assistantBrand, { color: p.secondary }]}>NEVER</Text>
                 </View>
                 <View style={styles.loadingLine}>
@@ -215,15 +202,9 @@ export default function AskV5() {
               <Pressable
                 disabled={!query.trim() || sending}
                 onPress={() => submitQuestion()}
-                style={[
-                  styles.sendButton,
-                  {
-                    backgroundColor: query.trim() && !sending ? p.graphite : p.fill,
-                    opacity: sending ? 0.5 : 1
-                  }
-                ]}
+                style={[styles.sendButton, { backgroundColor: query.trim() && !sending ? p.graphite : p.fill, opacity: sending ? 0.5 : 1 }]}
               >
-                <OneIcon name={icons.upload} size={14} color={query.trim() && !sending ? (p.dark ? '#111113' : '#FFFFFF') : p.tertiary} />
+                <OneIcon name={icons.upload} size={13.5} color={query.trim() && !sending ? (p.dark ? '#111113' : '#FFFFFF') : p.tertiary} />
               </Pressable>
             </View>
           </View>
@@ -234,26 +215,17 @@ export default function AskV5() {
 
   function MessageBubble({ message }: { message: ChatMessage }) {
     if (message.role === 'user') {
-      return (
-        <View style={[styles.userBubble, { backgroundColor: p.fill }]}>
-          <Text style={[styles.userText, { color: p.label }]}>{message.text}</Text>
-        </View>
-      );
+      return <View style={[styles.userBubble, { backgroundColor: p.fill }]}><Text style={[styles.userText, { color: p.label }]}>{message.text}</Text></View>;
     }
 
-    const sources = (message.sourceIds || [])
-      .map((id) => itemById.get(id))
-      .filter((item): item is OneItem => Boolean(item))
-      .slice(0, 6);
+    const sources = (message.sourceIds || []).map((id) => itemById.get(id)).filter((item): item is OneItem => Boolean(item)).slice(0, 6);
     const answerUrls = extractHttpUrls(message.body);
     const bodyText = withoutStandaloneUrlLines(message.body);
 
     return (
       <View style={styles.assistantBlock}>
         <View style={styles.assistantHeader}>
-          <View style={[styles.assistantMark, { backgroundColor: p.fillSoft }]}>
-            <OneIcon name={icons.ask} size={13} color={p.chrome} />
-          </View>
+          <View style={[styles.assistantMark, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.ask} size={12.5} color={p.chrome} /></View>
           <Text style={[styles.assistantBrand, { color: p.secondary }]}>NEVER</Text>
           {message.mode ? <Text style={[styles.modeLabel, { color: p.tertiary }]}>{message.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text> : null}
         </View>
@@ -265,12 +237,8 @@ export default function AskV5() {
         {answerUrls.length ? (
           <V5Group>
             {answerUrls.map((url, index) => (
-              <Pressable
-                key={url}
-                onPress={async () => { await Haptics.selectionAsync(); await Linking.openURL(url); }}
-                style={({ pressed }) => [styles.linkRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
-              >
-                <OneIcon name={icons.link} size={14} color={p.chrome} />
+              <Pressable key={url} onPress={async () => { await Haptics.selectionAsync(); await Linking.openURL(url); }} style={({ pressed }) => [styles.linkRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
+                <OneIcon name={icons.link} size={13.5} color={p.chrome} />
                 <View style={[styles.linkContent, index !== answerUrls.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.separator }]}>
                   <Text style={[styles.linkText, { color: p.label }]} numberOfLines={1}>{url}</Text>
                   <V5Chevron />
@@ -285,14 +253,8 @@ export default function AskV5() {
             <V5SectionHeader title="Sources" meta={`${sources.length}`} />
             <V5Group>
               {sources.map((item, index) => (
-                <Pressable
-                  key={item.id}
-                  onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-                  style={({ pressed }) => [styles.sourceRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
-                >
-                  <View style={[styles.sourceIcon, { backgroundColor: p.fillSoft }]}>
-                    <OneIcon name={iconForType(item.type)} size={15} color={p.chrome} />
-                  </View>
+                <Pressable key={item.id} onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })} style={({ pressed }) => [styles.sourceRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
+                  <View style={[styles.sourceIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={iconForType(item.type)} size={14.5} color={p.chrome} /></View>
                   <View style={[styles.sourceContent, index !== sources.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.separator }]}>
                     <Text style={[styles.sourceTitle, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
                     <V5Chevron />
@@ -321,51 +283,50 @@ function makeId(prefix: string) { return `${prefix}-${Date.now()}-${Math.random(
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   shell: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center' },
-  nav: { minHeight: 56, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth },
-  navTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.2 },
+  nav: { minHeight: 52, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth },
+  navTitle: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
   chat: { flex: 1 },
-  emptyContent: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 28, gap: 22 },
-  chatContent: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 28, gap: 24 },
-  section: { gap: 8 },
-  groundedRow: { minHeight: 94, padding: 16, flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  groundedIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  groundedTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
-  groundedText: { marginTop: 3, fontSize: 13, lineHeight: 18 },
-  suggestionRow: { minHeight: 62, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  suggestionIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  suggestionContent: { flex: 1, minHeight: 62, paddingRight: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  suggestionText: { flex: 1, fontSize: 15, lineHeight: 19, fontWeight: '500' },
-  userBubble: { alignSelf: 'flex-end', maxWidth: '84%', borderRadius: 19, borderBottomRightRadius: 7, paddingHorizontal: 14, paddingVertical: 10 },
-  userText: { fontSize: 15, lineHeight: 21 },
-  assistantBlock: { gap: 10 },
+  emptyContent: { paddingHorizontal: 20, paddingTop: 16, paddingBottom: 24, gap: 18 },
+  chatContent: { paddingHorizontal: 20, paddingTop: 18, paddingBottom: 24, gap: 21 },
+  section: { gap: 7 },
+  groundedInline: { paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  groundedIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  groundedText: { flex: 1, fontSize: 12.5, lineHeight: 17 },
+  suggestionRow: { minHeight: 56, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  suggestionIcon: { width: 32, height: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  suggestionContent: { flex: 1, minHeight: 56, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  suggestionText: { flex: 1, fontSize: 14.5, lineHeight: 18, fontWeight: '500' },
+  userBubble: { alignSelf: 'flex-end', maxWidth: '84%', borderRadius: 18, borderBottomRightRadius: 6, paddingHorizontal: 13, paddingVertical: 9 },
+  userText: { fontSize: 14.5, lineHeight: 20 },
+  assistantBlock: { gap: 9 },
   assistantHeader: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  assistantMark: { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  assistantBrand: { fontSize: 12, lineHeight: 15, fontWeight: '700', letterSpacing: 0.7 },
-  modeLabel: { marginLeft: 'auto', fontSize: 10, lineHeight: 13, fontWeight: '600', letterSpacing: 0.5 },
-  answerTitle: { fontSize: 20, lineHeight: 25, fontWeight: '700', letterSpacing: -0.35 },
-  answerBody: { fontSize: 15, lineHeight: 22 },
-  answerMeta: { fontSize: 11, lineHeight: 15 },
-  loadingLine: { minHeight: 34, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  loadingText: { fontSize: 14, lineHeight: 18 },
-  linkRow: { minHeight: 54, paddingLeft: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  linkContent: { flex: 1, minHeight: 54, paddingRight: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  linkText: { flex: 1, fontSize: 13, lineHeight: 17 },
-  sourceRow: { minHeight: 58, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sourceIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  sourceContent: { flex: 1, minHeight: 58, paddingRight: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sourceTitle: { flex: 1, fontSize: 15, lineHeight: 19, fontWeight: '500' },
-  composerWrap: { paddingHorizontal: 12, paddingTop: 8, paddingBottom: 8, borderTopWidth: StyleSheet.hairlineWidth },
-  composer: { minHeight: 50, borderRadius: 18, paddingLeft: 15, paddingRight: 6, flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
-  input: { flex: 1, minHeight: 46, maxHeight: 120, fontSize: 16, lineHeight: 21, paddingTop: 12, paddingBottom: 11 },
-  sendButton: { width: 38, height: 38, borderRadius: 19, marginBottom: 6, alignItems: 'center', justifyContent: 'center' },
-  lockedPage: { flex: 1, width: '100%', maxWidth: 620, alignSelf: 'center', padding: 20, gap: 22 },
-  lockedTop: { minHeight: 32, justifyContent: 'center' },
-  lockedBody: { padding: 18 },
-  lockedIcon: { width: 46, height: 46, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  lockedTitle: { marginTop: 14, fontSize: 19, lineHeight: 23, fontWeight: '700' },
-  lockedText: { marginTop: 4, fontSize: 14, lineHeight: 20 },
-  primaryButton: { marginTop: 18, minHeight: 48, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  primaryButtonText: { fontSize: 15, lineHeight: 19, fontWeight: '600' },
-  backLink: { alignSelf: 'flex-start', minHeight: 34, flexDirection: 'row', alignItems: 'center', gap: 4 },
-  backLinkText: { fontSize: 14, lineHeight: 18, fontWeight: '500' }
+  assistantMark: { width: 27, height: 27, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  assistantBrand: { fontSize: 11.5, lineHeight: 14, fontWeight: '700', letterSpacing: 0.65 },
+  modeLabel: { marginLeft: 'auto', fontSize: 9.5, lineHeight: 12, fontWeight: '600', letterSpacing: 0.45 },
+  answerTitle: { fontSize: 19, lineHeight: 24, fontWeight: '700', letterSpacing: -0.3 },
+  answerBody: { fontSize: 14.5, lineHeight: 21 },
+  answerMeta: { fontSize: 10.5, lineHeight: 14 },
+  loadingLine: { minHeight: 32, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  loadingText: { fontSize: 13.5, lineHeight: 17 },
+  linkRow: { minHeight: 50, paddingLeft: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  linkContent: { flex: 1, minHeight: 50, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  linkText: { flex: 1, fontSize: 12.5, lineHeight: 16 },
+  sourceRow: { minHeight: 54, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  sourceIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  sourceContent: { flex: 1, minHeight: 54, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  sourceTitle: { flex: 1, fontSize: 14.5, lineHeight: 18, fontWeight: '500' },
+  composerWrap: { paddingHorizontal: 10, paddingTop: 7, paddingBottom: 7, borderTopWidth: StyleSheet.hairlineWidth },
+  composer: { minHeight: 48, borderRadius: 16, paddingLeft: 14, paddingRight: 5, flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
+  input: { flex: 1, minHeight: 44, maxHeight: 112, fontSize: 15.5, lineHeight: 20, paddingTop: 11, paddingBottom: 10 },
+  sendButton: { width: 36, height: 36, borderRadius: 18, marginBottom: 6, alignItems: 'center', justifyContent: 'center' },
+  lockedPage: { flex: 1, width: '100%', maxWidth: 620, alignSelf: 'center', padding: 20, gap: 18 },
+  lockedTop: { minHeight: 28, justifyContent: 'center' },
+  lockedBody: { padding: 16 },
+  lockedIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  lockedTitle: { marginTop: 12, fontSize: 18, lineHeight: 22, fontWeight: '700' },
+  lockedText: { marginTop: 3, fontSize: 13.5, lineHeight: 19 },
+  primaryButton: { marginTop: 16, minHeight: 46, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  primaryButtonText: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  backLink: { alignSelf: 'flex-start', minHeight: 32, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  backLinkText: { fontSize: 13.5, lineHeight: 17, fontWeight: '500' }
 });
