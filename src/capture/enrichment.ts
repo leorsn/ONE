@@ -19,19 +19,28 @@ export function enrichCaptureDraft(draft: CaptureDraft, input: InterpretCaptureI
     ...urls.map((url) => `url:${url}`)
   ]));
 
-  const inferredTitle = shouldReplaceTitle(draft.title)
-    ? inferUsefulTitle(sourceText)
+  const replacementMerchant = shouldReplaceMerchant(draft.merchant, draft.documentKind)
+    ? inferMerchantFromOcr(input.extractedText || '')
     : undefined;
+  const merchant = replacementMerchant || draft.merchant;
+  const merchantTitle = replacementMerchant
+    ? draft.documentKind === 'invoice'
+      ? `${replacementMerchant} invoice`
+      : `${replacementMerchant} receipt`
+    : undefined;
+  const inferredTitle = merchantTitle || (shouldReplaceTitle(draft.title) ? inferUsefulTitle(sourceText) : undefined);
   const title = inferredTitle || draft.title;
   const url = draft.url || input.url || urls[0];
-  const userContext = draft.userContext || buildAutomaticContext({ ...draft, title, url }, input.sourceType);
-  const summary = shouldReplaceSummary(draft.summary, draft.title)
+  const draftWithResolvedFacts = { ...draft, title, merchant, url };
+  const userContext = draft.userContext || buildAutomaticContext(draftWithResolvedFacts, input.sourceType);
+  const summary = shouldReplaceSummary(draft.summary, draft.title) || Boolean(replacementMerchant)
     ? userContext || title
     : draft.summary;
 
   const enriched: CaptureDraft = {
     ...draft,
     title,
+    merchant,
     url,
     entities,
     userContext,
@@ -92,6 +101,21 @@ function inferUsefulTitle(value: string) {
   return candidate ? truncate(candidate, 100) : undefined;
 }
 
+function inferMerchantFromOcr(value: string) {
+  const rejected = /^(receipt|beleg|rechnung|invoice|datum|date|total|summe|gesamt|tax|mwst|ust|tel|phone|www\.|http|amount due|zu zahlen)/i;
+  return value
+    .split(/\r?\n/)
+    .map(cleanLine)
+    .find((line) =>
+      line.length >= 2 &&
+      line.length <= 70 &&
+      !rejected.test(line) &&
+      !shouldReplaceTitle(line) &&
+      !/^\d/.test(line) &&
+      !/[€$£]\s?\d|\d[.,]\d{2}\s?(?:€|eur|usd|gbp)/i.test(line)
+    );
+}
+
 function buildAutomaticContext(draft: CaptureDraft, sourceType?: InterpretCaptureInput['sourceType']) {
   const kind = draft.captureKind;
   const title = draft.title.trim();
@@ -129,6 +153,11 @@ function buildAutomaticContext(draft: CaptureDraft, sourceType?: InterpretCaptur
   }
 
   return undefined;
+}
+
+function shouldReplaceMerchant(value: string | undefined, documentKind?: CaptureDraft['documentKind']) {
+  if (!value || !['receipt', 'invoice'].includes(documentKind || '')) return false;
+  return shouldReplaceTitle(value) || /\.(?:jpe?g|png|heic|pdf)$/i.test(value.trim());
 }
 
 function shouldReplaceTitle(value?: string) {
