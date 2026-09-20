@@ -67,7 +67,7 @@ export default function SavedV5() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <V5LargeHeader
           title={filter === 'Documents' ? 'Documents' : 'Saved'}
-          subtitle="Everything NEVER has kept for you."
+          subtitle="Everything you've saved to NEVER."
         />
 
         <V5SearchField
