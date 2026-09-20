@@ -30,7 +30,7 @@ test('subscription surfaces use RevenueCat storefront price and introductory-off
   const revenueCat = await text('src/subscription/revenueCat.ts');
   const planContext = await text('src/context/PlanContext.tsx');
   const upgrade = await text('app/upgrade.tsx');
-  const settings = await text('app/(tabs)/settings.tsx');
+  const settings = await text('src/screens/SettingsV5.tsx');
 
   assert.match(revenueCat, /rcPackage\?\.product\.priceString\?\.trim\(\)/);
   assert.match(revenueCat, /rcPackage\?\.product\.introPrice/);
@@ -69,7 +69,7 @@ test('subscription purchase loading is scoped to the selected NEVER plan', async
 });
 
 test('account deletion warns active subscribers and still permits immediate deletion', async () => {
-  const settings = await text('app/(tabs)/settings.tsx');
+  const settings = await text('src/screens/SettingsV5.tsx');
   assert.match(settings, /const hasStoreSubscription = billingConfigured && plan !== 'none'/);
   assert.match(settings, /https:\/\/apps\.apple\.com\/account\/subscriptions/);
   assert.match(settings, /Subscription continues after deletion/);
