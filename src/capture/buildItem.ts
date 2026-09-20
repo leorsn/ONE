@@ -44,16 +44,18 @@ export function buildItemFromCapture({
   ]));
   const taskIntent = draft.itemType === 'task' || draft.itemType === 'reminder';
   const eventIntent = draft.itemType === 'appointment' || draft.itemType === 'event';
+  const resolvedDestination = draft.destination;
+  const automaticallyProcessed = !draft.needsReview.length && resolvedDestination !== 'inbox';
 
   const item: OneItem = {
     id: `${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
-    title: draft.title.trim() || 'Captured in ONE',
+    title: draft.title.trim() || 'Captured in NEVER',
     rawInput: rawInput?.trim() || draft.extractedText || draft.userContext || draft.title,
     type: draft.itemType,
     kind: draft.canonicalKind,
     summary: draft.summary?.trim() || undefined,
     people: draft.people,
-    destination: draft.destinationConfirmed ? draft.destination : 'inbox',
+    destination: resolvedDestination,
     reviewStatus,
     ambiguities: draft.ambiguities.map((ambiguity) => ambiguity.message),
     understandingConfidence: draft.overallConfidence,
@@ -64,7 +66,7 @@ export function buildItemFromCapture({
     },
     aiMetadata: { origin: 'deterministic' },
     executedActions: [],
-    processedAt: draft.destinationConfirmed ? timestamp : undefined,
+    processedAt: draft.destinationConfirmed || automaticallyProcessed ? timestamp : undefined,
     capturedAt: timestamp,
     date: draft.date || undefined,
     time: draft.time || undefined,
@@ -104,6 +106,6 @@ export function buildItemFromCapture({
 
   return {
     ...item,
-    triageState: draft.destinationConfirmed ? 'processed' : initialTriageStateForItem(item)
+    triageState: draft.destinationConfirmed || automaticallyProcessed ? 'processed' : initialTriageStateForItem(item)
   };
 }
