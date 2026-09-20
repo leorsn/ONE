@@ -35,13 +35,20 @@ export function buildItemFromCapture({
       ? 'reviewed' as const
       : 'ready' as const;
   const userContext = normalizeContextLabel(draft.userContext);
+  const normalizedEntities = Array.from(new Set(
+    draft.entities
+      .map((value) => normalizeEntity(value))
+      .filter((value): value is string => Boolean(value))
+  ));
   const extractedUrls = Array.from(new Set([
     ...(draft.url ? [draft.url] : []),
-    ...draft.entities
-      .filter((entity) => entity.startsWith('url:'))
-      .map((entity) => entity.slice(4))
-      .filter(Boolean)
-  ]));
+    ...normalizedEntities
+      .filter((entity) => /^url:/i.test(entity))
+      .map((entity) => entity.replace(/^url:/i, ''))
+  ]
+    .map((value) => normalizeStoredUrl(value))
+    .filter((value): value is string => Boolean(value))));
+  const primaryUrl = normalizeStoredUrl(draft.url || '') || extractedUrls[0];
   const taskIntent = draft.itemType === 'task' || draft.itemType === 'reminder';
   const eventIntent = draft.itemType === 'appointment' || draft.itemType === 'event';
   const resolvedDestination = draft.destination;
@@ -77,7 +84,7 @@ export function buildItemFromCapture({
     eventIntent,
     category: draft.category || undefined,
     location: draft.location || undefined,
-    url: draft.url || undefined,
+    url: primaryUrl,
     completed: false,
     saved: draft.saved,
     sourceType,
@@ -95,7 +102,7 @@ export function buildItemFromCapture({
     amount: draft.amount,
     currency: draft.currency?.trim().toUpperCase() || undefined,
     tags: normalizeTags(draft.tags),
-    entities: Array.from(new Set(draft.entities.map((value) => value.trim()).filter(Boolean))),
+    entities: normalizedEntities,
     notificationStatus: ['task', 'reminder', 'appointment', 'event'].includes(draft.itemType) && Boolean(draft.date)
       ? 'not_scheduled'
       : 'not_applicable',
@@ -108,4 +115,21 @@ export function buildItemFromCapture({
     ...item,
     triageState: draft.destinationConfirmed || automaticallyProcessed ? 'processed' : initialTriageStateForItem(item)
   };
+}
+
+function normalizeEntity(value: string) {
+  const clean = value.trim();
+  if (!clean) return undefined;
+  if (!/^url:/i.test(clean)) return clean;
+  const url = normalizeStoredUrl(clean.replace(/^url:/i, ''));
+  return url ? `url:${url}` : undefined;
+}
+
+function normalizeStoredUrl(value: string) {
+  const clean = value.trim().replace(/[.,;:!?]+$/g, '');
+  if (!clean) return undefined;
+  if (/^www\./i.test(clean)) return `https://${clean}`;
+  if (/^https:\/\//i.test(clean)) return `https://${clean.slice(clean.indexOf('://') + 3)}`;
+  if (/^http:\/\//i.test(clean)) return `http://${clean.slice(clean.indexOf('://') + 3)}`;
+  return clean;
 }
