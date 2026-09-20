@@ -94,22 +94,22 @@ export default function UpgradeScreen() {
             const outcome = await restore();
             if (!outcome.ok && outcome.error) Alert.alert('Restore purchases', outcome.error);
             else if (outcome.ok) Alert.alert('Restore purchases', 'Your App Store purchases are synced with NEVER.');
-          }} style={({ pressed }) => [styles.restore, { opacity: pressed || purchasing ? 0.58 : 1 }]}>
+          }} style={({ pressed }) => [styles.restore, { opacity: pressed || purchasing ? 0.58 : 1 }]}> 
             {purchasing && !purchasingPlan ? <ActivityIndicator size="small" /> : null}
             <Text style={[styles.restoreText, { color: p.chrome }]}>Restore Purchases</Text>
           </Pressable>
         ) : null}
 
         {!hardPaywall ? (
-          <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backButton, { backgroundColor: p.fill, opacity: pressed ? 0.65 : 1 }]}>
+          <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backButton, { backgroundColor: p.fill, opacity: pressed ? 0.65 : 1 }]}> 
             <Text style={[styles.backButtonText, { color: p.label }]}>Back to NEVER</Text>
           </Pressable>
         ) : null}
 
-        <Text style={[styles.legal, { color: p.tertiary }]}>
+        <Text style={[styles.legal, { color: p.tertiary }]}> 
           {isBetaAccess
             ? 'Beta billing is disabled. NEVER AI remains unlocked for development testing.'
-            : 'Subscriptions renew automatically unless cancelled. App Store pricing and introductory-offer eligibility are determined by Apple.'}
+            : 'Subscriptions renew automatically unless cancelled. Prices and introductory offers shown above come from the current App Store storefront when available. Apple determines introductory-offer eligibility at purchase time.'}
         </Text>
 
         <View style={styles.legalLinks}>
@@ -142,7 +142,7 @@ export default function UpgradeScreen() {
         <V5Group style={styles.planCard}>
           <View style={styles.planTop}>
             <View style={styles.planNameRow}>
-              <View style={[styles.planIcon, { backgroundColor: featured ? p.graphite : p.fillSoft }]}>
+              <View style={[styles.planIcon, { backgroundColor: featured ? p.graphite : p.fillSoft }]}> 
                 <OneIcon name={featured ? icons.ask : icons.saved} size={17} color={featured ? (p.dark ? '#111113' : '#FFFFFF') : p.chrome} />
               </View>
               <View style={{ flex: 1 }}>
@@ -159,7 +159,7 @@ export default function UpgradeScreen() {
             <Text style={[styles.offer, { color: p.tertiary }]}>{offer}</Text>
           </View>
 
-          <View style={[styles.featureList, { borderTopColor: p.separator }]}>
+          <View style={[styles.featureList, { borderTopColor: p.separator }]}> 
             {features.map((feature) => (
               <View key={feature} style={styles.featureRow}>
                 <View style={[styles.checkCircle, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.check} size={10.5} color={p.chrome} /></View>
@@ -189,7 +189,7 @@ export default function UpgradeScreen() {
               ]}
             >
               {isThisPlanPurchasing ? <ActivityIndicator size="small" color={p.dark ? '#111113' : '#FFFFFF'} /> : null}
-              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? (p.dark ? '#111113' : '#FFFFFF') : p.tertiary }]}>
+              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? (p.dark ? '#111113' : '#FFFFFF') : p.tertiary }]}> 
                 {purchaseReady
                   ? purchaseLabel(planKey, plan)
                   : !billingConfigured && isBetaAccess
