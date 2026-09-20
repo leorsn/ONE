@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { interpretCapture } from '../src/capture/core.ts';
 import { enrichCaptureDraft, extractWebUrls } from '../src/capture/enrichment.ts';
 import { buildItemFromCapture } from '../src/capture/buildItem.ts';
+import { buildSpecificLinkAnswer } from '../src/search/linkAnswer.ts';
 
 const NOW = new Date('2026-09-20T18:00:00.000Z');
 
@@ -79,4 +80,34 @@ test('resolved safe destination survives item creation and attachment remains re
   assert.equal(item.localAttachmentUri, 'file:///one-attachments/project-atlas.jpg');
   assert.equal(item.imageUrl, 'file:///one-attachments/project-atlas.jpg');
   assert.equal(item.attachmentUrl, 'file:///one-attachments/project-atlas.jpg');
+});
+
+test('Ask NEVER returns the actual URL recognized from a scanned memory', () => {
+  const input = {
+    rawText: 'IMG_4821.JPG',
+    extractedText: [
+      'STELLA POLARIS GMBH',
+      'Customer portal',
+      'www.stella-polaris.de/login'
+    ].join('\n'),
+    sourceType: 'scan',
+    isImage: true,
+    now: NOW
+  };
+  const draft = enrichCaptureDraft(interpretCapture(input), input);
+  const item = buildItemFromCapture({
+    draft,
+    sourceType: 'scan',
+    rawInput: draft.extractedText,
+    localAttachmentUri: 'file:///one-attachments/stella.jpg',
+    attachmentMimeType: 'image/jpeg',
+    attachmentName: 'IMG_4821.JPG',
+    now: NOW
+  });
+
+  const answer = buildSpecificLinkAnswer('Gib mir den Link von Stella Polaris', [item]);
+
+  assert.ok(answer);
+  assert.equal(answer.body, 'https://www.stella-polaris.de/login');
+  assert.deepEqual(answer.itemIds, [item.id]);
 });
