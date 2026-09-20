@@ -1,4 +1,4 @@
-import type { CaptureDraft, InterpretCaptureInput } from './core';
+import type { CaptureDraft, CaptureField, InterpretCaptureInput } from './core';
 
 const genericTitles = new Set([
   'image',
@@ -29,7 +29,7 @@ export function enrichCaptureDraft(draft: CaptureDraft, input: InterpretCaptureI
     ? userContext || title
     : draft.summary;
 
-  return {
+  const enriched: CaptureDraft = {
     ...draft,
     title,
     url,
@@ -37,11 +37,48 @@ export function enrichCaptureDraft(draft: CaptureDraft, input: InterpretCaptureI
     userContext,
     summary
   };
+
+  return reconcileExplicitScanEvidence(enriched, input, Boolean(inferredTitle));
 }
 
 export function extractWebUrls(value: string) {
   const raw = value.match(/(?:https?:\/\/|www\.)[^\s<>"')\]}]+/gi) || [];
   return Array.from(new Set(raw.map(normalizeWebUrl).filter(Boolean)));
+}
+
+function reconcileExplicitScanEvidence(draft: CaptureDraft, input: InterpretCaptureInput, inferredTitle: boolean): CaptureDraft {
+  if (input.sourceType !== 'scan') return draft;
+
+  const safelyResolved = new Set<CaptureField>();
+  if (inferredTitle) safelyResolved.add('title');
+  if (draft.captureKind === 'document' || draft.captureKind === 'receipt') safelyResolved.add('type');
+  if (!safelyResolved.size) return draft;
+
+  const fieldConfidence = { ...draft.fieldConfidence };
+  for (const field of safelyResolved) fieldConfidence[field] = 'high';
+
+  const needsReview = draft.needsReview.filter((field) => !safelyResolved.has(field));
+  const ambiguities = draft.ambiguities.filter((ambiguity) => !safelyResolved.has(ambiguity.field));
+  const overallConfidence = needsReview.some((field) => fieldConfidence[field] === 'low')
+    ? 'low' as const
+    : needsReview.length
+      ? 'medium' as const
+      : 'high' as const;
+
+  return {
+    ...draft,
+    fieldConfidence,
+    needsReview,
+    ambiguities,
+    overallConfidence,
+    destination: needsReview.length
+      ? 'inbox'
+      : draft.destinationConfirmed
+        ? draft.destination
+        : ['document', 'receipt', 'image', 'screenshot', 'link', 'idea', 'note'].includes(draft.captureKind)
+          ? 'saved'
+          : draft.destination
+  };
 }
 
 function inferUsefulTitle(value: string) {
