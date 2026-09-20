@@ -19,8 +19,6 @@ import {
   V5LargeHeader,
   V5SearchField,
   V5SectionHeader,
-  V5Segmented,
-  V5Wordmark,
   useNeverV5Palette
 } from '@/src/ui/appleV5';
 import type { OneDocumentKind, OneItem } from '@/src/types/item';
@@ -60,14 +58,13 @@ export default function SavedV5() {
     if (filter === 'All') return base;
     if (filter === 'Documents') return [];
     if (filter === 'Images') return base.filter((item) => item.kind === 'image' || item.sourceType === 'screenshot' || Boolean(item.imageUrl || item.localAttachmentUri));
-    if (filter === 'Links') return base.filter((item) => item.type === 'link');
-    return base.filter((item) => item.type === 'idea');
+    if (filter === 'Links') return base.filter((item) => item.type === 'link' || Boolean(item.url));
+    return base.filter((item) => item.type === 'idea' || item.type === 'note');
   }, [items, filter, query]);
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-        <View style={styles.brandBar}><V5Wordmark /></View>
         <V5LargeHeader
           title={filter === 'Documents' ? 'Documents' : 'Saved'}
           subtitle="Everything NEVER has kept for you."
@@ -91,12 +88,12 @@ export default function SavedV5() {
                 style={({ pressed }) => [
                   styles.filterChip,
                   {
-                    backgroundColor: active ? p.graphite : p.surface,
+                    backgroundColor: active ? p.fill : 'transparent',
                     opacity: pressed ? 0.62 : 1
                   }
                 ]}
               >
-                <Text style={[styles.filterText, { color: active ? (p.dark ? '#111113' : '#FFFFFF') : p.secondary }]}>{name}</Text>
+                <Text style={[styles.filterText, { color: active ? p.label : p.secondary, fontWeight: active ? '600' : '500' }]}>{name}</Text>
               </Pressable>
             );
           })}
@@ -117,7 +114,7 @@ export default function SavedV5() {
                 <MemoryRow key={item.id} item={item} last={index === savedItems.length - 1} />
               )) : (
                 <View style={styles.emptyState}>
-                  <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.saved} size={19} color={p.chrome} /></View>
+                  <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.saved} size={18} color={p.chrome} /></View>
                   <Text style={[styles.emptyTitle, { color: p.label }]}>Nothing here yet</Text>
                   <Text style={[styles.emptyBody, { color: p.secondary }]}>Capture or save something and it will appear here.</Text>
                 </View>
@@ -139,7 +136,7 @@ export default function SavedV5() {
         style={({ pressed }) => [styles.memoryRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
       >
         <View style={[styles.memoryThumb, { backgroundColor: p.fillSoft }]}>
-          {preview ? <Image source={{ uri: preview }} style={styles.memoryImage} resizeMode="cover" /> : <OneIcon name={iconForType(item.type)} size={19} color={p.chrome} />}
+          {preview ? <Image source={{ uri: preview }} style={styles.memoryImage} resizeMode="cover" /> : <OneIcon name={iconForType(item.type)} size={18} color={p.chrome} />}
         </View>
         <View style={[styles.memoryContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -164,7 +161,7 @@ export default function SavedV5() {
       <View style={styles.documents}>
         <V5Group>
           <View style={styles.summaryHeader}>
-            <Text style={[styles.summaryMonth, { color: p.secondary }]}>{summary.monthLabel}</Text>
+            <Text style={[styles.summaryMonth, { color: p.label }]}>{summary.monthLabel}</Text>
             <Text style={[styles.summaryCount, { color: p.tertiary }]}>{summary.documents.length} documents</Text>
           </View>
           <View style={[styles.summaryFacts, { borderTopColor: p.separator }]}>
@@ -181,9 +178,9 @@ export default function SavedV5() {
               <Pressable
                 key={entry.value}
                 onPress={async () => { await Haptics.selectionAsync(); setSelectedFilter(entry.value); }}
-                style={({ pressed }) => [styles.documentFilter, { backgroundColor: active ? p.graphite : p.surface, opacity: pressed ? 0.64 : 1 }]}
+                style={({ pressed }) => [styles.documentFilter, { backgroundColor: active ? p.fill : 'transparent', opacity: pressed ? 0.64 : 1 }]}
               >
-                <Text style={[styles.documentFilterText, { color: active ? (p.dark ? '#111113' : '#FFFFFF') : p.secondary }]}>{entry.label}</Text>
+                <Text style={[styles.documentFilterText, { color: active ? p.label : p.secondary, fontWeight: active ? '600' : '500' }]}>{entry.label}</Text>
               </Pressable>
             );
           })}
@@ -199,7 +196,7 @@ export default function SavedV5() {
         )) : (
           <V5Group>
             <View style={styles.emptyState}>
-              <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.document} size={19} color={p.chrome} /></View>
+              <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.document} size={18} color={p.chrome} /></View>
               <Text style={[styles.emptyTitle, { color: p.label }]}>No matching documents</Text>
               <Text style={[styles.emptyBody, { color: p.secondary }]}>Try another search or document filter.</Text>
             </View>
@@ -225,7 +222,7 @@ export default function SavedV5() {
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
         style={({ pressed }) => [styles.documentRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
       >
-        <View style={[styles.documentIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.document} size={16} color={p.chrome} /></View>
+        <View style={[styles.documentIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.document} size={15} color={p.chrome} /></View>
         <View style={[styles.documentContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={[styles.documentTitle, { color: p.label }]} numberOfLines={1}>{item.merchant || item.title}</Text>
@@ -261,38 +258,37 @@ function prettyDate(iso?: string) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 118, gap: 20 },
-  brandBar: { minHeight: 32, justifyContent: 'center' },
-  filterRail: { gap: 8, paddingRight: 8 },
-  filterChip: { minHeight: 34, paddingHorizontal: 14, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  filterText: { fontSize: 13, lineHeight: 16, fontWeight: '500' },
-  section: { gap: 8 },
-  memoryRow: { minHeight: 72, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  memoryThumb: { width: 48, height: 48, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 118, gap: 18 },
+  filterRail: { gap: 5, paddingRight: 6 },
+  filterChip: { minHeight: 31, paddingHorizontal: 12, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  filterText: { fontSize: 12.5, lineHeight: 15 },
+  section: { gap: 7 },
+  memoryRow: { minHeight: 66, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  memoryThumb: { width: 44, height: 44, borderRadius: 11, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   memoryImage: { width: '100%', height: '100%' },
-  memoryContent: { flex: 1, minHeight: 72, paddingRight: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  memoryTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
-  memoryMeta: { marginTop: 2, fontSize: 13, lineHeight: 17 },
-  memoryDate: { fontSize: 12, lineHeight: 15 },
-  emptyState: { minHeight: 180, padding: 24, alignItems: 'center', justifyContent: 'center' },
-  emptyIcon: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { marginTop: 12, fontSize: 17, lineHeight: 21, fontWeight: '600' },
-  emptyBody: { marginTop: 4, maxWidth: 260, fontSize: 13, lineHeight: 18, textAlign: 'center' },
-  documents: { gap: 18 },
-  summaryHeader: { minHeight: 58, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  summaryMonth: { fontSize: 15, lineHeight: 19, fontWeight: '600' },
-  summaryCount: { fontSize: 12, lineHeight: 15 },
-  summaryFacts: { minHeight: 80, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
-  fact: { flex: 1, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center' },
-  factValue: { fontSize: 17, lineHeight: 21, fontWeight: '600' },
-  factLabel: { marginTop: 3, fontSize: 11, lineHeight: 14 },
-  documentFilters: { gap: 8, paddingRight: 8 },
-  documentFilter: { minHeight: 34, paddingHorizontal: 13, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  documentFilterText: { fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
-  documentRow: { minHeight: 68, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  documentIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  documentContent: { flex: 1, minHeight: 68, paddingRight: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  documentTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
-  documentMeta: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
-  documentAmount: { fontSize: 13, lineHeight: 17, fontWeight: '500' }
+  memoryContent: { flex: 1, minHeight: 66, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  memoryTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
+  memoryMeta: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
+  memoryDate: { fontSize: 11.5, lineHeight: 14 },
+  emptyState: { minHeight: 150, padding: 22, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { marginTop: 10, fontSize: 16, lineHeight: 20, fontWeight: '600' },
+  emptyBody: { marginTop: 3, maxWidth: 250, fontSize: 12.5, lineHeight: 17, textAlign: 'center' },
+  documents: { gap: 15 },
+  summaryHeader: { minHeight: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  summaryMonth: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  summaryCount: { fontSize: 11.5, lineHeight: 14 },
+  summaryFacts: { minHeight: 70, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
+  fact: { flex: 1, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
+  factValue: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
+  factLabel: { marginTop: 2, fontSize: 10.5, lineHeight: 13 },
+  documentFilters: { gap: 5, paddingRight: 6 },
+  documentFilter: { minHeight: 31, paddingHorizontal: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  documentFilterText: { fontSize: 12, lineHeight: 15 },
+  documentRow: { minHeight: 62, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  documentIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  documentContent: { flex: 1, minHeight: 62, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  documentTitle: { fontSize: 15, lineHeight: 18, fontWeight: '600' },
+  documentMeta: { marginTop: 1, fontSize: 12, lineHeight: 15 },
+  documentAmount: { fontSize: 12.5, lineHeight: 16, fontWeight: '500' }
 });
