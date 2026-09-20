@@ -24,7 +24,7 @@ import {
 import type { OneDocumentKind, OneItem } from '@/src/types/item';
 
 const filters = ['All', 'Documents', 'Images', 'Links', 'Ideas'] as const;
-const documentFilters: Array<{ label: string; value: 'all' | OneDocumentKind }> = [
+const documentFilters: { label: string; value: 'all' | OneDocumentKind }[] = [
   { label: 'All', value: 'all' },
   { label: 'Receipts', value: 'receipt' },
   { label: 'Invoices', value: 'invoice' },
@@ -151,7 +151,7 @@ export default function SavedV5() {
   }
 
   function DocumentsView({ groups, summary, selectedFilter, setSelectedFilter }: {
-    groups: Array<{ label: string; items: OneItem[] }>;
+    groups: { label: string; items: OneItem[] }[];
     summary: ReturnType<typeof getDocumentSummary>;
     selectedFilter: 'all' | OneDocumentKind;
     setSelectedFilter: (value: 'all' | OneDocumentKind) => void;
