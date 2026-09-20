@@ -9,8 +9,7 @@ import {
   type CaptureField,
   type CaptureKind
 } from '@/src/capture/core';
-import { Surface } from '@/src/ui/primitives';
-import { useTheme } from '@/src/theme/useTheme';
+import { V5Group, V5Segmented, useNeverV5Palette } from '@/src/ui/appleV5';
 import type { OneDestination } from '@/src/types/item';
 
 const kinds: { value: CaptureKind; label: string }[] = [
@@ -42,7 +41,7 @@ export function CaptureReviewEditor({
   onChange: (draft: CaptureDraft) => void;
   showExtractedText?: boolean;
 }) {
-  const theme = useTheme();
+  const p = useNeverV5Palette();
 
   function setField<K extends keyof CaptureDraft>(key: K, value: CaptureDraft[K]) {
     onChange({ ...draft, [key]: value });
@@ -60,24 +59,19 @@ export function CaptureReviewEditor({
     <View style={styles.wrapper}>
       <View style={styles.headingRow}>
         <View style={{ flex: 1 }}>
-          <Text style={[styles.eyebrow, { color: theme.textTertiary }]}>REVIEW</Text>
-          <Text style={[styles.heading, { color: theme.text }]}>Make the memory yours.</Text>
-          <Text style={[styles.subheading, { color: theme.textSecondary }]}>Keep what NEVER recognized correctly and change only what needs context.</Text>
+          <Text style={[styles.heading, { color: p.label }]}>Review details</Text>
+          <Text style={[styles.subheading, { color: p.secondary }]}>Keep what NEVER recognized and change only what needs context.</Text>
         </View>
         <View style={styles.reviewState}>
-          <View style={[styles.stateDot, { backgroundColor: draft.needsReview.length ? theme.warning : theme.success }]} />
-          <Text style={[styles.reviewStateText, { color: theme.textSecondary }]}>
-            {draft.needsReview.length ? `${draft.needsReview.length} to review` : 'Ready'}
-          </Text>
+          <View style={[styles.stateDot, { backgroundColor: draft.needsReview.length ? p.warning : p.success }]} />
+          <Text style={[styles.reviewStateText, { color: p.secondary }]}>{draft.needsReview.length ? `${draft.needsReview.length} to review` : 'Ready'}</Text>
         </View>
       </View>
 
       {draft.ambiguities.length ? (
-        <View style={[styles.ambiguityCard, { borderTopColor: theme.border }]}>
-          <Text style={[styles.ambiguityTitle, { color: theme.warning }]}>Check these details</Text>
-          {draft.ambiguities.map((ambiguity) => (
-            <Text key={`${ambiguity.code}-${ambiguity.field}`} style={[styles.ambiguityText, { color: theme.textSecondary }]}>• {ambiguity.message}</Text>
-          ))}
+        <View style={[styles.ambiguityCard, { borderTopColor: p.separator }]}>
+          <Text style={[styles.ambiguityTitle, { color: p.warning }]}>Check these details</Text>
+          {draft.ambiguities.map((ambiguity) => <Text key={`${ambiguity.code}-${ambiguity.field}`} style={[styles.ambiguityText, { color: p.secondary }]}>• {ambiguity.message}</Text>)}
         </View>
       ) : null}
 
@@ -92,32 +86,25 @@ export function CaptureReviewEditor({
                 accessibilityRole="button"
                 accessibilityState={{ selected: active }}
                 onPress={() => onChange(setCaptureKind(draft, kind.value))}
-                style={[
-                  styles.kindChip,
-                  {
-                    backgroundColor: active ? theme.surfaceElevated : theme.fill,
-                    borderColor: active ? theme.fillStrong : theme.border,
-                    shadowColor: theme.shadow
-                  }
-                ]}
+                style={[styles.kindChip, { backgroundColor: active ? p.fill : 'transparent' }]}
               >
-                <Text style={[styles.kindText, { color: active ? theme.text : theme.textSecondary }]}>{kind.label}</Text>
+                <Text style={[styles.kindText, { color: active ? p.label : p.secondary, fontWeight: active ? '600' : '500' }]}>{kind.label}</Text>
               </Pressable>
             );
           })}
         </ScrollView>
       </View>
 
-      <Surface>
+      <V5Group>
         <ReviewField label="Title" field="title" value={draft.title} confidence={draft.fieldConfidence.title} onChange={(value) => updateTextField('title', 'title', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'title'))} placeholder="Title" />
         <ReviewField label="Date" field="date" value={draft.date || ''} confidence={draft.fieldConfidence.date} onChange={(value) => updateTextField('date', 'date', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'date'))} placeholder="YYYY-MM-DD" />
         <ReviewField label="Time" field="time" value={draft.time || ''} confidence={draft.fieldConfidence.time} onChange={(value) => updateTextField('time', 'time', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'time'))} placeholder="HH:MM" />
         <ReviewField label="Location" field="location" value={draft.location || ''} confidence={draft.fieldConfidence.location} onChange={(value) => updateTextField('location', 'location', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'location'))} placeholder="Optional" />
         <ReviewField label="Category" field="category" value={draft.category || ''} onChange={(value) => updateTextField('category', 'category', value)} placeholder="Optional" last />
-      </Surface>
+      </V5Group>
 
       {(draft.captureKind === 'receipt' || draft.captureKind === 'document' || draft.documentKind) ? (
-        <Surface>
+        <V5Group>
           <ReviewField label="Merchant" field="merchant" value={draft.merchant || ''} confidence={draft.fieldConfidence.merchant} onChange={(value) => updateTextField('merchant', 'merchant', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'merchant'))} placeholder="Unknown" />
           <ReviewField
             label="Amount"
@@ -133,7 +120,7 @@ export function CaptureReviewEditor({
             keyboardType="decimal-pad"
           />
           <ReviewField label="Currency" field="currency" value={draft.currency || ''} confidence={draft.fieldConfidence.currency} onChange={(value) => updateTextField('currency', 'currency', value.toUpperCase().slice(0, 3))} onConfirm={() => onChange(confirmCaptureField(draft, 'currency'))} placeholder="EUR" last />
-        </Surface>
+        </V5Group>
       ) : null}
 
       <View style={styles.textBlock}>
@@ -142,40 +129,25 @@ export function CaptureReviewEditor({
           value={draft.userContext || ''}
           onChangeText={(value) => onChange(applyUserContextPriority(draft, value))}
           placeholder="NEVER will summarize what this is about…"
-          placeholderTextColor={theme.textTertiary}
-          style={[styles.largeInput, { color: theme.text, backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+          placeholderTextColor={p.tertiary}
+          style={[styles.largeInput, { color: p.label, backgroundColor: p.surface }]}
           multiline
           accessibilityLabel="Your context"
         />
-        <Text style={[styles.help, { color: theme.textTertiary }]}>NEVER drafts this automatically. Your edits always take priority.</Text>
+        <Text style={[styles.help, { color: p.tertiary }]}>NEVER drafts this automatically. Your edits always take priority.</Text>
       </View>
 
       <View style={styles.section}>
         <FieldLabel label="Organize in" />
-        <View style={[styles.destinationGroup, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-          {destinations.map((destination) => {
-            const active = draft.destination === destination.value;
-            return (
-              <Pressable
-                key={destination.value}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                onPress={() => onChange(setCaptureDestination(draft, destination.value))}
-                style={[
-                  styles.destinationOption,
-                  active && {
-                    backgroundColor: theme.surfaceElevated,
-                    borderColor: theme.fillStrong,
-                    shadowColor: theme.shadow
-                  }
-                ]}
-              >
-                <Text style={[styles.destinationText, { color: active ? theme.text : theme.textSecondary }]}>{destination.label}</Text>
-              </Pressable>
-            );
-          })}
-        </View>
-        {draft.needsReview.length ? <Text style={[styles.help, { color: theme.textTertiary }]}>Unresolved details default to Inbox until you confirm them.</Text> : null}
+        <V5Segmented
+          options={destinations.map((destination) => destination.label)}
+          selected={destinations.find((destination) => destination.value === draft.destination)?.label || 'Inbox'}
+          onSelect={(label) => {
+            const destination = destinations.find((entry) => entry.label === label);
+            if (destination) onChange(setCaptureDestination(draft, destination.value));
+          }}
+        />
+        {draft.needsReview.length ? <Text style={[styles.help, { color: p.tertiary }]}>Unresolved details default to Inbox until you confirm them.</Text> : null}
       </View>
 
       <View style={styles.textBlock}>
@@ -184,8 +156,8 @@ export function CaptureReviewEditor({
           value={draft.tags.join(', ')}
           onChangeText={(value) => setField('tags', splitTags(value))}
           placeholder="gift, dad, travel"
-          placeholderTextColor={theme.textTertiary}
-          style={[styles.singleInput, { color: theme.text, backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+          placeholderTextColor={p.tertiary}
+          style={[styles.singleInput, { color: p.label, backgroundColor: p.surface }]}
           autoCapitalize="none"
           accessibilityLabel="Tags"
         />
@@ -198,13 +170,13 @@ export function CaptureReviewEditor({
             value={draft.extractedText || ''}
             onChangeText={(value) => setField('extractedText', value || undefined)}
             placeholder="No text recognized"
-            placeholderTextColor={theme.textTertiary}
-            style={[styles.extractedInput, { color: theme.textSecondary, backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}
+            placeholderTextColor={p.tertiary}
+            style={[styles.extractedInput, { color: p.secondary, backgroundColor: p.surface }]}
             multiline
             textAlignVertical="top"
             accessibilityLabel="Extracted text"
           />
-          <Text style={[styles.help, { color: theme.textTertiary }]}>Recognition remains separate from your notes and can be corrected without changing the original attachment.</Text>
+          <Text style={[styles.help, { color: p.tertiary }]}>Recognition remains separate from your notes and can be corrected without changing the original attachment.</Text>
         </View>
       ) : null}
     </View>
@@ -213,16 +185,12 @@ export function CaptureReviewEditor({
   function FieldLabel({ label, confidence, field }: { label: string; confidence?: CaptureConfidence; field?: CaptureField }) {
     return (
       <View style={styles.fieldLabelRow}>
-        <Text style={[styles.fieldLabel, { color: theme.textTertiary }]}>{label.toUpperCase()}</Text>
+        <Text style={[styles.fieldLabel, { color: p.secondary }]}>{label}</Text>
         {confidence ? (
-          <Pressable
-            accessibilityRole={field ? 'button' : undefined}
-            accessibilityLabel={field ? `${label} confidence ${confidence}. Mark as confirmed.` : `${label} confidence ${confidence}`}
-            onPress={field ? () => onChange(confirmCaptureField(draft, field)) : undefined}
-          >
+          <Pressable accessibilityRole={field ? 'button' : undefined} accessibilityLabel={field ? `${label} confidence ${confidence}. Mark as confirmed.` : `${label} confidence ${confidence}`} onPress={field ? () => onChange(confirmCaptureField(draft, field)) : undefined}>
             <View style={styles.confidenceRow}>
               <View style={[styles.confidenceDot, { backgroundColor: confidenceColor(confidence) }]} />
-              <Text style={[styles.confidence, { color: theme.textTertiary }]}>{confidence}</Text>
+              <Text style={[styles.confidence, { color: p.tertiary }]}>{confidence}</Text>
             </View>
           </Pressable>
         ) : null}
@@ -253,28 +221,30 @@ export function CaptureReviewEditor({
   }) {
     const unresolved = draft.needsReview.includes(field);
     return (
-      <View style={[styles.fieldRow, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: theme.border }]}>
+      <View style={[styles.fieldRow, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.separator }]}>
         <View style={styles.fieldNameWrap}>
-          <Text style={[styles.rowLabel, { color: theme.text }]}>{label}</Text>
-          {confidence ? (
-            <View style={styles.inlineConfidenceRow}>
-              <View style={[styles.miniDot, { backgroundColor: confidenceColor(confidence) }]} />
-              <Text style={[styles.inlineConfidence, { color: theme.textTertiary }]}>{confidence}</Text>
-            </View>
-          ) : null}
-          {unresolved && onConfirm ? (
-            <Pressable accessibilityRole="button" accessibilityLabel={`Confirm ${label}`} onPress={onConfirm} hitSlop={8}>
-              <Text style={[styles.confirmText, { color: theme.chrome }]}>{value ? 'Confirm' : 'Keep blank'}</Text>
-            </Pressable>
-          ) : null}
+          <Text style={[styles.rowLabel, { color: p.label }]}>{label}</Text>
+          <View style={styles.fieldMetaLine}>
+            {confidence ? (
+              <View style={styles.inlineConfidenceRow}>
+                <View style={[styles.miniDot, { backgroundColor: confidenceColor(confidence) }]} />
+                <Text style={[styles.inlineConfidence, { color: p.tertiary }]}>{confidence}</Text>
+              </View>
+            ) : null}
+            {unresolved && onConfirm ? (
+              <Pressable accessibilityRole="button" accessibilityLabel={`Confirm ${label}`} onPress={onConfirm} hitSlop={8}>
+                <Text style={[styles.confirmText, { color: p.chrome }]}>{value ? 'Confirm' : 'Keep blank'}</Text>
+              </Pressable>
+            ) : null}
+          </View>
         </View>
         <TextInput
           value={value}
           onChangeText={onFieldChange}
           placeholder={placeholder}
-          placeholderTextColor={theme.textTertiary}
+          placeholderTextColor={p.tertiary}
           keyboardType={keyboardType}
-          style={[styles.rowInput, { color: theme.text }]}
+          style={[styles.rowInput, { color: p.label }]}
           accessibilityLabel={label}
           autoCapitalize={label === 'Currency' ? 'characters' : 'sentences'}
         />
@@ -283,16 +253,15 @@ export function CaptureReviewEditor({
   }
 
   function confidenceColor(confidence: CaptureConfidence) {
-    if (confidence === 'high') return theme.success;
-    if (confidence === 'medium') return theme.warning;
-    return theme.danger;
+    if (confidence === 'high') return p.success;
+    if (confidence === 'medium') return p.warning;
+    return p.danger;
   }
 }
 
 function splitTags(value: string) {
   return Array.from(new Set(value.split(',').map((tag) => tag.trim().toLowerCase()).filter(Boolean)));
 }
-
 function parseAmount(value: string) {
   const clean = value.trim().replace(/[^0-9.,-]/g, '');
   if (!clean) return undefined;
@@ -307,40 +276,37 @@ function parseAmount(value: string) {
 }
 
 const styles = StyleSheet.create({
-  wrapper: { gap: 18 },
-  headingRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
-  eyebrow: { fontSize: 8.25, fontWeight: '700', letterSpacing: 1.45 },
-  heading: { marginTop: 5, fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.25 },
-  subheading: { marginTop: 4, maxWidth: 430, fontSize: 11.5, lineHeight: 16.5 },
-  reviewState: { paddingTop: 2, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  stateDot: { width: 6, height: 6, borderRadius: 3 },
-  reviewStateText: { fontSize: 10.25, fontWeight: '600' },
-  ambiguityCard: { paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
-  ambiguityTitle: { fontSize: 11.25, fontWeight: '600', marginBottom: 3 },
-  ambiguityText: { marginTop: 3, fontSize: 10.75, lineHeight: 15.5 },
-  section: { gap: 9 },
+  wrapper: { gap: 16 },
+  headingRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  heading: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.2 },
+  subheading: { marginTop: 3, maxWidth: 430, fontSize: 12, lineHeight: 16.5 },
+  reviewState: { paddingTop: 2, flexDirection: 'row', alignItems: 'center', gap: 5 },
+  stateDot: { width: 5, height: 5, borderRadius: 3 },
+  reviewStateText: { fontSize: 10.5, lineHeight: 13, fontWeight: '600' },
+  ambiguityCard: { paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
+  ambiguityTitle: { fontSize: 11.5, lineHeight: 14, fontWeight: '600', marginBottom: 2 },
+  ambiguityText: { marginTop: 3, fontSize: 11, lineHeight: 15.5 },
+  section: { gap: 7 },
   fieldLabelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2 },
-  fieldLabel: { fontSize: 8.25, fontWeight: '700', letterSpacing: 1.25 },
-  confidenceRow: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  confidenceDot: { width: 5, height: 5, borderRadius: 3 },
-  confidence: { fontSize: 9.25, fontWeight: '500', textTransform: 'capitalize' },
-  kindRow: { gap: 7, paddingRight: 4 },
-  kindChip: { minHeight: 34, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, alignItems: 'center', justifyContent: 'center', shadowOpacity: 0.02, shadowRadius: 5, shadowOffset: { width: 0, height: 2 } },
-  kindText: { fontSize: 11.25, fontWeight: '600' },
-  fieldRow: { minHeight: 64, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  fieldNameWrap: { width: 94 },
-  rowLabel: { fontSize: 12.5, fontWeight: '600' },
-  inlineConfidenceRow: { marginTop: 3, flexDirection: 'row', alignItems: 'center', gap: 4 },
+  fieldLabel: { fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
+  confidenceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  confidenceDot: { width: 4, height: 4, borderRadius: 2 },
+  confidence: { fontSize: 9.5, lineHeight: 12, fontWeight: '500', textTransform: 'capitalize' },
+  kindRow: { gap: 4, paddingRight: 4 },
+  kindChip: { minHeight: 31, borderRadius: 10, paddingHorizontal: 11, alignItems: 'center', justifyContent: 'center' },
+  kindText: { fontSize: 11.5, lineHeight: 14 },
+  fieldRow: { minHeight: 58, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  fieldNameWrap: { width: 100 },
+  rowLabel: { fontSize: 13, lineHeight: 16, fontWeight: '600' },
+  fieldMetaLine: { marginTop: 2, flexDirection: 'row', alignItems: 'center', gap: 7 },
+  inlineConfidenceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   miniDot: { width: 4, height: 4, borderRadius: 2 },
-  inlineConfidence: { fontSize: 8.75, textTransform: 'capitalize' },
-  confirmText: { marginTop: 4, fontSize: 9.25, fontWeight: '600' },
-  rowInput: { flex: 1, minHeight: 44, fontSize: 13.5, textAlign: 'right' },
-  textBlock: { gap: 8 },
-  largeInput: { minHeight: 92, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, padding: 13, fontSize: 13.5, lineHeight: 20, textAlignVertical: 'top' },
-  singleInput: { minHeight: 50, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, fontSize: 13.5 },
-  extractedInput: { minHeight: 128, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, padding: 13, fontSize: 12, lineHeight: 18 },
-  destinationGroup: { minHeight: 42, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, padding: 3, flexDirection: 'row', gap: 3 },
-  destinationOption: { flex: 1, minHeight: 34, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center', shadowOpacity: 0.02, shadowRadius: 4, shadowOffset: { width: 0, height: 2 } },
-  destinationText: { fontSize: 11.25, fontWeight: '600' },
-  help: { marginLeft: 2, fontSize: 10.25, lineHeight: 15 }
+  inlineConfidence: { fontSize: 8.75, lineHeight: 11, textTransform: 'capitalize' },
+  confirmText: { fontSize: 9.25, lineHeight: 12, fontWeight: '600' },
+  rowInput: { flex: 1, minHeight: 42, fontSize: 13.5, lineHeight: 17, textAlign: 'right' },
+  textBlock: { gap: 7 },
+  largeInput: { minHeight: 86, borderRadius: 16, padding: 13, fontSize: 13.5, lineHeight: 19.5, textAlignVertical: 'top' },
+  singleInput: { minHeight: 46, borderRadius: 14, paddingHorizontal: 13, fontSize: 13.5 },
+  extractedInput: { minHeight: 116, borderRadius: 16, padding: 13, fontSize: 12, lineHeight: 18 },
+  help: { marginLeft: 2, fontSize: 10.25, lineHeight: 14.5 }
 });
