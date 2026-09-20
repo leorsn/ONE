@@ -1,18 +1,16 @@
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useItems } from '@/src/context/ItemsContext';
 import { isInboxActive, triageActionChanges, triagePriority } from '@/src/inbox/triage';
 import { TriageRow } from '@/src/ui/TriageRow';
-import { BrandHeader, EmptyState, SectionHeader, Surface, uiStyles } from '@/src/ui/primitives';
-import { icons } from '@/src/ui/icons';
-import { useTheme } from '@/src/theme/useTheme';
-import { editorialFontFamily } from '@/src/theme/typography';
+import { OneIcon, icons } from '@/src/ui/icons';
+import { V5Group, V5LargeHeader, V5SectionHeader, useNeverV5Palette } from '@/src/ui/appleV5';
 import type { OneInboxAction, OneItem } from '@/src/types/item';
 
 export default function InboxIndexScreen() {
-  const theme = useTheme();
+  const p = useNeverV5Palette();
   const { items, update } = useItems();
   const now = new Date();
   const inboxItems = items
@@ -27,16 +25,13 @@ export default function InboxIndexScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top']}>
-      <ScrollView contentContainerStyle={uiStyles.screenContent} showsVerticalScrollIndicator={false}>
-        <BrandHeader />
-        <View style={styles.intro}>
-          <Text style={[styles.title, { color: theme.text }]}>Inbox</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>New captures that still need a decision.</Text>
-        </View>
-        <View style={styles.block}>
-          <SectionHeader title="Needs you" meta={`${inboxItems.length} items`} />
-          <Surface>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <V5LargeHeader title="Inbox" subtitle="New captures that still need a decision." />
+
+        <View style={styles.section}>
+          <V5SectionHeader title="Needs Review" meta={`${inboxItems.length}`} />
+          <V5Group>
             {inboxItems.length ? inboxItems.map((item) => (
               <TriageRow
                 key={item.id}
@@ -45,9 +40,15 @@ export default function InboxIndexScreen() {
                 onExecute={(action) => executeAction(item, action)}
               />
             )) : (
-              <EmptyState icon={icons.check} title="Inbox clear" body="Everything you captured has a place." />
+              <View style={styles.emptyState}>
+                <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.check} size={18} color={p.chrome} /></View>
+                <View style={{ flex: 1 }}>
+                  <View style={[styles.emptyTitleBar, { backgroundColor: p.label }]} />
+                  <View style={[styles.emptyBodyBar, { backgroundColor: p.tertiary }]} />
+                </View>
+              </View>
             )}
-          </Surface>
+          </V5Group>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -60,8 +61,10 @@ function sortUpdated(a: OneItem, b: OneItem) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  intro: { marginTop: -4 },
-  title: { fontFamily: editorialFontFamily, fontSize: 34, lineHeight: 38, letterSpacing: -1.05 },
-  subtitle: { marginTop: 4, fontSize: 12.75, lineHeight: 18.5 },
-  block: { gap: 10 }
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 40, gap: 18 },
+  section: { gap: 7 },
+  emptyState: { minHeight: 78, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  emptyIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  emptyTitleBar: { width: 110, height: 8, borderRadius: 4, opacity: 0.85 },
+  emptyBodyBar: { width: 170, height: 6, borderRadius: 3, marginTop: 7, opacity: 0.45 }
 });
