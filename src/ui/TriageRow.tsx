@@ -1,8 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { proposedActionsForItem, triageStateForItem } from '@/src/inbox/triage';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { useTheme } from '@/src/theme/useTheme';
-import { neverType } from '@/src/theme/typography';
+import { useNeverV5Palette } from '@/src/ui/appleV5';
 import type { OneInboxAction, OneItem } from '@/src/types/item';
 
 export function TriageRow({
@@ -14,79 +13,64 @@ export function TriageRow({
   onOpen: () => void;
   onExecute: (action: OneInboxAction) => void | Promise<void>;
 }) {
-  const theme = useTheme();
+  const p = useNeverV5Palette();
   const state = triageStateForItem(item);
   const action = proposedActionsForItem(item)[0];
   const stateColor = state === 'needs_review'
-    ? theme.warning
+    ? p.warning
     : state === 'processed'
-      ? theme.success
-      : theme.textTertiary;
+      ? p.success
+      : p.tertiary;
 
   return (
-    <View style={[styles.row, { borderBottomColor: theme.border }]}>
+    <View style={[styles.row, { borderBottomColor: p.separator }]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Open ${item.title}`}
         onPress={onOpen}
-        style={({ pressed }) => [
-          styles.openArea,
-          { backgroundColor: pressed ? theme.fill : 'transparent' }
-        ]}
+        style={({ pressed }) => [styles.openArea, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
       >
-        <View style={styles.markerColumn}>
-          <View style={[styles.marker, { backgroundColor: stateColor }]} />
-        </View>
+        <View style={[styles.marker, { backgroundColor: stateColor }]} />
 
         <View style={styles.body}>
-          <View style={styles.topline}>
-            <Text style={[styles.state, { color: stateColor }]}>{stateLabel(state)}</Text>
-            <Text style={[styles.source, { color: theme.textTertiary }]}>{sourceLabel(item)}</Text>
+          <View style={styles.titleLine}>
+            <Text style={[styles.title, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
+            <Text style={[styles.source, { color: p.tertiary }]} numberOfLines={1}>{sourceLabel(item)}</Text>
           </View>
-
-          <Text style={[styles.title, { color: theme.text }]} numberOfLines={1}>{item.title}</Text>
-          <Text style={[styles.summary, { color: theme.textSecondary }]} numberOfLines={2}>
+          <Text style={[styles.summary, { color: p.secondary }]} numberOfLines={1}>
             {item.summary || fallbackSummary(item)}
           </Text>
-
           <View style={styles.footer}>
-            {metaLine(item) ? (
-              <Text style={[styles.meta, { color: theme.textTertiary }]} numberOfLines={1}>{metaLine(item)}</Text>
-            ) : <View style={styles.metaSpacer} />}
-
+            <View style={styles.stateWrap}>
+              <View style={[styles.stateDot, { backgroundColor: stateColor }]} />
+              <Text style={[styles.state, { color: stateColor }]}>{stateLabel(state)}</Text>
+              {metaLine(item) ? <Text style={[styles.meta, { color: p.tertiary }]} numberOfLines={1}> · {metaLine(item)}</Text> : null}
+            </View>
             {action ? (
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`${action.label} for ${item.title}`}
                 onPress={() => onExecute(action.id)}
-                style={({ pressed }) => [
-                  styles.action,
-                  {
-                    backgroundColor: theme.platinumSoft,
-                    borderColor: theme.glassBorder,
-                    opacity: pressed ? 0.58 : 1
-                  }
-                ]}
+                style={({ pressed }) => [styles.action, { backgroundColor: p.fill, opacity: pressed ? 0.55 : 1 }]}
               >
-                <Text style={[styles.actionText, { color: theme.textSecondary }]}>{action.label}</Text>
-                <OneIcon name={icons.chevron} size={10} color={theme.textTertiary} />
+                <Text style={[styles.actionText, { color: p.secondary }]}>{action.label}</Text>
               </Pressable>
             ) : null}
           </View>
         </View>
 
-        <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+        <OneIcon name={icons.chevron} size={12} color={p.tertiary} />
       </Pressable>
     </View>
   );
 }
 
 function stateLabel(state: ReturnType<typeof triageStateForItem>) {
-  if (state === 'needs_review') return 'REVIEW';
-  if (state === 'actionable') return 'ACTION';
-  if (state === 'processed') return 'PROCESSED';
-  if (state === 'archived') return 'ARCHIVED';
-  return 'NEW';
+  if (state === 'needs_review') return 'Review';
+  if (state === 'actionable') return 'Action';
+  if (state === 'processed') return 'Processed';
+  if (state === 'archived') return 'Archived';
+  return 'New';
 }
 
 function sourceLabel(item: OneItem) {
@@ -127,90 +111,27 @@ function formatAmount(amount: number, currency = 'EUR') {
 }
 
 const styles = StyleSheet.create({
-  row: {
-    borderBottomWidth: StyleSheet.hairlineWidth
-  },
+  row: { borderBottomWidth: StyleSheet.hairlineWidth },
   openArea: {
-    minHeight: 98,
-    paddingHorizontal: 16,
-    paddingVertical: 15,
+    minHeight: 84,
+    paddingLeft: 14,
+    paddingRight: 14,
+    paddingVertical: 11,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 11
   },
-  markerColumn: {
-    width: 8,
-    alignSelf: 'stretch',
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    paddingTop: 8
-  },
-  marker: {
-    width: 5,
-    height: 5,
-    borderRadius: 3
-  },
-  body: {
-    flex: 1,
-    minWidth: 0
-  },
-  topline: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8
-  },
-  state: {
-    ...neverType.eyebrow,
-    fontSize: 7.7,
-    lineHeight: 10,
-    letterSpacing: 1.25
-  },
-  source: {
-    flex: 1,
-    fontSize: 9.5,
-    lineHeight: 12,
-    textAlign: 'right'
-  },
-  title: {
-    ...neverType.bodyStrong,
-    marginTop: 7,
-    fontSize: 14.5,
-    lineHeight: 18
-  },
-  summary: {
-    ...neverType.caption,
-    marginTop: 4,
-    fontSize: 11.25,
-    lineHeight: 16
-  },
-  footer: {
-    marginTop: 9,
-    minHeight: 28,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10
-  },
-  meta: {
-    ...neverType.caption,
-    flex: 1,
-    fontSize: 9.75,
-    lineHeight: 13
-  },
-  metaSpacer: {
-    flex: 1
-  },
-  action: {
-    minHeight: 28,
-    paddingHorizontal: 10,
-    borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4
-  },
-  actionText: {
-    fontSize: 9.75,
-    lineHeight: 12,
-    fontWeight: '600'
-  }
+  marker: { width: 7, height: 7, borderRadius: 4 },
+  body: { flex: 1, minWidth: 0 },
+  titleLine: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  title: { flex: 1, fontSize: 16, lineHeight: 20, fontWeight: '600', letterSpacing: -0.15 },
+  source: { maxWidth: 112, fontSize: 11, lineHeight: 14, textAlign: 'right' },
+  summary: { marginTop: 2, fontSize: 13, lineHeight: 17 },
+  footer: { marginTop: 6, minHeight: 26, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  stateWrap: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center' },
+  stateDot: { width: 4, height: 4, borderRadius: 2, marginRight: 5 },
+  state: { fontSize: 11, lineHeight: 14, fontWeight: '600' },
+  meta: { flexShrink: 1, fontSize: 11, lineHeight: 14 },
+  action: { minHeight: 28, paddingHorizontal: 9, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  actionText: { fontSize: 11, lineHeight: 14, fontWeight: '500' }
 });
