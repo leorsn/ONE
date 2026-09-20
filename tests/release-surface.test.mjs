@@ -78,6 +78,15 @@ test('account deletion warns active subscribers and still permits immediate dele
   assert.match(settings, /confirmPermanentDelete/);
 });
 
+test('saved originals remain actionable from memory detail', async () => {
+  const detail = await text('app/item/[id].tsx');
+  assert.match(detail, /const sourceUri = currentItem\.localAttachmentUri \|\| currentItem\.imageUrl \|\| currentItem\.attachmentUrl/);
+  assert.match(detail, /if \(sourceIsImage\) \{\s*setSourceExpanded/);
+  assert.match(detail, /Sharing\.isAvailableAsync\(\)/);
+  assert.match(detail, /Sharing\.shareAsync\(sourceUri/);
+  assert.match(detail, /accessibilityLabel=.*Open original file/);
+});
+
 test('App Store release environment requires both billing and Terms configuration', async () => {
   const releaseEnv = await text('scripts/verify-release-env.mjs');
   assert.match(releaseEnv, /required\.push\('EXPO_PUBLIC_REVENUECAT_IOS_KEY', 'EXPO_PUBLIC_TERMS_URL'\)/);
