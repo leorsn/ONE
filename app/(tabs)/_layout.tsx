@@ -53,7 +53,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
       pointerEvents="box-none"
       style={[
         styles.tabBarWrap,
-        { bottom: Math.max(8, insets.bottom - 6) }
+        { bottom: Math.max(9, insets.bottom - 5) }
       ]}
     >
       <View
@@ -68,6 +68,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
       >
         <View pointerEvents="none" style={[styles.reflection, { backgroundColor: theme.reflection }]} />
         <View pointerEvents="none" style={[styles.lowerReflection, { backgroundColor: theme.reflection }]} />
+        <View pointerEvents="none" style={[styles.centerRail, { backgroundColor: theme.platinum }]} />
 
         {state.routes.map((route) => {
           const index = state.routes.indexOf(route);
@@ -115,16 +116,19 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
                   }
                 ],
                 {
-                  opacity: pressed ? 0.64 : 1,
-                  transform: [{ scale: pressed ? 0.97 : 1 }]
+                  opacity: pressed ? 0.62 : 1,
+                  transform: [{ scale: pressed ? 0.965 : focused ? 1.015 : 1 }]
                 }
               ]}
             >
-              <OneIcon
-                name={tabIcon[routeName]}
-                size={focused ? 18 : 17}
-                color={focused ? theme.chrome : theme.textTertiary}
-              />
+              {focused ? <View style={[styles.activeRail, { backgroundColor: theme.chrome }]} /> : null}
+              <View style={[styles.iconWell, focused && { backgroundColor: theme.glassStrong, borderColor: theme.glassBorder }]}>
+                <OneIcon
+                  name={tabIcon[routeName]}
+                  size={focused ? 18.5 : 17}
+                  color={focused ? theme.chrome : theme.textTertiary}
+                />
+              </View>
               <Text
                 style={[
                   styles.tabLabel,
@@ -146,63 +150,90 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
 const styles = StyleSheet.create({
   tabBarWrap: {
     position: 'absolute',
-    left: 18,
-    right: 18
+    left: 14,
+    right: 14
   },
   tabBar: {
-    height: 62,
-    borderRadius: 25,
+    height: 70,
+    borderRadius: 29,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 6,
-    paddingVertical: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 7,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
     overflow: 'hidden',
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 6
+    shadowOpacity: 0.18,
+    shadowRadius: 28,
+    shadowOffset: { width: 0, height: 12 },
+    elevation: 8
   },
   reflection: {
     position: 'absolute',
     top: 0,
-    left: 28,
-    right: 28,
+    left: 30,
+    right: 30,
     height: StyleSheet.hairlineWidth,
-    opacity: 0.88
+    opacity: 0.98
   },
   lowerReflection: {
     position: 'absolute',
-    left: 90,
-    right: 90,
+    left: 84,
+    right: 84,
     bottom: 0,
     height: StyleSheet.hairlineWidth,
-    opacity: 0.22
+    opacity: 0.28
+  },
+  centerRail: {
+    position: 'absolute',
+    top: 5,
+    left: '42%',
+    right: '42%',
+    height: 2,
+    borderRadius: 2,
+    opacity: 0.26
   },
   tabItem: {
     flex: 1,
-    height: 50,
-    borderRadius: 19,
+    height: 56,
+    borderRadius: 21,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 3
+    gap: 1,
+    position: 'relative'
   },
   tabItemActive: {
     borderWidth: StyleSheet.hairlineWidth,
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 4 }
+    shadowOpacity: 0.14,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 }
+  },
+  activeRail: {
+    position: 'absolute',
+    top: 4,
+    width: 20,
+    height: 2,
+    borderRadius: 2,
+    opacity: 0.9
+  },
+  iconWell: {
+    width: 31,
+    height: 28,
+    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center'
   },
   tabLabel: {
-    fontSize: 9.4,
+    fontSize: 9.2,
     lineHeight: 11,
-    letterSpacing: -0.05
+    letterSpacing: -0.04
   },
   tabLabelActive: {
-    fontWeight: '700'
+    fontWeight: '800'
   },
   tabLabelInactive: {
     fontWeight: '600'
