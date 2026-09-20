@@ -15,8 +15,6 @@ import {
   V5Chevron,
   V5Group,
   V5LargeHeader,
-  V5SectionHeader,
-  V5Wordmark,
   useNeverV5Palette
 } from '@/src/ui/appleV5';
 import { useThemePreference } from '@/src/theme/useTheme';
@@ -25,7 +23,6 @@ const APP_VERSION = Constants.expoConfig?.version || '0.1.0';
 const APPLE_SUBSCRIPTIONS_URL = 'https://apps.apple.com/account/subscriptions';
 
 type IconName = (typeof icons)[keyof typeof icons];
-
 type RowTone = 'neutral' | 'accent' | 'success' | 'warning' | 'danger';
 
 export default function SettingsV5() {
@@ -121,7 +118,6 @@ export default function SettingsV5() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.brandBar}><V5Wordmark /></View>
         <V5LargeHeader title="Settings" subtitle="Account, appearance and NEVER preferences." />
 
         {session ? (
@@ -131,7 +127,7 @@ export default function SettingsV5() {
               style={({ pressed }) => [styles.profileRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
             >
               <View style={[styles.avatar, { backgroundColor: p.fillSoft }]}>
-                {initials ? <Text style={[styles.avatarText, { color: p.chrome }]}>{initials}</Text> : <OneIcon name={icons.person} size={19} color={p.chrome} />}
+                {initials ? <Text style={[styles.avatarText, { color: p.chrome }]}>{initials}</Text> : <OneIcon name={icons.person} size={18} color={p.chrome} />}
               </View>
               <View style={styles.profileCopy}>
                 <Text style={[styles.profileTitle, { color: p.label }]} numberOfLines={1}>{profileName}</Text>
@@ -191,7 +187,7 @@ export default function SettingsV5() {
               style={({ pressed }) => [styles.dangerRow, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: deletingAccount ? 0.58 : 1 }]}
             >
               <View style={[styles.rowIcon, { backgroundColor: p.danger + '18' }]}>
-                <OneIcon name={icons.delete} size={16} color={p.danger} />
+                <OneIcon name={icons.delete} size={15} color={p.danger} />
               </View>
               <View style={styles.rowCopy}>
                 <Text style={[styles.rowLabel, { color: p.danger }]}>Delete Account</Text>
@@ -210,7 +206,7 @@ export default function SettingsV5() {
   function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
     return (
       <View style={styles.section}>
-        <V5SectionHeader title={title} />
+        <Text style={[styles.groupTitle, { color: p.secondary }]}>{title}</Text>
         <V5Group>{children}</V5Group>
       </View>
     );
@@ -235,7 +231,7 @@ export default function SettingsV5() {
     const content = (
       <>
         <View style={[styles.rowIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18' }]}>
-          <OneIcon name={icon} size={16} color={tint} />
+          <OneIcon name={icon} size={15} color={tint} />
         </View>
         <View style={[styles.rowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
           <View style={styles.rowCopy}>
@@ -291,23 +287,23 @@ function appearanceLabel(value: 'system' | 'light' | 'dark') {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 118, gap: 22 },
-  brandBar: { minHeight: 32, justifyContent: 'center' },
-  profileRow: { minHeight: 82, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  avatar: { width: 48, height: 48, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 15, lineHeight: 19, fontWeight: '700', letterSpacing: 0.3 },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 118, gap: 18 },
+  profileRow: { minHeight: 74, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  avatar: { width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 14, lineHeight: 18, fontWeight: '700', letterSpacing: 0.25 },
   profileCopy: { flex: 1, minWidth: 0 },
-  profileTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
-  profileEmail: { marginTop: 2, fontSize: 13, lineHeight: 17 },
-  profileMeta: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  planLabel: { fontSize: 10, lineHeight: 13, fontWeight: '700', letterSpacing: 0.6 },
-  section: { gap: 8 },
-  row: { minHeight: 66, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  rowIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  rowContent: { flex: 1, minHeight: 66, paddingRight: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  profileTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
+  profileEmail: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
+  profileMeta: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  planLabel: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.55 },
+  section: { gap: 6 },
+  groupTitle: { paddingHorizontal: 4, fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
+  row: { minHeight: 58, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  rowIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  rowContent: { flex: 1, minHeight: 58, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
   rowCopy: { flex: 1, minWidth: 0 },
-  rowLabel: { fontSize: 15.5, lineHeight: 19, fontWeight: '500' },
-  rowValue: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
-  dangerRow: { minHeight: 66, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  footer: { textAlign: 'center', fontSize: 11, lineHeight: 15, paddingVertical: 8 }
+  rowLabel: { fontSize: 15, lineHeight: 18, fontWeight: '500' },
+  rowValue: { marginTop: 1, fontSize: 12, lineHeight: 15.5 },
+  dangerRow: { minHeight: 58, paddingHorizontal: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  footer: { textAlign: 'center', fontSize: 10.5, lineHeight: 14, paddingVertical: 8 }
 });
