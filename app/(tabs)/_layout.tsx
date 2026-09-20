@@ -53,7 +53,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
       pointerEvents="box-none"
       style={[
         styles.tabBarWrap,
-        { bottom: Math.max(8, insets.bottom - 5) }
+        { bottom: Math.max(8, insets.bottom - 6) }
       ]}
     >
       <View
@@ -66,13 +66,8 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
           }
         ]}
       >
-        <View
-          pointerEvents="none"
-          style={[
-            styles.reflection,
-            { backgroundColor: theme.reflection }
-          ]}
-        />
+        <View pointerEvents="none" style={[styles.reflection, { backgroundColor: theme.reflection }]} />
+        <View pointerEvents="none" style={[styles.lowerReflection, { backgroundColor: theme.reflection }]} />
 
         {state.routes.map((route) => {
           const index = state.routes.indexOf(route);
@@ -115,18 +110,19 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
                   styles.tabItemActive,
                   {
                     backgroundColor: theme.platinumSoft,
-                    borderColor: theme.glassBorder
+                    borderColor: theme.glassBorder,
+                    shadowColor: theme.shadow
                   }
                 ],
                 {
-                  opacity: pressed ? 0.62 : 1,
-                  transform: [{ scale: pressed ? 0.975 : 1 }]
+                  opacity: pressed ? 0.64 : 1,
+                  transform: [{ scale: pressed ? 0.97 : 1 }]
                 }
               ]}
             >
               <OneIcon
                 name={tabIcon[routeName]}
-                size={focused ? 17.5 : 17}
+                size={focused ? 18 : 17}
                 color={focused ? theme.chrome : theme.textTertiary}
               />
               <Text
@@ -150,12 +146,12 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
 const styles = StyleSheet.create({
   tabBarWrap: {
     position: 'absolute',
-    left: 16,
-    right: 16
+    left: 18,
+    right: 18
   },
   tabBar: {
-    height: 58,
-    borderRadius: 22,
+    height: 62,
+    borderRadius: 25,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 6,
     paddingVertical: 6,
@@ -163,23 +159,31 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 3,
     overflow: 'hidden',
-    shadowOpacity: 0.1,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 9 },
-    elevation: 5
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6
   },
   reflection: {
     position: 'absolute',
     top: 0,
-    left: 26,
-    right: 26,
+    left: 28,
+    right: 28,
     height: StyleSheet.hairlineWidth,
-    opacity: 0.7
+    opacity: 0.88
+  },
+  lowerReflection: {
+    position: 'absolute',
+    left: 90,
+    right: 90,
+    bottom: 0,
+    height: StyleSheet.hairlineWidth,
+    opacity: 0.22
   },
   tabItem: {
     flex: 1,
-    height: 46,
-    borderRadius: 16,
+    height: 50,
+    borderRadius: 19,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
     alignItems: 'center',
@@ -187,12 +191,15 @@ const styles = StyleSheet.create({
     gap: 3
   },
   tabItemActive: {
-    borderWidth: StyleSheet.hairlineWidth
+    borderWidth: StyleSheet.hairlineWidth,
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 4 }
   },
   tabLabel: {
-    fontSize: 9.25,
+    fontSize: 9.4,
     lineHeight: 11,
-    letterSpacing: -0.04
+    letterSpacing: -0.05
   },
   tabLabelActive: {
     fontWeight: '700'
