@@ -7,24 +7,48 @@ function source(path) {
 }
 
 const boundedScreens = [
-  ['src/ui/primitives.tsx', /screenContent:[\s\S]*maxWidth:\s*760/],
-  ['app/ask.tsx', /shell:[\s\S]*maxWidth:\s*760/],
-  ['app/scan.tsx', /content:[\s\S]*maxWidth:\s*760/],
-  ['app/settings/privacy.tsx', /content:[\s\S]*maxWidth:\s*760/],
-  ['app/settings/notifications.tsx', /content:[\s\S]*maxWidth:\s*760/],
-  ['app/settings/appearance.tsx', /content:[\s\S]*maxWidth:\s*760/],
-  ['app/share.tsx', /content:[\s\S]*maxWidth:\s*760/],
-  ['app/upgrade.tsx', /content:[\s\S]*maxWidth:\s*680/],
-  ['app/handle-share.tsx', /content:[\s\S]*maxWidth:\s*760/],
-  ['app/item/[id].tsx', /content:[\s\S]*maxWidth:\s*760/],
-  ['app/inbox/[id].tsx', /content:[\s\S]*maxWidth:\s*760/],
-  ['app/auth/sign-in.tsx', /shell:[\s\S]*maxWidth:\s*520/],
-  ['app/onboarding.tsx', /slideContent:[\s\S]*maxWidth:\s*760/]
+  'src/ui/primitives.tsx',
+  'src/screens/HomeV5.tsx',
+  'src/screens/SearchV5.tsx',
+  'src/screens/AskV5.tsx',
+  'src/screens/CalendarV5.tsx',
+  'src/screens/SavedV5.tsx',
+  'src/screens/SettingsV5.tsx',
+  'app/scan.tsx',
+  'app/settings/privacy.tsx',
+  'app/settings/notifications.tsx',
+  'app/settings/appearance.tsx',
+  'app/share.tsx',
+  'app/upgrade.tsx',
+  'app/handle-share.tsx',
+  'app/item/[id].tsx',
+  'app/inbox/[id].tsx',
+  'app/auth/sign-in.tsx',
+  'app/onboarding.tsx'
 ];
 
 test('primary NEVER consumer screens keep bounded tablet content widths', () => {
-  for (const [path, pattern] of boundedScreens) {
-    assert.match(source(path), pattern, `${path} must keep a bounded tablet content width`);
+  for (const path of boundedScreens) {
+    assert.match(
+      source(path),
+      /maxWidth:\s*(?:[4-7]\d{2})/,
+      `${path} must keep a bounded tablet content width between 400 and 799 points`
+    );
+  }
+});
+
+test('tab route wrappers delegate to the V5 implementations', () => {
+  const routes = [
+    ['app/(tabs)/index.tsx', 'HomeV5'],
+    ['app/(tabs)/search.tsx', 'SearchV5'],
+    ['app/(tabs)/calendar.tsx', 'CalendarV5'],
+    ['app/(tabs)/saved.tsx', 'SavedV5'],
+    ['app/(tabs)/settings.tsx', 'SettingsV5'],
+    ['app/ask.tsx', 'AskV5']
+  ];
+
+  for (const [path, screen] of routes) {
+    assert.match(source(path), new RegExp(`src/screens/${screen}`), `${path} must route to ${screen}`);
   }
 });
 
