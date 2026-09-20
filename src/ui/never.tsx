@@ -24,7 +24,7 @@ export function NeverGlass({
   const dark = resolvedMode === 'dark';
 
   const background = tone === 'quiet'
-    ? (dark ? '#0E1013B8' : '#FFFFFFB8')
+    ? (dark ? '#111519C7' : '#FFFFFFC7')
     : tone === 'strong'
       ? theme.glassStrong
       : theme.glass;
@@ -37,13 +37,14 @@ export function NeverGlass({
           backgroundColor: background,
           borderColor: theme.glassBorder,
           shadowColor: theme.shadow,
-          shadowOpacity: dark ? 0.28 : 0.1
+          shadowOpacity: dark ? 0.3 : 0.085
         },
         padded && styles.glassPadded,
         style
       ]}
     >
       <View pointerEvents="none" style={[styles.glassReflection, { backgroundColor: theme.reflection }]} />
+      <View pointerEvents="none" style={[styles.glassLowerReflection, { backgroundColor: theme.reflection }]} />
       {children}
     </View>
   );
@@ -89,20 +90,20 @@ export function NeverCommandBar({
           backgroundColor: theme.glassStrong,
           borderColor: theme.glassBorder,
           shadowColor: theme.shadow,
-          opacity: pressed ? 0.78 : 1,
-          transform: [{ scale: pressed ? 0.993 : 1 }]
+          opacity: pressed ? 0.8 : 1,
+          transform: [{ scale: pressed ? 0.992 : 1 }]
         }
       ]}
     >
-      <View style={[styles.commandGlyph, { backgroundColor: theme.platinumSoft, borderColor: theme.border }]}>
-        <OneIcon name={icons.ask} size={16} color={theme.chrome} />
+      <View style={[styles.commandGlyph, { backgroundColor: theme.platinumSoft, borderColor: theme.glassBorder }]}>
+        <OneIcon name={icons.ask} size={15.5} color={theme.chrome} />
       </View>
       <View style={styles.commandCopy}>
         <Text style={[styles.commandLabel, { color: theme.text }]}>{label}</Text>
         <Text style={[styles.commandHint, { color: theme.textTertiary }]} numberOfLines={1}>{hint}</Text>
       </View>
-      <View style={[styles.commandAction, { backgroundColor: theme.chrome, borderColor: theme.reflection }]}>
-        <OneIcon name={icons.chevron} size={13} color={theme.background} />
+      <View style={[styles.commandAction, { backgroundColor: theme.platinumSoft, borderColor: theme.glassBorder }]}>
+        <OneIcon name={icons.chevron} size={12.5} color={theme.chrome} />
       </View>
       <View pointerEvents="none" style={[styles.commandReflection, { backgroundColor: theme.reflection }]} />
     </Pressable>
@@ -139,14 +140,14 @@ export function NeverChromeButton({
           backgroundColor: theme.chrome,
           borderColor: theme.reflection,
           shadowColor: theme.shadow,
-          opacity: disabled ? 0.38 : pressed ? 0.8 : 1,
-          transform: [{ scale: pressed ? 0.988 : 1 }]
+          opacity: disabled ? 0.38 : pressed ? 0.82 : 1,
+          transform: [{ scale: pressed ? 0.987 : 1 }]
         }
       ]}
     >
       {icon ? <OneIcon name={icon} size={15} color={theme.background} /> : null}
       <Text style={[styles.chromeButtonText, { color: theme.background }]}>{label}</Text>
-      <View pointerEvents="none" style={[styles.chromeReflection, { backgroundColor: '#FFFFFF42' }]} />
+      <View pointerEvents="none" style={[styles.chromeReflection, { backgroundColor: '#FFFFFF52' }]} />
     </Pressable>
   );
 }
@@ -176,7 +177,7 @@ export function NeverIconButton({
         {
           backgroundColor: filled ? theme.chrome : theme.glass,
           borderColor: filled ? theme.reflection : theme.glassBorder,
-          opacity: pressed ? 0.68 : 1,
+          opacity: pressed ? 0.7 : 1,
           transform: [{ scale: pressed ? 0.95 : 1 }]
         }
       ]}
@@ -198,7 +199,7 @@ export function NeverWordmark({ compact = false }: { compact?: boolean }) {
       <Text style={[compact ? styles.wordmarkCompact : styles.wordmark, { color: theme.text }]}>NEVER</Text>
       <View style={styles.signal}>
         <View style={[styles.signalLong, { backgroundColor: theme.chrome }]} />
-        <View style={[styles.signalShort, { backgroundColor: theme.sky }]} />
+        <View style={[styles.signalShort, { backgroundColor: theme.platinum }]} />
       </View>
     </View>
   );
@@ -209,17 +210,26 @@ const styles = StyleSheet.create({
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: neverRadius.xl,
     overflow: 'hidden',
-    shadowRadius: 28,
-    shadowOffset: { width: 0, height: 14 },
+    shadowRadius: 26,
+    shadowOffset: { width: 0, height: 12 },
     elevation: 4
   },
   glassPadded: { padding: 18 },
   glassReflection: {
     position: 'absolute',
     top: 0,
-    left: 20,
-    right: 20,
-    height: StyleSheet.hairlineWidth
+    left: 22,
+    right: 22,
+    height: StyleSheet.hairlineWidth,
+    opacity: 0.95
+  },
+  glassLowerReflection: {
+    position: 'absolute',
+    left: 48,
+    right: 48,
+    bottom: 0,
+    height: StyleSheet.hairlineWidth,
+    opacity: 0.18
   },
   sectionLabelRow: {
     minHeight: 18,
@@ -237,18 +247,18 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   commandBar: {
-    minHeight: 72,
+    minHeight: 68,
     borderRadius: neverRadius.lg,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
+    paddingHorizontal: 13,
+    paddingVertical: 11,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 11,
     overflow: 'hidden',
-    shadowOpacity: 0.2,
-    shadowRadius: 24,
-    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.1,
+    shadowRadius: 22,
+    shadowOffset: { width: 0, height: 10 },
     elevation: 4
   },
   commandGlyph: {
@@ -262,7 +272,7 @@ const styles = StyleSheet.create({
   commandCopy: { flex: 1, minWidth: 0 },
   commandLabel: {
     ...neverType.bodyStrong,
-    fontSize: 15
+    fontSize: 14.5
   },
   commandHint: {
     ...neverType.caption,
@@ -293,9 +303,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 8,
     overflow: 'hidden',
-    shadowOpacity: 0.22,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 9 },
+    shadowOpacity: 0.18,
+    shadowRadius: 17,
+    shadowOffset: { width: 0, height: 8 },
     elevation: 4
   },
   chromeButtonCompact: {
@@ -330,19 +340,19 @@ const styles = StyleSheet.create({
   wordmarkRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10
+    gap: 9
   },
   wordmark: {
-    fontSize: 17,
+    fontSize: 16.5,
     lineHeight: 21,
     fontWeight: '800',
-    letterSpacing: 5.8
+    letterSpacing: 5.6
   },
   wordmarkCompact: {
-    fontSize: 14,
+    fontSize: 13.5,
     lineHeight: 18,
     fontWeight: '800',
-    letterSpacing: 4.6
+    letterSpacing: 4.5
   },
   signal: {
     flexDirection: 'row',
