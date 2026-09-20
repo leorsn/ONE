@@ -13,9 +13,12 @@ export function CoreBackdrop() {
   const dark = resolvedMode === 'dark';
   return (
     <View pointerEvents="none" style={StyleSheet.absoluteFill}>
-      <View style={[styles.ambientOrb, styles.ambientTop, { backgroundColor: dark ? `${theme.sky}16` : `${theme.sky}10`, shadowColor: theme.sky }]} />
-      <View style={[styles.ambientOrb, styles.ambientMid, { backgroundColor: dark ? `${theme.plum}12` : `${theme.plum}0B`, shadowColor: theme.plum }]} />
-      <View style={[styles.ambientOrb, styles.ambientBottom, { backgroundColor: dark ? '#FFFFFF08' : '#FFFFFFA8', shadowColor: '#FFFFFF' }]} />
+      <View style={[styles.chromeHalo, styles.chromeHaloTop, { backgroundColor: dark ? '#DDE3EA10' : '#FFFFFFA8', borderColor: dark ? '#FFFFFF12' : '#FFFFFFD6' }]} />
+      <View style={[styles.chromeHalo, styles.chromeHaloLeft, { backgroundColor: dark ? '#AAB3BF0A' : '#CDD3DA72', borderColor: dark ? '#FFFFFF0D' : '#FFFFFFB8' }]} />
+      <View style={[styles.chromeHalo, styles.chromeHaloBottom, { backgroundColor: dark ? '#FFFFFF08' : '#FFFFFF94', borderColor: dark ? '#FFFFFF0C' : '#FFFFFFC4' }]} />
+      <View style={[styles.metalRail, { backgroundColor: dark ? '#FFFFFF12' : '#FFFFFFD8' }]} />
+      <View style={[styles.metalRailInner, { backgroundColor: dark ? '#FFFFFF08' : '#AEB6C13D' }]} />
+      <View style={[styles.ambientOrb, styles.ambientTop, { backgroundColor: dark ? `${theme.platinum}13` : `${theme.platinum}1B`, shadowColor: theme.platinum }]} />
     </View>
   );
 }
@@ -25,8 +28,8 @@ export function NeverSignal({ compact = false }: { compact?: boolean }) {
   return (
     <View style={[styles.signal, compact && styles.signalCompact]} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
       <View style={[styles.signalGraphite, { backgroundColor: theme.chrome }]} />
-      <View style={[styles.signalBlue, { backgroundColor: theme.sky }]} />
-      <View style={[styles.signalRed, { backgroundColor: theme.danger }]} />
+      <View style={[styles.signalPlatinum, { backgroundColor: theme.platinum }]} />
+      <View style={[styles.signalLight, { backgroundColor: theme.textTertiary }]} />
     </View>
   );
 }
@@ -35,8 +38,8 @@ export function SectionAccent() {
   const theme = useTheme();
   return (
     <View style={styles.sectionAccent} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      <View style={[styles.sectionAccentBlue, { backgroundColor: theme.sky }]} />
-      <View style={[styles.sectionAccentRed, { backgroundColor: theme.danger }]} />
+      <View style={[styles.sectionAccentMain, { backgroundColor: theme.chrome }]} />
+      <View style={[styles.sectionAccentSoft, { backgroundColor: theme.platinum }]} />
     </View>
   );
 }
@@ -93,12 +96,13 @@ export function Surface({ children, padded = false }: { children: ReactNode; pad
   const dark = resolvedMode === 'dark';
   return (
     <View style={[styles.surface, {
-      backgroundColor: dark ? '#1C1C1ECC' : '#FFFFFFD6',
-      borderColor: dark ? '#FFFFFF17' : '#FFFFFFE8',
-      shadowColor: dark ? '#000000' : '#8790A5',
-      shadowOpacity: dark ? 0.32 : 0.13
+      backgroundColor: dark ? '#161A1FD9' : '#F9FAFCE8',
+      borderColor: dark ? '#FFFFFF1C' : '#FFFFFFF2',
+      shadowColor: dark ? '#000000' : '#59616D',
+      shadowOpacity: dark ? 0.38 : 0.16
     }, padded && styles.surfacePadded]}>
-      <View pointerEvents="none" style={[styles.surfaceHighlight, { backgroundColor: dark ? '#FFFFFF16' : '#FFFFFF' }]} />
+      <View pointerEvents="none" style={[styles.surfaceHighlight, { backgroundColor: dark ? '#FFFFFF22' : '#FFFFFF' }]} />
+      <View pointerEvents="none" style={[styles.surfaceLowerHighlight, { backgroundColor: dark ? '#FFFFFF0C' : '#89929D24' }]} />
       {children}
     </View>
   );
@@ -107,17 +111,17 @@ export function Surface({ children, padded = false }: { children: ReactNode; pad
 export function IconTile({ icon, tone = 'accent', size = 38 }: { icon: IconName; tone?: IconTone; size?: number }) {
   const theme = useTheme();
   const palette = {
-    accent: [theme.accentSoft, theme.accent],
+    accent: [theme.platinumSoft, theme.chrome],
     neutral: [theme.fill, theme.textSecondary],
     success: [theme.successSoft, theme.success],
     danger: [theme.dangerSoft, theme.danger],
     warning: [theme.warningSoft, theme.warning],
-    info: [theme.skySoft, theme.sky],
-    memory: [theme.plumSoft, theme.plum]
+    info: [theme.chromeSoft, theme.chrome],
+    memory: [theme.platinumSoft, theme.platinum]
   } as const;
   const [background, color] = palette[tone];
   return (
-    <View style={[styles.iconTile, { width: size, height: size, borderRadius: Math.round(size * 0.3), backgroundColor: background, borderColor: `${color}1F` }]}>
+    <View style={[styles.iconTile, { width: size, height: size, borderRadius: Math.round(size * 0.3), backgroundColor: background, borderColor: `${color}28` }]}>
       <OneIcon name={icon} size={Math.round(size * 0.42)} color={color} />
     </View>
   );
@@ -133,15 +137,15 @@ export function RoundIconButton({ icon, onPress, accessibilityLabel, filled = fa
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [styles.roundButton, {
-        backgroundColor: filled ? theme.accent : dark ? '#FFFFFF10' : '#FFFFFFB8',
-        borderColor: filled ? `${theme.accent}88` : dark ? '#FFFFFF20' : '#FFFFFFEE',
-        shadowColor: dark ? '#000000' : '#6D7485',
+        backgroundColor: filled ? theme.chrome : dark ? '#161B20E8' : '#F7F9FBEF',
+        borderColor: filled ? theme.reflection : dark ? '#FFFFFF20' : '#FFFFFFF6',
+        shadowColor: dark ? '#000000' : '#5D6570',
         opacity: pressed ? 0.72 : 1,
-        transform: [{ scale: pressed ? 0.95 : 1 }]
+        transform: [{ scale: pressed ? 0.94 : 1 }]
       }]}
     >
-      <View pointerEvents="none" style={[styles.roundHighlight, { backgroundColor: dark ? '#FFFFFF12' : '#FFFFFF' }]} />
-      <OneIcon name={icon} size={16.5} color={filled ? theme.onAccent : theme.text} />
+      <View pointerEvents="none" style={[styles.roundHighlight, { backgroundColor: dark ? '#FFFFFF1D' : '#FFFFFF' }]} />
+      <OneIcon name={icon} size={16.5} color={filled ? theme.background : theme.chrome} />
     </Pressable>
   );
 }
@@ -150,7 +154,7 @@ export function EmptyState({ icon, title, body }: { icon: IconName; title: strin
   const theme = useTheme();
   return (
     <View style={styles.emptyState}>
-      <View style={[styles.emptyIcon, { backgroundColor: theme.fill }]}><OneIcon name={icon} size={18} color={theme.textTertiary} /></View>
+      <View style={[styles.emptyIcon, { backgroundColor: theme.platinumSoft, borderColor: theme.glassBorder }]}><OneIcon name={icon} size={18} color={theme.chrome} /></View>
       <Text style={[styles.emptyTitle, { color: theme.text }]}>{title}</Text>
       <Text style={[styles.emptyBody, { color: theme.textSecondary }]}>{body}</Text>
     </View>
@@ -163,55 +167,62 @@ export function PrimaryButton({ label, icon, onPress, disabled = false }: { labe
     <Pressable
       disabled={disabled}
       onPress={async () => { await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); await onPress(); }}
-      style={({ pressed }) => [styles.primaryButton, { backgroundColor: theme.accent, borderColor: `${theme.accent}CC`, shadowColor: theme.accent, opacity: disabled ? 0.42 : pressed ? 0.8 : 1, transform: [{ scale: pressed ? 0.988 : 1 }] }]}
+      style={({ pressed }) => [styles.primaryButton, { backgroundColor: theme.chrome, borderColor: theme.reflection, shadowColor: theme.shadow, opacity: disabled ? 0.42 : pressed ? 0.8 : 1, transform: [{ scale: pressed ? 0.986 : 1 }] }]}
     >
-      {icon ? <OneIcon name={icon} size={15.5} color={theme.onAccent} /> : null}
-      <Text style={[styles.primaryButtonText, { color: theme.onAccent }]}>{label}</Text>
+      {icon ? <OneIcon name={icon} size={15.5} color={theme.background} /> : null}
+      <Text style={[styles.primaryButtonText, { color: theme.background }]}>{label}</Text>
+      <View pointerEvents="none" style={[styles.primaryHighlight, { backgroundColor: '#FFFFFF52' }]} />
     </Pressable>
   );
 }
 
 export const uiStyles = StyleSheet.create({
-  screenContent: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 128, gap: 22 }
+  screenContent: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 18, paddingTop: 10, paddingBottom: 132, gap: 20 }
 });
 
 const styles = StyleSheet.create({
-  ambientOrb: { position: 'absolute', borderRadius: 999, shadowRadius: 82, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.18 },
-  ambientTop: { width: 240, height: 240, top: -125, right: -95 },
-  ambientMid: { width: 210, height: 210, top: 330, left: -145 },
-  ambientBottom: { width: 180, height: 180, bottom: 70, right: -115 },
+  chromeHalo: { position: 'absolute', borderRadius: 999, borderWidth: StyleSheet.hairlineWidth },
+  chromeHaloTop: { width: 310, height: 310, top: -170, right: -105 },
+  chromeHaloLeft: { width: 235, height: 235, top: 515, left: -165 },
+  chromeHaloBottom: { width: 260, height: 260, bottom: -95, right: -145 },
+  metalRail: { position: 'absolute', top: 94, right: -20, width: 190, height: 1, opacity: 0.75 },
+  metalRailInner: { position: 'absolute', top: 98, right: 22, width: 108, height: 1, opacity: 0.58 },
+  ambientOrb: { position: 'absolute', borderRadius: 999, shadowRadius: 90, shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.22 },
+  ambientTop: { width: 170, height: 170, top: -96, right: -36 },
   utilityHeader: { minHeight: 38, flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center' },
   brandHeader: { minHeight: 34, flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingTop: 2 },
   brandHeaderWithTagline: { minHeight: 56 },
-  wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  wordmark: { fontSize: 17, lineHeight: 21, fontWeight: '800', letterSpacing: 5.8 },
-  brandLine: { marginTop: 8, fontSize: 8, lineHeight: 11, fontWeight: '700', letterSpacing: 1.55 },
+  wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  wordmark: { fontSize: 16.5, lineHeight: 21, fontWeight: '800', letterSpacing: 5.7 },
+  brandLine: { marginTop: 8, fontSize: 7.8, lineHeight: 10, fontWeight: '700', letterSpacing: 1.65 },
   signal: { height: 4, width: 49, flexDirection: 'row', alignItems: 'center', gap: 3 },
   signalCompact: { transform: [{ scaleX: 0.78 }, { scaleY: 0.78 }] },
   signalGraphite: { width: 24, height: 4, borderRadius: 2 },
-  signalBlue: { width: 12, height: 4, borderRadius: 2 },
-  signalRed: { width: 7, height: 4, borderRadius: 2 },
-  sectionAccent: { width: 7, height: 20, flexDirection: 'row', alignItems: 'flex-end', gap: 2 },
-  sectionAccentBlue: { width: 3, height: 20, borderRadius: 2 },
-  sectionAccentRed: { width: 2, height: 9, borderRadius: 2 },
-  pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingTop: 2 },
-  eyebrow: { fontSize: 8.2, fontWeight: '700', letterSpacing: 1.9, marginBottom: 7 },
-  pageTitle: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.15 },
+  signalPlatinum: { width: 12, height: 4, borderRadius: 2 },
+  signalLight: { width: 7, height: 4, borderRadius: 2 },
+  sectionAccent: { width: 8, height: 20, flexDirection: 'row', alignItems: 'flex-end', gap: 2 },
+  sectionAccentMain: { width: 3, height: 20, borderRadius: 2 },
+  sectionAccentSoft: { width: 3, height: 11, borderRadius: 2 },
+  pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 16, paddingTop: 3 },
+  eyebrow: { fontSize: 8.1, fontWeight: '800', letterSpacing: 2.05, marginBottom: 7 },
+  pageTitle: { fontSize: 33, lineHeight: 38, fontWeight: '750', letterSpacing: -1.05 },
   pageSubtitle: { marginTop: 5, maxWidth: 440, fontSize: 12.5, lineHeight: 18.5 },
-  sectionHeader: { minHeight: 26, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sectionHeader: { minHeight: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionTitle: { fontSize: 16.1, lineHeight: 20, fontWeight: '700', letterSpacing: -0.3 },
-  sectionMeta: { fontSize: 10.1, fontWeight: '600', letterSpacing: 0.05 },
-  surface: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 22, overflow: 'hidden', shadowRadius: 30, shadowOffset: { width: 0, height: 15 }, elevation: 4 },
+  sectionTitle: { fontSize: 15.8, lineHeight: 20, fontWeight: '700', letterSpacing: -0.28 },
+  sectionMeta: { fontSize: 9.8, fontWeight: '700', letterSpacing: 0.1 },
+  surface: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 24, overflow: 'hidden', shadowRadius: 30, shadowOffset: { width: 0, height: 14 }, elevation: 5 },
   surfaceHighlight: { position: 'absolute', top: 0, left: 22, right: 22, height: StyleSheet.hairlineWidth, zIndex: 2 },
+  surfaceLowerHighlight: { position: 'absolute', bottom: 0, left: 52, right: 52, height: StyleSheet.hairlineWidth, zIndex: 2 },
   surfacePadded: { padding: 18 },
   iconTile: { alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth },
-  roundButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', shadowOpacity: 0.15, shadowRadius: 18, shadowOffset: { width: 0, height: 8 }, elevation: 4 },
+  roundButton: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center', borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', shadowOpacity: 0.2, shadowRadius: 20, shadowOffset: { width: 0, height: 9 }, elevation: 5 },
   roundHighlight: { position: 'absolute', top: 0, left: 9, right: 9, height: StyleSheet.hairlineWidth },
   emptyState: { minHeight: 112, paddingHorizontal: 24, paddingVertical: 20, alignItems: 'center', justifyContent: 'center' },
-  emptyIcon: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { width: 38, height: 38, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { marginTop: 10, fontSize: 14.2, fontWeight: '600', letterSpacing: -0.12 },
   emptyBody: { marginTop: 5, maxWidth: 280, fontSize: 11.75, lineHeight: 17.25, textAlign: 'center' },
-  primaryButton: { minHeight: 50, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, shadowOpacity: 0.22, shadowRadius: 16, shadowOffset: { width: 0, height: 8 }, elevation: 4 },
-  primaryButtonText: { fontSize: 13.75, fontWeight: '700', letterSpacing: -0.04 }
+  primaryButton: { minHeight: 50, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, overflow: 'hidden', shadowOpacity: 0.24, shadowRadius: 17, shadowOffset: { width: 0, height: 8 }, elevation: 5 },
+  primaryButtonText: { fontSize: 13.75, fontWeight: '700', letterSpacing: -0.04 },
+  primaryHighlight: { position: 'absolute', top: 0, left: 24, right: 24, height: StyleSheet.hairlineWidth }
 });
