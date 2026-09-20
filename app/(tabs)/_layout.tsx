@@ -45,30 +45,17 @@ export default function TabsLayout() {
 }
 
 function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
-  const theme = useTheme();
   const insets = useSafeAreaInsets();
 
   return (
-    <View
-      pointerEvents="box-none"
-      style={[
-        styles.tabBarWrap,
-        { bottom: Math.max(9, insets.bottom - 5) }
-      ]}
-    >
-      <View
-        style={[
-          styles.tabBar,
-          {
-            backgroundColor: theme.glassStrong,
-            borderColor: theme.glassBorder,
-            shadowColor: theme.shadow
-          }
-        ]}
-      >
-        <View pointerEvents="none" style={[styles.reflection, { backgroundColor: theme.reflection }]} />
-        <View pointerEvents="none" style={[styles.lowerReflection, { backgroundColor: theme.reflection }]} />
-        <View pointerEvents="none" style={[styles.centerRail, { backgroundColor: theme.platinum }]} />
+    <View pointerEvents="box-none" style={[styles.tabBarWrap, { bottom: Math.max(9, insets.bottom - 5) }]}>
+      <View style={styles.tabBar}>
+        <View pointerEvents="none" style={styles.topChrome} />
+        <View pointerEvents="none" style={styles.bottomChrome} />
+        <View pointerEvents="none" style={styles.dockMark}>
+          <View style={styles.dockMarkLong} />
+          <View style={styles.dockMarkShort} />
+        </View>
 
         {state.routes.map((route) => {
           const index = state.routes.indexOf(route);
@@ -78,22 +65,12 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
           const options = descriptors[route.key]?.options;
 
           const onPress = () => {
-            const event = navigation.emit({
-              type: 'tabPress',
-              target: route.key,
-              canPreventDefault: true
-            });
-
-            if (!focused && !event.defaultPrevented) {
-              navigation.navigate(route.name, route.params);
-            }
+            const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
+            if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
           };
 
           const onLongPress = () => {
-            navigation.emit({
-              type: 'tabLongPress',
-              target: route.key
-            });
+            navigation.emit({ type: 'tabLongPress', target: route.key });
           };
 
           return (
@@ -107,38 +84,15 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               onLongPress={onLongPress}
               style={({ pressed }) => [
                 styles.tabItem,
-                focused && [
-                  styles.tabItemActive,
-                  {
-                    backgroundColor: theme.platinumSoft,
-                    borderColor: theme.glassBorder,
-                    shadowColor: theme.shadow
-                  }
-                ],
-                {
-                  opacity: pressed ? 0.62 : 1,
-                  transform: [{ scale: pressed ? 0.965 : focused ? 1.015 : 1 }]
-                }
+                focused && styles.tabItemActive,
+                { opacity: pressed ? 0.68 : 1, transform: [{ scale: pressed ? 0.965 : focused ? 1.015 : 1 }] }
               ]}
             >
-              {focused ? <View style={[styles.activeRail, { backgroundColor: theme.chrome }]} /> : null}
-              <View style={[styles.iconWell, focused && { backgroundColor: theme.glassStrong, borderColor: theme.glassBorder }]}>
-                <OneIcon
-                  name={tabIcon[routeName]}
-                  size={focused ? 18.5 : 17}
-                  color={focused ? theme.chrome : theme.textTertiary}
-                />
+              {focused ? <View style={styles.activeChrome} /> : null}
+              <View style={[styles.iconWell, focused && styles.iconWellActive]}>
+                <OneIcon name={tabIcon[routeName]} size={focused ? 18 : 16.5} color={focused ? '#11161B' : '#7F8A94'} />
               </View>
-              <Text
-                style={[
-                  styles.tabLabel,
-                  focused ? styles.tabLabelActive : styles.tabLabelInactive,
-                  { color: focused ? theme.text : theme.textTertiary }
-                ]}
-                numberOfLines={1}
-              >
-                {label}
-              </Text>
+              <Text style={[styles.tabLabel, focused ? styles.tabLabelActive : styles.tabLabelInactive]} numberOfLines={1}>{label}</Text>
             </Pressable>
           );
         })}
@@ -148,94 +102,52 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
 }
 
 const styles = StyleSheet.create({
-  tabBarWrap: {
-    position: 'absolute',
-    left: 14,
-    right: 14
-  },
+  tabBarWrap: { position: 'absolute', left: 14, right: 14 },
   tabBar: {
-    height: 70,
-    borderRadius: 29,
+    height: 72,
+    borderRadius: 28,
     borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#FFFFFF24',
+    backgroundColor: '#11161BF4',
     paddingHorizontal: 7,
     paddingVertical: 7,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
     overflow: 'hidden',
-    shadowOpacity: 0.18,
-    shadowRadius: 28,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 8
+    shadowColor: '#000000',
+    shadowOpacity: 0.3,
+    shadowRadius: 30,
+    shadowOffset: { width: 0, height: 14 },
+    elevation: 10
   },
-  reflection: {
-    position: 'absolute',
-    top: 0,
-    left: 30,
-    right: 30,
-    height: StyleSheet.hairlineWidth,
-    opacity: 0.98
-  },
-  lowerReflection: {
-    position: 'absolute',
-    left: 84,
-    right: 84,
-    bottom: 0,
-    height: StyleSheet.hairlineWidth,
-    opacity: 0.28
-  },
-  centerRail: {
-    position: 'absolute',
-    top: 5,
-    left: '42%',
-    right: '42%',
-    height: 2,
-    borderRadius: 2,
-    opacity: 0.26
-  },
+  topChrome: { position: 'absolute', top: 0, left: 34, right: 34, height: StyleSheet.hairlineWidth, backgroundColor: '#FFFFFF8F' },
+  bottomChrome: { position: 'absolute', bottom: 0, left: 92, right: 92, height: StyleSheet.hairlineWidth, backgroundColor: '#FFFFFF20' },
+  dockMark: { position: 'absolute', top: 6, left: '46%', flexDirection: 'row', gap: 3 },
+  dockMarkLong: { width: 18, height: 2, borderRadius: 1, backgroundColor: '#DDE2E7' },
+  dockMarkShort: { width: 6, height: 2, borderRadius: 1, backgroundColor: '#697580' },
   tabItem: {
     flex: 1,
-    height: 56,
-    borderRadius: 21,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'transparent',
+    height: 57,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 1,
+    gap: 2,
     position: 'relative'
   },
   tabItemActive: {
+    backgroundColor: '#E9EDF0',
     borderWidth: StyleSheet.hairlineWidth,
-    shadowOpacity: 0.14,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 }
+    borderColor: '#FFFFFF',
+    shadowColor: '#000000',
+    shadowOpacity: 0.18,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 5 }
   },
-  activeRail: {
-    position: 'absolute',
-    top: 4,
-    width: 20,
-    height: 2,
-    borderRadius: 2,
-    opacity: 0.9
-  },
-  iconWell: {
-    width: 31,
-    height: 28,
-    borderRadius: 12,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'transparent',
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  tabLabel: {
-    fontSize: 9.2,
-    lineHeight: 11,
-    letterSpacing: -0.04
-  },
-  tabLabelActive: {
-    fontWeight: '800'
-  },
-  tabLabelInactive: {
-    fontWeight: '600'
-  }
+  activeChrome: { position: 'absolute', top: 4, width: 20, height: 2, borderRadius: 1, backgroundColor: '#596570' },
+  iconWell: { width: 30, height: 29, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  iconWellActive: { backgroundColor: '#FFFFFFA8', borderWidth: StyleSheet.hairlineWidth, borderColor: '#FFFFFF' },
+  tabLabel: { fontSize: 9, lineHeight: 11, letterSpacing: -0.04 },
+  tabLabelActive: { color: '#11161B', fontWeight: '800' },
+  tabLabelInactive: { color: '#7A858F', fontWeight: '600' }
 });
