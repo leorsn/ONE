@@ -53,13 +53,13 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
         style={[
           styles.bar,
           {
-            backgroundColor: p.dark ? '#1C1C1EDC' : '#FFFFFFE8',
-            borderColor: p.dark ? '#FFFFFF12' : '#FFFFFFF2',
+            backgroundColor: p.dark ? '#1C1C1EF2' : '#FFFFFFF2',
+            borderColor: p.dark ? '#FFFFFF14' : '#00000008',
             shadowColor: '#000000'
           }
         ]}
       >
-        <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.dark ? '#FFFFFF12' : '#FFFFFF' }]} />
+        <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.dark ? '#FFFFFF10' : '#FFFFFF' }]} />
         {state.routes.map((route) => {
           const index = state.routes.indexOf(route);
           const focused = state.index === index;
@@ -82,25 +82,22 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               testID={options?.tabBarButtonTestID}
               onPress={onPress}
               onLongPress={onLongPress}
-              style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.58 : 1 }]}
+              style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.55 : 1 }]}
             >
-              <View
-                style={[
-                  styles.iconWell,
-                  focused && {
-                    backgroundColor: p.dark ? '#2C2C2E' : '#F2F2F4',
-                    borderColor: p.dark ? '#FFFFFF10' : '#FFFFFF',
-                    shadowColor: '#000000'
-                  }
-                ]}
-              >
+              <View style={[styles.iconWell, focused && { backgroundColor: p.fillSoft }]}>
                 <OneIcon
                   name={tabIcon[routeName]}
-                  size={focused ? 17.5 : 16.5}
+                  size={focused ? 17.25 : 16.25}
                   color={focused ? p.label : p.secondary}
                 />
               </View>
-              <Text style={[styles.label, { color: focused ? p.label : p.secondary, fontWeight: focused ? '600' : '500' }]} numberOfLines={1}>
+              <Text
+                style={[
+                  styles.label,
+                  { color: focused ? p.label : p.secondary, fontWeight: focused ? '600' : '500' }
+                ]}
+                numberOfLines={1}
+              >
                 {label}
               </Text>
             </Pressable>
@@ -112,31 +109,29 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: 14, right: 14 },
+  wrap: { position: 'absolute', left: 12, right: 12 },
   bar: {
-    height: 58,
-    borderRadius: 25,
+    height: 56,
+    borderRadius: 22,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 6,
-    paddingVertical: 4,
+    paddingVertical: 3,
     flexDirection: 'row',
     alignItems: 'center',
     overflow: 'hidden',
-    shadowOpacity: 0.08,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 7 },
-    elevation: 5
+    shadowOpacity: 0.07,
+    shadowRadius: 14,
+    shadowOffset: { width: 0, height: 6 },
+    elevation: 4
   },
-  highlight: { position: 'absolute', top: 0, left: 24, right: 24, height: StyleSheet.hairlineWidth },
+  highlight: { position: 'absolute', top: 0, left: 26, right: 26, height: StyleSheet.hairlineWidth },
   tab: { flex: 1, height: 50, alignItems: 'center', justifyContent: 'center', gap: 1 },
   iconWell: {
-    width: 32,
-    height: 29,
-    borderRadius: 11,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'transparent',
+    width: 31,
+    height: 28,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  label: { fontSize: 9.2, lineHeight: 11, letterSpacing: -0.04 }
+  label: { fontSize: 9.4, lineHeight: 11, letterSpacing: -0.04 }
 });
