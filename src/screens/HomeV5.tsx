@@ -86,9 +86,7 @@ export default function HomeV5() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.brandBar}>
-          <V5Wordmark />
-        </View>
+        <View style={styles.brandBar}><V5Wordmark /></View>
 
         <V5LargeHeader
           eyebrow={`${greetingFor(now)}${firstName ? `, ${firstName}` : ''}.`}
@@ -103,7 +101,7 @@ export default function HomeV5() {
             style={({ pressed }) => [styles.askRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
           >
             <View style={[styles.askIcon, { backgroundColor: p.graphite }]}>
-              <OneIcon name={icons.ask} size={16} color={p.dark ? '#111113' : '#FFFFFF'} />
+              <OneIcon name={icons.ask} size={15} color={p.dark ? '#111113' : '#FFFFFF'} />
             </View>
             <View style={styles.askCopy}>
               <Text style={[styles.askTitle, { color: p.label }]}>Ask NEVER</Text>
@@ -118,7 +116,7 @@ export default function HomeV5() {
           <V5Group>
             <View style={styles.captureComposer}>
               <Pressable onPress={() => focusCapture()} style={[styles.capturePlus, { backgroundColor: p.fillSoft }]}>
-                <OneIcon name={icons.plus} size={18} color={p.chrome} />
+                <OneIcon name={icons.plus} size={17} color={p.chrome} />
               </Pressable>
               <TextInput
                 ref={captureRef}
@@ -133,11 +131,9 @@ export default function HomeV5() {
               />
               {input.trim() ? (
                 <Pressable onPress={handleSave} style={[styles.captureSave, { backgroundColor: p.graphite }]}>
-                  <OneIcon name={icons.check} size={14} color={p.dark ? '#111113' : '#FFFFFF'} />
+                  <OneIcon name={icons.check} size={13} color={p.dark ? '#111113' : '#FFFFFF'} />
                 </Pressable>
-              ) : (
-                <OneIcon name={icons.more} size={16} color={p.tertiary} />
-              )}
+              ) : <OneIcon name={icons.more} size={15} color={p.tertiary} />}
             </View>
             <View style={[styles.captureDivider, { backgroundColor: p.separator }]} />
             <View style={styles.quickActions}>
@@ -157,7 +153,7 @@ export default function HomeV5() {
                 <>
                   <View style={styles.draftRow}>
                     <View style={[styles.draftIcon, { backgroundColor: p.fillSoft }]}>
-                      <OneIcon name={iconForDraft(draft)} size={17} color={p.chrome} />
+                      <OneIcon name={iconForDraft(draft)} size={16} color={p.chrome} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.draftTitle, { color: p.label }]} numberOfLines={2}>{draft.title}</Text>
@@ -221,12 +217,7 @@ export default function HomeV5() {
             />
             <V5Group>
               {inboxItems.map((item) => (
-                <TriageRow
-                  key={item.id}
-                  item={item}
-                  onOpen={() => router.push({ pathname: '/inbox/[id]', params: { id: item.id } })}
-                  onExecute={(action) => executeAction(item, action)}
-                />
+                <TriageRow key={item.id} item={item} onOpen={() => router.push({ pathname: '/inbox/[id]', params: { id: item.id } })} onExecute={(action) => executeAction(item, action)} />
               ))}
             </V5Group>
           </View>
@@ -239,13 +230,9 @@ export default function HomeV5() {
     return (
       <Pressable
         onPress={async () => { await Haptics.selectionAsync(); onPress(); }}
-        style={({ pressed }) => [
-          styles.quickAction,
-          !last && { borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: p.separator },
-          { backgroundColor: pressed ? p.fillSoft : 'transparent' }
-        ]}
+        style={({ pressed }) => [styles.quickAction, !last && { borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: p.separator }, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
       >
-        <OneIcon name={icon} size={16} color={p.chrome} />
+        <OneIcon name={icon} size={15} color={p.chrome} />
         <Text style={[styles.quickActionLabel, { color: p.label }]}>{label}</Text>
       </Pressable>
     );
@@ -279,12 +266,9 @@ export default function HomeV5() {
   function RecentRow({ item, last }: { item: OneItem; last: boolean }) {
     const preview = imagePreviewUri(item);
     return (
-      <Pressable
-        onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.recentRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
-      >
+      <Pressable onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })} style={({ pressed }) => [styles.recentRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
         <View style={[styles.recentThumb, { backgroundColor: p.fillSoft }]}>
-          {preview ? <Image source={{ uri: preview }} style={styles.recentImage} resizeMode="cover" /> : <OneIcon name={iconForRecent(item)} size={19} color={p.chrome} />}
+          {preview ? <Image source={{ uri: preview }} style={styles.recentImage} resizeMode="cover" /> : <OneIcon name={iconForRecent(item)} size={18} color={p.chrome} />}
         </View>
         <View style={[styles.recentContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
           <View style={{ flex: 1, minWidth: 0 }}>
@@ -339,45 +323,45 @@ function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getT
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 118, gap: 24 },
-  brandBar: { minHeight: 32, justifyContent: 'center' },
-  askRow: { minHeight: 70, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  askIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 118, gap: 18 },
+  brandBar: { minHeight: 24, justifyContent: 'center' },
+  askRow: { minHeight: 62, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  askIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   askCopy: { flex: 1, minWidth: 0 },
-  askTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600', letterSpacing: -0.15 },
-  askSubtitle: { marginTop: 2, fontSize: 13, lineHeight: 17 },
-  section: { gap: 8 },
-  captureComposer: { minHeight: 62, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  capturePlus: { width: 36, height: 36, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  captureInput: { flex: 1, minHeight: 50, fontSize: 17, lineHeight: 21, paddingVertical: 0 },
-  captureSave: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  captureDivider: { height: StyleSheet.hairlineWidth, marginLeft: 14 },
-  quickActions: { minHeight: 58, flexDirection: 'row' },
-  quickAction: { flex: 1, minHeight: 58, alignItems: 'center', justifyContent: 'center', gap: 5 },
-  quickActionLabel: { fontSize: 12, lineHeight: 15, fontWeight: '500' },
-  draftGroup: { padding: 14 },
-  draftRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  draftIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  draftTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
-  draftMeta: { marginTop: 2, fontSize: 13, lineHeight: 17 },
-  draftButton: { marginTop: 14 },
-  reviewEditor: { gap: 12 },
-  seeAll: { fontSize: 14, lineHeight: 18, fontWeight: '600' },
-  listRow: { minHeight: 64, paddingLeft: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  todayDot: { width: 7, height: 7, borderRadius: 4 },
-  listRowContent: { flex: 1, minHeight: 64, paddingRight: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  listTitleLine: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  listTitle: { flex: 1, fontSize: 16, lineHeight: 20, fontWeight: '600' },
-  listMeta: { fontSize: 12, lineHeight: 15 },
-  listSubtitle: { marginTop: 2, fontSize: 13, lineHeight: 17 },
-  recentRow: { minHeight: 72, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  recentThumb: { width: 48, height: 48, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  askTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
+  askSubtitle: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
+  section: { gap: 7 },
+  captureComposer: { minHeight: 56, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  capturePlus: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  captureInput: { flex: 1, minHeight: 46, fontSize: 16, lineHeight: 20, paddingVertical: 0 },
+  captureSave: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  captureDivider: { height: StyleSheet.hairlineWidth, marginLeft: 12 },
+  quickActions: { minHeight: 52, flexDirection: 'row' },
+  quickAction: { flex: 1, minHeight: 52, alignItems: 'center', justifyContent: 'center', gap: 4 },
+  quickActionLabel: { fontSize: 11.5, lineHeight: 14, fontWeight: '500' },
+  draftGroup: { padding: 13 },
+  draftRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
+  draftIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  draftTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
+  draftMeta: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
+  draftButton: { marginTop: 12 },
+  reviewEditor: { gap: 10 },
+  seeAll: { fontSize: 13, lineHeight: 17, fontWeight: '600' },
+  listRow: { minHeight: 58, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  todayDot: { width: 6, height: 6, borderRadius: 3 },
+  listRowContent: { flex: 1, minHeight: 58, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  listTitleLine: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  listTitle: { flex: 1, fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
+  listMeta: { fontSize: 11.5, lineHeight: 14 },
+  listSubtitle: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
+  recentRow: { minHeight: 64, paddingLeft: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  recentThumb: { width: 44, height: 44, borderRadius: 11, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   recentImage: { width: '100%', height: '100%' },
-  recentContent: { flex: 1, minHeight: 72, paddingRight: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  recentTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
-  recentSubtitle: { marginTop: 2, fontSize: 13, lineHeight: 17 },
-  recentDate: { fontSize: 12, lineHeight: 15 },
-  emptyRow: { minHeight: 92, padding: 16, justifyContent: 'center' },
-  emptyTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
-  emptyBody: { marginTop: 3, fontSize: 13, lineHeight: 17 }
+  recentContent: { flex: 1, minHeight: 64, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  recentTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
+  recentSubtitle: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
+  recentDate: { fontSize: 11.5, lineHeight: 14 },
+  emptyRow: { minHeight: 80, padding: 14, justifyContent: 'center' },
+  emptyTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
+  emptyBody: { marginTop: 2, fontSize: 12.5, lineHeight: 16 }
 });
