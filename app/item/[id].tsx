@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
-import DateTimePicker from '@expo/ui/community/datetime-picker';
+import CommunityDateTimePicker from '@expo/ui/community/datetime-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import * as Sharing from 'expo-sharing';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
 import { iconForType } from '@/src/ui/OneItemRow';
@@ -45,6 +46,9 @@ export default function ItemDetailScreen() {
     setNotes(item.notes || '');
     setSaved(item.saved);
     setCompleted(item.completed);
+    // Form state intentionally reloads only when navigation changes to another memory.
+    // A background sync of this item must not overwrite unsaved user edits.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item?.id]);
 
   if (!item) {
@@ -91,6 +95,37 @@ export default function ItemDetailScreen() {
       router.back();
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function openOriginal() {
+    if (!sourceUri) return;
+    await Haptics.selectionAsync();
+
+    if (sourceIsImage) {
+      setSourceExpanded((value) => !value);
+      return;
+    }
+
+    try {
+      if (/^https?:\/\//i.test(sourceUri)) {
+        const supported = await Linking.canOpenURL(sourceUri);
+        if (!supported) throw new Error('unsupported');
+        await Linking.openURL(sourceUri);
+        return;
+      }
+
+      const available = await Sharing.isAvailableAsync();
+      if (!available) {
+        Alert.alert('Original unavailable', 'This device cannot open the saved original with another app.');
+        return;
+      }
+
+      await Sharing.shareAsync(sourceUri, {
+        mimeType: currentItem.localAttachmentMimeType
+      });
+    } catch {
+      Alert.alert('Could not open original', 'NEVER still has the saved original, but iOS could not hand it to another app.');
     }
   }
 
@@ -141,7 +176,12 @@ export default function ItemDetailScreen() {
         {sourceUri ? (
           <View style={styles.section}>
             <V5SectionHeader title="Original" meta={currentItem.localAttachmentName || undefined} />
-            <Pressable onPress={() => setSourceExpanded((value) => !value)} style={({ pressed }) => [styles.sourceCard, { backgroundColor: p.surface, opacity: pressed ? 0.74 : 1 }]}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={sourceIsImage ? (sourceExpanded ? 'Close original image' : 'Open original image') : 'Open original file'}
+              onPress={() => void openOriginal()}
+              style={({ pressed }) => [styles.sourceCard, { backgroundColor: p.surface, opacity: pressed ? 0.74 : 1 }]}
+            >
               {sourceIsImage ? (
                 <Image source={{ uri: sourceUri }} style={[styles.sourceImage, sourceExpanded && styles.sourceImageExpanded, { backgroundColor: p.fill }]} resizeMode="contain" />
               ) : (
@@ -154,7 +194,9 @@ export default function ItemDetailScreen() {
                 </View>
               )}
               <View style={[styles.sourceActionRow, { borderTopColor: p.separator }]}>
-                <Text style={[styles.sourceAction, { color: p.secondary }]}>{sourceExpanded ? 'Close Original' : 'Open Original'}</Text>
+                <Text style={[styles.sourceAction, { color: p.secondary }]}> 
+                  {sourceIsImage ? (sourceExpanded ? 'Close Original' : 'Open Original') : 'Open Original'}
+                </Text>
                 <V5Chevron />
               </View>
             </Pressable>
@@ -227,7 +269,7 @@ export default function ItemDetailScreen() {
         ) : null}
 
         {currentItem.url && !savedLinks.length ? (
-          <Pressable onPress={() => Linking.openURL(currentItem.url!)} style={({ pressed }) => [styles.linkCard, { backgroundColor: p.surface, opacity: pressed ? 0.62 : 1 }]}>
+          <Pressable onPress={() => Linking.openURL(currentItem.url!)} style={({ pressed }) => [styles.linkCard, { backgroundColor: p.surface, opacity: pressed ? 0.62 : 1 }]}> 
             <MemoryGlyph icon={icons.link} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.linkLabel, { color: p.tertiary }]}>SAVED LINK</Text>
@@ -245,7 +287,7 @@ export default function ItemDetailScreen() {
           </V5Group>
         </View>
 
-        <Pressable disabled={saving || !title.trim()} onPress={saveChanges} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !title.trim() ? 0.38 : pressed ? 0.72 : 1 }]}>
+        <Pressable disabled={saving || !title.trim()} onPress={saveChanges} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !title.trim() ? 0.38 : pressed ? 0.72 : 1 }]}> 
           <OneIcon name={icons.check} size={15} color={p.dark ? '#111113' : '#FFFFFF'} />
           <Text style={[styles.primaryButtonText, { color: p.dark ? '#111113' : '#FFFFFF' }]}>{saving ? 'Saving…' : 'Save Changes'}</Text>
         </Pressable>
@@ -300,7 +342,7 @@ export default function ItemDetailScreen() {
             <TextInput value={value} onChangeText={kind === 'date' ? setDate : setTime} placeholder={kind === 'date' ? 'YYYY-MM-DD' : 'HH:MM'} placeholderTextColor={p.tertiary} accessibilityLabel={label} style={[styles.fieldInput, { color: p.label }]} autoCapitalize="none" />
           ) : isIos && value ? (
             <View style={styles.nativePickerWrap}>
-              <DateTimePicker value={pickerValue} mode={kind} display="compact" is24Hour accentColor={p.chrome} onValueChange={(_event, selected) => applySelected(selected)} />
+              <CommunityDateTimePicker value={pickerValue} mode={kind} display="compact" is24Hour accentColor={p.chrome} onValueChange={(_event, selected) => applySelected(selected)} />
             </View>
           ) : (
             <Pressable onPress={activatePicker} style={({ pressed }) => [styles.pickerButton, { backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
@@ -310,7 +352,7 @@ export default function ItemDetailScreen() {
           {value ? <Pressable hitSlop={8} onPress={clearValue} style={styles.clearButton}><OneIcon name={icons.close} size={11.5} color={p.tertiary} /></Pressable> : null}
         </View>
         {!isWeb && !isIos && activePicker === kind ? (
-          <DateTimePicker value={pickerValue} mode={kind} presentation="dialog" is24Hour accentColor={p.chrome} onValueChange={(_event, selected) => applySelected(selected)} onDismiss={() => setActivePicker(null)} />
+          <CommunityDateTimePicker value={pickerValue} mode={kind} presentation="dialog" is24Hour accentColor={p.chrome} onValueChange={(_event, selected) => applySelected(selected)} onDismiss={() => setActivePicker(null)} />
         ) : null}
       </>
     );
