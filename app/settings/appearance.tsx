@@ -3,51 +3,26 @@ import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useTheme, useThemePreference } from '@/src/theme/useTheme';
-import { NeverSignal, Surface } from '@/src/ui/primitives';
+import { useThemePreference } from '@/src/theme/useTheme';
 import { OneIcon, icons } from '@/src/ui/icons';
+import { V5Group, V5IconButton, V5LargeHeader, useNeverV5Palette } from '@/src/ui/appleV5';
 import type { ThemePreference } from '@/src/context/ThemeContext';
-import {
-  getNeverAppIcon,
-  setNeverAppIcon,
-  supportsNeverAppIcons,
-  type NeverAppIconName,
-} from '@/modules/never-app-icon/src/NeverAppIcon';
+import { getNeverAppIcon, setNeverAppIcon, supportsNeverAppIcons, type NeverAppIconName } from '@/modules/never-app-icon/src/NeverAppIcon';
 
-const options: {
-  value: ThemePreference;
-  title: string;
-  body: string;
-}[] = [
+const options: { value: ThemePreference; title: string; body: string }[] = [
   { value: 'system', title: 'Automatic', body: 'Follow your iPhone appearance.' },
-  { value: 'light', title: 'Core Light', body: 'Silver system canvas with bright grouped surfaces.' },
-  { value: 'dark', title: 'Core Dark', body: 'True black canvas with elevated graphite surfaces.' }
+  { value: 'light', title: 'Light', body: 'Neutral platinum canvas with bright grouped surfaces.' },
+  { value: 'dark', title: 'Dark', body: 'True black canvas with elevated graphite surfaces.' }
 ];
 
-const iconOptions: {
-  value: NeverAppIconName;
-  title: string;
-  body: string;
-  source: number;
-}[] = [
-  {
-    value: 'nature',
-    title: 'Nature',
-    body: 'Default NEVER app icon.',
-    source: require('../../assets/icons/never-nature.png')
-  },
-  {
-    value: 'wordmark',
-    title: 'Wordmark',
-    body: 'Minimal NEVER wordmark.',
-    source: require('../../assets/icons/never-wordmark.png')
-  }
+const iconOptions: { value: NeverAppIconName; title: string; body: string; source: number }[] = [
+  { value: 'nature', title: 'Nature', body: 'Default NEVER app icon.', source: require('../../assets/icons/never-nature.png') },
+  { value: 'wordmark', title: 'Wordmark', body: 'Minimal NEVER wordmark.', source: require('../../assets/icons/never-wordmark.png') }
 ];
 
 export default function AppearanceScreen() {
-  const theme = useTheme();
-  const { preference, resolvedMode, setPreference } = useThemePreference();
-  const dark = resolvedMode === 'dark';
+  const p = useNeverV5Palette();
+  const { preference, setPreference } = useThemePreference();
   const [appIcon, setAppIcon] = useState<NeverAppIconName>(() => getNeverAppIcon());
   const [iconError, setIconError] = useState<string | null>(null);
   const canSwitchAppIcon = supportsNeverAppIcons();
@@ -70,172 +45,110 @@ export default function AppearanceScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            onPress={() => router.back()}
-            style={({ pressed }) => [
-              styles.navButton,
-              {
-                backgroundColor: dark ? '#1C1C1EF2' : '#FFFFFFF2',
-                borderColor: dark ? '#FFFFFF12' : '#0000000A',
-                opacity: pressed ? 0.65 : 1
-              }
-            ]}
-          >
-            <OneIcon name={icons.chevronLeft} size={16} color={theme.text} />
-          </Pressable>
-          <View style={styles.navBrand}>
-            <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
-            <NeverSignal compact />
-          </View>
-          <View style={{ width: 40 }} />
+          <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.back()} />
+          <Text style={[styles.navTitle, { color: p.label }]}>Appearance</Text>
+          <View style={{ width: 38 }} />
         </View>
 
-        <View style={styles.hero}>
-          <Text style={[styles.title, { color: theme.text }]}>Appearance</Text>
-          <Text style={[styles.subtitle, { color: theme.textSecondary }]}>Choose how NEVER Core looks on this iPhone.</Text>
-        </View>
+        <V5LargeHeader title="Appearance" subtitle="Choose how NEVER looks on this iPhone." />
 
-        <View style={styles.section}>
-          <Text style={[styles.groupTitle, { color: theme.textSecondary }]}>CORE INTERFACE</Text>
-          <Surface>
-            {options.map((option, index) => {
-              const active = preference === option.value;
-              return (
-                <Pressable
-                  key={option.value}
-                  accessibilityRole="radio"
-                  accessibilityLabel={`${option.title} appearance${active ? ', selected' : ''}`}
-                  accessibilityState={{ checked: active }}
-                  onPress={() => select(option.value)}
-                  style={({ pressed }) => [
-                    styles.row,
-                    index < options.length - 1 && { borderBottomColor: `${theme.text}0D`, borderBottomWidth: StyleSheet.hairlineWidth },
-                    { backgroundColor: pressed ? `${theme.fill}42` : 'transparent' }
-                  ]}
-                >
-                  <View style={[styles.preview, { backgroundColor: previewBackground(option.value, theme.background) }]}>
-                    <View style={styles.previewSignal}>
-                      <View style={[styles.previewSignalLong, { backgroundColor: previewText(option.value, theme.text) }]} />
-                      <View style={styles.previewSignalBlue} />
-                      <View style={styles.previewSignalRed} />
-                    </View>
-                    <View style={[styles.previewCard, { backgroundColor: previewSurface(option.value, theme.surface) }]}>
-                      <View style={[styles.previewLine, { backgroundColor: previewText(option.value, theme.text) }]} />
-                      <View style={[styles.previewLine, styles.previewLineShort, { backgroundColor: previewText(option.value, theme.text) }]} />
-                    </View>
+        <SettingsBlock title="Interface">
+          {options.map((option, index) => {
+            const active = preference === option.value;
+            return (
+              <Pressable key={option.value} accessibilityRole="radio" accessibilityState={{ checked: active }} onPress={() => select(option.value)} style={({ pressed }) => [styles.row, index < options.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
+                <View style={[styles.preview, { backgroundColor: previewBackground(option.value, p.canvas) }]}>
+                  <View style={[styles.previewHeader, { backgroundColor: previewText(option.value, p.label) }]} />
+                  <View style={[styles.previewCard, { backgroundColor: previewSurface(option.value, p.surface) }]}>
+                    <View style={[styles.previewLine, { backgroundColor: previewText(option.value, p.label) }]} />
+                    <View style={[styles.previewLine, styles.previewLineShort, { backgroundColor: previewText(option.value, p.label) }]} />
                   </View>
-                  <View style={styles.rowCopy}>
-                    <Text style={[styles.rowTitle, { color: theme.text }]}>{option.title}</Text>
-                    <Text style={[styles.rowBody, { color: theme.textSecondary }]}>{option.body}</Text>
-                  </View>
-                  <SelectionMark active={active} />
-                </Pressable>
-              );
-            })}
-          </Surface>
-        </View>
+                </View>
+                <View style={styles.rowCopy}>
+                  <Text style={[styles.rowTitle, { color: p.label }]}>{option.title}</Text>
+                  <Text style={[styles.rowBody, { color: p.secondary }]}>{option.body}</Text>
+                </View>
+                <SelectionMark active={active} />
+              </Pressable>
+            );
+          })}
+        </SettingsBlock>
 
-        <View style={styles.section}>
-          <Text style={[styles.groupTitle, { color: theme.textSecondary }]}>APP ICON</Text>
-          <Surface>
-            {iconOptions.map((option, index) => {
-              const active = appIcon === option.value;
-              return (
-                <Pressable
-                  key={option.value}
-                  accessibilityRole="radio"
-                  accessibilityLabel={`${option.title} app icon${active ? ', selected' : ''}`}
-                  accessibilityState={{ checked: active, disabled: !canSwitchAppIcon }}
-                  disabled={!canSwitchAppIcon}
-                  onPress={() => selectAppIcon(option.value)}
-                  style={({ pressed }) => [
-                    styles.row,
-                    index < iconOptions.length - 1 && { borderBottomColor: `${theme.text}0D`, borderBottomWidth: StyleSheet.hairlineWidth },
-                    { backgroundColor: pressed ? `${theme.fill}42` : 'transparent', opacity: !canSwitchAppIcon ? 0.55 : 1 }
-                  ]}
-                >
-                  <Image source={option.source} style={styles.appIconPreview} />
-                  <View style={styles.rowCopy}>
-                    <Text style={[styles.rowTitle, { color: theme.text }]}>{option.title}</Text>
-                    <Text style={[styles.rowBody, { color: theme.textSecondary }]}>{option.body}</Text>
-                  </View>
-                  <SelectionMark active={active} />
-                </Pressable>
-              );
-            })}
-          </Surface>
+        <SettingsBlock title="App Icon">
+          {iconOptions.map((option, index) => {
+            const active = appIcon === option.value;
+            return (
+              <Pressable key={option.value} accessibilityRole="radio" accessibilityState={{ checked: active, disabled: !canSwitchAppIcon }} disabled={!canSwitchAppIcon} onPress={() => selectAppIcon(option.value)} style={({ pressed }) => [styles.row, index < iconOptions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: !canSwitchAppIcon ? 0.55 : 1 }]}>
+                <Image source={option.source} style={styles.appIconPreview} />
+                <View style={styles.rowCopy}>
+                  <Text style={[styles.rowTitle, { color: p.label }]}>{option.title}</Text>
+                  <Text style={[styles.rowBody, { color: p.secondary }]}>{option.body}</Text>
+                </View>
+                <SelectionMark active={active} />
+              </Pressable>
+            );
+          })}
+        </SettingsBlock>
 
-          {!canSwitchAppIcon ? (
-            <View style={styles.note}>
-              <OneIcon name={icons.appearance} size={13} color={theme.sky} />
-              <Text style={[styles.noteText, { color: theme.textTertiary }]}>Icon switching becomes available in the installed iOS native build.</Text>
-            </View>
-          ) : null}
-          {iconError ? <Text style={[styles.errorText, { color: theme.danger }]}>{iconError}</Text> : null}
-        </View>
+        {!canSwitchAppIcon ? (
+          <View style={styles.note}><OneIcon name={icons.appearance} size={12.5} color={p.chrome} /><Text style={[styles.noteText, { color: p.tertiary }]}>Icon switching becomes available in the installed iOS native build.</Text></View>
+        ) : null}
+        {iconError ? <Text style={[styles.errorText, { color: p.danger }]}>{iconError}</Text> : null}
       </ScrollView>
     </SafeAreaView>
   );
 
+  function SettingsBlock({ title, children }: { title: string; children: React.ReactNode }) {
+    return <View style={styles.section}><Text style={[styles.groupTitle, { color: p.secondary }]}>{title}</Text><V5Group>{children}</V5Group></View>;
+  }
+
   function SelectionMark({ active }: { active: boolean }) {
     return (
-      <View style={[styles.radio, { borderColor: active ? theme.sky : theme.fillStrong, backgroundColor: active ? theme.sky : 'transparent' }]}>
-        {active ? <OneIcon name={icons.check} size={10.5} color="#FFFFFF" /> : null}
+      <View style={[styles.radio, { borderColor: active ? p.chrome : p.tertiary, backgroundColor: active ? p.chrome : 'transparent' }]}>
+        {active ? <OneIcon name={icons.check} size={10} color={p.dark ? '#111113' : '#FFFFFF'} /> : null}
       </View>
     );
   }
 }
 
 function previewBackground(mode: ThemePreference, current: string) {
-  if (mode === 'light') return '#F2F2F7';
+  if (mode === 'light') return '#F5F5F7';
   if (mode === 'dark') return '#000000';
   return current;
 }
-
 function previewSurface(mode: ThemePreference, current: string) {
   if (mode === 'light') return '#FFFFFF';
   if (mode === 'dark') return '#1C1C1E';
   return current;
 }
-
 function previewText(mode: ThemePreference, current: string) {
-  if (mode === 'light') return '#111114';
+  if (mode === 'light') return '#111113';
   if (mode === 'dark') return '#F5F5F7';
   return current;
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 34, gap: 24 },
-  nav: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  navBrand: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  wordmark: { fontSize: 10.75, fontWeight: '700', letterSpacing: 3.2 },
-  hero: { paddingTop: 8, paddingBottom: 2 },
-  title: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.1 },
-  subtitle: { marginTop: 7, maxWidth: 500, fontSize: 13, lineHeight: 18.5 },
-  section: { gap: 7 },
-  groupTitle: { paddingHorizontal: 7, fontSize: 8.5, lineHeight: 12, fontWeight: '700', letterSpacing: 1.15 },
-  row: { minHeight: 82, paddingHorizontal: 15, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 34, gap: 18 },
+  nav: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  navTitle: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
+  section: { gap: 6 },
+  groupTitle: { paddingHorizontal: 4, fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
+  row: { minHeight: 72, paddingHorizontal: 13, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 11 },
   rowCopy: { flex: 1, minWidth: 0 },
-  preview: { width: 52, height: 52, borderRadius: 12, padding: 7 },
-  previewSignal: { height: 3, flexDirection: 'row', alignItems: 'center', gap: 2 },
-  previewSignalLong: { width: 13, height: 2.5, borderRadius: 2 },
-  previewSignalBlue: { width: 7, height: 2.5, borderRadius: 2, backgroundColor: '#6E94AE' },
-  previewSignalRed: { width: 4, height: 2.5, borderRadius: 2, backgroundColor: '#C26F79' },
-  previewCard: { flex: 1, marginTop: 6, borderRadius: 7, padding: 6 },
-  previewLine: { width: '72%', height: 3, borderRadius: 2, opacity: 0.62 },
-  previewLineShort: { width: '46%', marginTop: 5, opacity: 0.25 },
-  appIconPreview: { width: 52, height: 52, borderRadius: 12 },
-  rowTitle: { fontSize: 14, lineHeight: 17.5, fontWeight: '600', letterSpacing: -0.08 },
-  rowBody: { marginTop: 4, fontSize: 11, lineHeight: 15.5 },
-  radio: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.35, alignItems: 'center', justifyContent: 'center' },
-  note: { paddingHorizontal: 7, paddingTop: 2, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  noteText: { flex: 1, fontSize: 10.25, lineHeight: 14.5 },
-  errorText: { paddingHorizontal: 7, fontSize: 10.5, lineHeight: 14.5 }
+  preview: { width: 46, height: 46, borderRadius: 11, padding: 6 },
+  previewHeader: { width: 14, height: 2.5, borderRadius: 2 },
+  previewCard: { flex: 1, marginTop: 5, borderRadius: 6, padding: 5 },
+  previewLine: { width: '70%', height: 2.5, borderRadius: 2, opacity: 0.6 },
+  previewLineShort: { width: '45%', marginTop: 4, opacity: 0.25 },
+  appIconPreview: { width: 46, height: 46, borderRadius: 11 },
+  rowTitle: { fontSize: 15, lineHeight: 18, fontWeight: '600' },
+  rowBody: { marginTop: 2, fontSize: 12, lineHeight: 15.5 },
+  radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
+  note: { paddingHorizontal: 4, flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
+  noteText: { flex: 1, fontSize: 10.5, lineHeight: 14.5 },
+  errorText: { paddingHorizontal: 4, fontSize: 10.5, lineHeight: 14.5 }
 });
