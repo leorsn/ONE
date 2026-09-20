@@ -33,40 +33,33 @@ export function TriageRow({
         <View style={[styles.marker, { backgroundColor: stateColor }]} />
 
         <View style={styles.body}>
-          <View style={styles.titleLine}>
-            <Text style={[styles.title, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
-            <Text style={[styles.source, { color: p.tertiary }]} numberOfLines={1}>{sourceLabel(item)}</Text>
-          </View>
+          <Text style={[styles.title, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
           <Text style={[styles.summary, { color: p.secondary }]} numberOfLines={1}>
             {item.summary || fallbackSummary(item)}
           </Text>
-          <View style={styles.footer}>
-            <View style={styles.stateWrap}>
-              <View style={[styles.stateDot, { backgroundColor: stateColor }]} />
-              <Text style={[styles.state, { color: stateColor }]}>{stateLabel(state)}</Text>
-              {metaLine(item) ? <Text style={[styles.meta, { color: p.tertiary }]} numberOfLines={1}> · {metaLine(item)}</Text> : null}
-            </View>
-            {action ? (
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel={`${action.label} for ${item.title}`}
-                onPress={() => onExecute(action.id)}
-                style={({ pressed }) => [styles.action, { backgroundColor: p.fill, opacity: pressed ? 0.55 : 1 }]}
-              >
-                <Text style={[styles.actionText, { color: p.secondary }]}>{action.label}</Text>
-              </Pressable>
-            ) : null}
+          <View style={styles.metaLine}>
+            <Text style={[styles.source, { color: p.tertiary }]} numberOfLines={1}>{sourceLabel(item)}</Text>
+            <Text style={[styles.state, { color: stateColor }]}>{stateLabel(state)}</Text>
           </View>
         </View>
 
-        <OneIcon name={icons.chevron} size={12} color={p.tertiary} />
+        {action ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={`${action.label} for ${item.title}`}
+            onPress={() => onExecute(action.id)}
+            style={({ pressed }) => [styles.action, { backgroundColor: p.fill, opacity: pressed ? 0.55 : 1 }]}
+          >
+            <Text style={[styles.actionText, { color: p.label }]}>{shortActionLabel(action.label)}</Text>
+          </Pressable>
+        ) : <OneIcon name={icons.chevron} size={11.5} color={p.tertiary} />}
       </Pressable>
     </View>
   );
 }
 
 function stateLabel(state: ReturnType<typeof triageStateForItem>) {
-  if (state === 'needs_review') return 'Review';
+  if (state === 'needs_review') return 'Needs Review';
   if (state === 'actionable') return 'Action';
   if (state === 'processed') return 'Processed';
   if (state === 'archived') return 'Archived';
@@ -90,48 +83,31 @@ function fallbackSummary(item: OneItem) {
   return item.userContext || item.extractedText || item.originalText || item.rawInput || 'Captured in NEVER';
 }
 
-function metaLine(item: OneItem) {
-  const values = [
-    item.date,
-    item.time,
-    item.location,
-    item.merchant,
-    item.amount !== undefined ? formatAmount(item.amount, item.currency) : undefined,
-    item.understandingConfidence ? `${item.understandingConfidence} confidence` : undefined
-  ].filter(Boolean);
-  return values.join(' · ');
-}
-
-function formatAmount(amount: number, currency = 'EUR') {
-  try {
-    return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
+function shortActionLabel(label: string) {
+  if (/save reference/i.test(label)) return 'Save';
+  if (/save/i.test(label)) return 'Save';
+  if (/confirm/i.test(label)) return 'Confirm';
+  return label;
 }
 
 const styles = StyleSheet.create({
   row: { borderBottomWidth: StyleSheet.hairlineWidth },
   openArea: {
-    minHeight: 84,
-    paddingLeft: 14,
-    paddingRight: 14,
-    paddingVertical: 11,
+    minHeight: 72,
+    paddingLeft: 13,
+    paddingRight: 12,
+    paddingVertical: 10,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 11
+    gap: 10
   },
-  marker: { width: 7, height: 7, borderRadius: 4 },
+  marker: { width: 6, height: 6, borderRadius: 3 },
   body: { flex: 1, minWidth: 0 },
-  titleLine: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  title: { flex: 1, fontSize: 16, lineHeight: 20, fontWeight: '600', letterSpacing: -0.15 },
-  source: { maxWidth: 112, fontSize: 11, lineHeight: 14, textAlign: 'right' },
-  summary: { marginTop: 2, fontSize: 13, lineHeight: 17 },
-  footer: { marginTop: 6, minHeight: 26, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  stateWrap: { flex: 1, minWidth: 0, flexDirection: 'row', alignItems: 'center' },
-  stateDot: { width: 4, height: 4, borderRadius: 2, marginRight: 5 },
-  state: { fontSize: 11, lineHeight: 14, fontWeight: '600' },
-  meta: { flexShrink: 1, fontSize: 11, lineHeight: 14 },
-  action: { minHeight: 28, paddingHorizontal: 9, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  actionText: { fontSize: 11, lineHeight: 14, fontWeight: '500' }
+  title: { fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
+  summary: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
+  metaLine: { marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 7 },
+  source: { flex: 1, minWidth: 0, fontSize: 10.5, lineHeight: 13.5 },
+  state: { fontSize: 10.5, lineHeight: 13.5, fontWeight: '600' },
+  action: { minHeight: 30, minWidth: 50, paddingHorizontal: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  actionText: { fontSize: 11.5, lineHeight: 14, fontWeight: '600' }
 });
