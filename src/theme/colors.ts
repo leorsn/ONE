@@ -32,31 +32,31 @@ export type OneTheme = {
   plumSoft: string;
 };
 
-// NEVER v1 — Light
-// Platinum canvas, graphite typography and restrained chrome materials.
-// Color is semantic; material and hierarchy carry the brand.
+// NEVER — Light platinum
+// Cool metal canvas with soft ceramic whites and restrained chrome contrast.
+// The interface should read as premium utility, not as a conventional AI app.
 export const lightTheme: OneTheme = {
-  background: '#F2F3F5',
-  surface: '#F6F7F8',
-  surfaceElevated: '#FAFBFC',
-  fill: '#E9ECEF',
-  fillStrong: '#D8DCE2',
-  text: '#111317',
-  textSecondary: '#5E6670',
-  textTertiary: '#8D959F',
-  border: '#D7DBE1',
-  accent: '#73808D',
-  accentSoft: '#E8EBEE',
+  background: '#EFF1F3',
+  surface: '#F5F6F7',
+  surfaceElevated: '#FBFCFC',
+  fill: '#E5E8EB',
+  fillStrong: '#D3D8DD',
+  text: '#101215',
+  textSecondary: '#59616A',
+  textTertiary: '#8A929B',
+  border: '#D2D7DC',
+  accent: '#77818C',
+  accentSoft: '#E5E9EC',
   onAccent: '#FFFFFF',
-  chrome: '#6B7581',
-  chromeSoft: '#E2E6EA',
-  platinum: '#AEB6C1',
-  platinumSoft: '#E9ECEF',
-  glass: '#FAFBFCC2',
-  glassStrong: '#FCFDFEE0',
-  glassBorder: '#FFFFFFC7',
-  reflection: '#FFFFFFE8',
-  shadow: '#20242A',
+  chrome: '#65707B',
+  chromeSoft: '#DFE4E8',
+  platinum: '#B5BDC5',
+  platinumSoft: '#E7EAED',
+  glass: '#F8FAFBC9',
+  glassStrong: '#FFFFFFE4',
+  glassBorder: '#FFFFFFE8',
+  reflection: '#FFFFFFF2',
+  shadow: '#1B2026',
   success: '#3BAE76',
   successSoft: '#E8F6EE',
   danger: '#D65F68',
@@ -69,30 +69,30 @@ export const lightTheme: OneTheme = {
   plumSoft: '#F0EDF2'
 };
 
-// NEVER v1 — Dark
-// Graphite rather than pure black. Platinum/chrome carry the identity while
-// color is reserved for semantic state and intelligence feedback.
+// NEVER — Dark graphite
+// Not pure black: graphite, smoked glass and cool metal highlights keep depth
+// visible while preserving the same material language as the light theme.
 export const darkTheme: OneTheme = {
-  background: '#090A0C',
-  surface: '#0E1013',
-  surfaceElevated: '#14171B',
-  fill: '#1A1E23',
-  fillStrong: '#272C33',
-  text: '#F7F8FA',
-  textSecondary: '#BCC2CB',
-  textTertiary: '#747E89',
-  border: '#2C3239',
-  accent: '#AEB6C1',
-  accentSoft: '#20252B',
-  onAccent: '#090A0C',
-  chrome: '#DDE1E6',
-  chromeSoft: '#1B2026',
-  platinum: '#AEB6C1',
-  platinumSoft: '#20252B',
-  glass: '#14171BCC',
-  glassStrong: '#1A1E23E6',
-  glassBorder: '#FFFFFF15',
-  reflection: '#FFFFFF1C',
+  background: '#0B0D0F',
+  surface: '#111417',
+  surfaceElevated: '#171B1F',
+  fill: '#1D2227',
+  fillStrong: '#2A3036',
+  text: '#F5F7F8',
+  textSecondary: '#BDC3CA',
+  textTertiary: '#77818B',
+  border: '#30363D',
+  accent: '#B3BAC2',
+  accentSoft: '#22282E',
+  onAccent: '#0B0D0F',
+  chrome: '#E0E4E8',
+  chromeSoft: '#1E242A',
+  platinum: '#B9C0C7',
+  platinumSoft: '#242A30',
+  glass: '#15191DD6',
+  glassStrong: '#1C2126ED',
+  glassBorder: '#FFFFFF1C',
+  reflection: '#FFFFFF25',
   shadow: '#000000',
   success: '#55C78A',
   successSoft: '#142A20',
