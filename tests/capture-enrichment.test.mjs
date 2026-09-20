@@ -105,6 +105,13 @@ test('Ask NEVER returns the actual URL recognized from a scanned memory', () => 
     now: NOW
   });
 
+  assert.equal(item.url, 'https://www.stella-polaris.de/login');
+  assert.deepEqual(item.extractedUrls, ['https://www.stella-polaris.de/login']);
+  assert.deepEqual(
+    item.entities.filter((entity) => entity.startsWith('url:')),
+    ['url:https://www.stella-polaris.de/login']
+  );
+
   const answer = buildSpecificLinkAnswer('Gib mir den Link von Stella Polaris', [item]);
 
   assert.ok(answer);
