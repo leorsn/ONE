@@ -1,8 +1,7 @@
 import { Platform } from 'react-native';
 
-// NEVER keeps platform-native typography as the implementation baseline.
-// Brand character comes from precise hierarchy, spacing and material rather
-// than a decorative display face.
+// NEVER V5 uses platform-native typography. The product identity now comes
+// from hierarchy, grouped layout, spacing and restrained platinum material.
 export const editorialFontFamily = Platform.select({
   ios: 'System',
   android: 'sans-serif',
@@ -17,52 +16,52 @@ export const uiFontFamily = Platform.select({
 
 export const neverType = {
   hero: {
-    fontSize: 36,
-    lineHeight: 40,
+    fontSize: 34,
+    lineHeight: 39,
     fontWeight: '700' as const,
-    letterSpacing: -1.25
+    letterSpacing: -1.05
   },
   display: {
-    fontSize: 31,
-    lineHeight: 36,
+    fontSize: 32,
+    lineHeight: 37,
     fontWeight: '700' as const,
-    letterSpacing: -1.0
+    letterSpacing: -0.9
   },
   title: {
-    fontSize: 23,
-    lineHeight: 28,
+    fontSize: 22,
+    lineHeight: 27,
     fontWeight: '600' as const,
-    letterSpacing: -0.58
+    letterSpacing: -0.45
   },
   section: {
-    fontSize: 15.5,
-    lineHeight: 20,
-    fontWeight: '700' as const,
-    letterSpacing: -0.28
+    fontSize: 17,
+    lineHeight: 21,
+    fontWeight: '600' as const,
+    letterSpacing: -0.2
   },
   body: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 21,
     fontWeight: '400' as const,
-    letterSpacing: -0.08
+    letterSpacing: -0.05
   },
   bodyStrong: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: 15,
+    lineHeight: 21,
     fontWeight: '600' as const,
-    letterSpacing: -0.1
+    letterSpacing: -0.08
   },
   caption: {
-    fontSize: 10.75,
-    lineHeight: 15,
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: '500' as const,
-    letterSpacing: 0.02
+    letterSpacing: 0
   },
   eyebrow: {
-    fontSize: 8.75,
-    lineHeight: 12,
-    fontWeight: '700' as const,
-    letterSpacing: 1.6
+    fontSize: 10,
+    lineHeight: 13,
+    fontWeight: '600' as const,
+    letterSpacing: 1.2
   }
 };
 
@@ -73,15 +72,15 @@ export const neverSpacing = {
   lg: 16,
   xl: 20,
   xxl: 24,
-  section: 30,
-  hero: 38
+  section: 32,
+  hero: 40
 } as const;
 
 export const neverRadius = {
-  sm: 11,
-  md: 15,
-  lg: 19,
-  xl: 25,
-  sheet: 30,
+  sm: 10,
+  md: 14,
+  lg: 18,
+  xl: 20,
+  sheet: 28,
   pill: 999
 } as const;
