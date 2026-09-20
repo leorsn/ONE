@@ -13,13 +13,18 @@ import {
   triageStateForItem
 } from '@/src/inbox/triage';
 import { notificationSaveWarning } from '@/src/notifications/status';
-import { EmptyState, IconTile, PrimaryButton, SectionHeader, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { useTheme } from '@/src/theme/useTheme';
+import {
+  V5Chevron,
+  V5Group,
+  V5IconButton,
+  V5SectionHeader,
+  useNeverV5Palette
+} from '@/src/ui/appleV5';
 import type { OneInboxAction, OneItem } from '@/src/types/item';
 
 export default function InboxItemDetailScreen() {
-  const theme = useTheme();
+  const p = useNeverV5Palette();
   const { id } = useLocalSearchParams<{ id: string }>();
   const { items, update } = useItems();
   const item = useMemo(() => items.find((candidate) => candidate.id === id), [items, id]);
@@ -29,12 +34,12 @@ export default function InboxItemDetailScreen() {
 
   if (!item) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]}>
         <View style={styles.missing}>
-          <EmptyState icon={icons.inbox} title="Inbox item not found" body="It may have been processed or removed on another device." />
-          <Pressable accessibilityRole="button" accessibilityLabel="Return to Inbox" onPress={() => router.replace('/(tabs)')}>
-            <Text style={{ color: theme.chrome, fontWeight: '600' }}>Return to Inbox</Text>
-          </Pressable>
+          <View style={[styles.missingIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.inbox} size={19} color={p.chrome} /></View>
+          <Text style={[styles.missingTitle, { color: p.label }]}>Inbox item not found</Text>
+          <Text style={[styles.missingBody, { color: p.secondary }]}>It may have been processed or removed on another device.</Text>
+          <Pressable onPress={() => router.replace('/(tabs)')}><Text style={[styles.missingBack, { color: p.chrome }]}>Return to Home</Text></Pressable>
         </View>
       </SafeAreaView>
     );
@@ -50,7 +55,6 @@ export default function InboxItemDetailScreen() {
     if (working) return;
     const changes = triageActionChanges(currentItem, action);
     if (!changes) return;
-
     setWorking(true);
     try {
       const next = await update(currentItem.id, changes);
@@ -89,178 +93,130 @@ export default function InboxItemDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
         <View style={styles.nav}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Back to Inbox"
-            onPress={() => router.back()}
-            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
-          >
-            <OneIcon name={icons.chevronLeft} size={17} color={theme.text} />
-          </Pressable>
-          <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Edit item details"
-            onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })}
-            style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
-          >
-            <OneIcon name={icons.edit} size={16} color={theme.text} />
-          </Pressable>
+          <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Back to Inbox" onPress={() => router.back()} />
+          <Text style={[styles.navTitle, { color: p.label }]}>Review</Text>
+          <V5IconButton icon={icons.edit} accessibilityLabel="Edit item details" onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })} />
         </View>
 
         <View style={styles.identity}>
-          <IconTile icon={iconFor(currentItem)} tone="neutral" size={42} />
+          <View style={[styles.identityIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={iconFor(currentItem)} size={17} color={p.chrome} /></View>
           <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[styles.state, { color: state === 'needs_review' ? theme.warning : theme.chrome }]}>{stateLabel(state)}</Text>
-            <Text style={[styles.source, { color: theme.textTertiary }]}>{sourceLine(currentItem)}</Text>
+            <Text style={[styles.state, { color: state === 'needs_review' ? p.warning : p.chrome }]}>{stateLabel(state)}</Text>
+            <Text style={[styles.source, { color: p.tertiary }]}>{sourceLine(currentItem)}</Text>
           </View>
         </View>
 
-        <View style={styles.titleBlock}>
-          <Text style={[styles.eyebrow, { color: theme.textTertiary }]}>INBOX MEMORY</Text>
-          <Text style={[styles.title, { color: theme.text }]}>{currentItem.title}</Text>
-        </View>
+        <Text style={[styles.title, { color: p.label }]}>{currentItem.title}</Text>
 
         {previewUri ? (
           <View style={styles.section}>
-            <SectionHeader title="Original" />
-            <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill, borderColor: theme.border }]} resizeMode="cover" />
+            <V5SectionHeader title="Original" />
+            <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: p.fill }]} resizeMode="cover" />
           </View>
         ) : null}
 
         <View style={styles.section}>
-          <SectionHeader title="What NEVER understood" />
-          <Surface padded>
-            <View style={styles.understandingTop}>
-              <Text style={[styles.confidenceLabel, { color: theme.textTertiary }]}>CONFIDENCE</Text>
-              <Text style={[styles.confidenceValue, { color: theme.text }]}>{confidenceLabel(currentItem)}</Text>
+          <V5SectionHeader title="NEVER Understood" />
+          <V5Group style={styles.understandingGroup}>
+            <View style={styles.confidenceRow}>
+              <Text style={[styles.confidenceLabel, { color: p.tertiary }]}>Confidence</Text>
+              <Text style={[styles.confidenceValue, { color: p.label }]}>{confidenceLabel(currentItem)}</Text>
             </View>
-            <Text style={[styles.summary, { color: theme.textSecondary }]}>{currentItem.summary || currentItem.userContext || 'No additional summary was inferred.'}</Text>
+            <Text style={[styles.summary, { color: p.secondary }]}>{currentItem.summary || currentItem.userContext || 'No additional summary was inferred.'}</Text>
             {currentItem.ambiguities?.length ? (
-              <View style={[styles.ambiguity, { borderTopColor: theme.border }]}>
-                <Text style={[styles.ambiguityTitle, { color: theme.warning }]}>Review these details</Text>
-                {currentItem.ambiguities.slice(0, 4).map((value) => (
-                  <Text key={value} style={[styles.ambiguityText, { color: theme.textSecondary }]}>• {value}</Text>
-                ))}
+              <View style={[styles.ambiguity, { borderTopColor: p.separator }]}>
+                <Text style={[styles.ambiguityTitle, { color: p.warning }]}>Check these details</Text>
+                {currentItem.ambiguities.slice(0, 4).map((value) => <Text key={value} style={[styles.ambiguityText, { color: p.secondary }]}>• {value}</Text>)}
               </View>
             ) : null}
-          </Surface>
+          </V5Group>
         </View>
 
         {facts(currentItem).length ? (
           <View style={styles.section}>
-            <SectionHeader title="Facts" />
-            <Surface>
+            <V5SectionHeader title="Facts" />
+            <V5Group>
               {facts(currentItem).map((fact, index, list) => (
-                <View key={fact.label} style={[styles.factRow, index < list.length - 1 && { borderBottomColor: theme.border, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-                  <Text style={[styles.factLabel, { color: theme.textTertiary }]}>{fact.label}</Text>
-                  <Text style={[styles.factValue, { color: theme.text }]} numberOfLines={2}>{fact.value}</Text>
+                <View key={fact.label} style={[styles.factRow, index < list.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+                  <Text style={[styles.factLabel, { color: p.secondary }]}>{fact.label}</Text>
+                  <Text style={[styles.factValue, { color: p.label }]} numberOfLines={2}>{fact.value}</Text>
                 </View>
               ))}
-            </Surface>
+            </V5Group>
           </View>
         ) : null}
 
         {duplicate ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Open possible duplicate"
-            onPress={() => router.push({ pathname: '/item/[id]', params: { id: duplicate.id } })}
-            style={({ pressed }) => [styles.duplicate, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.58 : 1 }]}
-          >
-            <View style={[styles.warningIcon, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-              <OneIcon name={icons.more} size={15} color={theme.warning} />
-            </View>
+          <Pressable onPress={() => router.push({ pathname: '/item/[id]', params: { id: duplicate.id } })} style={({ pressed }) => [styles.duplicate, { backgroundColor: p.surface, opacity: pressed ? 0.6 : 1 }]}>
+            <View style={[styles.warningIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.more} size={14} color={p.warning} /></View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.duplicateTitle, { color: theme.text }]}>Possible duplicate</Text>
-              <Text style={[styles.duplicateBody, { color: theme.textSecondary }]} numberOfLines={2}>A recent capture appears to contain the same source information: {duplicate.title}</Text>
+              <Text style={[styles.duplicateTitle, { color: p.label }]}>Possible Duplicate</Text>
+              <Text style={[styles.duplicateBody, { color: p.secondary }]} numberOfLines={2}>{duplicate.title}</Text>
             </View>
-            <OneIcon name={icons.chevron} size={13} color={theme.textTertiary} />
+            <V5Chevron />
           </Pressable>
         ) : null}
 
         {state === 'needs_review' ? (
           <View style={styles.section}>
-            <SectionHeader title="Review" />
-            <Surface padded>
-              <Text style={[styles.reviewBody, { color: theme.textSecondary }]}>Check uncertain details before confirming. Edit the memory if any recognized fact is wrong.</Text>
+            <V5SectionHeader title="Review" />
+            <V5Group style={styles.reviewGroup}>
+              <Text style={[styles.reviewBody, { color: p.secondary }]}>Check uncertain details before confirming. Edit the memory if any recognized fact is wrong.</Text>
               <View style={styles.actionStack}>
-                <PrimaryButton label="Edit details" icon={icons.edit} onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })} />
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="Confirm extracted facts"
-                  disabled={working}
-                  onPress={confirmReview}
-                  style={({ pressed }) => [styles.secondaryAction, { backgroundColor: theme.fill, borderColor: theme.border, opacity: pressed || working ? 0.58 : 1 }]}
-                >
-                  <Text style={[styles.secondaryActionText, { color: theme.text }]}>Confirm facts</Text>
+                <Pressable onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })} style={({ pressed }) => [styles.primaryAction, { backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
+                  <OneIcon name={icons.edit} size={14} color={p.dark ? '#111113' : '#FFFFFF'} />
+                  <Text style={[styles.primaryActionText, { color: p.dark ? '#111113' : '#FFFFFF' }]}>Edit Details</Text>
+                </Pressable>
+                <Pressable disabled={working} onPress={confirmReview} style={({ pressed }) => [styles.secondaryAction, { backgroundColor: p.fill, opacity: pressed || working ? 0.58 : 1 }]}>
+                  <Text style={[styles.secondaryActionText, { color: p.label }]}>Confirm Facts</Text>
                 </Pressable>
               </View>
-            </Surface>
+            </V5Group>
           </View>
         ) : null}
 
         {actions.length ? (
           <View style={styles.section}>
-            <SectionHeader title="Next actions" meta="From saved facts" />
-            <View style={styles.actionStack}>
-              {actions.map((action, index) => {
-                const primary = action.primary && index === 0;
-                return (
-                  <Pressable
-                    key={action.id}
-                    accessibilityRole="button"
-                    accessibilityLabel={`${action.label}. ${action.reason}`}
-                    disabled={working}
-                    onPress={() => void execute(action.id)}
-                    style={({ pressed }) => [
-                      styles.proposal,
-                      {
-                        backgroundColor: primary ? theme.accent : theme.surfaceElevated,
-                        borderColor: primary ? theme.accent : theme.border,
-                        opacity: pressed || working ? 0.58 : 1
-                      }
-                    ]}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <Text style={[styles.proposalTitle, { color: primary ? theme.onAccent : theme.text }]}>{action.label}</Text>
-                      <Text style={[styles.proposalReason, { color: primary ? theme.onAccent : theme.textSecondary, opacity: primary ? 0.78 : 1 }]}>{action.reason}</Text>
-                    </View>
-                    <OneIcon name={icons.chevron} size={13} color={primary ? theme.onAccent : theme.textTertiary} />
-                  </Pressable>
-                );
-              })}
-            </View>
+            <V5SectionHeader title="Next Actions" />
+            <V5Group>
+              {actions.map((action, index) => (
+                <Pressable key={action.id} disabled={working} onPress={() => void execute(action.id)} style={({ pressed }) => [styles.proposal, index !== actions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: working ? 0.58 : 1 }]}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.proposalTitle, { color: p.label }]}>{action.label}</Text>
+                    <Text style={[styles.proposalReason, { color: p.secondary }]}>{action.reason}</Text>
+                  </View>
+                  <V5Chevron />
+                </Pressable>
+              ))}
+            </V5Group>
           </View>
         ) : null}
 
         {original ? (
           <View style={styles.section}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Toggle original captured content" onPress={() => setShowOriginal((value) => !value)} style={styles.disclosure}>
-              <Text style={[styles.disclosureText, { color: theme.text }]}>Original capture</Text>
-              <Text style={[styles.openText, { color: theme.textSecondary }]}>{showOriginal ? 'Hide' : 'Show'}</Text>
+            <Pressable onPress={() => setShowOriginal((value) => !value)} style={styles.disclosure}>
+              <Text style={[styles.disclosureText, { color: p.label }]}>Original Capture</Text>
+              <Text style={[styles.openText, { color: p.secondary }]}>{showOriginal ? 'Hide' : 'Show'}</Text>
             </Pressable>
-            {showOriginal ? <Surface padded><Text style={[styles.original, { color: theme.textSecondary }]} selectable>{original}</Text></Surface> : null}
+            {showOriginal ? <V5Group style={styles.originalGroup}><Text style={[styles.original, { color: p.secondary }]} selectable>{original}</Text></V5Group> : null}
           </View>
         ) : null}
 
-        <View style={[styles.triageFooter, { borderTopColor: theme.border }]}>
-          <Pressable accessibilityRole="button" accessibilityLabel="Review tomorrow" disabled={working} onPress={deferReview} style={({ pressed }) => [styles.footerAction, { opacity: pressed || working ? 0.55 : 1 }]}>
-            <Text style={[styles.footerText, { color: theme.textSecondary }]}>Review tomorrow</Text>
-          </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Mark processed" disabled={working} onPress={() => void execute('mark_processed')} style={({ pressed }) => [styles.footerAction, { opacity: pressed || working ? 0.55 : 1 }]}>
-            <Text style={[styles.footerText, { color: theme.textSecondary }]}>Mark processed</Text>
-          </Pressable>
-          <Pressable accessibilityRole="button" accessibilityLabel="Archive item" disabled={working} onPress={() => void execute('archive')} style={({ pressed }) => [styles.footerAction, { opacity: pressed || working ? 0.55 : 1 }]}>
-            <Text style={[styles.footerText, { color: theme.danger }]}>Archive</Text>
-          </Pressable>
+        <View style={[styles.triageFooter, { borderTopColor: p.separator }]}>
+          <FooterAction label="Review Tomorrow" onPress={deferReview} />
+          <FooterAction label="Mark Processed" onPress={() => void execute('mark_processed')} />
+          <FooterAction label="Archive" onPress={() => void execute('archive')} danger />
         </View>
       </ScrollView>
     </SafeAreaView>
   );
+
+  function FooterAction({ label, onPress, danger = false }: { label: string; onPress: () => void | Promise<void>; danger?: boolean }) {
+    return <Pressable disabled={working} onPress={onPress} style={({ pressed }) => [styles.footerAction, { opacity: pressed || working ? 0.55 : 1 }]}><Text style={[styles.footerText, { color: danger ? p.danger : p.secondary }]}>{label}</Text></Pressable>;
+  }
 }
 
 function facts(item: OneItem) {
@@ -274,13 +230,11 @@ function facts(item: OneItem) {
     item.category ? { label: 'Category', value: item.category } : undefined
   ].filter((value): value is { label: string; value: string } => Boolean(value));
 }
-
 function imagePreviewUri(item: OneItem) {
   const candidate = item.localAttachmentUri || item.imageUrl;
   if (!candidate) return undefined;
   return /^(file|content|ph|https?):\/\//i.test(candidate) ? candidate : undefined;
 }
-
 function iconFor(item: OneItem) {
   if (item.kind === 'event') return icons.appointment;
   if (item.kind === 'reminder') return icons.reminder;
@@ -290,7 +244,6 @@ function iconFor(item: OneItem) {
   if (item.type === 'idea') return icons.idea;
   return icons.note;
 }
-
 function stateLabel(state: ReturnType<typeof triageStateForItem>) {
   if (state === 'needs_review') return 'NEEDS REVIEW';
   if (state === 'actionable') return 'ACTIONABLE';
@@ -298,17 +251,14 @@ function stateLabel(state: ReturnType<typeof triageStateForItem>) {
   if (state === 'archived') return 'ARCHIVED';
   return 'NEW';
 }
-
 function sourceLine(item: OneItem) {
   const source = item.sourceType === 'manual' ? 'Captured' : item.sourceType === 'share' ? 'Shared' : item.sourceType;
   return `${source} · ${new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(item.createdAt))}`;
 }
-
 function confidenceLabel(item: OneItem) {
   const value = item.understandingConfidence || 'medium';
   return `${value.charAt(0).toUpperCase() + value.slice(1)} confidence`;
 }
-
 function formatAmount(amount: number, currency = 'EUR') {
   try { return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount); }
   catch { return `${amount.toFixed(2)} ${currency}`; }
@@ -316,45 +266,52 @@ function formatAmount(amount: number, currency = 'EUR') {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 42, gap: 23 },
-  missing: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
-  nav: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  wordmark: { fontSize: 11, fontWeight: '600', letterSpacing: 3.2 },
-  identity: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  state: { fontSize: 8.5, fontWeight: '700', letterSpacing: 1.2 },
-  source: { marginTop: 3, fontSize: 10.5, lineHeight: 14 },
-  titleBlock: { gap: 7 },
-  eyebrow: { fontSize: 8.5, fontWeight: '700', letterSpacing: 1.5 },
-  title: { maxWidth: 650, fontSize: 29, lineHeight: 35, fontWeight: '600', letterSpacing: -0.95 },
-  section: { gap: 10 },
-  preview: { width: '100%', height: 270, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth },
-  understandingTop: { flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: 12 },
-  confidenceLabel: { fontSize: 8, fontWeight: '700', letterSpacing: 1.1 },
-  confidenceValue: { fontSize: 11.25, fontWeight: '600' },
-  summary: { marginTop: 11, fontSize: 12.5, lineHeight: 18.5 },
-  ambiguity: { marginTop: 14, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
-  ambiguityTitle: { fontSize: 11.25, fontWeight: '600' },
-  ambiguityText: { marginTop: 5, fontSize: 11.25, lineHeight: 16 },
-  factRow: { minHeight: 54, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  factLabel: { width: 76, fontSize: 10.75 },
-  factValue: { flex: 1, fontSize: 12.75, fontWeight: '600', textAlign: 'right' },
-  duplicate: { minHeight: 74, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  warningIcon: { width: 36, height: 36, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  duplicateTitle: { fontSize: 12.75, fontWeight: '600' },
-  duplicateBody: { marginTop: 3, fontSize: 10.75, lineHeight: 15.5 },
-  openText: { fontSize: 11.5, fontWeight: '600' },
-  reviewBody: { fontSize: 12, lineHeight: 17.5 },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 38, gap: 18 },
+  missing: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  missingIcon: { width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  missingTitle: { marginTop: 12, fontSize: 18, lineHeight: 22, fontWeight: '700' },
+  missingBody: { marginTop: 3, maxWidth: 280, textAlign: 'center', fontSize: 13, lineHeight: 18 },
+  missingBack: { marginTop: 14, fontSize: 14, lineHeight: 18, fontWeight: '600' },
+  nav: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  navTitle: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
+  identity: { flexDirection: 'row', alignItems: 'center', gap: 10 },
+  identityIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  state: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.8 },
+  source: { marginTop: 2, fontSize: 11.5, lineHeight: 14 },
+  title: { fontSize: 28, lineHeight: 33, fontWeight: '700', letterSpacing: -0.85 },
+  section: { gap: 7 },
+  preview: { width: '100%', height: 300, borderRadius: 16 },
+  understandingGroup: { padding: 14 },
+  confidenceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  confidenceLabel: { fontSize: 11, lineHeight: 14, fontWeight: '500' },
+  confidenceValue: { fontSize: 12, lineHeight: 15, fontWeight: '600' },
+  summary: { marginTop: 10, fontSize: 13.5, lineHeight: 19 },
+  ambiguity: { marginTop: 12, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
+  ambiguityTitle: { fontSize: 12, lineHeight: 15, fontWeight: '600' },
+  ambiguityText: { marginTop: 4, fontSize: 12, lineHeight: 17 },
+  factRow: { minHeight: 50, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 12 },
+  factLabel: { width: 78, fontSize: 12, lineHeight: 15 },
+  factValue: { flex: 1, textAlign: 'right', fontSize: 13, lineHeight: 17, fontWeight: '500' },
+  duplicate: { minHeight: 66, borderRadius: 16, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  warningIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  duplicateTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  duplicateBody: { marginTop: 2, fontSize: 12, lineHeight: 16 },
+  reviewGroup: { padding: 14 },
+  reviewBody: { fontSize: 12.5, lineHeight: 18 },
   actionStack: { marginTop: 12, gap: 8 },
-  secondaryAction: { minHeight: 48, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  secondaryActionText: { fontSize: 12.5, fontWeight: '600' },
-  proposal: { minHeight: 66, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, paddingVertical: 11, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  proposalTitle: { fontSize: 13.25, fontWeight: '600' },
-  proposalReason: { marginTop: 3, fontSize: 10.75, lineHeight: 15.5 },
-  disclosure: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  disclosureText: { fontSize: 13, fontWeight: '600' },
-  original: { fontSize: 12, lineHeight: 18.5 },
-  triageFooter: { paddingTop: 11, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', justifyContent: 'center', flexWrap: 'wrap', gap: 4 },
-  footerAction: { minHeight: 36, paddingHorizontal: 10, justifyContent: 'center' },
-  footerText: { fontSize: 10.75, fontWeight: '600' }
+  primaryAction: { minHeight: 44, borderRadius: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  primaryActionText: { fontSize: 14, lineHeight: 18, fontWeight: '600' },
+  secondaryAction: { minHeight: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  secondaryActionText: { fontSize: 13.5, lineHeight: 17, fontWeight: '600' },
+  proposal: { minHeight: 58, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  proposalTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  proposalReason: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
+  disclosure: { minHeight: 36, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  disclosureText: { fontSize: 14, lineHeight: 18, fontWeight: '600' },
+  openText: { fontSize: 12.5, lineHeight: 16 },
+  originalGroup: { padding: 14 },
+  original: { fontSize: 12.5, lineHeight: 19 },
+  triageFooter: { marginTop: 2, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
+  footerAction: { minHeight: 34, justifyContent: 'center' },
+  footerText: { fontSize: 11.5, lineHeight: 14, fontWeight: '600' }
 });
