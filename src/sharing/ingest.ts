@@ -1,6 +1,7 @@
 import type { ResolvedSharePayload, SharePayload } from 'expo-sharing';
 import { buildItemFromCapture } from '@/src/capture/buildItem';
 import { interpretCapture, type CaptureDraft } from '@/src/capture/core';
+import { enrichCaptureDraft } from '@/src/capture/enrichment';
 import { normalizeSharedCapture, type SharedCaptureEnvelope } from './contract';
 import type { OneItem } from '@/src/types/item';
 
@@ -20,16 +21,17 @@ export function createShareDraft({
   now?: Date;
 }): CaptureDraft {
   const envelope = createSharedCaptureEnvelope({ payload, resolved, sourceApplication, now });
-
-  return interpretCapture({
+  const input = {
     rawText: envelope.sharedText || envelope.normalizedUrl || envelope.originalName || '',
     extractedText,
     userContext: context,
-    sourceType: 'share',
+    sourceType: 'share' as const,
     isImage: envelope.kind === 'image',
     url: envelope.normalizedUrl,
     now
-  });
+  };
+
+  return enrichCaptureDraft(interpretCapture(input), input);
 }
 
 export function createItemFromShare({
