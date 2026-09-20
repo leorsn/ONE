@@ -10,21 +10,21 @@ export function useNeverV5Palette() {
   const dark = resolvedMode === 'dark';
   return {
     dark,
-    canvas: dark ? '#000000' : '#F2F2F7',
+    canvas: dark ? '#000000' : '#F5F5F7',
     surface: dark ? '#1C1C1E' : '#FFFFFF',
     elevated: dark ? '#2C2C2E' : '#FFFFFF',
-    fill: dark ? '#2C2C2E' : '#E9E9EE',
-    fillSoft: dark ? '#242426' : '#F5F5F7',
-    label: dark ? '#FFFFFF' : '#000000',
+    fill: dark ? '#2C2C2E' : '#EAEAEE',
+    fillSoft: dark ? '#242426' : '#F2F2F4',
+    label: dark ? '#FFFFFF' : '#111113',
     secondary: dark ? '#EBEBF599' : '#3C3C4399',
     tertiary: dark ? '#EBEBF54D' : '#3C3C434D',
-    separator: dark ? '#54545899' : '#3C3C4329',
+    separator: dark ? '#54545899' : '#3C3C4324',
     graphite: dark ? '#F2F2F7' : '#1C1C1E',
-    chrome: dark ? '#D1D1D6' : '#6E7681',
+    chrome: dark ? '#D1D1D6' : '#727780',
     chromeSoft: dark ? '#3A3A3C' : '#E5E5EA',
     warning: '#C5892F',
     success: '#34C759',
-    danger: '#FF453A'
+    danger: dark ? '#FF453A' : '#FF3B30'
   } as const;
 }
 
@@ -86,15 +86,15 @@ export function V5Group({ children, style }: { children: ReactNode; style?: obje
 export function V5Glyph({ icon, filled = false, size = 36 }: { icon: IconName; filled?: boolean; size?: number }) {
   const p = useNeverV5Palette();
   return (
-    <View style={[styles.glyph, { width: size, height: size, borderRadius: Math.round(size * 0.3), backgroundColor: filled ? p.graphite : p.fillSoft }]}>
-      <OneIcon name={icon} size={Math.round(size * 0.45)} color={filled ? (p.dark ? '#111113' : '#FFFFFF') : p.chrome} />
+    <View style={[styles.glyph, { width: size, height: size, borderRadius: Math.round(size * 0.28), backgroundColor: filled ? p.graphite : p.fillSoft }]}>
+      <OneIcon name={icon} size={Math.round(size * 0.44)} color={filled ? (p.dark ? '#111113' : '#FFFFFF') : p.chrome} />
     </View>
   );
 }
 
 export function V5Chevron() {
   const p = useNeverV5Palette();
-  return <OneIcon name={icons.chevron} size={12} color={p.tertiary} />;
+  return <OneIcon name={icons.chevron} size={11.5} color={p.tertiary} />;
 }
 
 export function V5Row({
@@ -119,7 +119,7 @@ export function V5Row({
   const p = useNeverV5Palette();
   const body = (
     <>
-      {icon ? <V5Glyph icon={icon} size={38} /> : null}
+      {icon ? <V5Glyph icon={icon} size={36} /> : null}
       <View style={[styles.rowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
         <View style={styles.rowText}>
           <View style={styles.rowTitleLine}>
@@ -157,7 +157,7 @@ export function V5SearchField({
   const p = useNeverV5Palette();
   return (
     <View style={[styles.searchField, { backgroundColor: p.surface }]}>
-      <OneIcon name={ask ? icons.ask : icons.search} size={17} color={p.secondary} />
+      <OneIcon name={ask ? icons.ask : icons.search} size={16.5} color={p.secondary} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -215,41 +215,41 @@ export function V5IconButton({ icon, onPress, accessibilityLabel }: { icon: Icon
   const p = useNeverV5Palette();
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={({ pressed }) => [styles.iconButton, { backgroundColor: p.surface, opacity: pressed ? 0.6 : 1 }]}>
-      <OneIcon name={icon} size={16} color={p.label} />
+      <OneIcon name={icon} size={15.5} color={p.label} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 9 },
-  wordmark: { fontSize: 15, lineHeight: 18, fontWeight: '800', letterSpacing: 5.1 },
+  wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  wordmark: { fontSize: 13.5, lineHeight: 17, fontWeight: '800', letterSpacing: 4.8 },
   signal: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  signalLong: { width: 18, height: 3, borderRadius: 2 },
-  signalShort: { width: 7, height: 3, borderRadius: 2 },
-  largeHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
-  eyebrow: { fontSize: 11, lineHeight: 15, fontWeight: '600', marginBottom: 5 },
-  largeTitle: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.05 },
-  subtitle: { marginTop: 6, maxWidth: 520, fontSize: 15, lineHeight: 21 },
-  sectionHeader: { minHeight: 28, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  sectionTitle: { fontSize: 20, lineHeight: 24, fontWeight: '700', letterSpacing: -0.35 },
+  signalLong: { width: 16, height: 3, borderRadius: 2 },
+  signalShort: { width: 6, height: 3, borderRadius: 2 },
+  largeHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  eyebrow: { fontSize: 11, lineHeight: 14, fontWeight: '600', marginBottom: 4 },
+  largeTitle: { fontSize: 32, lineHeight: 36, fontWeight: '700', letterSpacing: -0.92 },
+  subtitle: { marginTop: 5, maxWidth: 520, fontSize: 14.5, lineHeight: 20 },
+  sectionHeader: { minHeight: 25, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  sectionTitle: { fontSize: 19, lineHeight: 23, fontWeight: '700', letterSpacing: -0.3 },
   sectionRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionMeta: { fontSize: 13, lineHeight: 16, fontWeight: '500' },
-  group: { borderRadius: 20, overflow: 'hidden' },
-  glyph: { alignItems: 'center', justifyContent: 'center', marginLeft: 14 },
-  row: { minHeight: 62, flexDirection: 'row', alignItems: 'center' },
-  rowContent: { flex: 1, minHeight: 62, marginLeft: 12, paddingRight: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  rowText: { flex: 1, minWidth: 0, paddingVertical: 10 },
+  sectionMeta: { fontSize: 12.5, lineHeight: 15, fontWeight: '500' },
+  group: { borderRadius: 16, overflow: 'hidden' },
+  glyph: { alignItems: 'center', justifyContent: 'center', marginLeft: 13 },
+  row: { minHeight: 58, flexDirection: 'row', alignItems: 'center' },
+  rowContent: { flex: 1, minHeight: 58, marginLeft: 11, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  rowText: { flex: 1, minWidth: 0, paddingVertical: 9 },
   rowTitleLine: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  rowTitle: { flex: 1, fontSize: 16, lineHeight: 20, fontWeight: '600', letterSpacing: -0.15 },
-  rowSubtitle: { marginTop: 2, fontSize: 13, lineHeight: 17 },
-  rowMeta: { maxWidth: 112, fontSize: 12, lineHeight: 15, textAlign: 'right' },
-  searchField: { minHeight: 50, borderRadius: 14, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  searchInput: { flex: 1, minHeight: 48, fontSize: 17, lineHeight: 21, paddingVertical: 0 },
-  clearButton: { width: 28, height: 40, alignItems: 'center', justifyContent: 'center' },
+  rowTitle: { flex: 1, fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
+  rowSubtitle: { marginTop: 2, fontSize: 12.5, lineHeight: 16.5 },
+  rowMeta: { maxWidth: 110, fontSize: 11.5, lineHeight: 14, textAlign: 'right' },
+  searchField: { minHeight: 48, borderRadius: 13, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  searchInput: { flex: 1, minHeight: 46, fontSize: 16.5, lineHeight: 20, paddingVertical: 0 },
+  clearButton: { width: 28, height: 38, alignItems: 'center', justifyContent: 'center' },
   clearCircle: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  segmented: { height: 34, borderRadius: 9, padding: 2, flexDirection: 'row', gap: 2 },
-  segment: { flex: 1, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
-  segmentActive: { shadowColor: '#000', shadowOpacity: 0.08, shadowRadius: 3, shadowOffset: { width: 0, height: 1 } },
-  segmentText: { fontSize: 12.5, lineHeight: 15 },
-  iconButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' }
+  segmented: { height: 32, borderRadius: 8, padding: 2, flexDirection: 'row', gap: 2 },
+  segment: { flex: 1, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
+  segmentActive: { shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 2.5, shadowOffset: { width: 0, height: 1 } },
+  segmentText: { fontSize: 12, lineHeight: 14 },
+  iconButton: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' }
 });
