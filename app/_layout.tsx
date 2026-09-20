@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ActivityIndicator, Platform, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
@@ -10,6 +10,7 @@ import { OnboardingProvider, useOnboarding } from '@/src/context/OnboardingConte
 import { ThemeProvider, useThemeContext } from '@/src/context/ThemeContext';
 import { PlanProvider, usePlan } from '@/src/context/PlanContext';
 import { recordNativeAcceptanceEvent } from '@/src/native/acceptance';
+import { V5Wordmark, useNeverV5Palette } from '@/src/ui/appleV5';
 
 export default function RootLayout() {
   return (
@@ -33,8 +34,9 @@ function RootNavigation() {
   const { loaded, completed } = useOnboarding();
   const { loading: authLoading, session, configured } = useAuth();
   const { hydrated: itemsHydrated, items } = useItems();
-  const { theme, resolvedMode, loaded: themeLoaded } = useThemeContext();
+  const { resolvedMode, loaded: themeLoaded } = useThemeContext();
   const { loading: subscriptionLoading, hasBaseAccess } = usePlan();
+  const p = useNeverV5Palette();
   const itemsRef = useRef(items);
   const handledNotificationResponsesRef = useRef(new Set<string>());
   const appReady = loaded && themeLoaded && !authLoading && !subscriptionLoading && itemsHydrated;
@@ -121,9 +123,9 @@ function RootNavigation() {
 
   if (!appReady) {
     return (
-      <View style={{ flex: 1, backgroundColor: theme.background, alignItems: 'center', justifyContent: 'center', gap: 18 }}>
-        <Text style={{ color: theme.chrome, fontSize: 12, fontWeight: '700', letterSpacing: 3.2 }}>NEVER</Text>
-        <ActivityIndicator color={theme.chrome} />
+      <View style={{ flex: 1, backgroundColor: p.canvas, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <V5Wordmark />
+        <ActivityIndicator color={p.chrome} />
       </View>
     );
   }
@@ -134,8 +136,8 @@ function RootNavigation() {
       <Stack
         screenOptions={{
           headerShown: false,
-          contentStyle: { backgroundColor: theme.background },
-          animation: 'fade'
+          contentStyle: { backgroundColor: p.canvas },
+          animation: 'default'
         }}
       />
     </>
