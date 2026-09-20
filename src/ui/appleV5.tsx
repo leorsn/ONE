@@ -10,17 +10,17 @@ export function useNeverV5Palette() {
   const dark = resolvedMode === 'dark';
   return {
     dark,
-    canvas: dark ? '#000000' : '#F5F5F7',
+    canvas: dark ? '#000000' : '#F2F2F7',
     surface: dark ? '#1C1C1E' : '#FFFFFF',
     elevated: dark ? '#2C2C2E' : '#FFFFFF',
-    fill: dark ? '#2C2C2E' : '#EAEAEE',
-    fillSoft: dark ? '#242426' : '#F2F2F4',
+    fill: dark ? '#2C2C2E' : '#E5E5EA',
+    fillSoft: dark ? '#242426' : '#E9E9ED',
     label: dark ? '#FFFFFF' : '#111113',
     secondary: dark ? '#EBEBF599' : '#3C3C4399',
     tertiary: dark ? '#EBEBF54D' : '#3C3C434D',
     separator: dark ? '#54545899' : '#3C3C4324',
     graphite: dark ? '#F2F2F7' : '#1C1C1E',
-    chrome: dark ? '#D1D1D6' : '#727780',
+    chrome: dark ? '#D1D1D6' : '#70757D',
     chromeSoft: dark ? '#3A3A3C' : '#E5E5EA',
     warning: '#C5892F',
     success: '#34C759',
@@ -156,8 +156,8 @@ export function V5SearchField({
 }) {
   const p = useNeverV5Palette();
   return (
-    <View style={[styles.searchField, { backgroundColor: p.surface }]}>
-      <OneIcon name={ask ? icons.ask : icons.search} size={16.5} color={p.secondary} />
+    <View style={[styles.searchField, { backgroundColor: p.fillSoft }]}>
+      <OneIcon name={ask ? icons.ask : icons.search} size={16} color={p.secondary} />
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -169,7 +169,7 @@ export function V5SearchField({
         onSubmitEditing={onSubmit}
       />
       {value ? (
-        <Pressable onPress={() => onChangeText('')} style={styles.clearButton} hitSlop={8}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Clear" onPress={() => onChangeText('')} style={styles.clearButton} hitSlop={8}>
           <View style={[styles.clearCircle, { backgroundColor: p.tertiary }]}>
             <OneIcon name={icons.close} size={9} color={p.canvas} />
           </View>
@@ -190,12 +190,14 @@ export function V5Segmented({
 }) {
   const p = useNeverV5Palette();
   return (
-    <View style={[styles.segmented, { backgroundColor: p.fill }]}> 
+    <View style={[styles.segmented, { backgroundColor: p.fillSoft }]}>
       {options.map((option) => {
         const active = option === selected;
         return (
           <Pressable
             key={option}
+            accessibilityRole="button"
+            accessibilityState={{ selected: active }}
             onPress={() => onSelect(option)}
             style={({ pressed }) => [
               styles.segment,
@@ -214,27 +216,27 @@ export function V5Segmented({
 export function V5IconButton({ icon, onPress, accessibilityLabel }: { icon: IconName; onPress: () => void; accessibilityLabel: string }) {
   const p = useNeverV5Palette();
   return (
-    <Pressable accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={({ pressed }) => [styles.iconButton, { backgroundColor: p.surface, opacity: pressed ? 0.6 : 1 }]}>
+    <Pressable accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={({ pressed }) => [styles.iconButton, { backgroundColor: p.fillSoft, opacity: pressed ? 0.6 : 1 }]}>
       <OneIcon name={icon} size={15.5} color={p.label} />
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  wordmark: { fontSize: 13.5, lineHeight: 17, fontWeight: '800', letterSpacing: 4.8 },
+  wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  wordmark: { fontSize: 13, lineHeight: 16, fontWeight: '800', letterSpacing: 4.5 },
   signal: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  signalLong: { width: 16, height: 3, borderRadius: 2 },
-  signalShort: { width: 6, height: 3, borderRadius: 2 },
+  signalLong: { width: 15, height: 2.5, borderRadius: 2 },
+  signalShort: { width: 5.5, height: 2.5, borderRadius: 2 },
   largeHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   eyebrow: { fontSize: 11, lineHeight: 14, fontWeight: '600', marginBottom: 4 },
   largeTitle: { fontSize: 32, lineHeight: 36, fontWeight: '700', letterSpacing: -0.92 },
-  subtitle: { marginTop: 5, maxWidth: 520, fontSize: 14.5, lineHeight: 20 },
-  sectionHeader: { minHeight: 25, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  sectionTitle: { fontSize: 19, lineHeight: 23, fontWeight: '700', letterSpacing: -0.3 },
+  subtitle: { marginTop: 5, maxWidth: 520, fontSize: 14, lineHeight: 19 },
+  sectionHeader: { minHeight: 24, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  sectionTitle: { fontSize: 18, lineHeight: 22, fontWeight: '700', letterSpacing: -0.26 },
   sectionRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  sectionMeta: { fontSize: 12.5, lineHeight: 15, fontWeight: '500' },
-  group: { borderRadius: 16, overflow: 'hidden' },
+  sectionMeta: { fontSize: 12, lineHeight: 15, fontWeight: '500' },
+  group: { borderRadius: 14, overflow: 'hidden' },
   glyph: { alignItems: 'center', justifyContent: 'center', marginLeft: 13 },
   row: { minHeight: 58, flexDirection: 'row', alignItems: 'center' },
   rowContent: { flex: 1, minHeight: 58, marginLeft: 11, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
@@ -243,13 +245,13 @@ const styles = StyleSheet.create({
   rowTitle: { flex: 1, fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
   rowSubtitle: { marginTop: 2, fontSize: 12.5, lineHeight: 16.5 },
   rowMeta: { maxWidth: 110, fontSize: 11.5, lineHeight: 14, textAlign: 'right' },
-  searchField: { minHeight: 48, borderRadius: 13, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  searchInput: { flex: 1, minHeight: 46, fontSize: 16.5, lineHeight: 20, paddingVertical: 0 },
-  clearButton: { width: 28, height: 38, alignItems: 'center', justifyContent: 'center' },
-  clearCircle: { width: 18, height: 18, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  searchField: { minHeight: 44, borderRadius: 11, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  searchInput: { flex: 1, minHeight: 42, fontSize: 16, lineHeight: 20, paddingVertical: 0 },
+  clearButton: { width: 27, height: 36, alignItems: 'center', justifyContent: 'center' },
+  clearCircle: { width: 17, height: 17, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   segmented: { height: 32, borderRadius: 8, padding: 2, flexDirection: 'row', gap: 2 },
   segment: { flex: 1, borderRadius: 6, alignItems: 'center', justifyContent: 'center' },
-  segmentActive: { shadowColor: '#000', shadowOpacity: 0.07, shadowRadius: 2.5, shadowOffset: { width: 0, height: 1 } },
+  segmentActive: { shadowColor: '#000000', shadowOpacity: 0.06, shadowRadius: 2.5, shadowOffset: { width: 0, height: 1 } },
   segmentText: { fontSize: 12, lineHeight: 14 },
-  iconButton: { width: 36, height: 36, borderRadius: 18, alignItems: 'center', justifyContent: 'center' }
+  iconButton: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' }
 });
