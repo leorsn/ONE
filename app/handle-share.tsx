@@ -1,16 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useIncomingShare } from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
@@ -27,15 +16,14 @@ import { extractTextFromImage } from '@/src/ocr/extractText';
 import { mergeLateOcrDraft } from '@/src/ocr/mergeLateOcr';
 import { createItemFromShare, createShareDraft } from '@/src/sharing/ingest';
 import { persistLocalAttachment, removeLocalAttachment } from '@/src/storage/attachments';
-import { IconTile, PrimaryButton, SectionHeader, Surface } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { useTheme } from '@/src/theme/useTheme';
+import { V5Group, V5IconButton, V5LargeHeader, V5SectionHeader, useNeverV5Palette } from '@/src/ui/appleV5';
 
 type OcrState = 'idle' | 'reading' | 'ready' | 'empty' | 'failed';
 type AttachmentState = 'idle' | 'securing' | 'ready' | 'failed';
 
 export default function HandleShareScreen() {
-  const theme = useTheme();
+  const p = useNeverV5Palette();
   const { session } = useAuth();
   const { add } = useItems();
   const { sharedPayloads, resolvedSharedPayloads, isResolving, error, clearSharedPayloads } = useIncomingShare();
@@ -53,34 +41,23 @@ export default function HandleShareScreen() {
   const attachmentCommittedRef = useRef(false);
   const attachmentRevisionRef = useRef(0);
 
-  const selected = useMemo(
-    () => selectShareCandidate(sharedPayloads, resolvedSharedPayloads),
-    [sharedPayloads, resolvedSharedPayloads]
-  );
+  const selected = useMemo(() => selectShareCandidate(sharedPayloads, resolvedSharedPayloads), [sharedPayloads, resolvedSharedPayloads]);
   const selectedFingerprint = selected?.fingerprint;
   const selectedRepresentationCount = selected?.representationCount;
   const primary = selected ? sharedPayloads[selected.index] : undefined;
   const resolved = selected ? resolvedSharedPayloads[selected.index] : undefined;
   const contentUri = resolved && 'contentUri' in resolved ? resolved.contentUri : null;
   const isImage = resolved?.contentType === 'image' || primary?.shareType === 'image';
-  const isAttachment = Boolean(contentUri) && Boolean(
-    primary && ['image', 'file', 'video', 'audio'].includes(primary.shareType || '')
-  );
+  const isAttachment = Boolean(contentUri) && Boolean(primary && ['image', 'file', 'video', 'audio'].includes(primary.shareType || ''));
   const imageUri = isImage ? localAttachmentUri : null;
 
-  const automaticDraft = useMemo(
-    () => primary ? createShareDraft({ payload: primary, resolved, extractedText }) : null,
-    [primary, resolved, extractedText]
-  );
+  const automaticDraft = useMemo(() => primary ? createShareDraft({ payload: primary, resolved, extractedText }) : null, [primary, resolved, extractedText]);
   const draft = reviewedDraft ?? automaticDraft;
   const visibleOcrState: OcrState = imageUri ? ocrState : 'idle';
 
   useEffect(() => {
     if (!selectedFingerprint) return;
-    void recordNativeAcceptanceEvent(
-      'share_received',
-      `${selectedFingerprint}:${selectedRepresentationCount ?? 1} representation(s)`
-    );
+    void recordNativeAcceptanceEvent('share_received', `${selectedFingerprint}:${selectedRepresentationCount ?? 1} representation(s)`);
   }, [selectedFingerprint, selectedRepresentationCount]);
 
   useEffect(() => {
@@ -108,32 +85,21 @@ export default function HandleShareScreen() {
 
     async function secureAttachment() {
       await Promise.resolve();
-
-      if (previous && !previousCommitted) {
-        await removeLocalAttachment(previous);
-      }
+      if (previous && !previousCommitted) await removeLocalAttachment(previous);
       if (attachmentRef.current === previous) attachmentRef.current = null;
       if (cancelled || revision !== attachmentRevisionRef.current) return;
-
       setLocalAttachmentUri(null);
-
       if (!isAttachment || !contentUri) {
         setAttachmentState('idle');
         return;
       }
-
       setAttachmentState('securing');
       try {
-        const persisted = await persistLocalAttachment({
-          uri: contentUri,
-          originalName: resolved?.originalName
-        });
-
+        const persisted = await persistLocalAttachment({ uri: contentUri, originalName: resolved?.originalName });
         if (cancelled || revision !== attachmentRevisionRef.current) {
           await removeLocalAttachment(persisted);
           return;
         }
-
         attachmentRef.current = persisted;
         setLocalAttachmentUri(persisted);
         setAttachmentState('ready');
@@ -153,47 +119,30 @@ export default function HandleShareScreen() {
   useEffect(() => () => {
     attachmentRevisionRef.current += 1;
     const local = attachmentRef.current;
-    if (local && !attachmentCommittedRef.current) {
-      void removeLocalAttachment(local);
-    }
+    if (local && !attachmentCommittedRef.current) void removeLocalAttachment(local);
   }, []);
 
   useEffect(() => {
     const ocrImageUri = imageUri;
     if (!ocrImageUri) return;
-
     let cancelled = false;
 
     async function readImage(uri: string) {
       await Promise.resolve();
       if (cancelled) return;
       setOcrState('reading');
-
       try {
         const result = await extractTextFromImage(uri);
         if (cancelled) return;
         const text = result.text.trim();
         setExtractedText(text);
         setOcrState(text ? 'ready' : 'empty');
-
         if (text) {
-          const interpreted = primary
-            ? createShareDraft({ payload: primary, resolved, extractedText: text })
-            : null;
+          const interpreted = primary ? createShareDraft({ payload: primary, resolved, extractedText: text }) : null;
           if (interpreted) {
-            setReviewedDraft((current) => current
-              ? mergeLateOcrDraft({
-                  current,
-                  interpreted,
-                  extractedText: text,
-                  userEdited: userEditedRef.current,
-                  extractedTextEdited: extractedTextEditedRef.current
-                })
-              : current
-            );
+            setReviewedDraft((current) => current ? mergeLateOcrDraft({ current, interpreted, extractedText: text, userEdited: userEditedRef.current, extractedTextEdited: extractedTextEditedRef.current }) : current);
           }
         }
-
         await recordNativeAcceptanceEvent(text ? 'ocr_success' : 'ocr_empty', 'share-image');
       } catch (ocrError) {
         if (cancelled) return;
@@ -217,7 +166,6 @@ export default function HandleShareScreen() {
 
   async function handleSave() {
     if (!primary || !draft || !selected || saving) return;
-
     if (isAttachment && attachmentState !== 'ready') {
       Alert.alert(
         attachmentState === 'failed' ? 'Attachment not secured' : 'Securing attachment',
@@ -232,14 +180,10 @@ export default function HandleShareScreen() {
     try {
       if (!allowDuplicate && await isRecentlyHandledShare(selected.fingerprint)) {
         await recordNativeAcceptanceEvent('share_duplicate_blocked', selected.fingerprint);
-        Alert.alert(
-          'Already saved recently',
-          'NEVER received the same native share again. This can happen when iOS replays a share handoff.',
-          [
-            { text: 'Cancel', style: 'cancel' },
-            { text: 'Save again', onPress: () => setAllowDuplicate(true) }
-          ]
-        );
+        Alert.alert('Already saved recently', 'NEVER received the same native share again. This can happen when iOS replays a share handoff.', [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Save again', onPress: () => setAllowDuplicate(true) }
+        ]);
         return;
       }
 
@@ -251,7 +195,6 @@ export default function HandleShareScreen() {
         extractedText: draft.extractedText || extractedText,
         draft
       });
-
       const savedItem = await add(item);
       attachmentCommittedRef.current = true;
       await markShareHandled(selected.fingerprint);
@@ -260,10 +203,8 @@ export default function HandleShareScreen() {
       clearSharedPayloads();
       setReviewedDraft(null);
       setAllowDuplicate(false);
-
       const reminderWarning = notificationSaveWarning(savedItem);
       if (reminderWarning) Alert.alert('Saved to NEVER', reminderWarning);
-
       router.replace(savedItem.destination === 'saved' ? '/(tabs)/saved' : '/(tabs)');
     } catch (saveError) {
       await recordLastNativeError('share-save', saveError);
@@ -285,146 +226,67 @@ export default function HandleShareScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={4}>
         <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.nav}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Cancel share"
-              onPress={() => void handleCancel()}
-              style={({ pressed }) => [styles.navButton, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, opacity: pressed ? 0.62 : 1 }]}
-            >
-              <OneIcon name={icons.close} size={16} color={theme.text} />
-            </Pressable>
-            <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
-            <View style={{ width: 40 }} />
+            <V5IconButton icon={icons.close} accessibilityLabel="Cancel share" onPress={() => void handleCancel()} />
+            <Text style={[styles.navTitle, { color: p.label }]}>Save to NEVER</Text>
+            <View style={{ width: 38 }} />
           </View>
 
-          <View style={styles.hero}>
-            <Text style={[styles.eyebrow, { color: theme.chrome }]}>INCOMING</Text>
-            <Text style={[styles.title, { color: theme.text }]}>Save what matters.</Text>
-            <Text style={[styles.subtitle, { color: theme.textSecondary }]}>NEVER keeps the original content, recognizes useful details where possible and lets you review the memory before it is saved.</Text>
-          </View>
+          <V5LargeHeader title="Save what matters." subtitle="Keep the original, recognize useful details and review the memory before it is saved." />
 
           {isResolving ? (
-            <View style={[styles.stateCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border }]}>
-              <ActivityIndicator color={theme.chrome} />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.stateTitle, { color: theme.text }]}>Opening shared content</Text>
-                <Text style={[styles.stateText, { color: theme.textSecondary }]}>Preparing the best available representation…</Text>
-              </View>
-            </View>
+            <V5Group><View style={styles.stateRow}><ActivityIndicator color={p.chrome} /><View style={{ flex: 1 }}><Text style={[styles.stateTitle, { color: p.label }]}>Opening shared content</Text><Text style={[styles.stateText, { color: p.secondary }]}>Preparing the best available representation…</Text></View></View></V5Group>
           ) : null}
 
           {error ? (
-            <View style={[styles.notice, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-              <OneIcon name={icons.more} size={15} color={theme.warning} />
-              <Text style={[styles.noticeText, { color: theme.textSecondary }]}>Some shared details could not be resolved. The available content can still be reviewed.</Text>
-            </View>
+            <View style={[styles.notice, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.more} size={14} color={p.warning} /><Text style={[styles.noticeText, { color: p.secondary }]}>Some shared details could not be resolved. The available content can still be reviewed.</Text></View>
           ) : null}
 
           {primary ? (
             <>
               <View style={styles.section}>
-                <SectionHeader title="Original" meta={selected && selected.representationCount > 1 ? `${selected.representationCount} representations` : undefined} />
-                <View style={[styles.originalCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
-                  {imageUri ? (
-                    <Image source={{ uri: imageUri }} style={[styles.image, { backgroundColor: theme.fill }]} resizeMode="cover" />
-                  ) : (
-                    <View style={[styles.originalIcon, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-                      <OneIcon name={primary.shareType === 'url' ? icons.link : icons.upload} size={24} color={theme.chrome} />
-                    </View>
-                  )}
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text style={[styles.kind, { color: theme.textTertiary }]}>{labelFor(primary.shareType)}</Text>
-                    <Text style={[styles.previewTitle, { color: theme.text }]} numberOfLines={4}>{preview}</Text>
-                  </View>
-                </View>
+                <V5SectionHeader title="Original" meta={selected && selected.representationCount > 1 ? `${selected.representationCount} representations` : undefined} />
+                <V5Group style={styles.originalCard}>
+                  {imageUri ? <Image source={{ uri: imageUri }} style={[styles.image, { backgroundColor: p.fill }]} resizeMode="cover" /> : <View style={[styles.originalIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={primary.shareType === 'url' ? icons.link : icons.upload} size={22} color={p.chrome} /></View>}
+                  <View style={{ flex: 1, minWidth: 0 }}><Text style={[styles.kind, { color: p.tertiary }]}>{labelFor(primary.shareType)}</Text><Text style={[styles.previewTitle, { color: p.label }]} numberOfLines={4}>{preview}</Text></View>
+                </V5Group>
               </View>
 
-              {isAttachment ? (
-                <StatusLine
-                  icon={attachmentState === 'failed' ? icons.more : icons.lock}
-                  tone={attachmentState === 'failed' ? 'warning' : 'chrome'}
-                  title={attachmentState === 'ready' ? 'Original secured' : attachmentState === 'securing' ? 'Securing original' : attachmentState === 'failed' ? 'Original not secured' : 'Preparing original'}
-                  body={attachmentMessage(attachmentState)}
-                  loading={attachmentState === 'securing'}
-                />
-              ) : null}
-
-              {isImage ? (
-                <StatusLine
-                  icon={visibleOcrState === 'ready' ? icons.check : icons.screenshot}
-                  tone={visibleOcrState === 'ready' ? 'success' : ['failed', 'empty'].includes(visibleOcrState) ? 'warning' : 'chrome'}
-                  title={ocrHeadline(visibleOcrState)}
-                  body={ocrMeta(visibleOcrState)}
-                  loading={visibleOcrState === 'reading'}
-                />
-              ) : null}
+              {isAttachment ? <StatusLine icon={attachmentState === 'failed' ? icons.more : icons.lock} tone={attachmentState === 'failed' ? 'warning' : 'chrome'} title={attachmentState === 'ready' ? 'Original secured' : attachmentState === 'securing' ? 'Securing original' : attachmentState === 'failed' ? 'Original not secured' : 'Preparing original'} body={attachmentMessage(attachmentState)} loading={attachmentState === 'securing'} /> : null}
+              {isImage ? <StatusLine icon={visibleOcrState === 'ready' ? icons.check : icons.screenshot} tone={visibleOcrState === 'ready' ? 'success' : ['failed', 'empty'].includes(visibleOcrState) ? 'warning' : 'chrome'} title={ocrHeadline(visibleOcrState)} body={ocrMeta(visibleOcrState)} loading={visibleOcrState === 'reading'} /> : null}
 
               {draft ? (
                 <View style={styles.section}>
-                  <SectionHeader title="Recognized and organized" />
-                  <CaptureReviewEditor
-                    draft={draft}
-                    onChange={(nextDraft) => {
-                      userEditedRef.current = true;
-                      if (nextDraft.extractedText !== draft.extractedText) extractedTextEditedRef.current = true;
-                      setReviewedDraft(nextDraft);
-                    }}
-                  />
+                  <V5SectionHeader title="Review" />
+                  <CaptureReviewEditor draft={draft} onChange={(nextDraft) => { userEditedRef.current = true; if (nextDraft.extractedText !== draft.extractedText) extractedTextEditedRef.current = true; setReviewedDraft(nextDraft); }} />
                 </View>
               ) : null}
 
-              <View style={[styles.storageLine, { borderTopColor: theme.border }]}>
-                <OneIcon name={icons.cloud} size={13} color={theme.chrome} />
-                <Text style={[styles.storageText, { color: theme.textTertiary }]}>
-                  {session
-                    ? 'NEVER saves locally first. Account sync can retry when the network is available.'
-                    : 'This capture stays on this device until you sign in.'}
-                </Text>
-              </View>
+              <View style={styles.storageLine}><OneIcon name={icons.cloud} size={12.5} color={p.chrome} /><Text style={[styles.storageText, { color: p.tertiary }]}>{session ? 'NEVER saves locally first. Account sync can retry when the network is available.' : 'This capture stays on this device until you sign in.'}</Text></View>
 
-              <PrimaryButton
-                label={saving ? 'Saving…' : allowDuplicate ? 'Save again' : 'Save to NEVER'}
-                icon={icons.check}
-                onPress={handleSave}
-                disabled={saving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')}
-              />
+              <Pressable disabled={saving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')} onPress={handleSave} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready') ? 0.38 : pressed ? 0.72 : 1 }]}>
+                <OneIcon name={icons.check} size={14.5} color={p.dark ? '#111113' : '#FFFFFF'} />
+                <Text style={[styles.primaryText, { color: p.dark ? '#111113' : '#FFFFFF' }]}>{saving ? 'Saving…' : allowDuplicate ? 'Save Again' : 'Save to NEVER'}</Text>
+              </Pressable>
             </>
           ) : !isResolving ? (
-            <Surface>
-              <View style={styles.emptyState}>
-                <IconTile icon={icons.upload} tone="neutral" size={42} />
-                <Text style={[styles.stateTitle, { color: theme.text }]}>Nothing usable arrived</Text>
-                <Text style={[styles.emptyText, { color: theme.textSecondary }]}>Return to the iOS Share Sheet and choose NEVER again. Empty or unsupported content is never saved silently.</Text>
-              </View>
-            </Surface>
+            <V5Group><View style={styles.emptyState}><View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.upload} size={18} color={p.chrome} /></View><Text style={[styles.stateTitle, { color: p.label }]}>Nothing usable arrived</Text><Text style={[styles.emptyText, { color: p.secondary }]}>Return to the iOS Share Sheet and choose NEVER again. Empty or unsupported content is never saved silently.</Text></View></V5Group>
           ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 
-  function StatusLine({ icon, tone, title, body, loading = false }: {
-    icon: (typeof icons)[keyof typeof icons];
-    tone: 'chrome' | 'success' | 'warning';
-    title: string;
-    body: string;
-    loading?: boolean;
-  }) {
-    const color = tone === 'success' ? theme.success : tone === 'warning' ? theme.warning : theme.chrome;
+  function StatusLine({ icon, tone, title, body, loading = false }: { icon: (typeof icons)[keyof typeof icons]; tone: 'chrome' | 'success' | 'warning'; title: string; body: string; loading?: boolean }) {
+    const color = tone === 'success' ? p.success : tone === 'warning' ? p.warning : p.chrome;
     return (
-      <View style={[styles.statusLine, { borderTopColor: theme.border }]}>
-        <View style={[styles.statusIcon, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-          <OneIcon name={icon} size={15} color={color} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.statusTitle, { color: theme.text }]}>{title}</Text>
-          <Text style={[styles.statusBody, { color: theme.textSecondary }]}>{body}</Text>
-        </View>
-        {loading ? <ActivityIndicator size="small" color={theme.chrome} /> : null}
+      <View style={styles.statusLine}>
+        <View style={[styles.statusIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={14.5} color={color} /></View>
+        <View style={{ flex: 1 }}><Text style={[styles.statusTitle, { color: p.label }]}>{title}</Text><Text style={[styles.statusBody, { color: p.secondary }]}>{body}</Text></View>
+        {loading ? <ActivityIndicator size="small" color={p.chrome} /> : null}
       </View>
     );
   }
@@ -438,14 +300,12 @@ function labelFor(type?: string) {
   if (type === 'audio') return 'AUDIO';
   return 'TEXT';
 }
-
 function attachmentMessage(state: AttachmentState) {
   if (state === 'securing') return 'Creating a private local copy before NEVER treats the attachment as saved.';
   if (state === 'ready') return 'The original is safely available locally before recognition or cloud sync.';
   if (state === 'failed') return 'NEVER will not claim this attachment as saved because the local copy could not be created.';
   return 'Preparing the attachment…';
 }
-
 function ocrHeadline(state: OcrState) {
   if (state === 'reading') return 'Reading what matters';
   if (state === 'ready') return 'Text recognized';
@@ -453,7 +313,6 @@ function ocrHeadline(state: OcrState) {
   if (state === 'failed') return 'Text recognition unavailable';
   return 'Screenshot ready';
 }
-
 function ocrMeta(state: OcrState) {
   if (state === 'reading') return 'You can continue reviewing while on-device recognition runs.';
   if (state === 'ready') return 'Recognized text is included in the review below.';
@@ -464,31 +323,29 @@ function ocrMeta(state: OcrState) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 48, gap: 22 },
-  nav: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  wordmark: { fontSize: 11, fontWeight: '600', letterSpacing: 3.2 },
-  hero: { paddingTop: 10, paddingBottom: 2 },
-  eyebrow: { fontSize: 9, fontWeight: '700', letterSpacing: 2.1 },
-  title: { marginTop: 11, maxWidth: 520, fontSize: 31, lineHeight: 36, fontWeight: '600', letterSpacing: -1.05 },
-  subtitle: { marginTop: 9, maxWidth: 560, fontSize: 13, lineHeight: 19.5 },
-  section: { gap: 10 },
-  originalCard: { minHeight: 96, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 13, shadowOpacity: 0.03, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 1 },
-  originalIcon: { width: 70, height: 70, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  image: { width: 70, height: 70, borderRadius: 15 },
-  kind: { fontSize: 8, fontWeight: '700', letterSpacing: 1.25 },
-  previewTitle: { marginTop: 6, fontSize: 14.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
-  notice: { minHeight: 54, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  noticeText: { flex: 1, fontSize: 11, lineHeight: 16 },
-  stateCard: { minHeight: 70, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  stateTitle: { fontSize: 13.5, lineHeight: 17, fontWeight: '600' },
-  stateText: { marginTop: 3, fontSize: 10.75, lineHeight: 15 },
-  statusLine: { paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  statusIcon: { width: 34, height: 34, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  statusTitle: { fontSize: 12.25, lineHeight: 16, fontWeight: '600' },
-  statusBody: { marginTop: 2, fontSize: 10.5, lineHeight: 15 },
-  storageLine: { paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  storageText: { flex: 1, fontSize: 10.5, lineHeight: 15 },
-  emptyState: { minHeight: 160, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 },
-  emptyText: { marginTop: 9, maxWidth: 360, fontSize: 11.5, lineHeight: 17, textAlign: 'center' }
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 42, gap: 18 },
+  nav: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  navTitle: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
+  section: { gap: 7 },
+  originalCard: { minHeight: 86, padding: 11, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  originalIcon: { width: 62, height: 62, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  image: { width: 62, height: 62, borderRadius: 14 },
+  kind: { fontSize: 8, lineHeight: 10, fontWeight: '700', letterSpacing: 1 },
+  previewTitle: { marginTop: 4, fontSize: 14, lineHeight: 18, fontWeight: '600' },
+  notice: { minHeight: 50, borderRadius: 13, paddingHorizontal: 12, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  noticeText: { flex: 1, fontSize: 11, lineHeight: 15.5 },
+  stateRow: { minHeight: 64, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  stateTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  stateText: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
+  statusLine: { paddingHorizontal: 3, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  statusIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  statusTitle: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
+  statusBody: { marginTop: 1, fontSize: 10.5, lineHeight: 14.5 },
+  storageLine: { paddingHorizontal: 3, flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
+  storageText: { flex: 1, fontSize: 10.5, lineHeight: 14.5 },
+  primaryButton: { minHeight: 46, borderRadius: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  primaryText: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  emptyState: { minHeight: 150, padding: 22, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  emptyText: { marginTop: 5, maxWidth: 330, fontSize: 11.5, lineHeight: 16, textAlign: 'center' }
 });
