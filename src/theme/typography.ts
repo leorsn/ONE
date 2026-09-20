@@ -1,8 +1,8 @@
 import { Platform } from 'react-native';
 
 // NEVER keeps platform-native typography as the implementation baseline.
-// The visual identity comes from hierarchy, spacing, material and restraint
-// rather than a decorative display face.
+// Brand character comes from precise hierarchy, spacing and material rather
+// than a decorative display face.
 export const editorialFontFamily = Platform.select({
   ios: 'System',
   android: 'sans-serif',
@@ -17,28 +17,28 @@ export const uiFontFamily = Platform.select({
 
 export const neverType = {
   hero: {
-    fontSize: 38,
-    lineHeight: 42,
+    fontSize: 36,
+    lineHeight: 40,
     fontWeight: '700' as const,
-    letterSpacing: -1.45
+    letterSpacing: -1.25
   },
   display: {
-    fontSize: 32,
-    lineHeight: 37,
+    fontSize: 31,
+    lineHeight: 36,
     fontWeight: '700' as const,
-    letterSpacing: -1.05
+    letterSpacing: -1.0
   },
   title: {
-    fontSize: 24,
-    lineHeight: 29,
+    fontSize: 23,
+    lineHeight: 28,
     fontWeight: '600' as const,
-    letterSpacing: -0.65
+    letterSpacing: -0.58
   },
   section: {
-    fontSize: 16,
+    fontSize: 15.5,
     lineHeight: 20,
     fontWeight: '700' as const,
-    letterSpacing: -0.3
+    letterSpacing: -0.28
   },
   body: {
     fontSize: 14,
@@ -53,16 +53,16 @@ export const neverType = {
     letterSpacing: -0.1
   },
   caption: {
-    fontSize: 11,
+    fontSize: 10.75,
     lineHeight: 15,
     fontWeight: '500' as const,
     letterSpacing: 0.02
   },
   eyebrow: {
-    fontSize: 9,
+    fontSize: 8.75,
     lineHeight: 12,
     fontWeight: '700' as const,
-    letterSpacing: 1.75
+    letterSpacing: 1.6
   }
 };
 
@@ -73,15 +73,15 @@ export const neverSpacing = {
   lg: 16,
   xl: 20,
   xxl: 24,
-  section: 32,
-  hero: 40
+  section: 30,
+  hero: 38
 } as const;
 
 export const neverRadius = {
-  sm: 10,
-  md: 14,
-  lg: 18,
-  xl: 24,
-  sheet: 28,
+  sm: 11,
+  md: 15,
+  lg: 19,
+  xl: 25,
+  sheet: 30,
   pill: 999
 } as const;
