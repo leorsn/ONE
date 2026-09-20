@@ -2,8 +2,7 @@ import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { useTheme, useThemePreference } from '@/src/theme/useTheme';
-import { neverRadius, neverType } from '@/src/theme/typography';
+import { useTheme } from '@/src/theme/useTheme';
 
 type IconName = (typeof icons)[keyof typeof icons];
 type GlassTone = 'quiet' | 'default' | 'strong';
@@ -20,31 +19,21 @@ export function NeverGlass({
   style?: object;
 }) {
   const theme = useTheme();
-  const { resolvedMode } = useThemePreference();
-  const dark = resolvedMode === 'dark';
-
-  const background = tone === 'quiet'
-    ? (dark ? '#111519C7' : '#FFFFFFC7')
+  const backgroundColor = tone === 'quiet'
+    ? theme.surface
     : tone === 'strong'
-      ? theme.glassStrong
-      : theme.glass;
+      ? theme.surfaceElevated
+      : theme.surface;
 
   return (
     <View
       style={[
-        styles.glass,
-        {
-          backgroundColor: background,
-          borderColor: theme.glassBorder,
-          shadowColor: theme.shadow,
-          shadowOpacity: dark ? 0.3 : 0.085
-        },
-        padded && styles.glassPadded,
+        styles.group,
+        { backgroundColor },
+        padded && styles.groupPadded,
         style
       ]}
     >
-      <View pointerEvents="none" style={[styles.glassReflection, { backgroundColor: theme.reflection }]} />
-      <View pointerEvents="none" style={[styles.glassLowerReflection, { backgroundColor: theme.reflection }]} />
       {children}
     </View>
   );
@@ -60,7 +49,7 @@ export function NeverSectionLabel({
   const theme = useTheme();
   return (
     <View style={styles.sectionLabelRow}>
-      <Text style={[styles.sectionLabel, { color: theme.textTertiary }]}>{children}</Text>
+      <Text style={[styles.sectionLabel, { color: theme.text }]}>{children}</Text>
       {meta ? <Text style={[styles.sectionMeta, { color: theme.textTertiary }]}>{meta}</Text> : null}
     </View>
   );
@@ -87,25 +76,19 @@ export function NeverCommandBar({
       style={({ pressed }) => [
         styles.commandBar,
         {
-          backgroundColor: theme.glassStrong,
-          borderColor: theme.glassBorder,
-          shadowColor: theme.shadow,
-          opacity: pressed ? 0.8 : 1,
-          transform: [{ scale: pressed ? 0.992 : 1 }]
+          backgroundColor: theme.surface,
+          opacity: pressed ? 0.62 : 1
         }
       ]}
     >
-      <View style={[styles.commandGlyph, { backgroundColor: theme.platinumSoft, borderColor: theme.glassBorder }]}>
-        <OneIcon name={icons.ask} size={15.5} color={theme.chrome} />
+      <View style={[styles.commandGlyph, { backgroundColor: theme.fill }]}>
+        <OneIcon name={icons.ask} size={15} color={theme.chrome} />
       </View>
       <View style={styles.commandCopy}>
         <Text style={[styles.commandLabel, { color: theme.text }]}>{label}</Text>
-        <Text style={[styles.commandHint, { color: theme.textTertiary }]} numberOfLines={1}>{hint}</Text>
+        <Text style={[styles.commandHint, { color: theme.textSecondary }]} numberOfLines={1}>{hint}</Text>
       </View>
-      <View style={[styles.commandAction, { backgroundColor: theme.platinumSoft, borderColor: theme.glassBorder }]}>
-        <OneIcon name={icons.chevron} size={12.5} color={theme.chrome} />
-      </View>
-      <View pointerEvents="none" style={[styles.commandReflection, { backgroundColor: theme.reflection }]} />
+      <OneIcon name={icons.chevron} size={12} color={theme.textTertiary} />
     </Pressable>
   );
 }
@@ -134,20 +117,16 @@ export function NeverChromeButton({
         await onPress();
       }}
       style={({ pressed }) => [
-        styles.chromeButton,
-        compact && styles.chromeButtonCompact,
+        styles.primaryButton,
+        compact && styles.primaryButtonCompact,
         {
-          backgroundColor: theme.chrome,
-          borderColor: theme.reflection,
-          shadowColor: theme.shadow,
-          opacity: disabled ? 0.38 : pressed ? 0.82 : 1,
-          transform: [{ scale: pressed ? 0.987 : 1 }]
+          backgroundColor: theme.text,
+          opacity: disabled ? 0.32 : pressed ? 0.72 : 1
         }
       ]}
     >
       {icon ? <OneIcon name={icon} size={15} color={theme.background} /> : null}
-      <Text style={[styles.chromeButtonText, { color: theme.background }]}>{label}</Text>
-      <View pointerEvents="none" style={[styles.chromeReflection, { backgroundColor: '#FFFFFF52' }]} />
+      <Text style={[styles.primaryButtonText, { color: theme.background }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -175,10 +154,8 @@ export function NeverIconButton({
       style={({ pressed }) => [
         styles.iconButton,
         {
-          backgroundColor: filled ? theme.chrome : theme.glass,
-          borderColor: filled ? theme.reflection : theme.glassBorder,
-          opacity: pressed ? 0.7 : 1,
-          transform: [{ scale: pressed ? 0.95 : 1 }]
+          backgroundColor: filled ? theme.text : theme.surface,
+          opacity: pressed ? 0.58 : 1
         }
       ]}
     >
@@ -199,139 +176,89 @@ export function NeverWordmark({ compact = false }: { compact?: boolean }) {
       <Text style={[compact ? styles.wordmarkCompact : styles.wordmark, { color: theme.text }]}>NEVER</Text>
       <View style={styles.signal}>
         <View style={[styles.signalLong, { backgroundColor: theme.chrome }]} />
-        <View style={[styles.signalShort, { backgroundColor: theme.platinum }]} />
+        <View style={[styles.signalShort, { backgroundColor: theme.textTertiary }]} />
       </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  glass: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: neverRadius.xl,
-    overflow: 'hidden',
-    shadowRadius: 26,
-    shadowOffset: { width: 0, height: 12 },
-    elevation: 4
+  group: {
+    borderRadius: 20,
+    overflow: 'hidden'
   },
-  glassPadded: { padding: 18 },
-  glassReflection: {
-    position: 'absolute',
-    top: 0,
-    left: 22,
-    right: 22,
-    height: StyleSheet.hairlineWidth,
-    opacity: 0.95
-  },
-  glassLowerReflection: {
-    position: 'absolute',
-    left: 48,
-    right: 48,
-    bottom: 0,
-    height: StyleSheet.hairlineWidth,
-    opacity: 0.18
-  },
+  groupPadded: { padding: 16 },
   sectionLabelRow: {
-    minHeight: 18,
+    minHeight: 28,
+    paddingHorizontal: 4,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12
   },
   sectionLabel: {
-    ...neverType.eyebrow,
-    textTransform: 'uppercase'
+    fontSize: 20,
+    lineHeight: 24,
+    fontWeight: '700',
+    letterSpacing: -0.35
   },
   sectionMeta: {
-    ...neverType.caption,
-    fontWeight: '600'
+    fontSize: 13,
+    lineHeight: 16,
+    fontWeight: '500'
   },
   commandBar: {
     minHeight: 68,
-    borderRadius: neverRadius.lg,
-    borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 13,
-    paddingVertical: 11,
+    borderRadius: 20,
+    paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 11,
-    overflow: 'hidden',
-    shadowOpacity: 0.1,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 4
+    gap: 12
   },
   commandGlyph: {
-    width: 38,
-    height: 38,
-    borderRadius: 19,
-    borderWidth: StyleSheet.hairlineWidth,
+    width: 40,
+    height: 40,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center'
   },
   commandCopy: { flex: 1, minWidth: 0 },
   commandLabel: {
-    ...neverType.bodyStrong,
-    fontSize: 14.5
+    fontSize: 16,
+    lineHeight: 20,
+    fontWeight: '600',
+    letterSpacing: -0.15
   },
   commandHint: {
-    ...neverType.caption,
-    marginTop: 2
+    marginTop: 2,
+    fontSize: 13,
+    lineHeight: 17
   },
-  commandAction: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    borderWidth: StyleSheet.hairlineWidth,
-    alignItems: 'center',
-    justifyContent: 'center'
-  },
-  commandReflection: {
-    position: 'absolute',
-    top: 0,
-    left: 24,
-    right: 24,
-    height: StyleSheet.hairlineWidth
-  },
-  chromeButton: {
+  primaryButton: {
     minHeight: 50,
-    borderRadius: neverRadius.md,
-    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: 14,
     paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    overflow: 'hidden',
-    shadowOpacity: 0.18,
-    shadowRadius: 17,
-    shadowOffset: { width: 0, height: 8 },
-    elevation: 4
+    gap: 8
   },
-  chromeButtonCompact: {
+  primaryButtonCompact: {
     minHeight: 42,
     paddingHorizontal: 14,
-    borderRadius: 13
+    borderRadius: 12
   },
-  chromeButtonText: {
-    ...neverType.bodyStrong,
-    fontSize: 13.5
-  },
-  chromeReflection: {
-    position: 'absolute',
-    top: 0,
-    left: 20,
-    right: 20,
-    height: StyleSheet.hairlineWidth
+  primaryButtonText: {
+    fontSize: 15,
+    lineHeight: 19,
+    fontWeight: '600'
   },
   iconButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
-    justifyContent: 'center',
-    overflow: 'hidden'
+    justifyContent: 'center'
   },
   hairline: {
     height: StyleSheet.hairlineWidth,
@@ -343,16 +270,16 @@ const styles = StyleSheet.create({
     gap: 9
   },
   wordmark: {
-    fontSize: 16.5,
-    lineHeight: 21,
-    fontWeight: '800',
-    letterSpacing: 5.6
-  },
-  wordmarkCompact: {
-    fontSize: 13.5,
+    fontSize: 15,
     lineHeight: 18,
     fontWeight: '800',
-    letterSpacing: 4.5
+    letterSpacing: 5.1
+  },
+  wordmarkCompact: {
+    fontSize: 13,
+    lineHeight: 16,
+    fontWeight: '800',
+    letterSpacing: 4.3
   },
   signal: {
     flexDirection: 'row',
