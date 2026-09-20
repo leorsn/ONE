@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { useTheme } from '@/src/theme/useTheme';
+import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 
 const tabIcon = {
   index: icons.home,
@@ -25,7 +25,6 @@ type NeverTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabB
 
 export default function TabsLayout() {
   const theme = useTheme();
-
   return (
     <Tabs
       tabBar={(props) => <NeverTabBar {...props} />}
@@ -45,17 +44,19 @@ export default function TabsLayout() {
 }
 
 function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
+  const theme = useTheme();
+  const { resolvedMode } = useThemePreference();
+  const dark = resolvedMode === 'dark';
   const insets = useSafeAreaInsets();
 
   return (
-    <View pointerEvents="box-none" style={[styles.tabBarWrap, { bottom: Math.max(9, insets.bottom - 5) }]}>
-      <View style={styles.tabBar}>
-        <View pointerEvents="none" style={styles.topChrome} />
-        <View pointerEvents="none" style={styles.bottomChrome} />
-        <View pointerEvents="none" style={styles.dockMark}>
-          <View style={styles.dockMarkLong} />
-          <View style={styles.dockMarkShort} />
-        </View>
+    <View pointerEvents="box-none" style={[styles.tabBarWrap, { bottom: Math.max(8, insets.bottom - 6) }]}>
+      <View style={[styles.tabBar, {
+        backgroundColor: dark ? '#171C21F2' : '#F8FAFBEF',
+        borderColor: dark ? '#FFFFFF18' : '#FFFFFFE8',
+        shadowColor: theme.shadow
+      }]}>
+        <View pointerEvents="none" style={[styles.topReflection, { backgroundColor: theme.reflection }]} />
 
         {state.routes.map((route) => {
           const index = state.routes.indexOf(route);
@@ -69,10 +70,6 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
             if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
           };
 
-          const onLongPress = () => {
-            navigation.emit({ type: 'tabLongPress', target: route.key });
-          };
-
           return (
             <Pressable
               key={route.key}
@@ -81,18 +78,18 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               accessibilityLabel={options?.tabBarAccessibilityLabel ?? label}
               testID={options?.tabBarButtonTestID}
               onPress={onPress}
-              onLongPress={onLongPress}
+              onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
               style={({ pressed }) => [
                 styles.tabItem,
-                focused && styles.tabItemActive,
-                { opacity: pressed ? 0.68 : 1, transform: [{ scale: pressed ? 0.965 : focused ? 1.015 : 1 }] }
+                focused && [styles.tabItemActive, {
+                  backgroundColor: dark ? '#262D34' : '#E9EDF0',
+                  borderColor: dark ? '#FFFFFF18' : '#FFFFFF'
+                }],
+                { opacity: pressed ? 0.62 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }
               ]}
             >
-              {focused ? <View style={styles.activeChrome} /> : null}
-              <View style={[styles.iconWell, focused && styles.iconWellActive]}>
-                <OneIcon name={tabIcon[routeName]} size={focused ? 18 : 16.5} color={focused ? '#11161B' : '#7F8A94'} />
-              </View>
-              <Text style={[styles.tabLabel, focused ? styles.tabLabelActive : styles.tabLabelInactive]} numberOfLines={1}>{label}</Text>
+              <OneIcon name={tabIcon[routeName]} size={focused ? 17.5 : 16.5} color={focused ? theme.text : theme.textTertiary} />
+              <Text style={[styles.tabLabel, { color: focused ? theme.text : theme.textTertiary }, focused && styles.tabLabelActive]} numberOfLines={1}>{label}</Text>
             </Pressable>
           );
         })}
@@ -102,52 +99,25 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
 }
 
 const styles = StyleSheet.create({
-  tabBarWrap: { position: 'absolute', left: 14, right: 14 },
+  tabBarWrap: { position: 'absolute', left: 18, right: 18 },
   tabBar: {
-    height: 72,
-    borderRadius: 28,
+    height: 62,
+    borderRadius: 24,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#FFFFFF24',
-    backgroundColor: '#11161BF4',
-    paddingHorizontal: 7,
-    paddingVertical: 7,
+    paddingHorizontal: 6,
+    paddingVertical: 6,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
     overflow: 'hidden',
-    shadowColor: '#000000',
-    shadowOpacity: 0.3,
-    shadowRadius: 30,
-    shadowOffset: { width: 0, height: 14 },
-    elevation: 10
+    shadowOpacity: 0.12,
+    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    elevation: 6
   },
-  topChrome: { position: 'absolute', top: 0, left: 34, right: 34, height: StyleSheet.hairlineWidth, backgroundColor: '#FFFFFF8F' },
-  bottomChrome: { position: 'absolute', bottom: 0, left: 92, right: 92, height: StyleSheet.hairlineWidth, backgroundColor: '#FFFFFF20' },
-  dockMark: { position: 'absolute', top: 6, left: '46%', flexDirection: 'row', gap: 3 },
-  dockMarkLong: { width: 18, height: 2, borderRadius: 1, backgroundColor: '#DDE2E7' },
-  dockMarkShort: { width: 6, height: 2, borderRadius: 1, backgroundColor: '#697580' },
-  tabItem: {
-    flex: 1,
-    height: 57,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-    position: 'relative'
-  },
-  tabItemActive: {
-    backgroundColor: '#E9EDF0',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#FFFFFF',
-    shadowColor: '#000000',
-    shadowOpacity: 0.18,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 5 }
-  },
-  activeChrome: { position: 'absolute', top: 4, width: 20, height: 2, borderRadius: 1, backgroundColor: '#596570' },
-  iconWell: { width: 30, height: 29, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  iconWellActive: { backgroundColor: '#FFFFFFA8', borderWidth: StyleSheet.hairlineWidth, borderColor: '#FFFFFF' },
-  tabLabel: { fontSize: 9, lineHeight: 11, letterSpacing: -0.04 },
-  tabLabelActive: { color: '#11161B', fontWeight: '800' },
-  tabLabelInactive: { color: '#7A858F', fontWeight: '600' }
+  topReflection: { position: 'absolute', top: 0, left: 28, right: 28, height: StyleSheet.hairlineWidth, opacity: 0.9 },
+  tabItem: { flex: 1, height: 50, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center', gap: 3 },
+  tabItemActive: { borderWidth: StyleSheet.hairlineWidth },
+  tabLabel: { fontSize: 9.1, lineHeight: 11, fontWeight: '600', letterSpacing: -0.04 },
+  tabLabelActive: { fontWeight: '800' }
 });
