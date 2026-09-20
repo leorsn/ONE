@@ -3,7 +3,7 @@ import { Tabs } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { useTheme, useThemePreference } from '@/src/theme/useTheme';
+import { useNeverV5Palette } from '@/src/ui/appleV5';
 
 const tabIcon = {
   index: icons.home,
@@ -24,13 +24,13 @@ const tabLabel = {
 type NeverTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
 export default function TabsLayout() {
-  const theme = useTheme();
+  const p = useNeverV5Palette();
   return (
     <Tabs
       tabBar={(props) => <NeverTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        sceneStyle: { backgroundColor: theme.background },
+        sceneStyle: { backgroundColor: p.canvas },
         tabBarHideOnKeyboard: true
       }}
     >
@@ -44,20 +44,22 @@ export default function TabsLayout() {
 }
 
 function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
-  const theme = useTheme();
-  const { resolvedMode } = useThemePreference();
-  const dark = resolvedMode === 'dark';
+  const p = useNeverV5Palette();
   const insets = useSafeAreaInsets();
 
   return (
-    <View pointerEvents="box-none" style={[styles.tabBarWrap, { bottom: Math.max(8, insets.bottom - 6) }]}>
-      <View style={[styles.tabBar, {
-        backgroundColor: dark ? '#171C21F2' : '#F8FAFBEF',
-        borderColor: dark ? '#FFFFFF18' : '#FFFFFFE8',
-        shadowColor: theme.shadow
-      }]}>
-        <View pointerEvents="none" style={[styles.topReflection, { backgroundColor: theme.reflection }]} />
-
+    <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(7, insets.bottom - 7) }]}>
+      <View
+        style={[
+          styles.bar,
+          {
+            backgroundColor: p.dark ? '#1C1C1EF2' : '#F8F8FAF2',
+            borderColor: p.dark ? '#FFFFFF18' : '#FFFFFFCC',
+            shadowColor: '#000000'
+          }
+        ]}
+      >
+        <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.dark ? '#FFFFFF18' : '#FFFFFF' }]} />
         {state.routes.map((route) => {
           const index = state.routes.indexOf(route);
           const focused = state.index === index;
@@ -69,6 +71,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
             const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
             if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
           };
+          const onLongPress = () => navigation.emit({ type: 'tabLongPress', target: route.key });
 
           return (
             <Pressable
@@ -78,18 +81,28 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               accessibilityLabel={options?.tabBarAccessibilityLabel ?? label}
               testID={options?.tabBarButtonTestID}
               onPress={onPress}
-              onLongPress={() => navigation.emit({ type: 'tabLongPress', target: route.key })}
-              style={({ pressed }) => [
-                styles.tabItem,
-                focused && [styles.tabItemActive, {
-                  backgroundColor: dark ? '#262D34' : '#E9EDF0',
-                  borderColor: dark ? '#FFFFFF18' : '#FFFFFF'
-                }],
-                { opacity: pressed ? 0.62 : 1, transform: [{ scale: pressed ? 0.97 : 1 }] }
-              ]}
+              onLongPress={onLongPress}
+              style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.58 : 1 }]}
             >
-              <OneIcon name={tabIcon[routeName]} size={focused ? 17.5 : 16.5} color={focused ? theme.text : theme.textTertiary} />
-              <Text style={[styles.tabLabel, { color: focused ? theme.text : theme.textTertiary }, focused && styles.tabLabelActive]} numberOfLines={1}>{label}</Text>
+              <View
+                style={[
+                  styles.iconWell,
+                  focused && {
+                    backgroundColor: p.surface,
+                    borderColor: p.dark ? '#FFFFFF16' : '#FFFFFF',
+                    shadowColor: '#000000'
+                  }
+                ]}
+              >
+                <OneIcon
+                  name={tabIcon[routeName]}
+                  size={focused ? 18 : 17}
+                  color={focused ? p.label : p.tertiary}
+                />
+              </View>
+              <Text style={[styles.label, { color: focused ? p.label : p.tertiary, fontWeight: focused ? '600' : '500' }]} numberOfLines={1}>
+                {label}
+              </Text>
             </Pressable>
           );
         })}
@@ -99,25 +112,31 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
 }
 
 const styles = StyleSheet.create({
-  tabBarWrap: { position: 'absolute', left: 18, right: 18 },
-  tabBar: {
-    height: 62,
-    borderRadius: 24,
+  wrap: { position: 'absolute', left: 16, right: 16 },
+  bar: {
+    height: 64,
+    borderRadius: 30,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 6,
-    paddingVertical: 6,
+    paddingHorizontal: 7,
+    paddingVertical: 5,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 3,
     overflow: 'hidden',
-    shadowOpacity: 0.12,
-    shadowRadius: 24,
+    shadowOpacity: 0.13,
+    shadowRadius: 22,
     shadowOffset: { width: 0, height: 10 },
-    elevation: 6
+    elevation: 7
   },
-  topReflection: { position: 'absolute', top: 0, left: 28, right: 28, height: StyleSheet.hairlineWidth, opacity: 0.9 },
-  tabItem: { flex: 1, height: 50, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: 'transparent', alignItems: 'center', justifyContent: 'center', gap: 3 },
-  tabItemActive: { borderWidth: StyleSheet.hairlineWidth },
-  tabLabel: { fontSize: 9.1, lineHeight: 11, fontWeight: '600', letterSpacing: -0.04 },
-  tabLabelActive: { fontWeight: '800' }
+  highlight: { position: 'absolute', top: 0, left: 28, right: 28, height: StyleSheet.hairlineWidth },
+  tab: { flex: 1, height: 54, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  iconWell: {
+    width: 34,
+    height: 32,
+    borderRadius: 13,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  label: { fontSize: 9.5, lineHeight: 12, letterSpacing: -0.05 }
 });
