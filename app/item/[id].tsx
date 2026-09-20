@@ -194,7 +194,7 @@ export default function ItemDetailScreen() {
                 </View>
               )}
               <View style={[styles.sourceActionRow, { borderTopColor: p.separator }]}>
-                <Text style={[styles.sourceAction, { color: p.secondary }]}> 
+                <Text style={[styles.sourceAction, { color: p.secondary }]}>
                   {sourceIsImage ? (sourceExpanded ? 'Close Original' : 'Open Original') : 'Open Original'}
                 </Text>
                 <V5Chevron />
@@ -269,7 +269,7 @@ export default function ItemDetailScreen() {
         ) : null}
 
         {currentItem.url && !savedLinks.length ? (
-          <Pressable onPress={() => Linking.openURL(currentItem.url!)} style={({ pressed }) => [styles.linkCard, { backgroundColor: p.surface, opacity: pressed ? 0.62 : 1 }]}> 
+          <Pressable onPress={() => Linking.openURL(currentItem.url!)} style={({ pressed }) => [styles.linkCard, { backgroundColor: p.surface, opacity: pressed ? 0.62 : 1 }]}>
             <MemoryGlyph icon={icons.link} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.linkLabel, { color: p.tertiary }]}>SAVED LINK</Text>
@@ -287,7 +287,7 @@ export default function ItemDetailScreen() {
           </V5Group>
         </View>
 
-        <Pressable disabled={saving || !title.trim()} onPress={saveChanges} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !title.trim() ? 0.38 : pressed ? 0.72 : 1 }]}> 
+        <Pressable disabled={saving || !title.trim()} onPress={saveChanges} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !title.trim() ? 0.38 : pressed ? 0.72 : 1 }]}>
           <OneIcon name={icons.check} size={15} color={p.dark ? '#111113' : '#FFFFFF'} />
           <Text style={[styles.primaryButtonText, { color: p.dark ? '#111113' : '#FFFFFF' }]}>{saving ? 'Saving…' : 'Save Changes'}</Text>
         </Pressable>
