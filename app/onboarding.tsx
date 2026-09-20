@@ -5,35 +5,19 @@ import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useAuth } from '@/src/context/AuthContext';
 import { useOnboarding } from '@/src/context/OnboardingContext';
-import { PrimaryButton } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { useTheme } from '@/src/theme/useTheme';
+import { V5Group, V5Wordmark, useNeverV5Palette } from '@/src/ui/appleV5';
 
 const slides = [
-  {
-    icon: icons.inbox,
-    eyebrow: 'CAPTURE',
-    title: 'Get it out of your head.',
-    body: 'Tasks, appointments, links and ideas. Type naturally and NEVER organizes the details for you.'
-  },
-  {
-    icon: icons.upload,
-    eyebrow: 'SHARE',
-    title: 'Send anything to NEVER.',
-    body: 'Share links, text and screenshots from other apps. NEVER keeps the content together with the context that matters.'
-  },
-  {
-    icon: icons.ask,
-    eyebrow: 'RECALL',
-    title: 'Remember by asking.',
-    body: 'You do not need to remember where something was saved. Ask NEVER and search your personal memory by meaning.'
-  }
+  { icon: icons.inbox, eyebrow: 'CAPTURE', title: 'Get it out of your head.', body: 'Tasks, appointments, links and ideas. Type naturally and NEVER organizes the details for you.' },
+  { icon: icons.upload, eyebrow: 'SHARE', title: 'Send anything to NEVER.', body: 'Share links, text and screenshots from other apps. NEVER keeps the content together with the context that matters.' },
+  { icon: icons.ask, eyebrow: 'RECALL', title: 'Remember by asking.', body: 'You do not need to remember where something was saved. Ask NEVER and search your personal memory by meaning.' }
 ] as const;
 
 type Slide = (typeof slides)[number];
 
 export default function OnboardingScreen() {
-  const theme = useTheme();
+  const p = useNeverV5Palette();
   const { width } = useWindowDimensions();
   const { configured, session } = useAuth();
   const { complete } = useOnboarding();
@@ -48,8 +32,8 @@ export default function OnboardingScreen() {
   }, [width, index]);
 
   function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
-    const next = Math.round(event.nativeEvent.contentOffset.x / width);
-    if (next !== index && next >= 0 && next < slides.length) setIndex(next);
+    const nextIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+    if (nextIndex !== index && nextIndex >= 0 && nextIndex < slides.length) setIndex(nextIndex);
   }
 
   async function finish() {
@@ -68,32 +52,23 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
       <View style={styles.top}>
-        <Text style={[styles.brand, { color: theme.text }]}>NEVER</Text>
+        <V5Wordmark />
         <Pressable accessibilityRole="button" accessibilityLabel="Skip introduction" onPress={finish} hitSlop={10}>
-          <Text style={[styles.skip, { color: theme.textSecondary }]}>Skip</Text>
+          <Text style={[styles.skip, { color: p.secondary }]}>Skip</Text>
         </Pressable>
       </View>
 
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={handleScroll}
-        scrollEventThrottle={16}
-        style={styles.pager}
-      >
+      <ScrollView ref={scrollRef} horizontal pagingEnabled showsHorizontalScrollIndicator={false} onMomentumScrollEnd={handleScroll} scrollEventThrottle={16} style={styles.pager}>
         {slides.map((slide) => (
           <View key={slide.eyebrow} style={[styles.slide, { width }]}>
             <View style={styles.slideContent}>
               <ProductVignette slide={slide} />
-
               <View style={styles.copy}>
-                <Text style={[styles.eyebrow, { color: theme.chrome }]}>{slide.eyebrow}</Text>
-                <Text style={[styles.title, { color: theme.text }]}>{slide.title}</Text>
-                <Text style={[styles.body, { color: theme.textSecondary }]}>{slide.body}</Text>
+                <Text style={[styles.eyebrow, { color: p.chrome }]}>{slide.eyebrow}</Text>
+                <Text style={[styles.title, { color: p.label }]}>{slide.title}</Text>
+                <Text style={[styles.body, { color: p.secondary }]}>{slide.body}</Text>
               </View>
             </View>
           </View>
@@ -103,170 +78,125 @@ export default function OnboardingScreen() {
       <View style={styles.bottom}>
         <View style={styles.dots}>
           {slides.map((slide, dotIndex) => (
-            <View
-              key={slide.eyebrow}
-              style={[
-                styles.dot,
-                {
-                  width: dotIndex === index ? 22 : 7,
-                  backgroundColor: dotIndex === index ? theme.chrome : theme.fillStrong
-                }
-              ]}
-            />
+            <View key={slide.eyebrow} style={[styles.dot, { width: dotIndex === index ? 20 : 6, backgroundColor: dotIndex === index ? p.chrome : p.tertiary }]} />
           ))}
         </View>
 
-        <PrimaryButton
-          label={index === slides.length - 1 ? 'Continue to NEVER' : 'Continue'}
-          icon={index === slides.length - 1 ? icons.check : icons.chevron}
-          onPress={next}
-        />
+        <Pressable onPress={next} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
+          <Text style={[styles.primaryText, { color: p.dark ? '#111113' : '#FFFFFF' }]}>{index === slides.length - 1 ? 'Continue to NEVER' : 'Continue'}</Text>
+          <OneIcon name={index === slides.length - 1 ? icons.check : icons.chevron} size={13.5} color={p.dark ? '#111113' : '#FFFFFF'} />
+        </Pressable>
 
-        <Text style={[styles.privacy, { color: theme.textTertiary }]}>Private by default. Your memory belongs to you.</Text>
+        <Text style={[styles.privacy, { color: p.tertiary }]}>Private by default. Your memory belongs to you.</Text>
       </View>
     </SafeAreaView>
   );
 
   function ProductVignette({ slide }: { slide: Slide }) {
     return (
-      <View style={[styles.visual, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
+      <V5Group style={styles.visual}>
         <View style={styles.visualHeader}>
-          <Text style={[styles.visualWordmark, { color: theme.text }]}>NEVER</Text>
-          <Text style={[styles.visualMeta, { color: theme.textTertiary }]}>{slide.eyebrow}</Text>
+          <Text style={[styles.visualWordmark, { color: p.label }]}>NEVER</Text>
+          <Text style={[styles.visualMeta, { color: p.tertiary }]}>{slide.eyebrow}</Text>
         </View>
 
         {slide.eyebrow === 'CAPTURE' ? (
           <View style={styles.vignetteBody}>
-            <View style={[styles.captureField, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-              <View style={[styles.smallIcon, { backgroundColor: theme.chromeSoft, borderColor: theme.border }]}>
-                <OneIcon name={icons.plus} size={15} color={theme.chrome} />
-              </View>
-              <Text style={[styles.captureText, { color: theme.text }]}>Dinner Friday at 8 in London</Text>
+            <View style={[styles.captureField, { backgroundColor: p.fillSoft }]}>
+              <View style={[styles.smallIcon, { backgroundColor: p.surface }]}><OneIcon name={icons.plus} size={14.5} color={p.chrome} /></View>
+              <Text style={[styles.captureText, { color: p.label }]}>Dinner Friday at 8 in London</Text>
             </View>
-            <View style={[styles.resultCard, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <View style={styles.resultTop}>
-                <OneIcon name={icons.check} size={14} color={theme.success} />
-                <Text style={[styles.resultEyebrow, { color: theme.textTertiary }]}>ORGANIZED</Text>
-              </View>
-              <Text style={[styles.resultTitle, { color: theme.text }]}>Dinner in London</Text>
-              <View style={styles.detailRow}>
-                <Detail icon={icons.calendar} text="Friday" />
-                <Detail icon={icons.reminder} text="20:00" />
-              </View>
+            <View style={[styles.resultCard, { backgroundColor: p.fillSoft }]}>
+              <View style={styles.resultTop}><OneIcon name={icons.check} size={13.5} color={p.success} /><Text style={[styles.resultEyebrow, { color: p.tertiary }]}>ORGANIZED</Text></View>
+              <Text style={[styles.resultTitle, { color: p.label }]}>Dinner in London</Text>
+              <View style={styles.detailRow}><Detail icon={icons.calendar} text="Friday" /><Detail icon={icons.reminder} text="20:00" /></View>
             </View>
           </View>
         ) : null}
 
         {slide.eyebrow === 'SHARE' ? (
           <View style={styles.vignetteBody}>
-            <View style={[styles.sharedCard, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-              <View style={[styles.sharedPreview, { backgroundColor: theme.fillStrong }]}>
-                <OneIcon name={icons.screenshot} size={24} color={theme.chrome} />
-              </View>
+            <View style={[styles.sharedCard, { backgroundColor: p.fillSoft }]}>
+              <View style={[styles.sharedPreview, { backgroundColor: p.fill }]}><OneIcon name={icons.screenshot} size={22} color={p.chrome} /></View>
               <View style={{ flex: 1 }}>
-                <Text style={[styles.sharedLabel, { color: theme.textTertiary }]}>SHARED TO NEVER</Text>
-                <Text style={[styles.sharedTitle, { color: theme.text }]}>Flight confirmation</Text>
-                <Text style={[styles.sharedMeta, { color: theme.textSecondary }]}>Screenshot · Travel</Text>
+                <Text style={[styles.sharedLabel, { color: p.tertiary }]}>SHARED TO NEVER</Text>
+                <Text style={[styles.sharedTitle, { color: p.label }]}>Flight confirmation</Text>
+                <Text style={[styles.sharedMeta, { color: p.secondary }]}>Screenshot · Travel</Text>
               </View>
             </View>
-            <View style={[styles.contextLine, { borderColor: theme.border }]}>
-              <OneIcon name={icons.travel} size={15} color={theme.chrome} />
-              <View style={{ flex: 1 }}>
-                <Text style={[styles.contextTitle, { color: theme.text }]}>London → Hamburg</Text>
-                <Text style={[styles.contextMeta, { color: theme.textSecondary }]}>23 Sep · 18:45 · BA</Text>
-              </View>
+            <View style={[styles.contextLine, { backgroundColor: p.fillSoft }]}>
+              <OneIcon name={icons.travel} size={14.5} color={p.chrome} />
+              <View style={{ flex: 1 }}><Text style={[styles.contextTitle, { color: p.label }]}>London → Hamburg</Text><Text style={[styles.contextMeta, { color: p.secondary }]}>23 Sep · 18:45 · BA</Text></View>
             </View>
           </View>
         ) : null}
 
         {slide.eyebrow === 'RECALL' ? (
           <View style={styles.vignetteBody}>
-            <View style={[styles.question, { backgroundColor: theme.accent }]}>
-              <Text style={[styles.questionText, { color: theme.onAccent }]}>When is my London dinner?</Text>
-            </View>
-            <View style={[styles.answer, { backgroundColor: theme.surface, borderColor: theme.border }]}>
-              <View style={styles.answerHeader}>
-                <Text style={[styles.answerBrand, { color: theme.chrome }]}>NEVER</Text>
-                <Text style={[styles.answerGrounded, { color: theme.textTertiary }]}>GROUNDED</Text>
-              </View>
-              <Text style={[styles.answerText, { color: theme.text }]}>Friday at 8:00 PM.</Text>
-              <View style={[styles.sourceMini, { borderTopColor: theme.border }]}>
-                <OneIcon name={icons.document} size={13} color={theme.chrome} />
-                <Text style={[styles.sourceText, { color: theme.textSecondary }]}>Dinner reservation · 1 source</Text>
-              </View>
+            <View style={[styles.question, { backgroundColor: p.graphite }]}><Text style={[styles.questionText, { color: p.dark ? '#111113' : '#FFFFFF' }]}>When is my London dinner?</Text></View>
+            <View style={[styles.answer, { backgroundColor: p.fillSoft }]}>
+              <View style={styles.answerHeader}><Text style={[styles.answerBrand, { color: p.chrome }]}>NEVER</Text><Text style={[styles.answerGrounded, { color: p.tertiary }]}>GROUNDED</Text></View>
+              <Text style={[styles.answerText, { color: p.label }]}>Friday at 8:00 PM.</Text>
+              <View style={[styles.sourceMini, { borderTopColor: p.separator }]}><OneIcon name={icons.document} size={12.5} color={p.chrome} /><Text style={[styles.sourceText, { color: p.secondary }]}>Dinner reservation · 1 source</Text></View>
             </View>
           </View>
         ) : null}
-      </View>
+      </V5Group>
     );
   }
 
   function Detail({ icon, text }: { icon: (typeof icons)[keyof typeof icons]; text: string }) {
-    return (
-      <View style={styles.detail}>
-        <OneIcon name={icon} size={12} color={theme.textTertiary} />
-        <Text style={[styles.detailText, { color: theme.textSecondary }]}>{text}</Text>
-      </View>
-    );
+    return <View style={styles.detail}><OneIcon name={icon} size={11.5} color={p.tertiary} /><Text style={[styles.detailText, { color: p.secondary }]}>{text}</Text></View>;
   }
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  top: { width: '100%', maxWidth: 760, alignSelf: 'center', height: 56, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  brand: { fontSize: 17, fontWeight: '600', letterSpacing: 4.7 },
-  skip: { fontSize: 12, fontWeight: '500' },
+  top: { width: '100%', maxWidth: 760, alignSelf: 'center', height: 52, paddingHorizontal: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  skip: { fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
   pager: { flex: 1 },
   slide: { paddingHorizontal: 20, justifyContent: 'center' },
   slideContent: { width: '100%', maxWidth: 760, alignSelf: 'center' },
-  visual: {
-    height: 306,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 22,
-    padding: 18,
-    overflow: 'hidden',
-    shadowOpacity: 0.04,
-    shadowRadius: 18,
-    shadowOffset: { width: 0, height: 7 },
-    elevation: 1
-  },
+  visual: { height: 284, padding: 16 },
   visualHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  visualWordmark: { fontSize: 10.5, fontWeight: '600', letterSpacing: 3.1 },
-  visualMeta: { fontSize: 8, fontWeight: '700', letterSpacing: 1.45 },
-  vignetteBody: { flex: 1, justifyContent: 'center', gap: 12, paddingHorizontal: 2 },
-  captureField: { minHeight: 54, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  smallIcon: { width: 32, height: 32, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  captureText: { flex: 1, fontSize: 12.5, fontWeight: '500' },
-  resultCard: { borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, padding: 14 },
-  resultTop: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  resultEyebrow: { fontSize: 8, fontWeight: '700', letterSpacing: 1.2 },
-  resultTitle: { marginTop: 10, fontSize: 16, fontWeight: '600', letterSpacing: -0.2 },
-  detailRow: { marginTop: 12, flexDirection: 'row', gap: 14 },
-  detail: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  detailText: { fontSize: 10.5 },
-  sharedCard: { minHeight: 86, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, padding: 11, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  sharedPreview: { width: 60, height: 60, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  sharedLabel: { fontSize: 7.75, fontWeight: '700', letterSpacing: 1.05 },
-  sharedTitle: { marginTop: 5, fontSize: 14, fontWeight: '600' },
-  sharedMeta: { marginTop: 3, fontSize: 10.5 },
-  contextLine: { minHeight: 64, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  contextTitle: { fontSize: 12.5, fontWeight: '600' },
-  contextMeta: { marginTop: 3, fontSize: 10.25 },
-  question: { alignSelf: 'flex-end', maxWidth: '82%', borderRadius: 16, borderBottomRightRadius: 6, paddingHorizontal: 13, paddingVertical: 10 },
-  questionText: { fontSize: 12, lineHeight: 17 },
-  answer: { borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, padding: 14 },
+  visualWordmark: { fontSize: 9.5, fontWeight: '700', letterSpacing: 2.7 },
+  visualMeta: { fontSize: 7.5, fontWeight: '700', letterSpacing: 1.2 },
+  vignetteBody: { flex: 1, justifyContent: 'center', gap: 10, paddingHorizontal: 1 },
+  captureField: { minHeight: 50, borderRadius: 14, paddingHorizontal: 9, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  smallIcon: { width: 30, height: 30, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  captureText: { flex: 1, fontSize: 12, lineHeight: 16, fontWeight: '500' },
+  resultCard: { borderRadius: 14, padding: 13 },
+  resultTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
+  resultEyebrow: { fontSize: 7.5, fontWeight: '700', letterSpacing: 1 },
+  resultTitle: { marginTop: 8, fontSize: 15, lineHeight: 19, fontWeight: '600' },
+  detailRow: { marginTop: 10, flexDirection: 'row', gap: 13 },
+  detail: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  detailText: { fontSize: 10, lineHeight: 13 },
+  sharedCard: { minHeight: 78, borderRadius: 14, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  sharedPreview: { width: 54, height: 54, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  sharedLabel: { fontSize: 7.5, fontWeight: '700', letterSpacing: 0.9 },
+  sharedTitle: { marginTop: 4, fontSize: 13.5, lineHeight: 17, fontWeight: '600' },
+  sharedMeta: { marginTop: 2, fontSize: 10, lineHeight: 13 },
+  contextLine: { minHeight: 58, borderRadius: 13, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  contextTitle: { fontSize: 12, lineHeight: 15, fontWeight: '600' },
+  contextMeta: { marginTop: 2, fontSize: 10, lineHeight: 13 },
+  question: { alignSelf: 'flex-end', maxWidth: '82%', borderRadius: 15, borderBottomRightRadius: 5, paddingHorizontal: 12, paddingVertical: 9 },
+  questionText: { fontSize: 11.5, lineHeight: 16 },
+  answer: { borderRadius: 14, padding: 13 },
   answerHeader: { flexDirection: 'row', alignItems: 'center' },
-  answerBrand: { fontSize: 8.5, fontWeight: '700', letterSpacing: 1.35 },
-  answerGrounded: { marginLeft: 'auto', fontSize: 7.5, fontWeight: '700', letterSpacing: 0.9 },
-  answerText: { marginTop: 12, fontSize: 16, lineHeight: 21, fontWeight: '600', letterSpacing: -0.2 },
-  sourceMini: { marginTop: 13, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 7 },
-  sourceText: { fontSize: 10.25 },
-  copy: { marginTop: 30, paddingHorizontal: 3 },
-  eyebrow: { fontSize: 9.25, fontWeight: '700', letterSpacing: 2.1 },
-  title: { marginTop: 11, maxWidth: 500, fontSize: 31, lineHeight: 36, fontWeight: '600', letterSpacing: -1.05 },
-  body: { marginTop: 11, maxWidth: 480, fontSize: 13.25, lineHeight: 20 },
-  bottom: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 8, gap: 14 },
-  dots: { height: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
-  dot: { height: 7, borderRadius: 4 },
-  privacy: { textAlign: 'center', fontSize: 10.5 }
+  answerBrand: { fontSize: 8, fontWeight: '700', letterSpacing: 1.1 },
+  answerGrounded: { marginLeft: 'auto', fontSize: 7, fontWeight: '700', letterSpacing: 0.75 },
+  answerText: { marginTop: 10, fontSize: 15, lineHeight: 20, fontWeight: '600' },
+  sourceMini: { marginTop: 11, paddingTop: 9, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  sourceText: { fontSize: 10, lineHeight: 13 },
+  copy: { marginTop: 26, paddingHorizontal: 2 },
+  eyebrow: { fontSize: 8.5, lineHeight: 11, fontWeight: '700', letterSpacing: 1.8 },
+  title: { marginTop: 8, maxWidth: 500, fontSize: 30, lineHeight: 35, fontWeight: '700', letterSpacing: -0.95 },
+  body: { marginTop: 8, maxWidth: 480, fontSize: 13, lineHeight: 19 },
+  bottom: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 8, gap: 12 },
+  dots: { height: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
+  dot: { height: 6, borderRadius: 3 },
+  primaryButton: { minHeight: 46, borderRadius: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  primaryText: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  privacy: { textAlign: 'center', fontSize: 10.5, lineHeight: 14 }
 });
