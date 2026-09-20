@@ -29,8 +29,8 @@ export function OneItemRow({
       style={({ pressed }) => [
         styles.row,
         {
-          borderBottomColor: `${theme.text}0D`,
-          backgroundColor: pressed ? `${theme.fill}4A` : 'transparent'
+          borderBottomColor: theme.border,
+          backgroundColor: pressed ? theme.fill : 'transparent'
         }
       ]}
     >
@@ -48,8 +48,8 @@ export function OneItemRow({
           style={[
             styles.check,
             {
-              borderColor: item.completed ? `${theme.success}88` : `${theme.text}18`,
-              backgroundColor: item.completed ? theme.success : `${theme.fill}72`
+              borderColor: item.completed ? theme.success : theme.border,
+              backgroundColor: item.completed ? theme.success : theme.surface
             }
           ]}
         >
@@ -58,8 +58,8 @@ export function OneItemRow({
       ) : previewUri ? (
         <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill }]} resizeMode="cover" />
       ) : (
-        <View style={[styles.glyph, { backgroundColor: `${iconColor(item, theme)}16` }]}>
-          <OneIcon name={iconForType(item.type)} size={18} color={iconColor(item, theme)} />
+        <View style={[styles.glyph, { backgroundColor: theme.fill }]}>
+          <OneIcon name={iconForType(item.type)} size={17} color={theme.chrome} />
         </View>
       )}
 
@@ -80,7 +80,7 @@ export function OneItemRow({
       </View>
 
       {item.time ? <Text style={[styles.time, { color: theme.textTertiary }]}>{item.time}</Text> : null}
-      {showChevron ? <OneIcon name={icons.chevron} size={14} color={theme.textTertiary} /> : null}
+      {showChevron ? <OneIcon name={icons.chevron} size={12} color={theme.textTertiary} /> : null}
     </Pressable>
   );
 }
@@ -96,13 +96,6 @@ export function iconForType(type: OneItem['type']) {
   if (type === 'note') return icons.note;
   if (type === 'document') return icons.document;
   return icons.task;
-}
-
-function iconColor(item: OneItem, theme: ReturnType<typeof useTheme>) {
-  if (item.type === 'document' || item.type === 'link') return theme.sky;
-  if (item.type === 'idea' || item.type === 'note') return theme.plum;
-  if (item.type === 'reminder' || item.type === 'task' || item.type === 'shopping') return theme.warning;
-  return theme.textSecondary;
 }
 
 function metaFor(item: OneItem, showDate: boolean) {
@@ -154,19 +147,19 @@ function formatType(type: string) {
 
 const styles = StyleSheet.create({
   row: {
-    minHeight: 72,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
+    minHeight: 68,
+    paddingHorizontal: 14,
+    paddingVertical: 9,
     borderBottomWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12
+    gap: 11
   },
   check: { width: 26, height: 26, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  preview: { width: 44, height: 44, borderRadius: 12 },
-  glyph: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  preview: { width: 44, height: 44, borderRadius: 11 },
+  glyph: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   content: { flex: 1, minWidth: 0 },
-  title: { fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.16 },
-  meta: { fontSize: 11, lineHeight: 14.5, marginTop: 3 },
-  time: { fontSize: 10.25, lineHeight: 13, fontWeight: '600', letterSpacing: 0.03 }
+  title: { fontSize: 16, lineHeight: 20, fontWeight: '600', letterSpacing: -0.15 },
+  meta: { fontSize: 13, lineHeight: 17, marginTop: 2 },
+  time: { fontSize: 12, lineHeight: 15, fontWeight: '500' }
 });
