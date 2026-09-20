@@ -1,4 +1,5 @@
 import { interpretCapture, type CaptureDraft, type CaptureKind, type InterpretCaptureInput } from './core.ts';
+import { enrichCaptureDraft } from './enrichment.ts';
 import { normalizeContextLabel, normalizeTags } from './contextNormalization.ts';
 
 export type OneAIInterpretationPayload = {
@@ -37,7 +38,7 @@ export async function interpretCaptureWithIntelligence(
   input: InterpretCaptureInput,
   provider?: OneAIInterpretationProvider
 ): Promise<OneIntelligenceResult> {
-  const deterministic = interpretCapture(input);
+  const deterministic = enrichCaptureDraft(interpretCapture(input), input);
   if (!provider) return { draft: deterministic, origin: 'deterministic', aiApplied: false };
 
   try {
@@ -59,8 +60,9 @@ export async function interpretCaptureWithIntelligence(
       };
     }
 
+    const merged = mergeAIInterpretation(deterministic, validated);
     return {
-      draft: mergeAIInterpretation(deterministic, validated),
+      draft: enrichCaptureDraft(merged, input),
       origin: 'hybrid',
       aiApplied: true,
       provider: provider.provider,
