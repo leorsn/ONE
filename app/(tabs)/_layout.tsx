@@ -48,18 +48,18 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
   const insets = useSafeAreaInsets();
 
   return (
-    <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(7, insets.bottom - 7) }]}>
+    <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(6, insets.bottom - 8) }]}>
       <View
         style={[
           styles.bar,
           {
-            backgroundColor: p.dark ? '#1C1C1EF2' : '#F8F8FAF2',
-            borderColor: p.dark ? '#FFFFFF18' : '#FFFFFFCC',
+            backgroundColor: p.dark ? '#1C1C1EDC' : '#FFFFFFE8',
+            borderColor: p.dark ? '#FFFFFF12' : '#FFFFFFF2',
             shadowColor: '#000000'
           }
         ]}
       >
-        <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.dark ? '#FFFFFF18' : '#FFFFFF' }]} />
+        <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.dark ? '#FFFFFF12' : '#FFFFFF' }]} />
         {state.routes.map((route) => {
           const index = state.routes.indexOf(route);
           const focused = state.index === index;
@@ -88,15 +88,15 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
                 style={[
                   styles.iconWell,
                   focused && {
-                    backgroundColor: p.surface,
-                    borderColor: p.dark ? '#FFFFFF16' : '#FFFFFF',
+                    backgroundColor: p.dark ? '#2C2C2E' : '#F2F2F4',
+                    borderColor: p.dark ? '#FFFFFF10' : '#FFFFFF',
                     shadowColor: '#000000'
                   }
                 ]}
               >
                 <OneIcon
                   name={tabIcon[routeName]}
-                  size={focused ? 18 : 17}
+                  size={focused ? 17.5 : 16.5}
                   color={focused ? p.label : p.tertiary}
                 />
               </View>
@@ -112,31 +112,31 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: 16, right: 16 },
+  wrap: { position: 'absolute', left: 14, right: 14 },
   bar: {
-    height: 64,
-    borderRadius: 30,
+    height: 58,
+    borderRadius: 25,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 7,
-    paddingVertical: 5,
+    paddingHorizontal: 6,
+    paddingVertical: 4,
     flexDirection: 'row',
     alignItems: 'center',
     overflow: 'hidden',
-    shadowOpacity: 0.13,
-    shadowRadius: 22,
-    shadowOffset: { width: 0, height: 10 },
-    elevation: 7
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    shadowOffset: { width: 0, height: 7 },
+    elevation: 5
   },
-  highlight: { position: 'absolute', top: 0, left: 28, right: 28, height: StyleSheet.hairlineWidth },
-  tab: { flex: 1, height: 54, alignItems: 'center', justifyContent: 'center', gap: 2 },
+  highlight: { position: 'absolute', top: 0, left: 24, right: 24, height: StyleSheet.hairlineWidth },
+  tab: { flex: 1, height: 50, alignItems: 'center', justifyContent: 'center', gap: 1 },
   iconWell: {
-    width: 34,
-    height: 32,
-    borderRadius: 13,
+    width: 32,
+    height: 29,
+    borderRadius: 11,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center'
   },
-  label: { fontSize: 9.5, lineHeight: 12, letterSpacing: -0.05 }
+  label: { fontSize: 9.2, lineHeight: 11, letterSpacing: -0.04 }
 });
