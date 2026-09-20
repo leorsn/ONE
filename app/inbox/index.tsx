@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
@@ -43,8 +43,8 @@ export default function InboxIndexScreen() {
               <View style={styles.emptyState}>
                 <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.check} size={18} color={p.chrome} /></View>
                 <View style={{ flex: 1 }}>
-                  <View style={[styles.emptyTitleBar, { backgroundColor: p.label }]} />
-                  <View style={[styles.emptyBodyBar, { backgroundColor: p.tertiary }]} />
+                  <Text style={[styles.emptyTitle, { color: p.label }]}>Inbox clear</Text>
+                  <Text style={[styles.emptyBody, { color: p.secondary }]}>Everything you captured has a place.</Text>
                 </View>
               </View>
             )}
@@ -65,6 +65,6 @@ const styles = StyleSheet.create({
   section: { gap: 7 },
   emptyState: { minHeight: 78, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
   emptyIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  emptyTitleBar: { width: 110, height: 8, borderRadius: 4, opacity: 0.85 },
-  emptyBodyBar: { width: 170, height: 6, borderRadius: 3, marginTop: 7, opacity: 0.45 }
+  emptyTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
+  emptyBody: { marginTop: 1, fontSize: 12.5, lineHeight: 16 }
 });
