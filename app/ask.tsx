@@ -1,1 +1,1 @@
-export { default } from '@/src/screens/AskV4';
+export { default } from '@/src/screens/AskV5';
