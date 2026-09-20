@@ -19,7 +19,6 @@ import {
   V5SearchField,
   V5SectionHeader,
   V5Segmented,
-  V5Wordmark,
   useNeverV5Palette
 } from '@/src/ui/appleV5';
 import type { OneItem } from '@/src/types/item';
@@ -49,15 +48,23 @@ export default function SearchV5() {
     () => retrieveLocalOneItems(query, items, { limit: 30, recentWhenEmpty: true }),
     [query, items]
   );
-  const results = useMemo(() => {
-    if (query.trim() || category === 'Recent') return retrieved.slice(0, 18);
-    return retrieved.filter(({ item }) => {
+
+  const categoryItems = useMemo(() => {
+    const sorted = [...items].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    return sorted.filter((item) => {
       if (category === 'Documents') return item.type === 'document';
-      if (category === 'Links') return item.type === 'link';
+      if (category === 'Links') return item.type === 'link' || Boolean(item.url);
       if (category === 'Ideas') return item.type === 'idea' || item.type === 'note';
       return true;
-    }).slice(0, 18);
-  }, [retrieved, category, query]);
+    }).slice(0, 18).map((item) => ({ item, reasons: [] as string[] }));
+  }, [items, category]);
+
+  const results = useMemo(() => {
+    if (query.trim()) return retrieved.slice(0, 18);
+    if (category === 'Recent') return retrieved.slice(0, 18);
+    return categoryItems;
+  }, [retrieved, categoryItems, category, query]);
+
   const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
 
   async function askNever() {
@@ -108,18 +115,16 @@ export default function SearchV5() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-        <View style={styles.brandBar}>
-          <V5Wordmark />
-          <V5IconButton
-            icon={mode === 'ask' ? icons.search : icons.ask}
-            accessibilityLabel={mode === 'ask' ? 'Switch to search' : 'Ask NEVER'}
-            onPress={toggleMode}
-          />
-        </View>
-
         <V5LargeHeader
           title={mode === 'ask' ? 'Ask NEVER' : 'Search'}
           subtitle={mode === 'ask' ? 'Ask a question using only what you have saved.' : 'Find anything in your memory.'}
+          action={(
+            <V5IconButton
+              icon={mode === 'ask' ? icons.search : icons.ask}
+              accessibilityLabel={mode === 'ask' ? 'Switch to search' : 'Ask NEVER'}
+              onPress={toggleMode}
+            />
+          )}
         />
 
         <V5SearchField
@@ -156,7 +161,7 @@ export default function SearchV5() {
                 )) : (
                   <View style={styles.emptyState}>
                     <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}>
-                      <OneIcon name={icons.search} size={19} color={p.chrome} />
+                      <OneIcon name={icons.search} size={18} color={p.chrome} />
                     </View>
                     <Text style={[styles.emptyTitle, { color: p.label }]}>Nothing found</Text>
                     <Text style={[styles.emptyBody, { color: p.secondary }]}>Try another search or choose a different category.</Text>
@@ -175,7 +180,7 @@ export default function SearchV5() {
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.askBridgeTitle, { color: p.label }]}>Ask NEVER about “{query.trim()}”</Text>
-                  <Text style={[styles.askBridgeSubtitle, { color: p.secondary }]}>Get an answer grounded in your saved information</Text>
+                  <Text style={[styles.askBridgeSubtitle, { color: p.secondary }]}>Answer from your saved information</Text>
                 </View>
                 <V5Chevron />
               </Pressable>
@@ -191,7 +196,7 @@ export default function SearchV5() {
                   </View>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.groundedTitle, { color: p.label }]}>Grounded in your memory</Text>
-                    <Text style={[styles.groundedBody, { color: p.secondary }]}>NEVER searches what you saved first and should say when the evidence is not enough.</Text>
+                    <Text style={[styles.groundedBody, { color: p.secondary }]}>NEVER searches what you saved first and says when the evidence is not enough.</Text>
                   </View>
                 </View>
               </V5Group>
@@ -230,7 +235,7 @@ export default function SearchV5() {
           {previewUri ? (
             <Image source={{ uri: previewUri }} style={styles.previewImage} resizeMode="cover" />
           ) : (
-            <OneIcon name={iconForType(item.type)} size={18} color={p.chrome} />
+            <OneIcon name={iconForType(item.type)} size={17} color={p.chrome} />
           )}
         </View>
         <View style={[styles.resultContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
@@ -266,7 +271,7 @@ export default function SearchV5() {
             {body ? <Text style={[styles.answerText, { color: p.secondary }]}>{body}</Text> : null}
             {current.meta ? <Text style={[styles.answerMeta, { color: p.tertiary }]}>{current.meta}</Text> : null}
           </View>
-          {urls.map((url, index) => (
+          {urls.map((url) => (
             <Pressable
               key={url}
               onPress={async () => { await Haptics.selectionAsync(); await Linking.openURL(url); }}
@@ -328,47 +333,46 @@ function withoutStandaloneUrlLines(value: string) { return value.split('\n').fil
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 118, gap: 20 },
-  brandBar: { minHeight: 40, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  section: { gap: 8 },
-  resultRow: { minHeight: 74, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  previewWrap: { width: 48, height: 48, borderRadius: 12, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 108, gap: 18 },
+  section: { gap: 7 },
+  resultRow: { minHeight: 68, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  previewWrap: { width: 44, height: 44, borderRadius: 11, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   previewImage: { width: '100%', height: '100%' },
-  resultContent: { flex: 1, minHeight: 74, paddingRight: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  resultTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600', letterSpacing: -0.15 },
-  resultSubtitle: { marginTop: 2, fontSize: 13, lineHeight: 17 },
-  resultAccessory: { alignItems: 'flex-end', gap: 2 },
-  reason: { fontSize: 11, lineHeight: 14, fontWeight: '500' },
-  resultDate: { fontSize: 11, lineHeight: 14 },
-  emptyState: { minHeight: 190, padding: 24, alignItems: 'center', justifyContent: 'center' },
-  emptyIcon: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { marginTop: 12, fontSize: 17, lineHeight: 21, fontWeight: '600' },
-  emptyBody: { marginTop: 4, maxWidth: 260, fontSize: 13, lineHeight: 18, textAlign: 'center' },
-  askBridge: { minHeight: 68, borderRadius: 20, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  askBridgeIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  askBridgeTitle: { fontSize: 15, lineHeight: 19, fontWeight: '600' },
-  askBridgeSubtitle: { marginTop: 2, fontSize: 12, lineHeight: 16 },
-  askSection: { gap: 12 },
-  groundedRow: { minHeight: 92, padding: 16, flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
-  groundedIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  groundedTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
-  groundedBody: { marginTop: 3, fontSize: 13, lineHeight: 18 },
-  loadingRow: { minHeight: 68, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  loadingText: { fontSize: 14, lineHeight: 18 },
-  errorBox: { borderRadius: 18, padding: 16 },
-  errorText: { fontSize: 13, lineHeight: 18 },
-  answerStack: { gap: 16 },
-  answerBodyWrap: { padding: 16 },
+  resultContent: { flex: 1, minHeight: 68, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  resultTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
+  resultSubtitle: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
+  resultAccessory: { alignItems: 'flex-end', gap: 1 },
+  reason: { fontSize: 10.5, lineHeight: 13, fontWeight: '500' },
+  resultDate: { fontSize: 10.5, lineHeight: 13 },
+  emptyState: { minHeight: 156, padding: 22, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  emptyTitle: { marginTop: 10, fontSize: 16.5, lineHeight: 20, fontWeight: '600' },
+  emptyBody: { marginTop: 4, maxWidth: 250, fontSize: 12.5, lineHeight: 17, textAlign: 'center' },
+  askBridge: { minHeight: 62, borderRadius: 16, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  askBridgeIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  askBridgeTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  askBridgeSubtitle: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
+  askSection: { gap: 10 },
+  groundedRow: { minHeight: 82, padding: 14, flexDirection: 'row', alignItems: 'flex-start', gap: 11 },
+  groundedIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  groundedTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
+  groundedBody: { marginTop: 3, fontSize: 12.5, lineHeight: 17 },
+  loadingRow: { minHeight: 62, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  loadingText: { fontSize: 13.5, lineHeight: 17 },
+  errorBox: { borderRadius: 16, padding: 14 },
+  errorText: { fontSize: 12.5, lineHeight: 17 },
+  answerStack: { gap: 14 },
+  answerBodyWrap: { padding: 15 },
   answerHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  answerMark: { width: 32, height: 32, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  answerMode: { fontSize: 10, lineHeight: 13, fontWeight: '700', letterSpacing: 0.7 },
-  answerTitle: { marginTop: 14, fontSize: 20, lineHeight: 25, fontWeight: '700', letterSpacing: -0.35 },
-  answerText: { marginTop: 7, fontSize: 15, lineHeight: 21 },
-  answerMeta: { marginTop: 10, fontSize: 11, lineHeight: 15 },
-  answerLink: { minHeight: 52, paddingHorizontal: 16, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  answerLinkText: { flex: 1, fontSize: 13, lineHeight: 17 },
-  sourceRow: { minHeight: 58, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sourceIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  sourceContent: { flex: 1, minHeight: 58, paddingRight: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sourceTitle: { flex: 1, fontSize: 15, lineHeight: 19, fontWeight: '500' }
+  answerMark: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  answerMode: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.65 },
+  answerTitle: { marginTop: 12, fontSize: 19, lineHeight: 23, fontWeight: '700', letterSpacing: -0.3 },
+  answerText: { marginTop: 6, fontSize: 14.5, lineHeight: 20 },
+  answerMeta: { marginTop: 9, fontSize: 10.5, lineHeight: 14 },
+  answerLink: { minHeight: 48, paddingHorizontal: 15, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  answerLinkText: { flex: 1, fontSize: 12.5, lineHeight: 16 },
+  sourceRow: { minHeight: 54, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  sourceIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  sourceContent: { flex: 1, minHeight: 54, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  sourceTitle: { flex: 1, fontSize: 14.5, lineHeight: 18, fontWeight: '500' }
 });
