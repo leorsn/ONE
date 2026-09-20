@@ -3,12 +3,11 @@ import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, Sc
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/src/context/AuthContext';
-import { PrimaryButton } from '@/src/ui/primitives';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { useTheme } from '@/src/theme/useTheme';
+import { V5Group, V5Wordmark, useNeverV5Palette } from '@/src/ui/appleV5';
 
 export default function SignInScreen() {
-  const theme = useTheme();
+  const p = useNeverV5Palette();
   const { configured, signIn, signUp, requestPasswordReset } = useAuth();
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
   const [email, setEmail] = useState('');
@@ -26,20 +25,15 @@ export default function SignInScreen() {
       Alert.alert('NEVER Account', 'Use a password with at least 8 characters.');
       return;
     }
-
     setSubmitting(true);
     await Haptics.selectionAsync();
     try {
-      const error = mode === 'signin'
-        ? await signIn(cleanEmail, password)
-        : await signUp(cleanEmail, password);
+      const error = mode === 'signin' ? await signIn(cleanEmail, password) : await signUp(cleanEmail, password);
       if (error) {
         Alert.alert('NEVER Account', error);
         return;
       }
-      if (mode === 'signup') {
-        Alert.alert('Check your email', 'Confirm your email address to finish creating your NEVER account.');
-      }
+      if (mode === 'signup') Alert.alert('Check your email', 'Confirm your email address to finish creating your NEVER account.');
     } finally {
       setSubmitting(false);
     }
@@ -51,7 +45,6 @@ export default function SignInScreen() {
       Alert.alert('Reset password', 'Enter your NEVER account email first.');
       return;
     }
-
     setResetting(true);
     try {
       const error = await requestPasswordReset(cleanEmail);
@@ -63,120 +56,56 @@ export default function SignInScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-        >
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.shell}>
-            <View style={styles.brandRow}>
-              <Text style={[styles.wordmark, { color: theme.text }]}>NEVER</Text>
-              <View style={[styles.brandRule, { backgroundColor: theme.fillStrong }]} />
-              <Text style={[styles.brandMeta, { color: theme.textTertiary }]}>PRIVATE MEMORY</Text>
-            </View>
+            <V5Wordmark />
 
             <View style={styles.hero}>
-              <Text style={[styles.eyebrow, { color: theme.chrome }]}>{mode === 'signin' ? 'WELCOME BACK' : 'CREATE YOUR MEMORY'}</Text>
-              <Text style={[styles.title, { color: theme.text }]}>
-                {mode === 'signin' ? 'Your memory, with you.' : 'One private place for what matters.'}
-              </Text>
-              <Text style={[styles.body, { color: theme.textSecondary }]}>
-                {mode === 'signin'
-                  ? 'Sign in to keep your saved information available across your NEVER devices.'
-                  : 'Create a NEVER account to sync memories, documents and context across your devices.'}
-              </Text>
+              <Text style={[styles.eyebrow, { color: p.chrome }]}>{mode === 'signin' ? 'WELCOME BACK' : 'CREATE YOUR MEMORY'}</Text>
+              <Text style={[styles.title, { color: p.label }]}>{mode === 'signin' ? 'Your memory, with you.' : 'One private place for what matters.'}</Text>
+              <Text style={[styles.body, { color: p.secondary }]}>{mode === 'signin' ? 'Sign in to keep your saved information available across your NEVER devices.' : 'Create a NEVER account to sync memories, documents and context across your devices.'}</Text>
             </View>
 
-            <View style={[styles.formCard, { backgroundColor: theme.surfaceElevated, borderColor: theme.border, shadowColor: theme.shadow }]}>
-              <View style={styles.formHeading}>
-                <Text style={[styles.formTitle, { color: theme.text }]}>{mode === 'signin' ? 'Sign in' : 'Create account'}</Text>
-                <Text style={[styles.formCaption, { color: theme.textTertiary }]}>{mode === 'signin' ? 'Use your NEVER account' : 'Email and password'}</Text>
-              </View>
+            <V5Group style={styles.formCard}>
+              <Text style={[styles.formTitle, { color: p.label }]}>{mode === 'signin' ? 'Sign In' : 'Create Account'}</Text>
+              <Text style={[styles.formCaption, { color: p.secondary }]}>{mode === 'signin' ? 'Use your NEVER account' : 'Email and password'}</Text>
 
               {!configured ? (
-                <View style={[styles.configurationNotice, { backgroundColor: theme.fill, borderColor: theme.border }]}>
-                  <OneIcon name={icons.shield} size={15} color={theme.danger} />
-                  <Text style={[styles.configurationError, { color: theme.danger }]}>Cloud authentication is not configured in this build.</Text>
-                </View>
+                <View style={[styles.configurationNotice, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.shield} size={14} color={p.danger} /><Text style={[styles.configurationError, { color: p.danger }]}>Cloud authentication is not configured in this build.</Text></View>
               ) : null}
 
               <View style={styles.form}>
                 <View>
-                  <Text style={[styles.inputLabel, { color: theme.textTertiary }]}>EMAIL</Text>
-                  <TextInput
-                    value={email}
-                    onChangeText={setEmail}
-                    placeholder="you@example.com"
-                    placeholderTextColor={theme.textTertiary}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    keyboardType="email-address"
-                    textContentType="emailAddress"
-                    accessibilityLabel="Email address"
-                    style={[styles.input, { color: theme.text, backgroundColor: theme.fill, borderColor: theme.border }]}
-                  />
+                  <Text style={[styles.inputLabel, { color: p.secondary }]}>Email</Text>
+                  <TextInput value={email} onChangeText={setEmail} placeholder="you@example.com" placeholderTextColor={p.tertiary} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" textContentType="emailAddress" accessibilityLabel="Email address" style={[styles.input, { color: p.label, backgroundColor: p.fillSoft }]} />
                 </View>
-
                 <View>
-                  <Text style={[styles.inputLabel, { color: theme.textTertiary }]}>PASSWORD</Text>
-                  <TextInput
-                    value={password}
-                    onChangeText={setPassword}
-                    placeholder={mode === 'signup' ? 'At least 8 characters' : 'Password'}
-                    placeholderTextColor={theme.textTertiary}
-                    secureTextEntry
-                    textContentType={mode === 'signup' ? 'newPassword' : 'password'}
-                    accessibilityLabel="Password"
-                    onSubmitEditing={() => void submit()}
-                    style={[styles.input, { color: theme.text, backgroundColor: theme.fill, borderColor: theme.border }]}
-                  />
+                  <Text style={[styles.inputLabel, { color: p.secondary }]}>Password</Text>
+                  <TextInput value={password} onChangeText={setPassword} placeholder={mode === 'signup' ? 'At least 8 characters' : 'Password'} placeholderTextColor={p.tertiary} secureTextEntry textContentType={mode === 'signup' ? 'newPassword' : 'password'} accessibilityLabel="Password" onSubmitEditing={() => void submit()} style={[styles.input, { color: p.label, backgroundColor: p.fillSoft }]} />
                 </View>
 
-                <PrimaryButton
-                  label={mode === 'signin' ? 'Sign in to NEVER' : 'Create NEVER account'}
-                  disabled={!configured || submitting}
-                  onPress={submit}
-                />
-
-                {submitting ? (
-                  <View style={styles.progressRow}>
-                    <ActivityIndicator size="small" />
-                    <Text style={[styles.progressText, { color: theme.textSecondary }]}>{mode === 'signin' ? 'Signing in…' : 'Creating account…'}</Text>
-                  </View>
-                ) : null}
+                <Pressable disabled={!configured || submitting} onPress={submit} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: !configured || submitting ? 0.38 : pressed ? 0.72 : 1 }]}>
+                  {submitting ? <ActivityIndicator size="small" color={p.dark ? '#111113' : '#FFFFFF'} /> : null}
+                  <Text style={[styles.primaryText, { color: p.dark ? '#111113' : '#FFFFFF' }]}>{mode === 'signin' ? 'Sign In to NEVER' : 'Create NEVER Account'}</Text>
+                </Pressable>
               </View>
 
-              <View style={[styles.formFooter, { borderTopColor: theme.border }]}>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel={mode === 'signin' ? 'Create NEVER account instead' : 'Sign in to existing NEVER account instead'}
-                  onPress={() => setMode((current) => current === 'signin' ? 'signup' : 'signin')}
-                  style={({ pressed }) => [styles.textAction, { opacity: pressed ? 0.55 : 1 }]}
-                >
-                  <Text style={[styles.switchText, { color: theme.text }]}>{mode === 'signin' ? 'Create an account' : 'I already have an account'}</Text>
-                  <OneIcon name={icons.chevron} size={12} color={theme.textTertiary} />
+              <View style={[styles.formFooter, { borderTopColor: p.separator }]}>
+                <Pressable onPress={() => setMode((current) => current === 'signin' ? 'signup' : 'signin')} style={({ pressed }) => [styles.textAction, { opacity: pressed ? 0.55 : 1 }]}>
+                  <Text style={[styles.switchText, { color: p.label }]}>{mode === 'signin' ? 'Create an account' : 'I already have an account'}</Text>
+                  <OneIcon name={icons.chevron} size={11.5} color={p.tertiary} />
                 </Pressable>
-
                 {mode === 'signin' ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="Reset forgotten NEVER password"
-                    disabled={resetting}
-                    onPress={() => void resetPassword()}
-                    style={({ pressed }) => [styles.textAction, { opacity: pressed || resetting ? 0.55 : 1 }]}
-                  >
-                    <Text style={[styles.resetText, { color: theme.textSecondary }]}>{resetting ? 'Sending reset link…' : 'Forgot password?'}</Text>
+                  <Pressable disabled={resetting} onPress={() => void resetPassword()} style={({ pressed }) => [styles.textAction, { opacity: pressed || resetting ? 0.55 : 1 }]}>
+                    <Text style={[styles.resetText, { color: p.secondary }]}>{resetting ? 'Sending reset link…' : 'Forgot password?'}</Text>
                   </Pressable>
                 ) : null}
               </View>
-            </View>
+            </V5Group>
 
-            <View style={styles.trustRow}>
-              <OneIcon name={icons.shield} size={13} color={theme.chrome} />
-              <Text style={[styles.privacy, { color: theme.textTertiary }]}>Private by default. Your account controls which synced memory belongs to you.</Text>
-            </View>
+            <View style={styles.trustRow}><OneIcon name={icons.shield} size={12.5} color={p.chrome} /><Text style={[styles.privacy, { color: p.tertiary }]}>Private by default. Your account controls which synced memory belongs to you.</Text></View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -184,45 +113,30 @@ export default function SignInScreen() {
   );
 }
 
-function isValidEmail(value: string) {
-  return /^\S+@\S+\.\S+$/.test(value);
-}
+function isValidEmail(value: string) { return /^\S+@\S+\.\S+$/.test(value); }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  scrollContent: { flexGrow: 1, justifyContent: 'center', paddingVertical: 24 },
-  shell: { width: '100%', maxWidth: 520, alignSelf: 'center', paddingHorizontal: 20 },
-  brandRow: { minHeight: 34, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  wordmark: { fontSize: 17, lineHeight: 20, fontWeight: '600', letterSpacing: 4.7 },
-  brandRule: { width: 28, height: StyleSheet.hairlineWidth },
-  brandMeta: { fontSize: 8.5, fontWeight: '700', letterSpacing: 1.45 },
-  hero: { marginTop: 44, marginBottom: 30 },
-  eyebrow: { fontSize: 9, fontWeight: '700', letterSpacing: 2.1 },
-  title: { marginTop: 12, maxWidth: 410, fontSize: 32, lineHeight: 37, fontWeight: '600', letterSpacing: -1.1 },
-  body: { marginTop: 10, maxWidth: 400, fontSize: 13, lineHeight: 19.5 },
-  formCard: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 20,
-    padding: 17,
-    shadowOpacity: 0.04,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 1
-  },
-  formHeading: { marginBottom: 18 },
-  formTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.25 },
-  formCaption: { marginTop: 3, fontSize: 10.75, lineHeight: 14.5 },
-  configurationNotice: { minHeight: 46, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, marginBottom: 14, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  configurationError: { flex: 1, fontSize: 11.25, lineHeight: 16 },
-  form: { gap: 14 },
-  inputLabel: { marginLeft: 2, marginBottom: 7, fontSize: 8.5, fontWeight: '700', letterSpacing: 1.25 },
-  input: { minHeight: 52, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, paddingHorizontal: 14, fontSize: 14.5 },
-  progressRow: { minHeight: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  progressText: { fontSize: 11.25 },
-  formFooter: { marginTop: 18, paddingTop: 8, borderTopWidth: StyleSheet.hairlineWidth },
-  textAction: { minHeight: 42, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  switchText: { fontSize: 12.5, fontWeight: '600' },
-  resetText: { fontSize: 11.75, fontWeight: '500' },
-  trustRow: { marginTop: 20, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'flex-start', gap: 8 },
-  privacy: { flex: 1, fontSize: 10.5, lineHeight: 15 }
+  scrollContent: { flexGrow: 1, justifyContent: 'center', paddingVertical: 22 },
+  shell: { width: '100%', maxWidth: 500, alignSelf: 'center', paddingHorizontal: 20 },
+  hero: { marginTop: 38, marginBottom: 24 },
+  eyebrow: { fontSize: 8.5, lineHeight: 11, fontWeight: '700', letterSpacing: 1.8 },
+  title: { marginTop: 9, maxWidth: 400, fontSize: 30, lineHeight: 35, fontWeight: '700', letterSpacing: -0.95 },
+  body: { marginTop: 8, maxWidth: 390, fontSize: 13, lineHeight: 19 },
+  formCard: { padding: 15 },
+  formTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.2 },
+  formCaption: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
+  configurationNotice: { minHeight: 44, borderRadius: 12, paddingHorizontal: 11, marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  configurationError: { flex: 1, fontSize: 11, lineHeight: 15.5 },
+  form: { marginTop: 15, gap: 12 },
+  inputLabel: { marginLeft: 2, marginBottom: 5, fontSize: 11.5, lineHeight: 14, fontWeight: '500' },
+  input: { minHeight: 48, borderRadius: 13, paddingHorizontal: 13, fontSize: 14.5, lineHeight: 18 },
+  primaryButton: { minHeight: 46, borderRadius: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  primaryText: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  formFooter: { marginTop: 15, paddingTop: 7, borderTopWidth: StyleSheet.hairlineWidth },
+  textAction: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  switchText: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
+  resetText: { fontSize: 12, lineHeight: 15, fontWeight: '500' },
+  trustRow: { marginTop: 17, paddingHorizontal: 3, flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
+  privacy: { flex: 1, fontSize: 10.5, lineHeight: 14.5 }
 });
