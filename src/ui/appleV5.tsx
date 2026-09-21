@@ -14,7 +14,7 @@ export function useNeverV5Palette() {
   return {
     dark, canvas: t.background, surface: t.surface, elevated: t.surfaceElevated,
     fill: t.fillStrong, fillSoft: t.fill, label: t.text, secondary: t.textSecondary,
-    tertiary: t.textTertiary, separator: t.border, graphite: t.accent,
+    tertiary: t.textTertiary, separator: t.border, border: t.border, graphite: t.accent,
     chrome: t.chrome, chromeSoft: t.chromeSoft, warning: t.warning,
     success: t.success, danger: t.danger, glass: t.glassStrong,
     glassBorder: t.glassBorder, reflection: t.reflection, shadow: t.shadow,
