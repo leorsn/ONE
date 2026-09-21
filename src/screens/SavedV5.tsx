@@ -13,14 +13,13 @@ import {
 } from '@/src/documents/analytics';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { MemoryRow } from '@/src/ui/MemoryRow';
+import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import { neverSpacing } from '@/src/theme/tokens';
 import {
   V5Chevron,
   V5Group,
-  V5LargeHeader,
   V5SearchField,
   V5Segmented,
-  V5IconButton,
   V5SectionHeader,
   useNeverV5Palette
 } from '@/src/ui/appleV5';
@@ -47,24 +46,32 @@ export default function SavedV5() {
   const documents = useMemo(() => filterDocuments(items, documentFilter, query), [items, documentFilter, query]);
   const documentGroups = useMemo(() => groupDocumentsByMonth(documents), [documents]);
 
+  const libraryItems = useMemo(() => items
+    .filter((item) => item.saved || ['link', 'idea', 'shopping', 'travel', 'document'].includes(item.type))
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()), [items]);
+
+  const counts = useMemo(() => ({
+    Documents: libraryItems.filter((item) => item.type === 'document' || item.documentKind).length,
+    Images: libraryItems.filter((item) => item.kind === 'image' || item.sourceType === 'screenshot' || Boolean(item.imageUrl) || Boolean(item.localAttachmentMimeType?.startsWith('image/'))).length,
+    Links: libraryItems.filter((item) => item.type === 'link' || Boolean(item.url)).length,
+    Ideas: libraryItems.filter((item) => item.type === 'idea' || item.type === 'note').length
+  }), [libraryItems]);
+
   const savedItems = useMemo(() => {
     const clean = query.trim().toLowerCase();
-    const base = items
-      .filter((item) => item.saved || ['link', 'idea', 'shopping', 'travel', 'document'].includes(item.type))
-      .filter((item) => {
-        if (!clean) return true;
-        return [item.title, item.category, item.userContext, item.url, item.extractedText, item.merchant]
-          .filter(Boolean)
-          .some((value) => value!.toLowerCase().includes(clean));
-      });
+    const base = libraryItems.filter((item) => {
+      if (!clean) return true;
+      return [item.title, item.category, item.userContext, item.url, item.extractedText, item.merchant]
+        .filter(Boolean)
+        .some((value) => value!.toLowerCase().includes(clean));
+    });
 
-    base.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     if (filter === 'All') return base;
     if (filter === 'Documents') return [];
     if (filter === 'Images') return base.filter((item) => item.kind === 'image' || item.sourceType === 'screenshot' || Boolean(item.imageUrl) || Boolean(item.localAttachmentMimeType?.startsWith('image/')));
     if (filter === 'Links') return base.filter((item) => item.type === 'link' || Boolean(item.url));
     return base.filter((item) => item.type === 'idea' || item.type === 'note');
-  }, [items, filter, query]);
+  }, [libraryItems, filter, query]);
 
   const groups = useMemo(() => {
     const grouped = new Map<string, OneItem[]>();
@@ -77,20 +84,39 @@ export default function SavedV5() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
+      <NeverBackdrop />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
-        <V5LargeHeader
-          title={filter === 'Documents' ? 'Documents' : 'Saved'}
-          subtitle="Your curated memory library."
-          action={<V5IconButton icon={icons.plus} accessibilityLabel="Capture a memory" onPress={() => router.push('/(tabs)')} />}
-        />
+        <View style={styles.heroCopy}>
+          <NeverEyebrow>Curated memory</NeverEyebrow>
+          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>{filter === 'Documents' ? 'Documents.' : 'Saved.'}</Text>
+          <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Everything worth keeping, organized without feeling like a file manager.</Text>
+        </View>
 
-        <V5SearchField
-          value={query}
-          onChangeText={setQuery}
-          placeholder={filter === 'Documents' ? 'Search documents' : 'Search saved items'}
-        />
+        <NeverHeroSurface style={styles.libraryStage}>
+          <View style={styles.libraryTop}>
+            <View style={styles.libraryMetrics}>
+              <NeverMetric value={`${libraryItems.length}`} label="saved" />
+              <NeverMetric value={`${counts.Documents}`} label="documents" />
+              <NeverMetric value={`${counts.Links}`} label="links" />
+            </View>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Capture a memory"
+              onPress={() => router.push('/(tabs)')}
+              style={({ pressed }) => [styles.captureButton, { backgroundColor: p.graphite, opacity: pressed ? 0.64 : 1 }]}
+            >
+              <OneIcon name={icons.plus} size={18} color={p.onAccent} />
+            </Pressable>
+          </View>
 
-        <V5Segmented options={[...filters]} selected={filter} onSelect={(value) => setFilter(value as typeof filter)} />
+          <V5SearchField
+            value={query}
+            onChangeText={setQuery}
+            placeholder={filter === 'Documents' ? 'Search documents' : 'Search saved memory'}
+          />
+
+          <V5Segmented options={[...filters]} selected={filter} onSelect={(value) => setFilter(value as typeof filter)} />
+        </NeverHeroSurface>
 
         {filter === 'Documents' ? (
           <DocumentsView
@@ -100,25 +126,61 @@ export default function SavedV5() {
             setSelectedFilter={setDocumentFilter}
           />
         ) : (
-          <View style={styles.section}>
-            <V5SectionHeader title={filter === 'All' ? 'Memories' : filter} meta={`${savedItems.length}`} />
-            {savedItems.length ? groups.map((group) => (
-              <View key={group.label} style={styles.section}>
-                <Text style={[styles.collectionLabel, { color: p.secondary }]}>{group.label} · {group.items.length}</Text>
-                <V5Group>{group.items.map((item, index) => <MemoryRow key={item.id} item={item} last={index === group.items.length - 1} />)}</V5Group>
+          <>
+            {filter === 'All' && !query.trim() ? (
+              <View style={styles.section}>
+                <V5SectionHeader title="Library map" />
+                <View style={styles.libraryGrid}>
+                  <LibraryTile label="Documents" count={counts.Documents} icon={icons.document} onPress={() => setFilter('Documents')} />
+                  <LibraryTile label="Images" count={counts.Images} icon={icons.screenshot} onPress={() => setFilter('Images')} />
+                  <LibraryTile label="Links" count={counts.Links} icon={icons.link} onPress={() => setFilter('Links')} />
+                  <LibraryTile label="Ideas" count={counts.Ideas} icon={icons.idea} onPress={() => setFilter('Ideas')} />
+                </View>
               </View>
-            )) : (
-              <V5Group><View style={styles.emptyState}>
-                <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.saved} size={22} color={p.chrome} /></View>
-                <Text style={[styles.emptyTitle, { color: p.label }]}>{query.trim() ? 'No matching memories' : 'A place for what matters'}</Text>
-                <Text style={[styles.emptyBody, { color: p.secondary }]}>{query.trim() ? 'Try another phrase or filter.' : 'Save a capture and build your personal library.'}</Text>
-              </View></V5Group>
-            )}
-          </View>
+            ) : null}
+
+            <View style={styles.section}>
+              <V5SectionHeader title={filter === 'All' ? 'Collections' : filter} meta={`${savedItems.length}`} />
+              {savedItems.length ? groups.map((group) => (
+                <View key={group.label} style={styles.collectionBlock}>
+                  <View style={styles.collectionHeader}>
+                    <View>
+                      <Text style={[styles.collectionLabel, { color: p.label }]}>{group.label}</Text>
+                      <Text style={[styles.collectionCount, { color: p.tertiary }]}>{group.items.length} {group.items.length === 1 ? 'memory' : 'memories'}</Text>
+                    </View>
+                    <View style={[styles.collectionMark, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.saved} size={14} color={p.chrome} /></View>
+                  </View>
+                  <V5Group>{group.items.map((item, index) => <MemoryRow key={item.id} item={item} last={index === group.items.length - 1} />)}</V5Group>
+                </View>
+              )) : (
+                <V5Group><View style={styles.emptyState}>
+                  <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.saved} size={22} color={p.chrome} /></View>
+                  <Text style={[styles.emptyTitle, { color: p.label }]}>{query.trim() ? 'No matching memories' : 'A place for what matters'}</Text>
+                  <Text style={[styles.emptyBody, { color: p.secondary }]}>{query.trim() ? 'Try another phrase or filter.' : 'Save a capture and build your personal library.'}</Text>
+                </View></V5Group>
+              )}
+            </View>
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
   );
+
+  function LibraryTile({ label, count, icon, onPress }: { label: string; count: number; icon: (typeof icons)[keyof typeof icons]; onPress: () => void }) {
+    return (
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [styles.libraryTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      >
+        <View style={styles.libraryTileTop}>
+          <View style={[styles.libraryTileIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={18} color={p.chrome} /></View>
+          <Text style={[styles.libraryTileCount, { color: p.tertiary }]}>{count}</Text>
+        </View>
+        <Text style={[styles.libraryTileTitle, { color: p.label }]}>{label}</Text>
+        <Text style={[styles.libraryTileCopy, { color: p.secondary }]}>Open collection</Text>
+      </Pressable>
+    );
+  }
 
   function DocumentsView({ groups, summary, selectedFilter, setSelectedFilter }: {
     groups: { label: string; items: OneItem[] }[];
@@ -129,9 +191,12 @@ export default function SavedV5() {
     const primaryTotal = summary.totals[0];
     return (
       <View style={styles.documents}>
-        <V5Group>
+        <NeverHeroSurface compact style={styles.documentSummary}>
           <View style={styles.summaryHeader}>
-            <Text style={[styles.summaryMonth, { color: p.label }]}>{summary.monthLabel}</Text>
+            <View>
+              <NeverEyebrow>Document intelligence</NeverEyebrow>
+              <Text style={[styles.summaryMonth, { color: p.label }]}>{summary.monthLabel}</Text>
+            </View>
             <Text style={[styles.summaryCount, { color: p.tertiary }]}>{summary.documents.length} documents</Text>
           </View>
           <View style={[styles.summaryFacts, { borderTopColor: p.separator }]}>
@@ -139,7 +204,7 @@ export default function SavedV5() {
             <Fact label="Invoices" value={String(summary.invoices)} />
             <Fact label="Value" value={primaryTotal ? formatCurrencyTotal(primaryTotal, 'de-DE') : '—'} />
           </View>
-        </V5Group>
+        </NeverHeroSurface>
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.documentFilters}>
           {documentFilters.map((entry) => {
@@ -148,9 +213,9 @@ export default function SavedV5() {
               <Pressable
                 key={entry.value}
                 onPress={async () => { await Haptics.selectionAsync(); setSelectedFilter(entry.value); }}
-                style={({ pressed }) => [styles.documentFilter, { backgroundColor: active ? p.fill : 'transparent', opacity: pressed ? 0.64 : 1 }]}
+                style={({ pressed }) => [styles.documentFilter, { backgroundColor: active ? p.graphite : p.fillSoft, opacity: pressed ? 0.64 : 1 }]}
               >
-                <Text style={[styles.documentFilterText, { color: active ? p.label : p.secondary, fontWeight: active ? '600' : '500' }]}>{entry.label}</Text>
+                <Text style={[styles.documentFilterText, { color: active ? p.onAccent : p.secondary, fontWeight: active ? '600' : '500' }]}>{entry.label}</Text>
               </Pressable>
             );
           })}
@@ -206,7 +271,6 @@ export default function SavedV5() {
   }
 }
 
-
 function formatKind(kind?: OneDocumentKind) {
   if (!kind || kind === 'other') return 'Document';
   return kind.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
@@ -218,24 +282,43 @@ function prettyDate(iso?: string) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 118, gap: neverSpacing.xxl },
+  content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 126, gap: 26 },
+  heroCopy: { gap: 5 },
+  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
+  heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
+  libraryStage: { padding: 17, gap: 14 },
+  libraryTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
+  libraryMetrics: { flex: 1, flexDirection: 'row', gap: 14 },
+  captureButton: { width: 44, height: 44, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   section: { gap: neverSpacing.md },
+  libraryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
+  libraryTile: { width: '48.6%', minHeight: 124, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
+  libraryTileTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  libraryTileIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  libraryTileCount: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
+  libraryTileTitle: { marginTop: 14, fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  libraryTileCopy: { marginTop: 2, fontSize: 10.5, lineHeight: 14 },
+  collectionBlock: { gap: 8, marginTop: 4 },
+  collectionHeader: { paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  collectionLabel: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  collectionCount: { marginTop: 1, fontSize: 10.5, lineHeight: 14 },
+  collectionMark: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   emptyState: { minHeight: 150, padding: 22, alignItems: 'center', justifyContent: 'center' },
   emptyIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { marginTop: 10, fontSize: 16, lineHeight: 20, fontWeight: '600' },
   emptyBody: { marginTop: 3, maxWidth: 250, fontSize: 12.5, lineHeight: 17, textAlign: 'center' },
-  collectionLabel: { fontSize: 12, lineHeight: 17, fontWeight: '600', paddingHorizontal: 4, marginTop: 8 },
   documents: { gap: 15 },
-  summaryHeader: { minHeight: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  summaryMonth: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  documentSummary: { overflow: 'hidden' },
+  summaryHeader: { minHeight: 74, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  summaryMonth: { marginTop: 3, fontSize: 17, lineHeight: 21, fontWeight: '600' },
   summaryCount: { fontSize: 11.5, lineHeight: 14 },
-  summaryFacts: { minHeight: 70, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
+  summaryFacts: { minHeight: 76, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
   fact: { flex: 1, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
-  factValue: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
+  factValue: { fontSize: 17, lineHeight: 21, fontWeight: '600' },
   factLabel: { marginTop: 2, fontSize: 10.5, lineHeight: 13 },
-  documentFilters: { gap: 5, paddingRight: 6 },
-  documentFilter: { minHeight: 44, paddingHorizontal: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  documentFilterText: { fontSize: 12, lineHeight: 15 },
+  documentFilters: { gap: 7, paddingRight: 6 },
+  documentFilter: { minHeight: 40, paddingHorizontal: 13, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  documentFilterText: { fontSize: 11.5, lineHeight: 15 },
   documentRow: { minHeight: 62, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
   documentIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   documentContent: { flex: 1, minHeight: 62, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
