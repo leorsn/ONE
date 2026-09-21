@@ -5,10 +5,10 @@ import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
 import { OneIcon, icons } from '@/src/ui/icons';
+import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import {
   V5Chevron,
   V5Group,
-  V5LargeHeader,
   V5SectionHeader,
   V5Segmented,
   useNeverV5Palette
@@ -35,6 +35,8 @@ export default function CalendarV5() {
   const nextItems = useMemo(() => datedItems.filter((item) => item.date === nextDate), [datedItems, nextDate]);
   const visibleItems = useMemo(() => filterForMode(datedItems, selectedDate, mode), [datedItems, selectedDate, mode]);
   const grouped = useMemo(() => groupByDate(visibleItems), [visibleItems]);
+  const monthName = new Intl.DateTimeFormat('en', { month: 'long' }).format(selected);
+  const weekdayName = new Intl.DateTimeFormat('en', { weekday: 'long' }).format(selected);
 
   async function moveMonth(delta: number) {
     await Haptics.selectionAsync();
@@ -51,27 +53,39 @@ export default function CalendarV5() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
+      <NeverBackdrop />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <V5LargeHeader
-          title="Calendar"
-          subtitle="Dates and reminders from everything you've saved."
-          action={(
-            <Pressable onPress={jumpToday} style={({ pressed }) => [styles.todayButton, { backgroundColor: p.surface, opacity: pressed ? 0.62 : 1 }]}>
-              <Text style={[styles.todayText, { color: p.chrome }]}>Today</Text>
-            </Pressable>
-          )}
-        />
+        <View style={styles.heroCopy}>
+          <NeverEyebrow>Time intelligence</NeverEyebrow>
+          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>Calendar.</Text>
+          <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Dates, reminders and plans extracted from what you save.</Text>
+        </View>
 
-        <V5Group>
-          <View style={styles.monthRow}>
-            <Pressable onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { opacity: pressed ? 0.5 : 1 }]}>
+        <NeverHeroSurface style={styles.calendarStage}>
+          <View style={styles.dateHero}>
+            <View style={styles.dateNumberBlock}>
+              <Text style={[styles.dateNumber, { color: p.label }]}>{selected.getDate()}</Text>
+              <Text style={[styles.dateWeekday, { color: p.secondary }]}>{weekdayName}</Text>
+            </View>
+            <View style={styles.dateMeta}>
+              <NeverEyebrow>{selectedDate === today ? 'Today' : 'Selected date'}</NeverEyebrow>
+              <Text style={[styles.monthTitle, { color: p.label }]}>{monthName}</Text>
+              <Text style={[styles.yearText, { color: p.tertiary }]}>{selected.getFullYear()}</Text>
+            </View>
+            <View style={styles.dateActions}>
+              <NeverMetric value={`${selectedItems.length}`} label="today" />
+              <Pressable onPress={jumpToday} style={({ pressed }) => [styles.todayButton, { backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
+                <Text style={[styles.todayText, { color: p.chrome }]}>Now</Text>
+              </Pressable>
+            </View>
+          </View>
+
+          <View style={styles.monthControls}>
+            <Pressable onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.dark ? '#FFFFFF0B' : '#FFFFFF70', opacity: pressed ? 0.5 : 1 }]}>
               <OneIcon name={icons.chevronLeft} size={13.5} color={p.chrome} />
             </Pressable>
-            <View style={styles.monthCopy}>
-              <Text style={[styles.month, { color: p.label }]}>{new Intl.DateTimeFormat('en', { month: 'long' }).format(selected)}</Text>
-              <Text style={[styles.year, { color: p.tertiary }]}>{selected.getFullYear()}</Text>
-            </View>
-            <Pressable onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { opacity: pressed ? 0.5 : 1 }]}>
+            <Text style={[styles.monthControlLabel, { color: p.secondary }]}>{monthName} {selected.getFullYear()}</Text>
+            <Pressable onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.dark ? '#FFFFFF0B' : '#FFFFFF70', opacity: pressed ? 0.5 : 1 }]}>
               <OneIcon name={icons.chevron} size={13.5} color={p.chrome} />
             </Pressable>
           </View>
@@ -87,8 +101,8 @@ export default function CalendarV5() {
                   style={({ pressed }) => [styles.day, { opacity: pressed ? 0.55 : 1 }]}
                 >
                   <Text style={[styles.weekday, { color: active ? p.label : p.tertiary }]}>{day.weekday}</Text>
-                  <View style={[styles.dayNumberWrap, { backgroundColor: active ? p.graphite : 'transparent' }]}>
-                    <Text style={[styles.dayNumber, { color: active ? (p.dark ? '#111113' : '#FFFFFF') : p.label }]}>{day.number}</Text>
+                  <View style={[styles.dayNumberWrap, { backgroundColor: active ? p.graphite : p.dark ? '#FFFFFF08' : '#FFFFFF55', borderColor: active ? p.graphite : p.glassBorder }]}>
+                    <Text style={[styles.dayNumberSmall, { color: active ? p.onAccent : p.label }]}>{day.number}</Text>
                   </View>
                   <View style={[styles.dot, { backgroundColor: hasItems ? p.chrome : 'transparent' }]} />
                 </Pressable>
@@ -99,12 +113,12 @@ export default function CalendarV5() {
           <View style={[styles.segmentWrap, { borderTopColor: p.separator }]}>
             <V5Segmented options={['Day', 'Week', 'Month']} selected={mode} onSelect={(value) => setMode(value as CalendarMode)} />
           </View>
-        </V5Group>
+        </NeverHeroSurface>
 
         {mode === 'Day' ? (
           <>
             <AgendaSection
-              title={selectedDate === today ? 'Today' : new Intl.DateTimeFormat('en', { weekday: 'long' }).format(selected)}
+              title={selectedDate === today ? 'Today' : weekdayName}
               items={selectedItems}
               emptyTitle="No plans here"
               emptyBody="Capture something with a date and it will appear here."
@@ -118,13 +132,13 @@ export default function CalendarV5() {
           </>
         ) : (
           <View style={styles.section}>
-            <V5SectionHeader title={mode === 'Week' ? 'This Week' : new Intl.DateTimeFormat('en', { month: 'long' }).format(selected)} meta={`${visibleItems.length}`} />
+            <V5SectionHeader title={mode === 'Week' ? 'This Week' : monthName} meta={`${visibleItems.length}`} />
             {grouped.length ? grouped.map((group) => (
               <View key={group.date} style={styles.groupBlock}>
                 <Text style={[styles.dateLabel, { color: p.tertiary }]}>{prettyGroupDate(group.date)}</Text>
-                <V5Group>
-                  {group.items.map((item, index) => <AgendaRow key={item.id} item={item} last={index === group.items.length - 1} />)}
-                </V5Group>
+                <View style={styles.agendaStack}>
+                  {group.items.map((item) => <AgendaCard key={item.id} item={item} />)}
+                </View>
               </View>
             )) : (
               <V5Group><EmptyAgenda title="Nothing scheduled" body="Your schedule is clear for this view." /></V5Group>
@@ -139,29 +153,31 @@ export default function CalendarV5() {
     return (
       <View style={styles.section}>
         <V5SectionHeader title={title} meta={`${sectionItems.length}`} />
-        <V5Group>
-          {sectionItems.length ? sectionItems.map((item, index) => <AgendaRow key={item.id} item={item} last={index === sectionItems.length - 1} />) : <EmptyAgenda title={emptyTitle} body={emptyBody} />}
-        </V5Group>
+        {sectionItems.length ? (
+          <View style={styles.agendaStack}>
+            {sectionItems.map((item) => <AgendaCard key={item.id} item={item} />)}
+          </View>
+        ) : (
+          <V5Group><EmptyAgenda title={emptyTitle} body={emptyBody} /></V5Group>
+        )}
       </View>
     );
   }
 
-  function AgendaRow({ item, last }: { item: OneItem; last: boolean }) {
+  function AgendaCard({ item }: { item: OneItem }) {
     return (
       <Pressable
         onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.agendaRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
+        style={({ pressed }) => [styles.agendaCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}
       >
         <View style={[styles.timeBadge, { backgroundColor: p.fillSoft }]}>
-          <Text style={[styles.time, { color: p.chrome }]}>{item.time || '—'}</Text>
+          <Text style={[styles.time, { color: p.chrome }]}>{item.time || 'Any'}</Text>
         </View>
-        <View style={[styles.agendaContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[styles.itemTitle, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
-            <Text style={[styles.itemMeta, { color: p.secondary }]} numberOfLines={1}>{[item.location, item.summary, item.category].filter(Boolean).join(' · ') || item.type}</Text>
-          </View>
-          <V5Chevron />
+        <View style={styles.agendaCopy}>
+          <Text style={[styles.itemTitle, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
+          <Text style={[styles.itemMeta, { color: p.secondary }]} numberOfLines={1}>{[item.location, item.summary, item.category].filter(Boolean).join(' · ') || item.type}</Text>
         </View>
+        <V5Chevron />
       </Pressable>
     );
   }
@@ -227,32 +243,43 @@ function toIsoDate(date: Date) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 118, gap: 18 },
-  todayButton: { minHeight: 32, paddingHorizontal: 12, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  todayText: { fontSize: 13.5, lineHeight: 17, fontWeight: '600' },
-  monthRow: { minHeight: 52, paddingHorizontal: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  monthArrow: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
-  monthCopy: { alignItems: 'center' },
-  month: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.2 },
-  year: { marginTop: 1, fontSize: 11.5, lineHeight: 14 },
-  dayStrip: { paddingHorizontal: 7, paddingBottom: 12, flexDirection: 'row', justifyContent: 'space-between' },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 26, paddingBottom: 126, gap: 26 },
+  heroCopy: { gap: 5 },
+  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
+  heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
+  calendarStage: { padding: 16, gap: 14 },
+  dateHero: { minHeight: 104, flexDirection: 'row', alignItems: 'center', gap: 14 },
+  dateNumberBlock: { minWidth: 88 },
+  dateNumber: { fontSize: 56, lineHeight: 60, fontWeight: '300', letterSpacing: -2.5 },
+  dateWeekday: { marginTop: -2, fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  dateMeta: { flex: 1, minWidth: 0 },
+  monthTitle: { marginTop: 4, fontSize: 21, lineHeight: 25, fontWeight: '600', letterSpacing: -0.45 },
+  yearText: { marginTop: 1, fontSize: 11.5, lineHeight: 15 },
+  dateActions: { alignItems: 'flex-end', gap: 8 },
+  todayButton: { minHeight: 34, paddingHorizontal: 13, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  todayText: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
+  monthControls: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  monthArrow: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  monthControlLabel: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
+  dayStrip: { flexDirection: 'row', justifyContent: 'space-between' },
   day: { width: 40, alignItems: 'center' },
-  weekday: { fontSize: 9.5, lineHeight: 12, fontWeight: '600' },
-  dayNumberWrap: { width: 34, height: 34, marginTop: 4, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
-  dayNumber: { fontSize: 14.5, lineHeight: 17, fontWeight: '600' },
-  dot: { width: 3.5, height: 3.5, borderRadius: 2, marginTop: 3 },
-  segmentWrap: { padding: 8, borderTopWidth: StyleSheet.hairlineWidth },
-  section: { gap: 7 },
-  groupBlock: { gap: 5 },
+  weekday: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.25 },
+  dayNumberWrap: { width: 36, height: 36, marginTop: 5, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  dayNumberSmall: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  dot: { width: 4, height: 4, borderRadius: 2, marginTop: 4 },
+  segmentWrap: { paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },
+  section: { gap: 10 },
+  groupBlock: { gap: 7 },
   dateLabel: { paddingHorizontal: 4, fontSize: 11.5, lineHeight: 14, fontWeight: '600' },
-  agendaRow: { minHeight: 62, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  timeBadge: { width: 44, minHeight: 32, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  time: { fontSize: 11.5, lineHeight: 14, fontWeight: '600' },
-  agendaContent: { flex: 1, minHeight: 62, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  agendaStack: { gap: 8 },
+  agendaCard: { minHeight: 72, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  timeBadge: { width: 50, minHeight: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  time: { fontSize: 11, lineHeight: 14, fontWeight: '700' },
+  agendaCopy: { flex: 1, minWidth: 0 },
   itemTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
-  itemMeta: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
-  emptyRow: { minHeight: 78, padding: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  emptyIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  itemMeta: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
+  emptyRow: { minHeight: 86, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
+  emptyIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
-  emptyBody: { marginTop: 1, fontSize: 12.5, lineHeight: 16 }
+  emptyBody: { marginTop: 2, fontSize: 12.5, lineHeight: 16 }
 });
