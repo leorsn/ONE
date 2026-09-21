@@ -12,7 +12,7 @@ import { searchSemantically } from '@/src/search/semantic';
 import { matchesMemoryCategory } from '@/src/ui/memoryPresentation';
 import { MemoryRow } from '@/src/ui/MemoryRow';
 import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
-import { neverSpacing } from '@/src/theme/tokens';
+import { neverSpacing, neverType } from '@/src/theme/tokens';
 import { NeverChromeButton } from '@/src/ui/never';
 import { iconForType } from '@/src/ui/OneItemRow';
 import { OneIcon, icons } from '@/src/ui/icons';
@@ -68,8 +68,8 @@ export default function SearchV5() {
 
   const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
 
-  async function askNever() {
-    const clean = query.trim();
+  async function askNeverFor(value: string) {
+    const clean = value.trim();
     if (!clean || asking) return;
     if (!hasAi) { router.push('/upgrade'); return; }
     void Haptics.selectionAsync().catch(() => undefined);
@@ -101,6 +101,10 @@ export default function SearchV5() {
     } finally {
       if (version === requestVersion.current) setAsking(false);
     }
+  }
+
+  function askNever() {
+    return askNeverFor(query);
   }
 
   async function setSearchMode(next: SearchMode) {
@@ -342,7 +346,7 @@ export default function SearchV5() {
   function PromptTile({ text, icon }: { text: string; icon: (typeof icons)[keyof typeof icons] }) {
     return (
       <Pressable
-        onPress={() => { updateQuery(text); requestAnimationFrame(() => void askNever()); }}
+        onPress={() => { updateQuery(text); void askNeverFor(text); }}
         style={({ pressed }) => [styles.promptTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
       >
         <View style={[styles.promptIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={15} color={p.chrome} /></View>
@@ -422,7 +426,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 126, gap: 26 },
   heroCopy: { gap: 5 },
-  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
+  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: neverType.hero.fontFamily, fontWeight: '400', letterSpacing: -1.35 },
   heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
   searchStage: { padding: 17, gap: 14 },
   modeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
