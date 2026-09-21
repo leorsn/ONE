@@ -11,10 +11,10 @@ import { useOnboarding } from '@/src/context/OnboardingContext';
 import { usePlan } from '@/src/context/PlanContext';
 import { deleteOneAccount } from '@/src/supabase/account';
 import { OneIcon, icons } from '@/src/ui/icons';
+import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import {
   V5Chevron,
   V5Group,
-  V5LargeHeader,
   useNeverV5Palette
 } from '@/src/ui/appleV5';
 import { useThemePreference } from '@/src/theme/useTheme';
@@ -110,57 +110,86 @@ export default function SettingsV5() {
   const syncLabel = syncStatus === 'syncing'
     ? 'Syncing…'
     : syncStatus === 'saved_local'
-      ? 'Saved on this device'
+      ? 'On device'
       : syncStatus === 'problem'
-        ? 'Tap to retry'
+        ? 'Needs attention'
         : 'Up to date';
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
+      <NeverBackdrop />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <V5LargeHeader title="Settings" subtitle="Account, appearance and NEVER preferences." />
+        <View style={styles.heroCopy}>
+          <NeverEyebrow>Control center</NeverEyebrow>
+          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>Settings.</Text>
+          <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Your account, memory preferences and NEVER membership.</Text>
+        </View>
 
         {session ? (
-          <V5Group>
+          <NeverHeroSurface style={styles.profileStage}>
             <Pressable
               onPress={() => router.push('/settings/privacy')}
-              style={({ pressed }) => [styles.profileRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
+              style={({ pressed }) => [styles.profileTop, { opacity: pressed ? 0.66 : 1 }]}
             >
-              <View style={[styles.avatar, { backgroundColor: p.fillSoft }]}>
-                {initials ? <Text style={[styles.avatarText, { color: p.chrome }]}>{initials}</Text> : <OneIcon name={icons.person} size={18} color={p.chrome} />}
+              <View style={[styles.avatar, { backgroundColor: p.graphite }]}>
+                {initials ? <Text style={[styles.avatarText, { color: p.onAccent }]}>{initials}</Text> : <OneIcon name={icons.person} size={24} color={p.onAccent} />}
               </View>
               <View style={styles.profileCopy}>
+                <NeverEyebrow>{isBetaAccess ? 'Beta account' : membershipLabel(plan)}</NeverEyebrow>
                 <Text style={[styles.profileTitle, { color: p.label }]} numberOfLines={1}>{profileName}</Text>
                 <Text style={[styles.profileEmail, { color: p.secondary }]} numberOfLines={1}>{session.user.email}</Text>
               </View>
-              <View style={styles.profileMeta}>
-                <Text style={[styles.planLabel, { color: p.tertiary }]}>{isBetaAccess ? 'BETA' : membershipLabel(plan).toUpperCase()}</Text>
-                <V5Chevron />
-              </View>
+              <View style={[styles.profileArrow, { backgroundColor: p.fillSoft }]}><V5Chevron /></View>
             </Pressable>
-          </V5Group>
+            <View style={[styles.profileMetrics, { borderTopColor: p.separator }]}>
+              <NeverMetric value={appearanceLabel(preference)} label="appearance" style={styles.profileMetric} />
+              <NeverMetric value={syncLabel} label="cloud" style={styles.profileMetric} />
+              <NeverMetric value={hasAi ? 'On' : 'Core'} label="AI" style={styles.profileMetric} />
+            </View>
+          </NeverHeroSurface>
         ) : null}
 
-        <SettingsSection title="Preferences">
-          <SettingsRow icon={icons.appearance} label="Appearance" value={appearanceLabel(preference)} onPress={() => router.push('/settings/appearance')} />
-          <SettingsRow icon={icons.bell} label="Notifications" value="Reminders and alerts" onPress={() => router.push('/settings/notifications')} />
-          <SettingsRow icon={icons.cloud} label="Cloud Sync" value={syncLabel} tone={syncStatus === 'problem' ? 'warning' : 'neutral'} onPress={syncStatus === 'problem' ? retrySync : undefined} />
-          <SettingsRow icon={icons.shield} label="Security & Privacy" value="Export, legal and account controls" onPress={() => router.push('/settings/privacy')} last />
-        </SettingsSection>
+        <View style={styles.section}>
+          <View style={styles.sectionHeading}>
+            <Text style={[styles.sectionTitle, { color: p.label }]}>Preferences</Text>
+            <Text style={[styles.sectionMeta, { color: p.tertiary }]}>DEVICE & MEMORY</Text>
+          </View>
+          <View style={styles.preferenceGrid}>
+            <PreferenceTile icon={icons.appearance} label="Appearance" value={appearanceLabel(preference)} onPress={() => router.push('/settings/appearance')} />
+            <PreferenceTile icon={icons.bell} label="Notifications" value="Reminders & alerts" onPress={() => router.push('/settings/notifications')} />
+            <PreferenceTile icon={icons.cloud} label="Cloud Sync" value={syncLabel} tone={syncStatus === 'problem' ? 'warning' : 'neutral'} onPress={syncStatus === 'problem' ? retrySync : undefined} />
+            <PreferenceTile icon={icons.shield} label="Privacy" value="Export & controls" onPress={() => router.push('/settings/privacy')} />
+          </View>
+        </View>
 
-        <SettingsSection title="Membership">
-          <SettingsRow
-            icon={icons.crown}
-            label={membershipLabel(plan)}
-            value={isBetaAccess ? 'Beta access' : membershipValue(plan, localizedPrices, billingConfigured)}
-            tone="accent"
-            onPress={() => router.push('/upgrade')}
-            last={!subscriptionManagementUrl}
-          />
-          {subscriptionManagementUrl ? (
-            <SettingsRow icon={icons.settings} label="Manage Subscription" value="Open App Store subscription settings" onPress={openSubscriptionManagement} last />
-          ) : null}
-        </SettingsSection>
+        <View style={styles.section}>
+          <View style={styles.sectionHeading}>
+            <Text style={[styles.sectionTitle, { color: p.label }]}>Membership</Text>
+            <Text style={[styles.sectionMeta, { color: p.tertiary }]}>{isBetaAccess ? 'BETA' : 'NEVER'}</Text>
+          </View>
+          <NeverHeroSurface compact>
+            <Pressable onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.membershipRow, { opacity: pressed ? 0.65 : 1 }]}>
+              <View style={[styles.membershipIcon, { backgroundColor: p.graphite }]}>
+                <OneIcon name={icons.crown} size={18} color={p.onAccent} />
+              </View>
+              <View style={styles.membershipCopy}>
+                <NeverEyebrow>{isBetaAccess ? 'Early access' : 'Plan'}</NeverEyebrow>
+                <Text style={[styles.membershipTitle, { color: p.label }]}>{membershipLabel(plan)}</Text>
+                <Text style={[styles.membershipValue, { color: p.secondary }]} numberOfLines={2}>{isBetaAccess ? 'Beta access' : membershipValue(plan, localizedPrices, billingConfigured)}</Text>
+              </View>
+              <V5Chevron />
+            </Pressable>
+            {subscriptionManagementUrl ? (
+              <Pressable
+                onPress={openSubscriptionManagement}
+                style={({ pressed }) => [styles.manageRow, { borderTopColor: p.separator, backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
+              >
+                <Text style={[styles.manageText, { color: p.chrome }]}>Manage subscription</Text>
+                <V5Chevron />
+              </Pressable>
+            ) : null}
+          </NeverHeroSurface>
+        </View>
 
         <SettingsSection title="NEVER">
           <SettingsRow
@@ -202,6 +231,40 @@ export default function SettingsV5() {
       </ScrollView>
     </SafeAreaView>
   );
+
+  function PreferenceTile({
+    icon,
+    label,
+    value,
+    tone = 'neutral',
+    onPress
+  }: {
+    icon: IconName;
+    label: string;
+    value: string;
+    tone?: RowTone;
+    onPress?: () => void | Promise<void>;
+  }) {
+    const tint = rowTint(tone, p);
+    const body = (
+      <>
+        <View style={styles.preferenceTop}>
+          <View style={[styles.preferenceIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18' }]}>
+            <OneIcon name={icon} size={17} color={tint} />
+          </View>
+          {onPress ? <V5Chevron /> : null}
+        </View>
+        <Text style={[styles.preferenceLabel, { color: p.label }]}>{label}</Text>
+        <Text style={[styles.preferenceValue, { color: p.secondary }]} numberOfLines={2}>{value}</Text>
+      </>
+    );
+    if (!onPress) return <View style={[styles.preferenceTile, { backgroundColor: p.surface, borderColor: p.border }]}>{body}</View>;
+    return (
+      <Pressable onPress={onPress} style={({ pressed }) => [styles.preferenceTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}>
+        {body}
+      </Pressable>
+    );
+  }
 
   function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
     return (
@@ -282,21 +345,42 @@ function membershipValue(plan: 'none' | 'one' | 'one_ai', localizedPrices: Parti
 function appearanceLabel(value: 'system' | 'light' | 'dark') {
   if (value === 'light') return 'Light';
   if (value === 'dark') return 'Dark';
-  return 'Automatic';
+  return 'Auto';
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 118, gap: 18 },
-  profileRow: { minHeight: 74, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  avatar: { width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  avatarText: { fontSize: 14, lineHeight: 18, fontWeight: '700', letterSpacing: 0.25 },
+  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 26, paddingBottom: 126, gap: 26 },
+  heroCopy: { gap: 5 },
+  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
+  heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
+  profileStage: { padding: 16 },
+  profileTop: { minHeight: 92, flexDirection: 'row', alignItems: 'center', gap: 13 },
+  avatar: { width: 58, height: 58, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  avatarText: { fontSize: 17, lineHeight: 21, fontWeight: '700', letterSpacing: 0.4 },
   profileCopy: { flex: 1, minWidth: 0 },
-  profileTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
-  profileEmail: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
-  profileMeta: { flexDirection: 'row', alignItems: 'center', gap: 7 },
-  planLabel: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.55 },
-  section: { gap: 6 },
+  profileTitle: { marginTop: 4, fontSize: 19, lineHeight: 23, fontWeight: '600', letterSpacing: -0.3 },
+  profileEmail: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
+  profileArrow: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  profileMetrics: { minHeight: 66, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 9 },
+  profileMetric: { flex: 1 },
+  section: { gap: 9 },
+  sectionHeading: { paddingHorizontal: 4, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  sectionTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.2 },
+  sectionMeta: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.8 },
+  preferenceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
+  preferenceTile: { width: '48.6%', minHeight: 128, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
+  preferenceTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  preferenceIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  preferenceLabel: { marginTop: 16, fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  preferenceValue: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
+  membershipRow: { minHeight: 102, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 13 },
+  membershipIcon: { width: 50, height: 50, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  membershipCopy: { flex: 1, minWidth: 0 },
+  membershipTitle: { marginTop: 2, fontSize: 18, lineHeight: 22, fontWeight: '600', letterSpacing: -0.28 },
+  membershipValue: { marginTop: 2, fontSize: 12, lineHeight: 16 },
+  manageRow: { minHeight: 48, paddingHorizontal: 15, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  manageText: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
   groupTitle: { paddingHorizontal: 4, fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
   row: { minHeight: 58, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
   rowIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
