@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
   metricValue: {
     fontSize: 18,
     lineHeight: 22,
-    fontWeight: '650',
+    fontWeight: '600',
     letterSpacing: -0.35
   },
   metricLabel: {
