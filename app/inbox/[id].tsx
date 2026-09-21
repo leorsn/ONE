@@ -3,6 +3,7 @@ import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'rea
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { neverType, neverSpacing } from '@/src/theme/tokens';
 import { useItems } from '@/src/context/ItemsContext';
 import {
   confirmReviewChanges,
@@ -94,7 +95,7 @@ export default function InboxItemDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         <View style={styles.nav}>
           <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Back to Inbox" onPress={() => router.back()} />
           <Text style={[styles.navTitle, { color: p.label }]}>Review</Text>
@@ -167,8 +168,8 @@ export default function InboxItemDetailScreen() {
               <Text style={[styles.reviewBody, { color: p.secondary }]}>Check uncertain details before confirming. Edit the memory if any recognized fact is wrong.</Text>
               <View style={styles.actionStack}>
                 <Pressable onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })} style={({ pressed }) => [styles.primaryAction, { backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
-                  <OneIcon name={icons.edit} size={14} color={p.dark ? '#111113' : '#FFFFFF'} />
-                  <Text style={[styles.primaryActionText, { color: p.dark ? '#111113' : '#FFFFFF' }]}>Edit Details</Text>
+                  <OneIcon name={icons.edit} size={14} color={p.onAccent} />
+                  <Text style={[styles.primaryActionText, { color: p.onAccent }]}>Edit Details</Text>
                 </Pressable>
                 <Pressable disabled={working} onPress={confirmReview} style={({ pressed }) => [styles.secondaryAction, { backgroundColor: p.fill, opacity: pressed || working ? 0.58 : 1 }]}>
                   <Text style={[styles.secondaryActionText, { color: p.label }]}>Confirm Facts</Text>
@@ -266,8 +267,8 @@ function formatAmount(amount: number, currency = 'EUR') {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 38, gap: 18 },
-  missing: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 38, gap: 18 },
+  missing: { flex: 1, width: '100%', maxWidth: 680, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', padding: 24 },
   missingIcon: { width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   missingTitle: { marginTop: 12, fontSize: 18, lineHeight: 22, fontWeight: '700' },
   missingBody: { marginTop: 3, maxWidth: 280, textAlign: 'center', fontSize: 13, lineHeight: 18 },
@@ -278,8 +279,8 @@ const styles = StyleSheet.create({
   identityIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   state: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.8 },
   source: { marginTop: 2, fontSize: 11.5, lineHeight: 14 },
-  title: { fontSize: 28, lineHeight: 33, fontWeight: '700', letterSpacing: -0.85 },
-  section: { gap: 7 },
+  title: { ...neverType.display },
+  section: { gap: neverSpacing.md },
   preview: { width: '100%', height: 300, borderRadius: 16 },
   understandingGroup: { padding: 14 },
   confidenceRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

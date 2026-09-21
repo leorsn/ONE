@@ -1,3 +1,5 @@
+import { neverType } from '@/src/theme/tokens';
+import { NeverMaterial } from '@/src/ui/material';
 import { isValidElement, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
@@ -76,12 +78,7 @@ export function SectionHeader({ title, meta, action, signal = false }: { title: 
 }
 
 export function Surface({ children, padded = false }: { children: ReactNode; padded?: boolean }) {
-  const theme = useTheme();
-  return (
-    <View style={[styles.surface, { backgroundColor: theme.surface }, padded && styles.surfacePadded]}>
-      {children}
-    </View>
-  );
+  return <NeverMaterial style={padded && styles.surfacePadded}>{children}</NeverMaterial>;
 }
 
 export function IconTile({ icon, tone = 'accent', size = 38 }: { icon: IconName; tone?: IconTone; size?: number }) {
@@ -163,14 +160,13 @@ const styles = StyleSheet.create({
   sectionAccent: { width: 3, height: 17, borderRadius: 2 },
   pageHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 16 },
   eyebrow: { fontSize: 11, lineHeight: 15, fontWeight: '600', marginBottom: 5 },
-  pageTitle: { fontSize: 34, lineHeight: 39, fontWeight: '700', letterSpacing: -1.05 },
+  pageTitle: { ...neverType.hero },
   pageSubtitle: { marginTop: 6, maxWidth: 480, fontSize: 15, lineHeight: 21 },
   sectionHeader: { minHeight: 28, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionTitle: { fontSize: 20, lineHeight: 24, fontWeight: '700', letterSpacing: -0.35 },
   sectionRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionMeta: { fontSize: 13, lineHeight: 16, fontWeight: '500' },
-  surface: { borderRadius: 20, overflow: 'hidden' },
   surfacePadded: { padding: 16 },
   iconTile: { alignItems: 'center', justifyContent: 'center' },
   roundButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },

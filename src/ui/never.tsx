@@ -1,6 +1,6 @@
+import { NeverMaterial, selectionFeedback } from '@/src/ui/material';
 import type { ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import * as Haptics from 'expo-haptics';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
@@ -18,25 +18,7 @@ export function NeverGlass({
   padded?: boolean;
   style?: object;
 }) {
-  const theme = useTheme();
-  const backgroundColor = tone === 'quiet'
-    ? theme.surface
-    : tone === 'strong'
-      ? theme.surfaceElevated
-      : theme.surface;
-
-  return (
-    <View
-      style={[
-        styles.group,
-        { backgroundColor },
-        padded && styles.groupPadded,
-        style
-      ]}
-    >
-      {children}
-    </View>
-  );
+  return <NeverMaterial glass={tone === 'strong'} style={[padded && styles.groupPadded, style]}>{children}</NeverMaterial>;
 }
 
 export function NeverSectionLabel({
@@ -70,7 +52,7 @@ export function NeverCommandBar({
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={async () => {
-        await Haptics.selectionAsync();
+        selectionFeedback();
         onPress();
       }}
       style={({ pressed }) => [
@@ -113,7 +95,7 @@ export function NeverChromeButton({
       accessibilityLabel={label}
       disabled={disabled}
       onPress={async () => {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        selectionFeedback();
         await onPress();
       }}
       style={({ pressed }) => [
@@ -148,7 +130,7 @@ export function NeverIconButton({
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       onPress={async () => {
-        await Haptics.selectionAsync();
+        selectionFeedback();
         onPress();
       }}
       style={({ pressed }) => [
@@ -254,9 +236,9 @@ const styles = StyleSheet.create({
     fontWeight: '600'
   },
   iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     alignItems: 'center',
     justifyContent: 'center'
   },

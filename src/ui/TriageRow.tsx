@@ -47,7 +47,7 @@ export function TriageRow({
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`${action.label} for ${item.title}`}
-            onPress={() => onExecute(action.id)}
+            onPress={(event) => { event.stopPropagation(); void onExecute(action.id); }}
             style={({ pressed }) => [styles.action, { backgroundColor: p.fill, opacity: pressed ? 0.55 : 1 }]}
           >
             <Text style={[styles.actionText, { color: p.label }]}>{shortActionLabel(action.label)}</Text>
@@ -93,7 +93,7 @@ function shortActionLabel(label: string) {
 const styles = StyleSheet.create({
   row: { borderBottomWidth: StyleSheet.hairlineWidth },
   openArea: {
-    minHeight: 72,
+    minHeight: 92,
     paddingLeft: 13,
     paddingRight: 12,
     paddingVertical: 10,
@@ -106,8 +106,8 @@ const styles = StyleSheet.create({
   title: { fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
   summary: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
   metaLine: { marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 7 },
-  source: { flex: 1, minWidth: 0, fontSize: 10.5, lineHeight: 13.5 },
-  state: { fontSize: 10.5, lineHeight: 13.5, fontWeight: '600' },
-  action: { minHeight: 30, minWidth: 50, paddingHorizontal: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  actionText: { fontSize: 11.5, lineHeight: 14, fontWeight: '600' }
+  source: { flex: 1, minWidth: 0, fontSize: 12, lineHeight: 16 },
+  state: { fontSize: 12, lineHeight: 16, fontWeight: '600' },
+  action: { minHeight: 44, minWidth: 56, paddingHorizontal: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  actionText: { fontSize: 12, lineHeight: 16, fontWeight: '600' }
 });

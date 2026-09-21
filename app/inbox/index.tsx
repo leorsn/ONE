@@ -6,7 +6,7 @@ import { useItems } from '@/src/context/ItemsContext';
 import { isInboxActive, triageActionChanges, triagePriority } from '@/src/inbox/triage';
 import { TriageRow } from '@/src/ui/TriageRow';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { V5Group, V5LargeHeader, V5SectionHeader, useNeverV5Palette } from '@/src/ui/appleV5';
+import { V5IconButton, V5Group, V5LargeHeader, V5SectionHeader, useNeverV5Palette } from '@/src/ui/appleV5';
 import type { OneInboxAction, OneItem } from '@/src/types/item';
 
 export default function InboxIndexScreen() {
@@ -27,7 +27,8 @@ export default function InboxIndexScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <V5LargeHeader title="Inbox" subtitle="New captures that still need a decision." />
+        <View style={styles.nav}><V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')} /><Text style={[styles.navLabel, { color: p.secondary }]}>CAPTURE & ORGANIZE</Text></View>
+        <V5LargeHeader title="Inbox" subtitle="A little clarity. Everything in its place." action={<V5IconButton icon={icons.plus} accessibilityLabel="Capture a memory" onPress={() => router.push('/(tabs)')} />} />
 
         <View style={styles.section}>
           <V5SectionHeader title="Needs Review" meta={`${inboxItems.length}`} />
@@ -61,8 +62,10 @@ function sortUpdated(a: OneItem, b: OneItem) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 40, gap: 18 },
-  section: { gap: 7 },
+  content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 48, gap: 24 },
+  nav: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  navLabel: { fontSize: 10, letterSpacing: 1.5, fontWeight: '600' },
+  section: { gap: 12 },
   emptyState: { minHeight: 78, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
   emptyIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },

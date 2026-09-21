@@ -32,75 +32,29 @@ export type OneTheme = {
   plumSoft: string;
 };
 
-// NEVER V5 — iOS-inspired light system palette.
-// Platinum/chrome are restrained material accents; hierarchy comes from
-// native-feeling grouped backgrounds, white surfaces and system typography.
+// Canonical NEVER materials. All compatibility palettes derive from these tokens.
 export const lightTheme: OneTheme = {
-  background: '#F2F2F7',
-  surface: '#FFFFFF',
-  surfaceElevated: '#FFFFFF',
-  fill: '#E9E9EE',
-  fillStrong: '#D1D1D6',
-  text: '#000000',
-  textSecondary: '#636366',
-  textTertiary: '#8E8E93',
-  border: '#D1D1D6',
-  accent: '#6E7681',
-  accentSoft: '#ECEDEF',
-  onAccent: '#FFFFFF',
-  chrome: '#6E7681',
-  chromeSoft: '#E5E5EA',
-  platinum: '#AEAEB2',
-  platinumSoft: '#F0F0F2',
-  glass: '#FFFFFFD9',
-  glassStrong: '#FFFFFFF2',
-  glassBorder: '#FFFFFFF5',
-  reflection: '#FFFFFF',
-  shadow: '#000000',
-  success: '#34C759',
-  successSoft: '#E9F8ED',
-  danger: '#FF3B30',
-  dangerSoft: '#FDECEA',
-  warning: '#C5892F',
-  warningSoft: '#FBF3E6',
-  sky: '#7C8793',
-  skySoft: '#EEF0F2',
-  plum: '#7F7F87',
-  plumSoft: '#F0F0F2'
+  background: '#E9EDF0', surface: '#F5F7F8', surfaceElevated: '#FCFDFD',
+  fill: '#E2E7EB', fillStrong: '#CAD2D9',
+  text: '#222930', textSecondary: '#59636E', textTertiary: '#606A74',
+  border: '#CDD5DC', accent: '#414D59', accentSoft: '#E1E7EC', onAccent: '#FAFCFD',
+  chrome: '#52616F', chromeSoft: '#E0E6EB', platinum: '#7B8995', platinumSoft: '#EDF1F4',
+  glass: '#F8FBFCCC', glassStrong: '#F5F8FAF2', glassBorder: '#FFFFFFE6',
+  reflection: '#FFFFFFCC', shadow: '#344351',
+  success: '#28734D', successSoft: '#E3EFE7', danger: '#B43C3C', dangerSoft: '#F7E8E7',
+  warning: '#876020', warningSoft: '#F2EBD9', sky: '#52616F', skySoft: '#E0E6EB',
+  plum: '#696372', plumSoft: '#EDEBF0'
 };
 
-// NEVER V5 — iOS-inspired dark system palette.
-// True black canvas, grouped graphite surfaces and neutral metallic accents.
 export const darkTheme: OneTheme = {
-  background: '#000000',
-  surface: '#1C1C1E',
-  surfaceElevated: '#2C2C2E',
-  fill: '#2C2C2E',
-  fillStrong: '#3A3A3C',
-  text: '#FFFFFF',
-  textSecondary: '#C7C7CC',
-  textTertiary: '#8E8E93',
-  border: '#38383A',
-  accent: '#D1D1D6',
-  accentSoft: '#2C2C2E',
-  onAccent: '#111113',
-  chrome: '#D1D1D6',
-  chromeSoft: '#2C2C2E',
-  platinum: '#AEAEB2',
-  platinumSoft: '#2C2C2E',
-  glass: '#1C1C1ED9',
-  glassStrong: '#1C1C1EF2',
-  glassBorder: '#FFFFFF1A',
-  reflection: '#FFFFFF1F',
-  shadow: '#000000',
-  success: '#30D158',
-  successSoft: '#16351F',
-  danger: '#FF453A',
-  dangerSoft: '#3A1B1B',
-  warning: '#D6A14D',
-  warningSoft: '#352819',
-  sky: '#D1D1D6',
-  skySoft: '#2C2C2E',
-  plum: '#AEAEB2',
-  plumSoft: '#2C2C2E'
+  background: '#191D22', surface: '#242A31', surfaceElevated: '#303840',
+  fill: '#343D46', fillStrong: '#48535E',
+  text: '#F1F4F6', textSecondary: '#B7C1CA', textTertiary: '#A3AFBA',
+  border: '#404B56', accent: '#DCE4EB', accentSoft: '#343D46', onAccent: '#20272E',
+  chrome: '#C2CED8', chromeSoft: '#343E48', platinum: '#AAB8C4', platinumSoft: '#2B333B',
+  glass: '#303941D9', glassStrong: '#2A323BF5', glassBorder: '#FFFFFF24',
+  reflection: '#FFFFFF12', shadow: '#090D12',
+  success: '#8DC9A8', successSoft: '#253D31', danger: '#F49A94', dangerSoft: '#462E32',
+  warning: '#DDBA7C', warningSoft: '#3D3628', sky: '#C2CED8', skySoft: '#343E48',
+  plum: '#C0B9CA', plumSoft: '#36323E'
 };

@@ -1,8 +1,10 @@
-import type { ComponentProps } from 'react';
+import { useEffect, useState, type ComponentProps } from 'react';
 import { Tabs } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OneIcon, icons } from '@/src/ui/icons';
+import { NeverMaterial, selectionFeedback } from '@/src/ui/material';
+import { neverControl } from '@/src/theme/tokens';
 import { useNeverV5Palette } from '@/src/ui/appleV5';
 
 const tabIcon = {
@@ -46,20 +48,17 @@ export default function TabsLayout() {
 function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
   const p = useNeverV5Palette();
   const insets = useSafeAreaInsets();
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
+  useEffect(() => {
+    const show = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow', () => setKeyboardVisible(true));
+    const hide = Keyboard.addListener(Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide', () => setKeyboardVisible(false));
+    return () => { show.remove(); hide.remove(); };
+  }, []);
+  if (keyboardVisible) return null;
 
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(6, insets.bottom - 8) }]}>
-      <View
-        style={[
-          styles.bar,
-          {
-            backgroundColor: p.dark ? '#1C1C1EF2' : '#FFFFFFF2',
-            borderColor: p.dark ? '#FFFFFF14' : '#00000008',
-            shadowColor: '#000000'
-          }
-        ]}
-      >
-        <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.dark ? '#FFFFFF10' : '#FFFFFF' }]} />
+      <NeverMaterial glass style={styles.bar}>
         {state.routes.map((route) => {
           const index = state.routes.indexOf(route);
           const focused = state.index === index;
@@ -69,7 +68,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
 
           const onPress = () => {
             const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-            if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+            if (!focused && !event.defaultPrevented) { selectionFeedback(); navigation.navigate(route.name, route.params); }
           };
           const onLongPress = () => navigation.emit({ type: 'tabLongPress', target: route.key });
 
@@ -87,7 +86,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               <View style={[styles.iconWell, focused && { backgroundColor: p.fillSoft }]}>
                 <OneIcon
                   name={tabIcon[routeName]}
-                  size={focused ? 17.25 : 16.25}
+                  size={21}
                   color={focused ? p.label : p.secondary}
                 />
               </View>
@@ -103,16 +102,19 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
             </Pressable>
           );
         })}
-      </View>
+      </NeverMaterial>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: 12, right: 12 },
+  wrap: { position: 'absolute', left: 16, right: 16 },
   bar: {
-    height: 56,
-    borderRadius: 22,
+    width: '100%',
+    maxWidth: 648,
+    alignSelf: 'center',
+    minHeight: neverControl.tabBar,
+    borderRadius: 24,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 6,
     paddingVertical: 3,
@@ -124,14 +126,13 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 6 },
     elevation: 4
   },
-  highlight: { position: 'absolute', top: 0, left: 26, right: 26, height: StyleSheet.hairlineWidth },
-  tab: { flex: 1, height: 50, alignItems: 'center', justifyContent: 'center', gap: 1 },
+  tab: { flex: 1, minHeight: 56, alignItems: 'center', justifyContent: 'center', gap: 1 },
   iconWell: {
-    width: 31,
-    height: 28,
+    width: 44,
+    height: 32,
     borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center'
   },
-  label: { fontSize: 9.4, lineHeight: 11, letterSpacing: -0.04 }
+  label: { fontSize: 10, lineHeight: 14, letterSpacing: -0.04 }
 });

@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Image, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ActivityIndicator, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,6 +9,10 @@ import { usePlan } from '@/src/context/PlanContext';
 import { answerFromRetrievedItems } from '@/src/recall/service';
 import { retrieveLocalOneItems, retrieveOneItems } from '@/src/search/retrieve';
 import { searchSemantically } from '@/src/search/semantic';
+import { matchesMemoryCategory } from '@/src/ui/memoryPresentation';
+import { MemoryRow } from '@/src/ui/MemoryRow';
+import { neverSpacing } from '@/src/theme/tokens';
+import { NeverChromeButton } from '@/src/ui/never';
 import { iconForType } from '@/src/ui/OneItemRow';
 import { OneIcon, icons } from '@/src/ui/icons';
 import {
@@ -19,15 +23,16 @@ import {
   V5SearchField,
   V5SectionHeader,
   V5Segmented,
+  V5Row,
   useNeverV5Palette
 } from '@/src/ui/appleV5';
 import type { OneItem } from '@/src/types/item';
 
 type SearchMode = 'quick' | 'ask';
 type AskAnswer = { title: string; body: string; sourceIds: string[]; meta?: string; mode?: 'ai' | 'deterministic' };
-type SearchCategory = 'Recent' | 'Documents' | 'Links' | 'Ideas';
+type SearchCategory = 'All' | 'Documents' | 'Links' | 'Ideas';
 
-const categories: SearchCategory[] = ['Recent', 'Documents', 'Links', 'Ideas'];
+const categories: SearchCategory[] = ['All', 'Documents', 'Links', 'Ideas'];
 
 export default function SearchV5() {
   const p = useNeverV5Palette();
@@ -37,33 +42,24 @@ export default function SearchV5() {
   const { hasAi } = usePlan();
   const [mode, setMode] = useState<SearchMode>('quick');
   const [query, setQuery] = useState(typeof q === 'string' ? q : '');
-  const [category, setCategory] = useState<SearchCategory>('Recent');
+  const [category, setCategory] = useState<SearchCategory>('All');
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const requestVersion = useRef(0);
   const [asking, setAsking] = useState(false);
   const [answer, setAnswer] = useState<AskAnswer | null>(null);
   const [askError, setAskError] = useState<string | null>(null);
 
   useEffect(() => { if (typeof q === 'string' && q.trim()) setQuery(q); }, [q]);
 
-  const retrieved = useMemo(
-    () => retrieveLocalOneItems(query, items, { limit: 30, recentWhenEmpty: true }),
-    [query, items]
-  );
-
-  const categoryItems = useMemo(() => {
-    const sorted = [...items].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    return sorted.filter((item) => {
-      if (category === 'Documents') return item.type === 'document';
-      if (category === 'Links') return item.type === 'link' || Boolean(item.url);
-      if (category === 'Ideas') return item.type === 'idea' || item.type === 'note';
-      return true;
-    }).slice(0, 18).map((item) => ({ item, reasons: [] as string[] }));
-  }, [items, category]);
-
   const results = useMemo(() => {
-    if (query.trim()) return retrieved.slice(0, 18);
-    if (category === 'Recent') return retrieved.slice(0, 18);
-    return categoryItems;
-  }, [retrieved, categoryItems, category, query]);
+    const filtered = items.filter((item) => matchesMemoryCategory(item, category));
+    return retrieveLocalOneItems(query, filtered, { limit: 18, recentWhenEmpty: true });
+  }, [query, items, category]);
+
+  function rememberSearch(value = query) {
+    const clean = value.trim();
+    if (clean) setRecentSearches((current) => [clean, ...current.filter((entry) => entry !== clean)].slice(0, 5));
+  }
 
   const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
 
@@ -71,7 +67,9 @@ export default function SearchV5() {
     const clean = query.trim();
     if (!clean || asking) return;
     if (!hasAi) { router.push('/upgrade'); return; }
-    await Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
+    const version = ++requestVersion.current;
+    rememberSearch(clean);
     setAsking(true);
     setAskError(null);
     try {
@@ -85,6 +83,7 @@ export default function SearchV5() {
         allItems: items,
         allowAI: Boolean(session?.user.id)
       });
+      if (version !== requestVersion.current) return;
       setAnswer({
         title: response.title,
         body: response.body,
@@ -93,20 +92,24 @@ export default function SearchV5() {
         mode: response.mode
       });
     } catch {
-      setAskError('NEVER could not answer that right now. Your saved memories are unchanged.');
+      if (version === requestVersion.current) setAskError('NEVER could not answer that right now. Your saved memories are unchanged.');
     } finally {
-      setAsking(false);
+      if (version === requestVersion.current) setAsking(false);
     }
   }
 
   async function toggleMode() {
-    await Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
+    requestVersion.current += 1;
+    setAsking(false);
     setAskError(null);
     setAnswer(null);
     setMode((current) => current === 'quick' ? 'ask' : 'quick');
   }
 
   function updateQuery(value: string) {
+    requestVersion.current += 1;
+    setAsking(false);
     setQuery(value);
     setAnswer(null);
     setAskError(null);
@@ -114,7 +117,7 @@ export default function SearchV5() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
         <V5LargeHeader
           title={mode === 'ask' ? 'Ask NEVER' : 'Search'}
           subtitle={mode === 'ask' ? 'Ask a question using only what you have saved.' : 'Find anything in your memory.'}
@@ -130,32 +133,48 @@ export default function SearchV5() {
         <V5SearchField
           value={query}
           onChangeText={updateQuery}
-          placeholder={mode === 'ask' ? 'Ask about your memory' : 'Search'}
+          placeholder={mode === 'ask' ? 'Ask about your memory…' : 'Search your memory…'}
           ask={mode === 'ask'}
-          onSubmit={mode === 'ask' ? askNever : undefined}
+          onSubmit={mode === 'ask' ? askNever : () => rememberSearch()}
         />
 
         {mode === 'quick' ? (
           <>
-            {!query.trim() ? (
               <V5Segmented
                 options={categories}
                 selected={category}
                 onSelect={(value) => setCategory(value as SearchCategory)}
               />
+
+            {!query.trim() && category === 'All' ? (
+              <View style={styles.section}>
+                <V5SectionHeader title="Explore your memory" />
+                <V5Group>
+                  <V5Row icon={icons.document} title="Documents" subtitle="Receipts, contracts and scanned pages" onPress={() => setCategory('Documents')} />
+                  <V5Row icon={icons.link} title="Links" subtitle="Places you wanted to return to" onPress={() => setCategory('Links')} />
+                  <V5Row icon={icons.note} title="Notes & ideas" subtitle="Thoughts worth keeping" onPress={() => setCategory('Ideas')} last />
+                </V5Group>
+              </View>
+            ) : null}
+            {!query.trim() && recentSearches.length ? (
+              <View style={styles.section}>
+                <V5SectionHeader title="Recent searches" action={<Pressable accessibilityRole="button" onPress={() => setRecentSearches([])} hitSlop={12}><Text style={{ color: p.chrome }}>Clear</Text></Pressable>} />
+                <V5Group>{recentSearches.map((entry, index) => <V5Row key={entry} icon={icons.clock} title={entry} onPress={() => updateQuery(entry)} last={index === recentSearches.length - 1} />)}</V5Group>
+              </View>
             ) : null}
 
             <View style={styles.section}>
               <V5SectionHeader
-                title={query.trim() ? 'Results' : category === 'Recent' ? 'Recent' : category}
+                title={query.trim() ? 'Results' : category === 'All' ? 'Recently captured' : category}
                 meta={`${results.length}`}
               />
               <V5Group>
                 {results.length ? results.map(({ item, reasons }, index) => (
-                  <SearchRow
+                  <MemoryRow
                     key={item.id}
                     item={item}
-                    reason={reasonLabel(reasons)}
+                    reason={query.trim() ? reasonLabel(reasons) : undefined}
+                    onPress={() => { rememberSearch(); router.push({ pathname: '/item/[id]', params: { id: item.id } }); }}
                     last={index === results.length - 1}
                   />
                 )) : (
@@ -163,8 +182,8 @@ export default function SearchV5() {
                     <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}>
                       <OneIcon name={icons.search} size={18} color={p.chrome} />
                     </View>
-                    <Text style={[styles.emptyTitle, { color: p.label }]}>Nothing found</Text>
-                    <Text style={[styles.emptyBody, { color: p.secondary }]}>Try another search or choose a different category.</Text>
+                    <Text style={[styles.emptyTitle, { color: p.label }]}>{query.trim() || category !== 'All' ? 'No matching memories' : 'Your memory is ready'}</Text>
+                    <Text style={[styles.emptyBody, { color: p.secondary }]}>{query.trim() ? 'Try a name, a phrase or another category.' : 'Capture a note, document or link to find it here.'}</Text>
                   </View>
                 )}
               </V5Group>
@@ -176,7 +195,7 @@ export default function SearchV5() {
                 style={({ pressed }) => [styles.askBridge, { backgroundColor: p.surface, opacity: pressed ? 0.65 : 1 }]}
               >
                 <View style={[styles.askBridgeIcon, { backgroundColor: p.graphite }]}>
-                  <OneIcon name={icons.ask} size={14} color={p.dark ? '#111113' : '#FFFFFF'} />
+                  <OneIcon name={icons.ask} size={14} color={p.onAccent} />
                 </View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.askBridgeTitle, { color: p.label }]}>Ask NEVER about “{query.trim()}”</Text>
@@ -188,6 +207,7 @@ export default function SearchV5() {
           </>
         ) : (
           <View style={styles.askSection}>
+            <NeverChromeButton label={asking ? 'Searching your memory…' : 'Ask NEVER'} icon={icons.ask} onPress={askNever} disabled={asking || !query.trim()} />
             {!answer && !asking && !askError ? (
               <V5Group>
                 <View style={styles.groundedRow}>
@@ -224,35 +244,6 @@ export default function SearchV5() {
     </SafeAreaView>
   );
 
-  function SearchRow({ item, reason, last }: { item: OneItem; reason?: string; last: boolean }) {
-    const previewUri = imagePreviewUri(item);
-    return (
-      <Pressable
-        onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.resultRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
-      >
-        <View style={[styles.previewWrap, { backgroundColor: p.fillSoft }]}>
-          {previewUri ? (
-            <Image source={{ uri: previewUri }} style={styles.previewImage} resizeMode="cover" />
-          ) : (
-            <OneIcon name={iconForType(item.type)} size={17} color={p.chrome} />
-          )}
-        </View>
-        <View style={[styles.resultContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[styles.resultTitle, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
-            <Text style={[styles.resultSubtitle, { color: p.secondary }]} numberOfLines={1}>{previewFor(item)}</Text>
-          </View>
-          <View style={styles.resultAccessory}>
-            {reason ? <Text style={[styles.reason, { color: p.tertiary }]}>{reason}</Text> : null}
-            <Text style={[styles.resultDate, { color: p.tertiary }]}>{formatCaptured(item.capturedAt || item.createdAt)}</Text>
-          </View>
-          <V5Chevron />
-        </View>
-      </Pressable>
-    );
-  }
-
   function AnswerPanel({ answer: current }: { answer: AskAnswer }) {
     const urls = extractHttpUrls(current.body);
     const body = withoutStandaloneUrlLines(current.body);
@@ -263,7 +254,7 @@ export default function SearchV5() {
           <View style={styles.answerBodyWrap}>
             <View style={styles.answerHeader}>
               <View style={[styles.answerMark, { backgroundColor: p.graphite }]}>
-                <OneIcon name={icons.ask} size={13} color={p.dark ? '#111113' : '#FFFFFF'} />
+                <OneIcon name={icons.ask} size={13} color={p.onAccent} />
               </View>
               <Text style={[styles.answerMode, { color: p.tertiary }]}>{current.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text>
             </View>
@@ -311,17 +302,6 @@ export default function SearchV5() {
   }
 }
 
-function imagePreviewUri(item: OneItem) {
-  const candidate = item.localAttachmentUri || item.imageUrl;
-  return candidate && /^(file|content|ph|https?):\/\//i.test(candidate) ? candidate : undefined;
-}
-function previewFor(item: OneItem) { return item.summary || item.userContext || item.originalText || item.extractedText || item.category || item.url || item.type; }
-function formatCaptured(value?: string) {
-  if (!value) return 'Saved';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Saved';
-  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
-}
 function reasonLabel(reasons?: string[]) {
   if (!reasons?.length) return undefined;
   if (reasons.some((reason) => reason.includes('exact'))) return 'Exact';
@@ -333,17 +313,8 @@ function withoutStandaloneUrlLines(value: string) { return value.split('\n').fil
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 108, gap: 18 },
-  section: { gap: 7 },
-  resultRow: { minHeight: 68, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  previewWrap: { width: 44, height: 44, borderRadius: 11, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  previewImage: { width: '100%', height: '100%' },
-  resultContent: { flex: 1, minHeight: 68, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  resultTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
-  resultSubtitle: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
-  resultAccessory: { alignItems: 'flex-end', gap: 1 },
-  reason: { fontSize: 10.5, lineHeight: 13, fontWeight: '500' },
-  resultDate: { fontSize: 10.5, lineHeight: 13 },
+  content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 118, gap: neverSpacing.xxl },
+  section: { gap: neverSpacing.md },
   emptyState: { minHeight: 156, padding: 22, alignItems: 'center', justifyContent: 'center' },
   emptyIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { marginTop: 10, fontSize: 16.5, lineHeight: 20, fontWeight: '600' },
