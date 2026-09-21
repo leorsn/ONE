@@ -41,7 +41,7 @@ export const lightTheme: OneTheme = {
   fillStrong: '#C8D0D6',
   text: '#171D22',
   textSecondary: '#5E6872',
-  textTertiary: '#7C8791',
+  textTertiary: '#5F6A74',
   border: '#CDD4DA',
   accent: '#313B45',
   accentSoft: '#DFE5EA',
