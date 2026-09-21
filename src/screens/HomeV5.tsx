@@ -4,7 +4,8 @@ import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MemoryRow } from '@/src/ui/MemoryRow';
-import { NeverMaterial, selectionFeedback } from '@/src/ui/material';
+import { selectionFeedback } from '@/src/ui/material';
+import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import { neverSpacing, neverType } from '@/src/theme/tokens';
 import { buildItemFromCapture } from '@/src/capture/buildItem';
 import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
@@ -16,11 +17,11 @@ import { buildTodayEntries, todayReasonLabel } from '@/src/inbox/today';
 import { notificationSaveWarning } from '@/src/notifications/status';
 import { TriageRow } from '@/src/ui/TriageRow';
 import { OneIcon, icons } from '@/src/ui/icons';
+import { iconForType } from '@/src/ui/OneItemRow';
 import { NeverChromeButton } from '@/src/ui/never';
 import {
   V5Chevron,
   V5Group,
-  V5LargeHeader,
   V5SectionHeader,
   V5Wordmark,
   V5IconButton,
@@ -49,7 +50,7 @@ export default function HomeV5() {
   const firstName = displayFirstName(session?.user.user_metadata);
   const recentItems = [...items]
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, 3);
+    .slice(0, 6);
   const todayEntries = buildTodayEntries(items, now).slice(0, 3);
   const inboxItems = items
     .filter((item) => !item.completed && isInboxActive(item, now))
@@ -100,6 +101,7 @@ export default function HomeV5() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
+      <NeverBackdrop />
       <ScrollView
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
@@ -111,44 +113,71 @@ export default function HomeV5() {
           <V5Wordmark />
           <V5IconButton icon={icons.person} accessibilityLabel="Open your settings" onPress={() => router.push('/(tabs)/settings')} />
         </View>
-        <V5LargeHeader
-          title={`${greetingFor(now)}${firstName ? `,\n${firstName}.` : '.'}`}
-          subtitle="Capture today. Remember tomorrow."
-        />
 
-        <View style={styles.section}>
-          <NeverMaterial glass>
-            <View style={styles.captureComposer}>
-              <Pressable onPress={() => focusCapture()} accessibilityRole="button" accessibilityLabel="Start a capture" style={[styles.capturePlus, { backgroundColor: p.graphite }]}>
-                <OneIcon name={icons.plus} size={20} color={p.onAccent} />
-              </Pressable>
-              <TextInput
-                ref={captureRef}
-                value={input}
-                onChangeText={(value) => { setInput(value); setReviewedDraft(null); setCaptureStatus(''); }}
-                editable={!saving}
-                placeholder="Capture something…"
-                placeholderTextColor={p.tertiary}
-                style={[styles.captureInput, { color: p.label }]}
-                returnKeyType={structuredReview ? 'default' : 'done'}
-                onSubmitEditing={structuredReview ? undefined : handleSave}
-                accessibilityLabel="Quick capture"
-              />
-              {saving ? <ActivityIndicator color={p.chrome} /> : input.trim() ? (
-                <Pressable accessibilityRole="button" accessibilityLabel="Save capture" disabled={saving || !draft?.title.trim()} onPress={handleSave} style={[styles.captureSave, { backgroundColor: p.graphite }]}>
-                  <OneIcon name={icons.check} size={18} color={p.onAccent} />
-                </Pressable>
-              ) : null}
-            </View>
-          </NeverMaterial>
-            <View style={styles.quickActions}>
-              <QuickAction label="Scan" icon={icons.scan} onPress={() => router.push('/scan')} />
-              <QuickAction label="Add link" icon={icons.link} onPress={() => focusCapture('https://')} />
-              <QuickAction label="New note" icon={icons.note} onPress={() => focusCapture('')} />
-              <QuickAction label="Share" icon={icons.upload} onPress={() => router.push('/share')} />
-            </View>
-          {captureStatus ? <Text accessibilityLiveRegion="polite" style={[styles.captureStatus, { color: p.secondary }]}>{captureStatus}</Text> : null}
+        <View style={styles.heroCopy}>
+          <NeverEyebrow>Personal memory</NeverEyebrow>
+          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>
+            {`${greetingFor(now)}${firstName ? `,\n${firstName}.` : '.'}`}
+          </Text>
+          <Text style={[styles.heroSubtitle, { color: p.secondary }]}>
+            Capture what matters. NEVER keeps the context.
+          </Text>
         </View>
+
+        <NeverHeroSurface style={styles.captureStage}>
+          <View style={styles.captureStageHeader}>
+            <View>
+              <NeverEyebrow>Quick capture</NeverEyebrow>
+              <Text style={[styles.captureStageTitle, { color: p.label }]}>Put it in memory.</Text>
+            </View>
+            <View style={styles.captureMetrics}>
+              <NeverMetric value={`${items.length}`} label="saved" />
+              <NeverMetric value={`${inboxItems.length}`} label="review" />
+            </View>
+          </View>
+
+          <View style={[styles.captureComposer, { backgroundColor: p.dark ? '#0D12174D' : '#FFFFFF78', borderColor: p.glassBorder }]}>
+            <Pressable
+              onPress={() => focusCapture()}
+              accessibilityRole="button"
+              accessibilityLabel="Start a capture"
+              style={[styles.capturePlus, { backgroundColor: p.graphite }]}
+            >
+              <OneIcon name={icons.plus} size={20} color={p.onAccent} />
+            </Pressable>
+            <TextInput
+              ref={captureRef}
+              value={input}
+              onChangeText={(value) => { setInput(value); setReviewedDraft(null); setCaptureStatus(''); }}
+              editable={!saving}
+              placeholder="Capture a thought, link, date…"
+              placeholderTextColor={p.tertiary}
+              style={[styles.captureInput, { color: p.label }]}
+              returnKeyType={structuredReview ? 'default' : 'done'}
+              onSubmitEditing={structuredReview ? undefined : handleSave}
+              accessibilityLabel="Quick capture"
+            />
+            {saving ? <ActivityIndicator color={p.chrome} /> : input.trim() ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Save capture"
+                disabled={saving || !draft?.title.trim()}
+                onPress={handleSave}
+                style={[styles.captureSave, { backgroundColor: p.graphite }]}
+              >
+                <OneIcon name={icons.check} size={18} color={p.onAccent} />
+              </Pressable>
+            ) : null}
+          </View>
+
+          <View style={styles.quickActions}>
+            <QuickAction label="Scan" icon={icons.scan} onPress={() => router.push('/scan')} />
+            <QuickAction label="Link" icon={icons.link} onPress={() => focusCapture('https://')} />
+            <QuickAction label="Note" icon={icons.note} onPress={() => focusCapture('')} />
+            <QuickAction label="Share" icon={icons.upload} onPress={() => router.push('/share')} />
+          </View>
+          {captureStatus ? <Text accessibilityLiveRegion="polite" style={[styles.captureStatus, { color: p.secondary }]}>{captureStatus}</Text> : null}
+        </NeverHeroSurface>
 
         {draft ? (
           <View style={styles.section}>
@@ -165,7 +194,7 @@ export default function HomeV5() {
                       <Text style={[styles.draftMeta, { color: p.secondary }]}>{labelForKind(draft.canonicalKind)} · Ready to save</Text>
                     </View>
                   </View>
-                  <View style={styles.draftButton}><NeverChromeButton label={saving ? "Saving…" : "Save to NEVER"} icon={icons.check} onPress={handleSave} disabled={saving} /></View>
+                  <View style={styles.draftButton}><NeverChromeButton label={saving ? 'Saving…' : 'Save to NEVER'} icon={icons.check} onPress={handleSave} disabled={saving} /></View>
                 </>
               ) : (
                 <View style={styles.reviewEditor}>
@@ -177,54 +206,59 @@ export default function HomeV5() {
           </View>
         ) : null}
 
-        <V5Group>
+        <NeverHeroSurface compact style={styles.askStage}>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel="Ask NEVER"
             onPress={() => router.push('/ask')}
-            style={({ pressed }) => [styles.askRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
+            style={({ pressed }) => [styles.askRow, { opacity: pressed ? 0.66 : 1 }]}
           >
             <View style={[styles.askIcon, { backgroundColor: p.graphite }]}>
-              <OneIcon name={icons.ask} size={15} color={p.onAccent} />
+              <OneIcon name={icons.ask} size={17} color={p.onAccent} />
             </View>
             <View style={styles.askCopy}>
+              <NeverEyebrow>Recall</NeverEyebrow>
               <Text style={[styles.askTitle, { color: p.label }]}>Ask NEVER</Text>
-              <Text style={[styles.askSubtitle, { color: p.secondary }]} numberOfLines={1}>Find something you saved, in your own words</Text>
+              <Text style={[styles.askSubtitle, { color: p.secondary }]} numberOfLines={2}>
+                Find a memory in your own words.
+              </Text>
             </View>
-            <V5Chevron />
+            <View style={[styles.askArrow, { backgroundColor: p.fillSoft }]}><V5Chevron /></View>
           </Pressable>
-        </V5Group>
+        </NeverHeroSurface>
 
         {todayEntries.length ? (
           <View style={styles.section}>
             <V5SectionHeader title="Today" meta={`${todayEntries.length}`} />
-            <V5Group>
-              {todayEntries.map(({ item, reason }, index) => (
-                <TodayRow key={item.id} item={item} reason={todayReasonLabel(reason)} last={index === todayEntries.length - 1} />
+            <View style={styles.todayStack}>
+              {todayEntries.map(({ item, reason }) => (
+                <TodayRow key={item.id} item={item} reason={todayReasonLabel(reason)} />
               ))}
-            </V5Group>
+            </View>
           </View>
         ) : null}
 
         <View style={styles.section}>
           <V5SectionHeader
-            title="Recent"
+            title="Recent memory"
             action={recentItems.length ? (
               <Pressable onPress={() => router.push('/(tabs)/saved')} hitSlop={8}>
                 <Text style={[styles.seeAll, { color: p.chrome }]}>See All</Text>
               </Pressable>
             ) : undefined}
           />
-          <V5Group>
-            {recentItems.length ? recentItems.map((item, index) => (
-              <MemoryRow key={item.id} item={item} last={index === recentItems.length - 1} />
-            )) : (
+          {recentItems.length ? (
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.recentRail}>
+              {recentItems.map((item) => <RecentCard key={item.id} item={item} />)}
+            </ScrollView>
+          ) : (
+            <V5Group>
               <View style={styles.emptyRow}>
                 <Text style={[styles.emptyTitle, { color: p.label }]}>Your memory starts here.</Text>
                 <Text style={[styles.emptyBody, { color: p.secondary }]}>Capture, scan or share something to NEVER.</Text>
               </View>
-            )}
-          </V5Group>
+            </V5Group>
+          )}
         </View>
 
         {inboxItems.length ? (
@@ -252,17 +286,20 @@ export default function HomeV5() {
   function QuickAction({ label, icon, onPress }: { label: string; icon: (typeof icons)[keyof typeof icons]; onPress: () => void }) {
     return (
       <Pressable
-        accessibilityRole="button" accessibilityLabel={label}
+        accessibilityRole="button"
+        accessibilityLabel={label}
         onPress={() => { selectionFeedback(); onPress(); }}
-        style={({ pressed }) => [styles.quickAction, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
+        style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.58 : 1 }]}
       >
-        <View style={[styles.actionIcon, { backgroundColor: p.fillSoft, borderColor: p.glassBorder }]}><OneIcon name={icon} size={22} color={p.chrome} /></View>
-        <Text style={[styles.quickActionLabel, { color: p.label }]}>{label}</Text>
+        <View style={[styles.actionIcon, { backgroundColor: p.dark ? '#FFFFFF0D' : '#FFFFFF70', borderColor: p.glassBorder }]}>
+          <OneIcon name={icon} size={19} color={p.chrome} />
+        </View>
+        <Text style={[styles.quickActionLabel, { color: p.secondary }]}>{label}</Text>
       </Pressable>
     );
   }
 
-  function TodayRow({ item, reason, last }: { item: OneItem; reason: string; last: boolean }) {
+  function TodayRow({ item, reason }: { item: OneItem; reason: string }) {
     const activeInbox = isInboxActive(item, now);
     const overdue = reason === 'Overdue';
     const detail = [item.location, item.summary].filter(Boolean).join(' · ') || reason;
@@ -270,24 +307,42 @@ export default function HomeV5() {
     return (
       <Pressable
         onPress={() => router.push({ pathname: activeInbox ? '/inbox/[id]' : '/item/[id]', params: { id: item.id } } as never)}
-        style={({ pressed }) => [styles.listRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
+        style={({ pressed }) => [styles.todayCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
       >
-        <View style={[styles.todayDot, { backgroundColor: overdue ? p.warning : p.chrome }]} />
-        <View style={[styles.listRowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <View style={styles.listTitleLine}>
-              <Text style={[styles.listTitle, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
-              <Text style={[styles.listMeta, { color: overdue ? p.warning : p.tertiary }]}>{timeLabel}</Text>
-            </View>
-            <Text style={[styles.listSubtitle, { color: p.secondary }]} numberOfLines={1}>{detail}</Text>
+        <View style={[styles.todayRail, { backgroundColor: overdue ? p.warning : p.chrome }]} />
+        <View style={styles.todayCopy}>
+          <View style={styles.listTitleLine}>
+            <Text style={[styles.listTitle, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
+            <Text style={[styles.listMeta, { color: overdue ? p.warning : p.tertiary }]}>{timeLabel}</Text>
           </View>
+          <Text style={[styles.listSubtitle, { color: p.secondary }]} numberOfLines={1}>{detail}</Text>
+        </View>
+        <V5Chevron />
+      </Pressable>
+    );
+  }
+
+  function RecentCard({ item }: { item: OneItem }) {
+    return (
+      <Pressable
+        onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
+        style={({ pressed }) => [styles.recentCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      >
+        <View style={styles.recentCardTop}>
+          <View style={[styles.recentIcon, { backgroundColor: p.fillSoft }]}>
+            <OneIcon name={iconForType(item.type)} size={18} color={p.chrome} />
+          </View>
+          <Text style={[styles.recentDate, { color: p.tertiary }]}>{shortDate(item.updatedAt)}</Text>
+        </View>
+        <Text style={[styles.recentTitle, { color: p.label }]} numberOfLines={2}>{item.title}</Text>
+        <Text style={[styles.recentMeta, { color: p.secondary }]} numberOfLines={1}>{item.category || labelForKind(item.type)}</Text>
+        <View style={styles.recentFooter}>
+          <Text style={[styles.recentOpen, { color: p.chrome }]}>Open memory</Text>
           <V5Chevron />
         </View>
       </Pressable>
     );
   }
-
-
 }
 
 function displayFirstName(metadata?: Record<string, unknown>) {
@@ -312,26 +367,50 @@ function iconForDraft(draft: CaptureDraft) {
 }
 function labelForKind(kind: string) { return kind.charAt(0).toUpperCase() + kind.slice(1); }
 function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(); }
+function shortDate(value: string) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
+}
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: neverSpacing.md, paddingBottom: 118, gap: neverSpacing.xxl },
+  content: {
+    width: '100%',
+    maxWidth: 680,
+    alignSelf: 'center',
+    paddingHorizontal: 20,
+    paddingTop: neverSpacing.md,
+    paddingBottom: 126,
+    gap: 26
+  },
   brandBar: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  askRow: { minHeight: 62, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  askIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  askCopy: { flex: 1, minWidth: 0 },
-  askTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
-  askSubtitle: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
-  section: { gap: neverSpacing.md },
-  captureComposer: { minHeight: 72, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  capturePlus: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  captureInput: { flex: 1, minHeight: 46, fontSize: 16, lineHeight: 20, paddingVertical: 0 },
-  captureSave: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  quickActions: { flexDirection: 'row', gap: neverSpacing.sm },
-  quickAction: { flex: 1, minHeight: 82, borderRadius: 14, alignItems: 'center', justifyContent: 'center', gap: 8 },
-  quickActionLabel: { fontSize: 11.5, lineHeight: 14, fontWeight: '500' },
-  actionIcon: { width: 48, height: 48, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  heroCopy: { gap: 5, paddingTop: 4 },
+  heroTitle: { fontSize: 42, lineHeight: 45, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
+  heroSubtitle: { maxWidth: 390, fontSize: 14.5, lineHeight: 20 },
+  captureStage: { padding: 18, gap: 15 },
+  captureStageHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 14 },
+  captureStageTitle: { marginTop: 4, fontSize: 21, lineHeight: 25, fontWeight: '600', letterSpacing: -0.45 },
+  captureMetrics: { flexDirection: 'row', gap: 15 },
+  captureComposer: {
+    minHeight: 66,
+    paddingHorizontal: 9,
+    borderRadius: 21,
+    borderWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 9,
+    overflow: 'hidden'
+  },
+  capturePlus: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  captureInput: { flex: 1, minHeight: 46, fontSize: 15.5, lineHeight: 20, paddingVertical: 0 },
+  captureSave: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
+  quickActions: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 },
+  quickAction: { flex: 1, alignItems: 'center', gap: 6 },
+  actionIcon: { width: 46, height: 46, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  quickActionLabel: { fontSize: 10.5, lineHeight: 14, fontWeight: '600' },
   captureStatus: { ...neverType.caption },
+  section: { gap: neverSpacing.md },
   draftGroup: { padding: 13 },
   draftRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
   draftIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
@@ -339,15 +418,48 @@ const styles = StyleSheet.create({
   draftMeta: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
   draftButton: { marginTop: 12 },
   reviewEditor: { gap: 10 },
-  seeAll: { fontSize: 13, lineHeight: 17, fontWeight: '600' },
-  listRow: { minHeight: 58, paddingLeft: 12, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  todayDot: { width: 6, height: 6, borderRadius: 3 },
-  listRowContent: { flex: 1, minHeight: 58, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  listTitleLine: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  askStage: { minHeight: 104 },
+  askRow: { minHeight: 104, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 13 },
+  askIcon: { width: 50, height: 50, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  askCopy: { flex: 1, minWidth: 0, gap: 1 },
+  askTitle: { marginTop: 2, fontSize: 18.5, lineHeight: 22, fontWeight: '650', letterSpacing: -0.35 },
+  askSubtitle: { fontSize: 12.5, lineHeight: 17 },
+  askArrow: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  todayStack: { gap: 8 },
+  todayCard: {
+    minHeight: 68,
+    borderRadius: 19,
+    borderWidth: StyleSheet.hairlineWidth,
+    paddingRight: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    overflow: 'hidden'
+  },
+  todayRail: { width: 3, alignSelf: 'stretch' },
+  todayCopy: { flex: 1, minWidth: 0 },
+  listTitleLine: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   listTitle: { flex: 1, fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
   listMeta: { fontSize: 11.5, lineHeight: 14 },
-  listSubtitle: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
-  emptyRow: { minHeight: 80, padding: 14, justifyContent: 'center' },
+  listSubtitle: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
+  seeAll: { fontSize: 13, lineHeight: 17, fontWeight: '600' },
+  recentRail: { gap: 10, paddingRight: 18 },
+  recentCard: {
+    width: 212,
+    minHeight: 150,
+    borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
+    padding: 14,
+    justifyContent: 'space-between'
+  },
+  recentCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  recentIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  recentDate: { fontSize: 10.5, lineHeight: 14, fontWeight: '500' },
+  recentTitle: { marginTop: 14, fontSize: 16, lineHeight: 20, fontWeight: '650', letterSpacing: -0.22 },
+  recentMeta: { marginTop: 3, fontSize: 11.5, lineHeight: 15 },
+  recentFooter: { marginTop: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  recentOpen: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
+  emptyRow: { minHeight: 86, padding: 15, justifyContent: 'center' },
   emptyTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
   emptyBody: { marginTop: 2, fontSize: 12.5, lineHeight: 16 }
 });
