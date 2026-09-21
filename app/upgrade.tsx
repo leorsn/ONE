@@ -1,3 +1,4 @@
+import { neverType } from '@/src/theme/tokens';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
@@ -44,12 +45,12 @@ export default function UpgradeScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
-          {hardPaywall ? <View style={{ width: 38 }} /> : <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Close plans" onPress={() => router.back()} />}
+          {hardPaywall ? <View style={{ width: 44 }} /> : <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Close plans" onPress={() => router.back()} />}
           <Text style={[styles.navTitle, { color: p.label }]}>Membership</Text>
-          <View style={{ width: 38 }} />
+          <View style={{ width: 44 }} />
         </View>
 
         <V5LargeHeader title="Choose your NEVER." subtitle="Organize everything with NEVER. Add grounded memory recall with NEVER AI." />
@@ -90,7 +91,7 @@ export default function UpgradeScreen() {
         ) : null}
 
         {billingConfigured ? (
-          <Pressable
+          <Pressable accessibilityRole="button"
             disabled={purchasing}
             onPress={async () => {
               const outcome = await restore();
@@ -105,7 +106,7 @@ export default function UpgradeScreen() {
         ) : null}
 
         {!hardPaywall ? (
-          <Pressable onPress={() => router.back()} style={({ pressed }) => [styles.backButton, { backgroundColor: p.fill, opacity: pressed ? 0.65 : 1 }]}>
+          <Pressable accessibilityRole="button" onPress={() => router.back()} style={({ pressed }) => [styles.backButton, { backgroundColor: p.fill, opacity: pressed ? 0.65 : 1 }]}>
             <Text style={[styles.backButtonText, { color: p.label }]}>Back to NEVER</Text>
           </Pressable>
         ) : null}
@@ -117,9 +118,9 @@ export default function UpgradeScreen() {
         </Text>
 
         <View style={styles.legalLinks}>
-          <Pressable onPress={() => void openLegal('Terms of Use', TERMS_URL)} hitSlop={8}><Text style={[styles.legalLink, { color: TERMS_URL ? p.chrome : p.tertiary }]}>Terms of Use</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={() => void openLegal('Terms of Use', TERMS_URL)} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={[styles.legalLink, { color: TERMS_URL ? p.chrome : p.tertiary }]}>Terms of Use</Text></Pressable>
           <Text style={[styles.legalDivider, { color: p.tertiary }]}>·</Text>
-          <Pressable onPress={() => void openLegal('Privacy Policy', PRIVACY_POLICY_URL)} hitSlop={8}><Text style={[styles.legalLink, { color: PRIVACY_POLICY_URL ? p.chrome : p.tertiary }]}>Privacy Policy</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={() => void openLegal('Privacy Policy', PRIVACY_POLICY_URL)} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={[styles.legalLink, { color: PRIVACY_POLICY_URL ? p.chrome : p.tertiary }]}>Privacy Policy</Text></Pressable>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -147,7 +148,7 @@ export default function UpgradeScreen() {
           <View style={styles.planTop}>
             <View style={styles.planNameRow}>
               <View style={[styles.planIcon, { backgroundColor: featured ? p.graphite : p.fillSoft }]}>
-                <OneIcon name={featured ? icons.ask : icons.saved} size={17} color={featured ? (p.dark ? '#111113' : '#FFFFFF') : p.chrome} />
+                <OneIcon name={featured ? icons.ask : icons.saved} size={17} color={featured ? (p.onAccent) : p.chrome} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.planName, { color: p.label }]}>{name}</Text>
@@ -173,7 +174,7 @@ export default function UpgradeScreen() {
           </View>
 
           {!current ? (
-            <Pressable
+            <Pressable accessibilityRole="button"
               disabled={!canPurchase}
               onPress={async () => {
                 setPurchasingPlan(planKey);
@@ -192,8 +193,8 @@ export default function UpgradeScreen() {
                 }
               ]}
             >
-              {isThisPlanPurchasing ? <ActivityIndicator size="small" color={p.dark ? '#111113' : '#FFFFFF'} /> : null}
-              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? (p.dark ? '#111113' : '#FFFFFF') : p.tertiary }]}>
+              {isThisPlanPurchasing ? <ActivityIndicator size="small" color={p.onAccent} /> : null}
+              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? (p.onAccent) : p.tertiary }]}>
                 {purchaseReady
                   ? purchaseLabel(planKey, plan)
                   : !billingConfigured && isBetaAccess
@@ -239,26 +240,26 @@ const styles = StyleSheet.create({
   planNameRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
   planIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   planName: { fontSize: 18, lineHeight: 22, fontWeight: '700', letterSpacing: -0.25 },
-  descriptor: { marginTop: 2, maxWidth: 420, fontSize: 12, lineHeight: 16 },
+  descriptor: { marginTop: 2, maxWidth: 420, ...neverType.caption },
   currentText: { fontSize: 9, lineHeight: 12, fontWeight: '700', letterSpacing: 0.6 },
-  priceRow: { marginTop: 17, flexDirection: 'row', alignItems: 'baseline', gap: 5 },
+  priceRow: { marginTop: 17, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'baseline', gap: 5 },
   price: { fontSize: 27, lineHeight: 32, fontWeight: '700', letterSpacing: -0.8 },
-  period: { fontSize: 11.5, lineHeight: 14 },
-  offer: { marginTop: 4, fontSize: 10.5, lineHeight: 14.5 },
+  period: { ...neverType.caption },
+  offer: { marginTop: 4, ...neverType.caption },
   featureList: { marginTop: 15, paddingTop: 13, borderTopWidth: StyleSheet.hairlineWidth, gap: 9 },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   checkCircle: { width: 22, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
-  featureText: { flex: 1, fontSize: 12, lineHeight: 16.5 },
-  purchaseButton: { marginTop: 16, minHeight: 46, borderRadius: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
-  purchaseButtonText: { fontSize: 14, lineHeight: 18, fontWeight: '600' },
+  featureText: { flex: 1, ...neverType.caption },
+  purchaseButton: { marginTop: 16, minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  purchaseButtonText: { flexShrink: 1, textAlign: 'center', fontSize: 14, lineHeight: 18, fontWeight: '600' },
   notice: { minHeight: 58, borderRadius: 14, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  noticeText: { flex: 1, fontSize: 11.5, lineHeight: 16 },
-  restore: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  noticeText: { flex: 1, ...neverType.caption },
+  restore: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
   restoreText: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
   backButton: { minHeight: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   backButtonText: { fontSize: 13.5, lineHeight: 17, fontWeight: '600' },
-  legal: { textAlign: 'center', fontSize: 9.75, lineHeight: 14.5 },
+  legal: { textAlign: 'center', ...neverType.caption },
   legalLinks: { minHeight: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  legalLink: { fontSize: 10.5, lineHeight: 14, fontWeight: '600' },
+  legalLink: { ...neverType.caption, fontWeight: '600' },
   legalDivider: { fontSize: 10.5 }
 });

@@ -40,7 +40,7 @@ export default function SettingsV5() {
 
   async function openSubscriptionManagement() {
     if (!subscriptionManagementUrl) return;
-    await Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
     try {
       const supported = await Linking.canOpenURL(subscriptionManagementUrl);
       if (!supported) {
@@ -84,7 +84,7 @@ export default function SettingsV5() {
   async function runDeleteAccount() {
     if (deletingAccount) return;
     setDeletingAccount(true);
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
     try {
       const error = await deleteOneAccount();
       if (error) {
@@ -92,7 +92,7 @@ export default function SettingsV5() {
         return;
       }
       await clearAll();
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       Alert.alert('NEVER Account Deleted', 'Your NEVER account and synced data have been deleted.');
     } catch (error) {
       Alert.alert('Could not delete account', error instanceof Error ? error.message : 'Please try again.');
@@ -102,7 +102,7 @@ export default function SettingsV5() {
   }
 
   async function runSignOut() {
-    await Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
     const error = await signOut();
     if (error) Alert.alert('Could not sign out', error);
   }
@@ -116,7 +116,7 @@ export default function SettingsV5() {
         : 'Up to date';
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <NeverBackdrop />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCopy}>
@@ -127,7 +127,7 @@ export default function SettingsV5() {
 
         {session ? (
           <NeverHeroSurface style={styles.profileStage}>
-            <Pressable
+            <Pressable accessibilityRole="button"
               onPress={() => router.push('/settings/privacy')}
               style={({ pressed }) => [styles.profileTop, { opacity: pressed ? 0.66 : 1 }]}
             >
@@ -136,7 +136,7 @@ export default function SettingsV5() {
               </View>
               <View style={styles.profileCopy}>
                 <NeverEyebrow>{isBetaAccess ? 'Beta account' : membershipLabel(plan)}</NeverEyebrow>
-                <Text style={[styles.profileTitle, { color: p.label }]} numberOfLines={1}>{profileName}</Text>
+                <Text style={[styles.profileTitle, { color: p.label }]} numberOfLines={2}>{profileName}</Text>
                 <Text style={[styles.profileEmail, { color: p.secondary }]} numberOfLines={1}>{session.user.email}</Text>
               </View>
               <View style={[styles.profileArrow, { backgroundColor: p.fillSoft }]}><V5Chevron /></View>
@@ -168,7 +168,7 @@ export default function SettingsV5() {
             <Text style={[styles.sectionMeta, { color: p.tertiary }]}>{isBetaAccess ? 'BETA' : 'NEVER'}</Text>
           </View>
           <NeverHeroSurface compact>
-            <Pressable onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.membershipRow, { opacity: pressed ? 0.65 : 1 }]}>
+            <Pressable accessibilityRole="button" onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.membershipRow, { opacity: pressed ? 0.65 : 1 }]}>
               <View style={[styles.membershipIcon, { backgroundColor: p.graphite }]}>
                 <OneIcon name={icons.crown} size={18} color={p.onAccent} />
               </View>
@@ -180,7 +180,7 @@ export default function SettingsV5() {
               <V5Chevron />
             </Pressable>
             {subscriptionManagementUrl ? (
-              <Pressable
+              <Pressable accessibilityRole="button"
                 onPress={openSubscriptionManagement}
                 style={({ pressed }) => [styles.manageRow, { borderTopColor: p.separator, backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
               >
@@ -197,7 +197,7 @@ export default function SettingsV5() {
             label="Replay Onboarding"
             value="Review the core NEVER concepts"
             onPress={async () => {
-              await Haptics.selectionAsync();
+              void Haptics.selectionAsync().catch(() => undefined);
               await resetOnboarding();
               router.replace('/onboarding');
             }}
@@ -232,87 +232,6 @@ export default function SettingsV5() {
     </SafeAreaView>
   );
 
-  function PreferenceTile({
-    icon,
-    label,
-    value,
-    tone = 'neutral',
-    onPress
-  }: {
-    icon: IconName;
-    label: string;
-    value: string;
-    tone?: RowTone;
-    onPress?: () => void | Promise<void>;
-  }) {
-    const tint = rowTint(tone, p);
-    const body = (
-      <>
-        <View style={styles.preferenceTop}>
-          <View style={[styles.preferenceIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18' }]}>
-            <OneIcon name={icon} size={17} color={tint} />
-          </View>
-          {onPress ? <V5Chevron /> : null}
-        </View>
-        <Text style={[styles.preferenceLabel, { color: p.label }]}>{label}</Text>
-        <Text style={[styles.preferenceValue, { color: p.secondary }]} numberOfLines={2}>{value}</Text>
-      </>
-    );
-    if (!onPress) return <View style={[styles.preferenceTile, { backgroundColor: p.surface, borderColor: p.border }]}>{body}</View>;
-    return (
-      <Pressable onPress={onPress} style={({ pressed }) => [styles.preferenceTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}>
-        {body}
-      </Pressable>
-    );
-  }
-
-  function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
-    return (
-      <View style={styles.section}>
-        <Text style={[styles.groupTitle, { color: p.secondary }]}>{title}</Text>
-        <V5Group>{children}</V5Group>
-      </View>
-    );
-  }
-
-  function SettingsRow({
-    icon,
-    label,
-    value,
-    tone = 'neutral',
-    last = false,
-    onPress
-  }: {
-    icon: IconName;
-    label: string;
-    value: string;
-    tone?: RowTone;
-    last?: boolean;
-    onPress?: () => void | Promise<void>;
-  }) {
-    const tint = rowTint(tone, p);
-    const content = (
-      <>
-        <View style={[styles.rowIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18' }]}>
-          <OneIcon name={icon} size={15} color={tint} />
-        </View>
-        <View style={[styles.rowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-          <View style={styles.rowCopy}>
-            <Text style={[styles.rowLabel, { color: p.label }]}>{label}</Text>
-            <Text style={[styles.rowValue, { color: p.secondary }]} numberOfLines={2}>{value}</Text>
-          </View>
-          {onPress ? <V5Chevron /> : null}
-        </View>
-      </>
-    );
-
-    if (!onPress) return <View style={styles.row}>{content}</View>;
-    return (
-      <Pressable onPress={onPress} style={({ pressed }) => [styles.row, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
-        {content}
-      </Pressable>
-    );
-  }
 }
 
 function rowTint(tone: RowTone, p: ReturnType<typeof useNeverV5Palette>) {
@@ -348,6 +267,91 @@ function appearanceLabel(value: 'system' | 'light' | 'dark') {
   return 'Auto';
 }
 
+function PreferenceTile({
+  icon,
+  label,
+  value,
+  tone = 'neutral',
+  onPress
+}: {
+  icon: IconName;
+  label: string;
+  value: string;
+  tone?: RowTone;
+  onPress?: () => void | Promise<void>;
+}) {
+  const p = useNeverV5Palette();
+  const tint = rowTint(tone, p);
+  const body = (
+    <>
+      <View style={styles.preferenceTop}>
+        <View style={[styles.preferenceIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18' }]}>
+          <OneIcon name={icon} size={17} color={tint} />
+        </View>
+        {onPress ? <V5Chevron /> : null}
+      </View>
+      <Text style={[styles.preferenceLabel, { color: p.label }]}>{label}</Text>
+      <Text style={[styles.preferenceValue, { color: p.secondary }]} numberOfLines={2}>{value}</Text>
+    </>
+  );
+  if (!onPress) return <View style={[styles.preferenceTile, { backgroundColor: p.surface, borderColor: p.border }]}>{body}</View>;
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.preferenceTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}>
+      {body}
+    </Pressable>
+  );
+}
+
+function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
+  const p = useNeverV5Palette();
+  return (
+    <View style={styles.section}>
+      <Text style={[styles.groupTitle, { color: p.secondary }]}>{title}</Text>
+      <V5Group>{children}</V5Group>
+    </View>
+  );
+}
+
+function SettingsRow({
+  icon,
+  label,
+  value,
+  tone = 'neutral',
+  last = false,
+  onPress
+}: {
+  icon: IconName;
+  label: string;
+  value: string;
+  tone?: RowTone;
+  last?: boolean;
+  onPress?: () => void | Promise<void>;
+}) {
+  const p = useNeverV5Palette();
+  const tint = rowTint(tone, p);
+  const content = (
+    <>
+      <View style={[styles.rowIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18' }]}>
+        <OneIcon name={icon} size={15} color={tint} />
+      </View>
+      <View style={[styles.rowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+        <View style={styles.rowCopy}>
+          <Text style={[styles.rowLabel, { color: p.label }]}>{label}</Text>
+          <Text style={[styles.rowValue, { color: p.secondary }]} numberOfLines={2}>{value}</Text>
+        </View>
+        {onPress ? <V5Chevron /> : null}
+      </View>
+    </>
+  );
+
+  if (!onPress) return <View style={styles.row}>{content}</View>;
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.row, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
+      {content}
+    </Pressable>
+  );
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 26, paddingBottom: 126, gap: 26 },
@@ -369,7 +373,7 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.2 },
   sectionMeta: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.8 },
   preferenceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  preferenceTile: { width: '48.6%', minHeight: 128, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
+  preferenceTile: { flexBasis: '47%', flexGrow: 1, minWidth: 130, minHeight: 128, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
   preferenceTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   preferenceIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   preferenceLabel: { marginTop: 16, fontSize: 14.5, lineHeight: 18, fontWeight: '600' },

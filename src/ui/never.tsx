@@ -1,6 +1,7 @@
+import { neverControl, neverRadius, neverType } from '@/src/theme/tokens';
 import { NeverMaterial, selectionFeedback } from '@/src/ui/material';
 import type { ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { useTheme } from '@/src/theme/useTheme';
 
@@ -80,20 +81,23 @@ export function NeverChromeButton({
   icon,
   onPress,
   disabled = false,
-  compact = false
+  compact = false,
+  busy = false
 }: {
   label: string;
   icon?: IconName;
   onPress: () => void | Promise<void>;
   disabled?: boolean;
   compact?: boolean;
+  busy?: boolean;
 }) {
   const theme = useTheme();
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={label}
-      disabled={disabled}
+      accessibilityState={{ disabled: disabled || busy, busy }}
+      disabled={disabled || busy}
       onPress={async () => {
         selectionFeedback();
         await onPress();
@@ -102,13 +106,13 @@ export function NeverChromeButton({
         styles.primaryButton,
         compact && styles.primaryButtonCompact,
         {
-          backgroundColor: theme.text,
-          opacity: disabled ? 0.32 : pressed ? 0.72 : 1
+          backgroundColor: theme.accent,
+          opacity: disabled || busy ? 0.32 : pressed ? 0.72 : 1
         }
       ]}
     >
-      {icon ? <OneIcon name={icon} size={15} color={theme.background} /> : null}
-      <Text style={[styles.primaryButtonText, { color: theme.background }]}>{label}</Text>
+      {busy ? <ActivityIndicator color={theme.onAccent} /> : icon ? <OneIcon name={icon} size={20} color={theme.onAccent} /> : null}
+      <Text style={[styles.primaryButtonText, { color: theme.onAccent }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -165,10 +169,6 @@ export function NeverWordmark({ compact = false }: { compact?: boolean }) {
 }
 
 const styles = StyleSheet.create({
-  group: {
-    borderRadius: 20,
-    overflow: 'hidden'
-  },
   groupPadded: { padding: 16 },
   sectionLabelRow: {
     minHeight: 28,
@@ -217,8 +217,9 @@ const styles = StyleSheet.create({
     lineHeight: 17
   },
   primaryButton: {
-    minHeight: 50,
-    borderRadius: 14,
+    minHeight: neverControl.primary,
+    paddingVertical: 12,
+    borderRadius: neverRadius.md,
     paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',
@@ -226,15 +227,11 @@ const styles = StyleSheet.create({
     gap: 8
   },
   primaryButtonCompact: {
-    minHeight: 42,
+    minHeight: neverControl.minimum,
     paddingHorizontal: 14,
     borderRadius: 12
   },
-  primaryButtonText: {
-    fontSize: 15,
-    lineHeight: 19,
-    fontWeight: '600'
-  },
+  primaryButtonText: { ...neverType.bodyStrong, flexShrink: 1, textAlign: 'center' },
   iconButton: {
     width: 44,
     height: 44,

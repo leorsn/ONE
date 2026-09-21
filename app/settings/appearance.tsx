@@ -1,3 +1,6 @@
+import { NeverSettingsSection, NeverNavigation } from '@/src/ui/utility';
+import { lightTheme, darkTheme } from '@/src/theme/colors';
+import { neverType } from '@/src/theme/tokens';
 import { useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
@@ -5,14 +8,14 @@ import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemePreference } from '@/src/theme/useTheme';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { V5Group, V5IconButton, V5LargeHeader, useNeverV5Palette } from '@/src/ui/appleV5';
+import { V5LargeHeader, useNeverV5Palette } from '@/src/ui/appleV5';
 import type { ThemePreference } from '@/src/context/ThemeContext';
 import { getNeverAppIcon, setNeverAppIcon, supportsNeverAppIcons, type NeverAppIconName } from '@/modules/never-app-icon/src/NeverAppIcon';
 
 const options: { value: ThemePreference; title: string; body: string }[] = [
   { value: 'system', title: 'Automatic', body: 'Follow your iPhone appearance.' },
   { value: 'light', title: 'Light', body: 'Neutral platinum canvas with bright grouped surfaces.' },
-  { value: 'dark', title: 'Dark', body: 'True black canvas with elevated graphite surfaces.' }
+  { value: 'dark', title: 'Dark', body: 'Deep graphite with softly elevated silver details.' }
 ];
 
 const iconOptions: { value: NeverAppIconName; title: string; body: string; source: number }[] = [
@@ -28,13 +31,13 @@ export default function AppearanceScreen() {
   const canSwitchAppIcon = supportsNeverAppIcons();
 
   async function select(value: ThemePreference) {
-    await Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
     await setPreference(value);
   }
 
   async function selectAppIcon(value: NeverAppIconName) {
     if (value === appIcon || !canSwitchAppIcon) return;
-    await Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
     setIconError(null);
     try {
       await setNeverAppIcon(value);
@@ -45,17 +48,13 @@ export default function AppearanceScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.nav}>
-          <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.back()} />
-          <Text style={[styles.navTitle, { color: p.label }]}>Appearance</Text>
-          <View style={{ width: 38 }} />
-        </View>
+        <NeverNavigation title="Appearance" onBack={() => router.back()} />
 
         <V5LargeHeader title="Appearance" subtitle="Choose how NEVER looks on this iPhone." />
 
-        <SettingsBlock title="Interface">
+        <NeverSettingsSection title="Interface">
           {options.map((option, index) => {
             const active = preference === option.value;
             return (
@@ -75,9 +74,9 @@ export default function AppearanceScreen() {
               </Pressable>
             );
           })}
-        </SettingsBlock>
+        </NeverSettingsSection>
 
-        <SettingsBlock title="App Icon">
+        <NeverSettingsSection title="App Icon">
           {iconOptions.map((option, index) => {
             const active = appIcon === option.value;
             return (
@@ -91,7 +90,7 @@ export default function AppearanceScreen() {
               </Pressable>
             );
           })}
-        </SettingsBlock>
+        </NeverSettingsSection>
 
         {!canSwitchAppIcon ? (
           <View style={styles.note}><OneIcon name={icons.appearance} size={12.5} color={p.chrome} /><Text style={[styles.noteText, { color: p.tertiary }]}>Icon switching becomes available in the installed iOS native build.</Text></View>
@@ -101,42 +100,36 @@ export default function AppearanceScreen() {
     </SafeAreaView>
   );
 
-  function SettingsBlock({ title, children }: { title: string; children: React.ReactNode }) {
-    return <View style={styles.section}><Text style={[styles.groupTitle, { color: p.secondary }]}>{title}</Text><V5Group>{children}</V5Group></View>;
-  }
+
 
   function SelectionMark({ active }: { active: boolean }) {
     return (
       <View style={[styles.radio, { borderColor: active ? p.chrome : p.tertiary, backgroundColor: active ? p.chrome : 'transparent' }]}>
-        {active ? <OneIcon name={icons.check} size={10} color={p.dark ? '#111113' : '#FFFFFF'} /> : null}
+        {active ? <OneIcon name={icons.check} size={10} color={p.onAccent} /> : null}
       </View>
     );
   }
 }
 
 function previewBackground(mode: ThemePreference, current: string) {
-  if (mode === 'light') return '#F5F5F7';
-  if (mode === 'dark') return '#000000';
+  if (mode === 'light') return lightTheme.background;
+  if (mode === 'dark') return darkTheme.background;
   return current;
 }
 function previewSurface(mode: ThemePreference, current: string) {
-  if (mode === 'light') return '#FFFFFF';
-  if (mode === 'dark') return '#1C1C1E';
+  if (mode === 'light') return lightTheme.surface;
+  if (mode === 'dark') return darkTheme.surface;
   return current;
 }
 function previewText(mode: ThemePreference, current: string) {
-  if (mode === 'light') return '#111113';
-  if (mode === 'dark') return '#F5F5F7';
+  if (mode === 'light') return lightTheme.text;
+  if (mode === 'dark') return darkTheme.text;
   return current;
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 34, gap: 18 },
-  nav: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navTitle: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
-  section: { gap: 6 },
-  groupTitle: { paddingHorizontal: 4, fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
   row: { minHeight: 72, paddingHorizontal: 13, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 11 },
   rowCopy: { flex: 1, minWidth: 0 },
   preview: { width: 46, height: 46, borderRadius: 11, padding: 6 },
@@ -146,9 +139,9 @@ const styles = StyleSheet.create({
   previewLineShort: { width: '45%', marginTop: 4, opacity: 0.25 },
   appIconPreview: { width: 46, height: 46, borderRadius: 11 },
   rowTitle: { fontSize: 15, lineHeight: 18, fontWeight: '600' },
-  rowBody: { marginTop: 2, fontSize: 12, lineHeight: 15.5 },
+  rowBody: { marginTop: 2, ...neverType.caption },
   radio: { width: 20, height: 20, borderRadius: 10, borderWidth: 1.25, alignItems: 'center', justifyContent: 'center' },
   note: { paddingHorizontal: 4, flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
-  noteText: { flex: 1, fontSize: 10.5, lineHeight: 14.5 },
-  errorText: { paddingHorizontal: 4, fontSize: 10.5, lineHeight: 14.5 }
+  noteText: { flex: 1, ...neverType.caption },
+  errorText: { paddingHorizontal: 4, ...neverType.caption }
 });

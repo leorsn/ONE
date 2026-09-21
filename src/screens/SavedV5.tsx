@@ -16,7 +16,6 @@ import { MemoryRow } from '@/src/ui/MemoryRow';
 import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import { neverSpacing } from '@/src/theme/tokens';
 import {
-  V5Chevron,
   V5Group,
   V5SearchField,
   V5Segmented,
@@ -77,13 +76,15 @@ export default function SavedV5() {
     const grouped = new Map<string, OneItem[]>();
     for (const item of savedItems) {
       const label = item.category?.trim() || 'Unfiled';
-      grouped.set(label, [...(grouped.get(label) || []), item]);
+      const entries = grouped.get(label);
+      if (entries) entries.push(item);
+      else grouped.set(label, [item]);
     }
     return [...grouped].map(([label, entries]) => ({ label, items: entries }));
   }, [savedItems]);
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <NeverBackdrop />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         <View style={styles.heroCopy}>
@@ -166,109 +167,6 @@ export default function SavedV5() {
     </SafeAreaView>
   );
 
-  function LibraryTile({ label, count, icon, onPress }: { label: string; count: number; icon: (typeof icons)[keyof typeof icons]; onPress: () => void }) {
-    return (
-      <Pressable
-        onPress={onPress}
-        style={({ pressed }) => [styles.libraryTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
-      >
-        <View style={styles.libraryTileTop}>
-          <View style={[styles.libraryTileIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={18} color={p.chrome} /></View>
-          <Text style={[styles.libraryTileCount, { color: p.tertiary }]}>{count}</Text>
-        </View>
-        <Text style={[styles.libraryTileTitle, { color: p.label }]}>{label}</Text>
-        <Text style={[styles.libraryTileCopy, { color: p.secondary }]}>Open collection</Text>
-      </Pressable>
-    );
-  }
-
-  function DocumentsView({ groups, summary, selectedFilter, setSelectedFilter }: {
-    groups: { label: string; items: OneItem[] }[];
-    summary: ReturnType<typeof getDocumentSummary>;
-    selectedFilter: 'all' | OneDocumentKind;
-    setSelectedFilter: (value: 'all' | OneDocumentKind) => void;
-  }) {
-    const primaryTotal = summary.totals[0];
-    return (
-      <View style={styles.documents}>
-        <NeverHeroSurface compact style={styles.documentSummary}>
-          <View style={styles.summaryHeader}>
-            <View>
-              <NeverEyebrow>Document intelligence</NeverEyebrow>
-              <Text style={[styles.summaryMonth, { color: p.label }]}>{summary.monthLabel}</Text>
-            </View>
-            <Text style={[styles.summaryCount, { color: p.tertiary }]}>{summary.documents.length} documents</Text>
-          </View>
-          <View style={[styles.summaryFacts, { borderTopColor: p.separator }]}>
-            <Fact label="Receipts" value={String(summary.receipts)} />
-            <Fact label="Invoices" value={String(summary.invoices)} />
-            <Fact label="Value" value={primaryTotal ? formatCurrencyTotal(primaryTotal, 'de-DE') : '—'} />
-          </View>
-        </NeverHeroSurface>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.documentFilters}>
-          {documentFilters.map((entry) => {
-            const active = selectedFilter === entry.value;
-            return (
-              <Pressable
-                key={entry.value}
-                onPress={async () => { await Haptics.selectionAsync(); setSelectedFilter(entry.value); }}
-                style={({ pressed }) => [styles.documentFilter, { backgroundColor: active ? p.graphite : p.fillSoft, opacity: pressed ? 0.64 : 1 }]}
-              >
-                <Text style={[styles.documentFilterText, { color: active ? p.onAccent : p.secondary, fontWeight: active ? '600' : '500' }]}>{entry.label}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
-
-        {groups.length ? groups.map((group) => (
-          <View key={group.label} style={styles.section}>
-            <V5SectionHeader title={group.label} meta={`${group.items.length}`} />
-            <V5Group>
-              {group.items.map((item, index) => <DocumentRow key={item.id} item={item} last={index === group.items.length - 1} />)}
-            </V5Group>
-          </View>
-        )) : (
-          <V5Group>
-            <View style={styles.emptyState}>
-              <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.document} size={18} color={p.chrome} /></View>
-              <Text style={[styles.emptyTitle, { color: p.label }]}>No matching documents</Text>
-              <Text style={[styles.emptyBody, { color: p.secondary }]}>Try another search or document filter.</Text>
-            </View>
-          </V5Group>
-        )}
-      </View>
-    );
-  }
-
-  function Fact({ label, value }: { label: string; value: string }) {
-    return (
-      <View style={styles.fact}>
-        <Text style={[styles.factValue, { color: p.label }]} numberOfLines={1}>{value}</Text>
-        <Text style={[styles.factLabel, { color: p.tertiary }]}>{label}</Text>
-      </View>
-    );
-  }
-
-  function DocumentRow({ item, last }: { item: OneItem; last: boolean }) {
-    const amount = formatItemAmount(item, 'de-DE');
-    return (
-      <Pressable
-        onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.documentRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
-      >
-        <View style={[styles.documentIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.document} size={15} color={p.chrome} /></View>
-        <View style={[styles.documentContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[styles.documentTitle, { color: p.label }]} numberOfLines={1}>{item.merchant || item.title}</Text>
-            <Text style={[styles.documentMeta, { color: p.secondary }]} numberOfLines={1}>{[formatKind(item.documentKind), prettyDate(item.date), item.category].filter(Boolean).join(' · ')}</Text>
-          </View>
-          {amount ? <Text style={[styles.documentAmount, { color: p.secondary }]}>{amount}</Text> : null}
-          <V5Chevron />
-        </View>
-      </Pressable>
-    );
-  }
 }
 
 function formatKind(kind?: OneDocumentKind) {
@@ -276,8 +174,100 @@ function formatKind(kind?: OneDocumentKind) {
   return kind.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
 }
 function prettyDate(iso?: string) {
-  if (!iso) return undefined;
+  if (!iso || !Number.isFinite(new Date(`${iso}T12:00:00`).getTime())) return undefined;
   return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(`${iso}T12:00:00`));
+}
+
+function LibraryTile({ label, count, icon, onPress }: { label: string; count: number; icon: (typeof icons)[keyof typeof icons]; onPress: () => void }) {
+  const p = useNeverV5Palette();
+  return (
+    <Pressable accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.libraryTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+    >
+      <View style={styles.libraryTileTop}>
+        <View style={[styles.libraryTileIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={18} color={p.chrome} /></View>
+        <Text style={[styles.libraryTileCount, { color: p.tertiary }]}>{count}</Text>
+      </View>
+      <Text style={[styles.libraryTileTitle, { color: p.label }]}>{label}</Text>
+      <Text style={[styles.libraryTileCopy, { color: p.secondary }]}>Open collection</Text>
+    </Pressable>
+  );
+}
+
+function DocumentsView({ groups, summary, selectedFilter, setSelectedFilter }: {
+  groups: { label: string; items: OneItem[] }[];
+  summary: ReturnType<typeof getDocumentSummary>;
+  selectedFilter: 'all' | OneDocumentKind;
+  setSelectedFilter: (value: 'all' | OneDocumentKind) => void;
+}) {
+  const p = useNeverV5Palette();
+  const primaryTotal = summary.totals[0];
+  return (
+    <View style={styles.documents}>
+      <NeverHeroSurface compact style={styles.documentSummary}>
+        <View style={styles.summaryHeader}>
+          <View>
+            <NeverEyebrow>Document intelligence</NeverEyebrow>
+            <Text style={[styles.summaryMonth, { color: p.label }]}>{summary.monthLabel}</Text>
+          </View>
+          <Text style={[styles.summaryCount, { color: p.tertiary }]}>{summary.documents.length} documents</Text>
+        </View>
+        <View style={[styles.summaryFacts, { borderTopColor: p.separator }]}>
+          <Fact label="Receipts" value={String(summary.receipts)} />
+          <Fact label="Invoices" value={String(summary.invoices)} />
+          <Fact label="Value" value={primaryTotal ? formatCurrencyTotal(primaryTotal, 'de-DE') : '—'} />
+        </View>
+      </NeverHeroSurface>
+
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.documentFilters}>
+        {documentFilters.map((entry) => {
+          const active = selectedFilter === entry.value;
+          return (
+            <Pressable accessibilityRole="button"
+              key={entry.value}
+              onPress={async () => { void Haptics.selectionAsync().catch(() => undefined); setSelectedFilter(entry.value); }}
+              style={({ pressed }) => [styles.documentFilter, { backgroundColor: active ? p.graphite : p.fillSoft, opacity: pressed ? 0.64 : 1 }]}
+            >
+              <Text style={[styles.documentFilterText, { color: active ? p.onAccent : p.secondary, fontWeight: active ? '600' : '500' }]}>{entry.label}</Text>
+            </Pressable>
+          );
+        })}
+      </ScrollView>
+
+      {groups.length ? groups.map((group) => (
+        <View key={group.label} style={styles.section}>
+          <V5SectionHeader title={group.label} meta={`${group.items.length}`} />
+          <V5Group>
+            {group.items.map((item, index) => <DocumentRow key={item.id} item={item} last={index === group.items.length - 1} />)}
+          </V5Group>
+        </View>
+      )) : (
+        <V5Group>
+          <View style={styles.emptyState}>
+            <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.document} size={18} color={p.chrome} /></View>
+            <Text style={[styles.emptyTitle, { color: p.label }]}>No matching documents</Text>
+            <Text style={[styles.emptyBody, { color: p.secondary }]}>Try another search or document filter.</Text>
+          </View>
+        </V5Group>
+      )}
+    </View>
+  );
+}
+
+function Fact({ label, value }: { label: string; value: string }) {
+  const p = useNeverV5Palette();
+  return (
+    <View style={styles.fact}>
+      <Text style={[styles.factValue, { color: p.label }]} >{value}</Text>
+      <Text style={[styles.factLabel, { color: p.tertiary }]}>{label}</Text>
+    </View>
+  );
+}
+
+function DocumentRow({ item, last }: { item: OneItem; last: boolean }) {
+  const subtitle = [item.merchant, formatKind(item.documentKind), prettyDate(item.date), formatItemAmount(item, 'de-DE')].filter(Boolean).join(' · ');
+  return <MemoryRow item={item} subtitle={subtitle} last={last} onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })} />;
 }
 
 const styles = StyleSheet.create({
@@ -292,7 +282,7 @@ const styles = StyleSheet.create({
   captureButton: { width: 44, height: 44, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   section: { gap: neverSpacing.md },
   libraryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  libraryTile: { width: '48.6%', minHeight: 124, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
+  libraryTile: { flexBasis: '47%', flexGrow: 1, minWidth: 130, minHeight: 124, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
   libraryTileTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   libraryTileIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   libraryTileCount: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
@@ -309,20 +299,13 @@ const styles = StyleSheet.create({
   emptyBody: { marginTop: 3, maxWidth: 250, fontSize: 12.5, lineHeight: 17, textAlign: 'center' },
   documents: { gap: 15 },
   documentSummary: { overflow: 'hidden' },
-  summaryHeader: { minHeight: 74, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  summaryHeader: { minHeight: 74, flexWrap: 'wrap', gap: 8, paddingVertical: 12, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   summaryMonth: { marginTop: 3, fontSize: 17, lineHeight: 21, fontWeight: '600' },
   summaryCount: { fontSize: 11.5, lineHeight: 14 },
-  summaryFacts: { minHeight: 76, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
-  fact: { flex: 1, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
+  summaryFacts: { minHeight: 76, flexWrap: 'wrap', borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row' },
+  fact: { flex: 1, minWidth: 110, paddingVertical: 12, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
   factValue: { fontSize: 17, lineHeight: 21, fontWeight: '600' },
   factLabel: { marginTop: 2, fontSize: 10.5, lineHeight: 13 },
   documentFilters: { gap: 7, paddingRight: 6 },
   documentFilter: { minHeight: 40, paddingHorizontal: 13, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  documentFilterText: { fontSize: 11.5, lineHeight: 15 },
-  documentRow: { minHeight: 62, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  documentIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  documentContent: { flex: 1, minHeight: 62, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  documentTitle: { fontSize: 15, lineHeight: 18, fontWeight: '600' },
-  documentMeta: { marginTop: 1, fontSize: 12, lineHeight: 15 },
-  documentAmount: { fontSize: 12.5, lineHeight: 16, fontWeight: '500' }
-});
+  documentFilterText: { fontSize: 11.5, lineHeight: 15 },});

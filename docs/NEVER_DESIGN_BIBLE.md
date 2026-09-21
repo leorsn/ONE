@@ -34,19 +34,21 @@ unrelated dashboard cards. Readability is the first material constraint.
 literals. `NeverGlass` and legacy `Surface` now delegate to `NeverMaterial`.
 Do not introduce per-screen theme palettes.
 
+Palette synchronized with the preserved pass 1.5 baseline during pass 2.
+
 ## Color and material
 
 | Role | Light | Dark |
 | --- | --- | --- |
-| Canvas | `#E9EDF0` | `#191D22` |
-| Content surface | `#F5F7F8` | `#242A31` |
-| Elevated surface | `#FCFDFD` | `#303840` |
-| Primary text | `#222930` | `#F1F4F6` |
-| Secondary text | `#59636E` | `#B7C1CA` |
-| Tertiary text | `#606A74` | `#A3AFBA` |
-| Primary control | `#414D59` | `#DCE4EB` |
-| On primary control | `#FAFCFD` | `#20272E` |
-| Separator | `#CDD5DC` | `#404B56` |
+| Canvas | `#E6E9EC` | `#11161B` |
+| Content surface | `#F4F6F7` | `#1C232A` |
+| Elevated surface | `#FCFDFD` | `#252E36` |
+| Primary text | `#171D22` | `#F4F6F7` |
+| Secondary text | `#5E6872` | `#B8C1C8` |
+| Tertiary text | `#5F6A74` | `#8F9BA5` |
+| Primary control | `#313B45` | `#DCE4EA` |
+| On primary control | `#FBFCFD` | `#172028` |
+| Separator | `#CDD4DA` | `#333E48` |
 
 Opaque content groups use one subtle perimeter and inset row separators, without
 individual row shadows. Native glass is limited to the capture composer, search
@@ -125,3 +127,22 @@ Settings, scan/share review and other secondary workflows using these foundation
 
 A web export is not evidence of native glass, keyboard, haptics or iOS build quality.
 See `DESIGN_PASS_1.md` for completed gates and remaining device verification.
+
+## Pass 2 implementation rules
+
+Use `NeverInput` for editable controls to preserve native refs and unify focus,
+selection and keyboard appearance. Define field/list components at module scope;
+never recreate an input component type inside its parent render. Preserve raw
+editing punctuation separately from normalized capture data where needed.
+
+Use `NeverNavigation` for centered utility headers and `NeverSettingsSection` for
+settings groups. `NeverNotice` provides real processing/error/retry feedback.
+Memory/document/source lists share `MemoryRow`, including missing-thumbnail
+fallbacks. Show full money values and wrap metadata before squeezing titles.
+
+Haptics are best-effort and must never delay navigation or turn a successful save
+into an error. Keep opaque groups free of transparency subscriptions. All screens
+respect side safe areas because the app permits landscape. Details adapt for
+small widths and large text; first-use and utility content must scroll.
+
+See `DESIGN_PASS_2.md` for scope, verification and the remaining device acceptance.

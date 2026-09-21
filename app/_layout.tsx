@@ -1,5 +1,5 @@
 import { useEffect, useRef } from 'react';
-import { ActivityIndicator, Platform, View } from 'react-native';
+import { ActivityIndicator, Platform, Text, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import * as Notifications from 'expo-notifications';
@@ -126,8 +126,10 @@ function RootNavigation() {
   if (!appReady) {
     return (
       <View style={{ flex: 1, backgroundColor: p.canvas, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <StatusBar style={resolvedMode === 'dark' ? 'light' : 'dark'} />
         <V5Wordmark />
-        <ActivityIndicator color={p.chrome} />
+        <Text accessibilityLiveRegion="polite" style={{ color: p.secondary, fontSize: 15 }}>Opening your memory…</Text>
+        <ActivityIndicator accessibilityLabel="Loading NEVER" color={p.chrome} />
       </View>
     );
   }

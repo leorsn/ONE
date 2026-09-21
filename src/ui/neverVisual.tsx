@@ -6,7 +6,7 @@ import { useNeverV5Palette } from '@/src/ui/appleV5';
 export function NeverBackdrop() {
   const p = useNeverV5Palette();
   return (
-    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+    <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
       <View
         style={[
           styles.ambientOrb,
@@ -29,16 +29,18 @@ export function NeverBackdrop() {
 export function NeverHeroSurface({
   children,
   style,
-  compact = false
+  compact = false,
+  glass = false
 }: {
   children: ReactNode;
   style?: StyleProp<ViewStyle>;
   compact?: boolean;
+  glass?: boolean;
 }) {
   const p = useNeverV5Palette();
   return (
-    <NeverMaterial glass style={[styles.hero, compact && styles.heroCompact, style]}>
-      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+    <NeverMaterial glass={glass} style={[styles.hero, compact && styles.heroCompact, style]}>
+      <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
         <View style={[styles.heroReflection, { backgroundColor: p.reflection }]} />
         <View
           style={[
@@ -69,8 +71,8 @@ export function NeverMetric({
   const p = useNeverV5Palette();
   return (
     <View style={[styles.metric, style]}>
-      <Text style={[styles.metricValue, { color: p.label }]} numberOfLines={1}>{value}</Text>
-      <Text style={[styles.metricLabel, { color: p.tertiary }]} numberOfLines={1}>{label}</Text>
+      <Text style={[styles.metricValue, { color: p.label }]}>{value}</Text>
+      <Text style={[styles.metricLabel, { color: p.tertiary }]}>{label}</Text>
     </View>
   );
 }
@@ -135,6 +137,7 @@ const styles = StyleSheet.create({
   },
   metric: {
     minWidth: 72,
+    flexShrink: 1,
     gap: 1
   },
   metricValue: {

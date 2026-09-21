@@ -1,3 +1,4 @@
+import { NeverChromeButton } from '@/src/ui/never';
 import { neverType } from '@/src/theme/tokens';
 import { NeverMaterial } from '@/src/ui/material';
 import { isValidElement, type ReactNode } from 'react';
@@ -104,7 +105,7 @@ export function RoundIconButton({ icon, onPress, accessibilityLabel, filled = fa
   const theme = useTheme();
   return (
     <Pressable
-      onPress={async () => { await Haptics.selectionAsync(); onPress(); }}
+      onPress={async () => { void Haptics.selectionAsync().catch(() => undefined); onPress(); }}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
       style={({ pressed }) => [
@@ -129,17 +130,7 @@ export function EmptyState({ icon, title, body }: { icon: IconName; title: strin
 }
 
 export function PrimaryButton({ label, icon, onPress, disabled = false }: { label: string; icon?: IconName; onPress: () => void | Promise<void>; disabled?: boolean }) {
-  const theme = useTheme();
-  return (
-    <Pressable
-      disabled={disabled}
-      onPress={async () => { await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); await onPress(); }}
-      style={({ pressed }) => [styles.primaryButton, { backgroundColor: theme.text, opacity: disabled ? 0.35 : pressed ? 0.72 : 1 }]}
-    >
-      {icon ? <OneIcon name={icon} size={15.5} color={theme.background} /> : null}
-      <Text style={[styles.primaryButtonText, { color: theme.background }]}>{label}</Text>
-    </Pressable>
-  );
+  return <NeverChromeButton label={label} icon={icon} onPress={onPress} disabled={disabled} />;
 }
 
 export const uiStyles = StyleSheet.create({
@@ -169,11 +160,9 @@ const styles = StyleSheet.create({
   sectionMeta: { fontSize: 13, lineHeight: 16, fontWeight: '500' },
   surfacePadded: { padding: 16 },
   iconTile: { alignItems: 'center', justifyContent: 'center' },
-  roundButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  roundButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   emptyState: { minHeight: 150, paddingHorizontal: 24, paddingVertical: 22, alignItems: 'center', justifyContent: 'center' },
   emptyIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { marginTop: 11, fontSize: 17, lineHeight: 21, fontWeight: '600' },
   emptyBody: { marginTop: 4, maxWidth: 280, fontSize: 13, lineHeight: 18, textAlign: 'center' },
-  primaryButton: { minHeight: 50, borderRadius: 14, paddingHorizontal: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  primaryButtonText: { fontSize: 15, lineHeight: 19, fontWeight: '600' }
 });

@@ -1,3 +1,4 @@
+import { neverType } from '@/src/theme/tokens';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
@@ -199,7 +200,7 @@ export default function HandleShareScreen() {
       attachmentCommittedRef.current = true;
       await markShareHandled(selected.fingerprint);
       await recordNativeAcceptanceEvent('share_saved', selected.fingerprint);
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       clearSharedPayloads();
       setReviewedDraft(null);
       setAllowDuplicate(false);
@@ -215,6 +216,7 @@ export default function HandleShareScreen() {
   }
 
   async function handleCancel() {
+    if (saving) return;
     attachmentRevisionRef.current += 1;
     const local = attachmentRef.current;
     attachmentRef.current = null;
@@ -226,13 +228,13 @@ export default function HandleShareScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={4}>
-        <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.content} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.nav}>
-            <V5IconButton icon={icons.close} accessibilityLabel="Cancel share" onPress={() => void handleCancel()} />
+            <V5IconButton disabled={saving} icon={icons.close} accessibilityLabel="Cancel share" onPress={() => void handleCancel()} />
             <Text style={[styles.navTitle, { color: p.label }]}>Save to NEVER</Text>
-            <View style={{ width: 38 }} />
+            <View style={{ width: 44 }} />
           </View>
 
           <V5LargeHeader title="Save what matters." subtitle="Keep the original, recognize useful details and review the memory before it is saved." />
@@ -267,9 +269,9 @@ export default function HandleShareScreen() {
 
               <View style={styles.storageLine}><OneIcon name={icons.cloud} size={12.5} color={p.chrome} /><Text style={[styles.storageText, { color: p.tertiary }]}>{session ? 'NEVER saves locally first. Account sync can retry when the network is available.' : 'This capture stays on this device until you sign in.'}</Text></View>
 
-              <Pressable disabled={saving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')} onPress={handleSave} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready') ? 0.38 : pressed ? 0.72 : 1 }]}>
-                <OneIcon name={icons.check} size={14.5} color={p.dark ? '#111113' : '#FFFFFF'} />
-                <Text style={[styles.primaryText, { color: p.dark ? '#111113' : '#FFFFFF' }]}>{saving ? 'Saving…' : allowDuplicate ? 'Save Again' : 'Save to NEVER'}</Text>
+              <Pressable accessibilityRole="button" disabled={saving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')} onPress={handleSave} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready') ? 0.38 : pressed ? 0.72 : 1 }]}>
+                <OneIcon name={icons.check} size={14.5} color={p.onAccent} />
+                <Text style={[styles.primaryText, { color: p.onAccent }]}>{saving ? 'Saving…' : allowDuplicate ? 'Save Again' : 'Save to NEVER'}</Text>
               </Pressable>
             </>
           ) : !isResolving ? (
@@ -333,19 +335,19 @@ const styles = StyleSheet.create({
   kind: { fontSize: 8, lineHeight: 10, fontWeight: '700', letterSpacing: 1 },
   previewTitle: { marginTop: 4, fontSize: 14, lineHeight: 18, fontWeight: '600' },
   notice: { minHeight: 50, borderRadius: 13, paddingHorizontal: 12, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  noticeText: { flex: 1, fontSize: 11, lineHeight: 15.5 },
+  noticeText: { flex: 1, ...neverType.caption },
   stateRow: { minHeight: 64, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
   stateTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
-  stateText: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
+  stateText: { marginTop: 2, ...neverType.caption },
   statusLine: { paddingHorizontal: 3, flexDirection: 'row', alignItems: 'center', gap: 9 },
   statusIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   statusTitle: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
-  statusBody: { marginTop: 1, fontSize: 10.5, lineHeight: 14.5 },
+  statusBody: { marginTop: 1, ...neverType.caption },
   storageLine: { paddingHorizontal: 3, flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
-  storageText: { flex: 1, fontSize: 10.5, lineHeight: 14.5 },
-  primaryButton: { minHeight: 46, borderRadius: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
-  primaryText: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  storageText: { flex: 1, ...neverType.caption },
+  primaryButton: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  primaryText: { flexShrink: 1, textAlign: 'center', fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   emptyState: { minHeight: 150, padding: 22, alignItems: 'center', justifyContent: 'center' },
   emptyIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  emptyText: { marginTop: 5, maxWidth: 330, fontSize: 11.5, lineHeight: 16, textAlign: 'center' }
+  emptyText: { marginTop: 5, maxWidth: 330, ...neverType.caption, textAlign: 'center' }
 });

@@ -1,3 +1,4 @@
+import { memoryDateLabel, memoryPreview } from '@/src/ui/memoryPresentation';
 import { useMemo, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -40,7 +41,7 @@ export default function InboxItemDetailScreen() {
           <View style={[styles.missingIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.inbox} size={19} color={p.chrome} /></View>
           <Text style={[styles.missingTitle, { color: p.label }]}>Inbox item not found</Text>
           <Text style={[styles.missingBody, { color: p.secondary }]}>It may have been processed or removed on another device.</Text>
-          <Pressable onPress={() => router.replace('/(tabs)')}><Text style={[styles.missingBack, { color: p.chrome }]}>Return to Home</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)')}><Text style={[styles.missingBack, { color: p.chrome }]}>Return to Home</Text></Pressable>
         </View>
       </SafeAreaView>
     );
@@ -49,7 +50,7 @@ export default function InboxItemDetailScreen() {
   const currentItem = item;
   const state = triageStateForItem(currentItem);
   const actions = proposedActionsForItem(currentItem);
-  const previewUri = imagePreviewUri(currentItem);
+  const previewUri = memoryPreview(currentItem);
   const original = currentItem.originalText || currentItem.rawInput || currentItem.extractedText;
 
   async function execute(action: OneInboxAction) {
@@ -59,12 +60,14 @@ export default function InboxItemDetailScreen() {
     setWorking(true);
     try {
       const next = await update(currentItem.id, changes);
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       if (next) {
         const warning = notificationSaveWarning(next);
         if (warning) Alert.alert('Saved to NEVER', warning);
       }
       router.replace('/(tabs)');
+    } catch {
+      Alert.alert('Could not update memory', 'Your memory is still available. Please try again.');
     } finally {
       setWorking(false);
     }
@@ -75,7 +78,9 @@ export default function InboxItemDetailScreen() {
     setWorking(true);
     try {
       await update(currentItem.id, confirmReviewChanges(currentItem));
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+    } catch {
+      Alert.alert('Could not update memory', 'Your memory is still available. Please try again.');
     } finally {
       setWorking(false);
     }
@@ -86,15 +91,17 @@ export default function InboxItemDetailScreen() {
     setWorking(true);
     try {
       await update(currentItem.id, deferReviewChanges());
-      await Haptics.selectionAsync();
+      void Haptics.selectionAsync().catch(() => undefined);
       router.replace('/(tabs)');
+    } catch {
+      Alert.alert('Could not update memory', 'Your memory is still available. Please try again.');
     } finally {
       setWorking(false);
     }
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         <View style={styles.nav}>
           <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Back to Inbox" onPress={() => router.back()} />
@@ -115,7 +122,7 @@ export default function InboxItemDetailScreen() {
         {previewUri ? (
           <View style={styles.section}>
             <V5SectionHeader title="Original" />
-            <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: p.fill }]} resizeMode="cover" />
+            <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: p.fill }]} resizeMode="contain" />
           </View>
         ) : null}
 
@@ -151,7 +158,7 @@ export default function InboxItemDetailScreen() {
         ) : null}
 
         {duplicate ? (
-          <Pressable onPress={() => router.push({ pathname: '/item/[id]', params: { id: duplicate.id } })} style={({ pressed }) => [styles.duplicate, { backgroundColor: p.surface, opacity: pressed ? 0.6 : 1 }]}>
+          <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/item/[id]', params: { id: duplicate.id } })} style={({ pressed }) => [styles.duplicate, { backgroundColor: p.surface, opacity: pressed ? 0.6 : 1 }]}>
             <View style={[styles.warningIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.more} size={14} color={p.warning} /></View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.duplicateTitle, { color: p.label }]}>Possible Duplicate</Text>
@@ -167,11 +174,11 @@ export default function InboxItemDetailScreen() {
             <V5Group style={styles.reviewGroup}>
               <Text style={[styles.reviewBody, { color: p.secondary }]}>Check uncertain details before confirming. Edit the memory if any recognized fact is wrong.</Text>
               <View style={styles.actionStack}>
-                <Pressable onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })} style={({ pressed }) => [styles.primaryAction, { backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
+                <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })} style={({ pressed }) => [styles.primaryAction, { backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
                   <OneIcon name={icons.edit} size={14} color={p.onAccent} />
                   <Text style={[styles.primaryActionText, { color: p.onAccent }]}>Edit Details</Text>
                 </Pressable>
-                <Pressable disabled={working} onPress={confirmReview} style={({ pressed }) => [styles.secondaryAction, { backgroundColor: p.fill, opacity: pressed || working ? 0.58 : 1 }]}>
+                <Pressable accessibilityRole="button" disabled={working} onPress={confirmReview} style={({ pressed }) => [styles.secondaryAction, { backgroundColor: p.fill, opacity: pressed || working ? 0.58 : 1 }]}>
                   <Text style={[styles.secondaryActionText, { color: p.label }]}>Confirm Facts</Text>
                 </Pressable>
               </View>
@@ -184,7 +191,7 @@ export default function InboxItemDetailScreen() {
             <V5SectionHeader title="Next Actions" />
             <V5Group>
               {actions.map((action, index) => (
-                <Pressable key={action.id} disabled={working} onPress={() => void execute(action.id)} style={({ pressed }) => [styles.proposal, index !== actions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: working ? 0.58 : 1 }]}>
+                <Pressable accessibilityRole="button" key={action.id} disabled={working} onPress={() => void execute(action.id)} style={({ pressed }) => [styles.proposal, index !== actions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: working ? 0.58 : 1 }]}>
                   <View style={{ flex: 1 }}>
                     <Text style={[styles.proposalTitle, { color: p.label }]}>{action.label}</Text>
                     <Text style={[styles.proposalReason, { color: p.secondary }]}>{action.reason}</Text>
@@ -198,7 +205,7 @@ export default function InboxItemDetailScreen() {
 
         {original ? (
           <View style={styles.section}>
-            <Pressable onPress={() => setShowOriginal((value) => !value)} style={styles.disclosure}>
+            <Pressable accessibilityRole="button" accessibilityState={{ expanded: showOriginal }} onPress={() => setShowOriginal((value) => !value)} style={styles.disclosure}>
               <Text style={[styles.disclosureText, { color: p.label }]}>Original Capture</Text>
               <Text style={[styles.openText, { color: p.secondary }]}>{showOriginal ? 'Hide' : 'Show'}</Text>
             </Pressable>
@@ -216,7 +223,7 @@ export default function InboxItemDetailScreen() {
   );
 
   function FooterAction({ label, onPress, danger = false }: { label: string; onPress: () => void | Promise<void>; danger?: boolean }) {
-    return <Pressable disabled={working} onPress={onPress} style={({ pressed }) => [styles.footerAction, { opacity: pressed || working ? 0.55 : 1 }]}><Text style={[styles.footerText, { color: danger ? p.danger : p.secondary }]}>{label}</Text></Pressable>;
+    return <Pressable accessibilityRole="button" disabled={working} onPress={onPress} style={({ pressed }) => [styles.footerAction, { opacity: pressed || working ? 0.55 : 1 }]}><Text style={[styles.footerText, { color: danger ? p.danger : p.secondary }]}>{label}</Text></Pressable>;
   }
 }
 
@@ -231,11 +238,7 @@ function facts(item: OneItem) {
     item.category ? { label: 'Category', value: item.category } : undefined
   ].filter((value): value is { label: string; value: string } => Boolean(value));
 }
-function imagePreviewUri(item: OneItem) {
-  const candidate = item.localAttachmentUri || item.imageUrl;
-  if (!candidate) return undefined;
-  return /^(file|content|ph|https?):\/\//i.test(candidate) ? candidate : undefined;
-}
+
 function iconFor(item: OneItem) {
   if (item.kind === 'event') return icons.appointment;
   if (item.kind === 'reminder') return icons.reminder;
@@ -254,7 +257,7 @@ function stateLabel(state: ReturnType<typeof triageStateForItem>) {
 }
 function sourceLine(item: OneItem) {
   const source = item.sourceType === 'manual' ? 'Captured' : item.sourceType === 'share' ? 'Shared' : item.sourceType;
-  return `${source} · ${new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(item.createdAt))}`;
+  return `${source} · ${memoryDateLabel(item.createdAt, true)}`;
 }
 function confidenceLabel(item: OneItem) {
   const value = item.understandingConfidence || 'medium';
@@ -307,12 +310,12 @@ const styles = StyleSheet.create({
   proposal: { minHeight: 58, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
   proposalTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   proposalReason: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
-  disclosure: { minHeight: 36, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  disclosure: { minHeight: 44, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   disclosureText: { fontSize: 14, lineHeight: 18, fontWeight: '600' },
   openText: { fontSize: 12.5, lineHeight: 16 },
   originalGroup: { padding: 14 },
   original: { fontSize: 12.5, lineHeight: 19 },
   triageFooter: { marginTop: 2, paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
-  footerAction: { minHeight: 34, justifyContent: 'center' },
+  footerAction: { minHeight: 44, justifyContent: 'center' },
   footerText: { fontSize: 11.5, lineHeight: 14, fontWeight: '600' }
 });

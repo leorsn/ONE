@@ -1,4 +1,7 @@
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useState } from 'react';
+import { neverType } from '@/src/theme/tokens';
+import { NeverInput } from '@/src/ui/NeverInput';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   applyUserContextPriority,
   confirmCaptureField,
@@ -42,6 +45,8 @@ export function CaptureReviewEditor({
   showExtractedText?: boolean;
 }) {
   const p = useNeverV5Palette();
+  const [editingTags, setEditingTags] = useState(false);
+  const [rawTags, setRawTags] = useState('');
 
   function setField<K extends keyof CaptureDraft>(key: K, value: CaptureDraft[K]) {
     onChange({ ...draft, [key]: value });
@@ -52,7 +57,7 @@ export function CaptureReviewEditor({
     field: CaptureField,
     value: string
   ) {
-    onChange(confirmCaptureField({ ...draft, [key]: value || undefined }, field));
+    onChange(confirmCaptureField({ ...draft, [key]: key === 'title' ? value : value || undefined }, field));
   }
 
   return (
@@ -76,8 +81,8 @@ export function CaptureReviewEditor({
       ) : null}
 
       <View style={styles.section}>
-        <FieldLabel label="Type" confidence={draft.fieldConfidence.type} field="type" />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.kindRow}>
+        <FieldLabel onConfirm={(field) => onChange(confirmCaptureField(draft, field))} label="Type" confidence={draft.fieldConfidence.type} field="type" />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} keyboardShouldPersistTaps="handled" contentContainerStyle={styles.kindRow}>
           {kinds.map((kind) => {
             const active = draft.captureKind === kind.value || (draft.captureKind === 'screenshot' && kind.value === 'image');
             return (
@@ -96,17 +101,17 @@ export function CaptureReviewEditor({
       </View>
 
       <V5Group>
-        <ReviewField label="Title" field="title" value={draft.title} confidence={draft.fieldConfidence.title} onChange={(value) => updateTextField('title', 'title', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'title'))} placeholder="Title" />
-        <ReviewField label="Date" field="date" value={draft.date || ''} confidence={draft.fieldConfidence.date} onChange={(value) => updateTextField('date', 'date', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'date'))} placeholder="YYYY-MM-DD" />
-        <ReviewField label="Time" field="time" value={draft.time || ''} confidence={draft.fieldConfidence.time} onChange={(value) => updateTextField('time', 'time', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'time'))} placeholder="HH:MM" />
-        <ReviewField label="Location" field="location" value={draft.location || ''} confidence={draft.fieldConfidence.location} onChange={(value) => updateTextField('location', 'location', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'location'))} placeholder="Optional" />
-        <ReviewField label="Category" field="category" value={draft.category || ''} onChange={(value) => updateTextField('category', 'category', value)} placeholder="Optional" last />
+        <ReviewField needsReview={draft.needsReview} label="Title" field="title" value={draft.title} confidence={draft.fieldConfidence.title} onChange={(value) => updateTextField('title', 'title', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'title'))} placeholder="Title" />
+        <ReviewField needsReview={draft.needsReview} label="Date" field="date" value={draft.date || ''} confidence={draft.fieldConfidence.date} onChange={(value) => updateTextField('date', 'date', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'date'))} placeholder="YYYY-MM-DD" />
+        <ReviewField needsReview={draft.needsReview} label="Time" field="time" value={draft.time || ''} confidence={draft.fieldConfidence.time} onChange={(value) => updateTextField('time', 'time', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'time'))} placeholder="HH:MM" />
+        <ReviewField needsReview={draft.needsReview} label="Location" field="location" value={draft.location || ''} confidence={draft.fieldConfidence.location} onChange={(value) => updateTextField('location', 'location', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'location'))} placeholder="Optional" />
+        <ReviewField needsReview={draft.needsReview} label="Category" field="category" value={draft.category || ''} onChange={(value) => updateTextField('category', 'category', value)} placeholder="Optional" last />
       </V5Group>
 
       {(draft.captureKind === 'receipt' || draft.captureKind === 'document' || draft.documentKind) ? (
         <V5Group>
-          <ReviewField label="Merchant" field="merchant" value={draft.merchant || ''} confidence={draft.fieldConfidence.merchant} onChange={(value) => updateTextField('merchant', 'merchant', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'merchant'))} placeholder="Unknown" />
-          <ReviewField
+          <ReviewField needsReview={draft.needsReview} label="Merchant" field="merchant" value={draft.merchant || ''} confidence={draft.fieldConfidence.merchant} onChange={(value) => updateTextField('merchant', 'merchant', value)} onConfirm={() => onChange(confirmCaptureField(draft, 'merchant'))} placeholder="Unknown" />
+          <ReviewField needsReview={draft.needsReview}
             label="Amount"
             field="amount"
             value={draft.amount === undefined ? '' : String(draft.amount)}
@@ -119,13 +124,13 @@ export function CaptureReviewEditor({
             placeholder="Leave blank if unknown"
             keyboardType="decimal-pad"
           />
-          <ReviewField label="Currency" field="currency" value={draft.currency || ''} confidence={draft.fieldConfidence.currency} onChange={(value) => updateTextField('currency', 'currency', value.toUpperCase().slice(0, 3))} onConfirm={() => onChange(confirmCaptureField(draft, 'currency'))} placeholder="EUR" last />
+          <ReviewField needsReview={draft.needsReview} label="Currency" field="currency" value={draft.currency || ''} confidence={draft.fieldConfidence.currency} onChange={(value) => updateTextField('currency', 'currency', value.toUpperCase().slice(0, 3))} onConfirm={() => onChange(confirmCaptureField(draft, 'currency'))} placeholder="EUR" last />
         </V5Group>
       ) : null}
 
       <View style={styles.textBlock}>
-        <FieldLabel label="Context" confidence={draft.userContext ? 'high' : undefined} />
-        <TextInput
+        <FieldLabel onConfirm={(field) => onChange(confirmCaptureField(draft, field))} label="Context" confidence={draft.userContext ? 'high' : undefined} />
+        <NeverInput
           value={draft.userContext || ''}
           onChangeText={(value) => onChange(applyUserContextPriority(draft, value))}
           placeholder="NEVER will summarize what this is about…"
@@ -138,7 +143,7 @@ export function CaptureReviewEditor({
       </View>
 
       <View style={styles.section}>
-        <FieldLabel label="Organize in" />
+        <FieldLabel onConfirm={(field) => onChange(confirmCaptureField(draft, field))} label="Organize in" />
         <V5Segmented
           options={destinations.map((destination) => destination.label)}
           selected={destinations.find((destination) => destination.value === draft.destination)?.label || 'Inbox'}
@@ -151,10 +156,12 @@ export function CaptureReviewEditor({
       </View>
 
       <View style={styles.textBlock}>
-        <FieldLabel label="Tags" />
-        <TextInput
-          value={draft.tags.join(', ')}
-          onChangeText={(value) => setField('tags', splitTags(value))}
+        <FieldLabel onConfirm={(field) => onChange(confirmCaptureField(draft, field))} label="Tags" />
+        <NeverInput
+          value={editingTags ? rawTags : draft.tags.join(', ')}
+          onFocus={() => { setRawTags(draft.tags.join(', ')); setEditingTags(true); }}
+          onBlur={() => setEditingTags(false)}
+          onChangeText={(value) => { setRawTags(value); setField('tags', splitTags(value)); }}
           placeholder="gift, dad, travel"
           placeholderTextColor={p.tertiary}
           style={[styles.singleInput, { color: p.label, backgroundColor: p.surface }]}
@@ -165,8 +172,8 @@ export function CaptureReviewEditor({
 
       {showExtractedText ? (
         <View style={styles.textBlock}>
-          <FieldLabel label="Recognized text" />
-          <TextInput
+          <FieldLabel onConfirm={(field) => onChange(confirmCaptureField(draft, field))} label="Recognized text" />
+          <NeverInput
             value={draft.extractedText || ''}
             onChangeText={(value) => setField('extractedText', value || undefined)}
             placeholder="No text recognized"
@@ -182,81 +189,90 @@ export function CaptureReviewEditor({
     </View>
   );
 
-  function FieldLabel({ label, confidence, field }: { label: string; confidence?: CaptureConfidence; field?: CaptureField }) {
-    return (
-      <View style={styles.fieldLabelRow}>
-        <Text style={[styles.fieldLabel, { color: p.secondary }]}>{label}</Text>
-        {confidence ? (
-          <Pressable accessibilityRole={field ? 'button' : undefined} accessibilityLabel={field ? `${label} confidence ${confidence}. Mark as confirmed.` : `${label} confidence ${confidence}`} onPress={field ? () => onChange(confirmCaptureField(draft, field)) : undefined}>
-            <View style={styles.confidenceRow}>
-              <View style={[styles.confidenceDot, { backgroundColor: confidenceColor(confidence) }]} />
-              <Text style={[styles.confidence, { color: p.tertiary }]}>{confidence}</Text>
-            </View>
-          </Pressable>
-        ) : null}
-      </View>
-    );
-  }
+}
 
-  function ReviewField({
-    label,
-    field,
-    value,
-    confidence,
-    onChange: onFieldChange,
-    onConfirm,
-    placeholder,
-    keyboardType = 'default',
-    last = false
-  }: {
-    label: string;
-    field: CaptureField;
-    value: string;
-    confidence?: CaptureConfidence;
-    onChange: (value: string) => void;
-    onConfirm?: () => void;
-    placeholder: string;
-    keyboardType?: 'default' | 'decimal-pad';
-    last?: boolean;
-  }) {
-    const unresolved = draft.needsReview.includes(field);
-    return (
-      <View style={[styles.fieldRow, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.separator }]}>
-        <View style={styles.fieldNameWrap}>
-          <Text style={[styles.rowLabel, { color: p.label }]}>{label}</Text>
-          <View style={styles.fieldMetaLine}>
-            {confidence ? (
-              <View style={styles.inlineConfidenceRow}>
-                <View style={[styles.miniDot, { backgroundColor: confidenceColor(confidence) }]} />
-                <Text style={[styles.inlineConfidence, { color: p.tertiary }]}>{confidence}</Text>
-              </View>
-            ) : null}
-            {unresolved && onConfirm ? (
-              <Pressable accessibilityRole="button" accessibilityLabel={`Confirm ${label}`} onPress={onConfirm} hitSlop={8}>
-                <Text style={[styles.confirmText, { color: p.chrome }]}>{value ? 'Confirm' : 'Keep blank'}</Text>
-              </Pressable>
-            ) : null}
+function FieldLabel({ label, confidence, field, onConfirm }: { label: string; confidence?: CaptureConfidence; field?: CaptureField; onConfirm: (field: CaptureField) => void }) {
+  const p = useNeverV5Palette();
+  return (
+    <View style={styles.fieldLabelRow}>
+      <Text style={[styles.fieldLabel, { color: p.secondary }]}>{label}</Text>
+      {confidence ? (
+        <Pressable accessibilityRole={field ? 'button' : undefined} accessibilityLabel={field ? `${label} confidence ${confidence}. Mark as confirmed.` : `${label} confidence ${confidence}`} style={{ minHeight: 44, justifyContent: 'center' }} onPress={field ? () => onConfirm(field) : undefined}>
+          <View style={styles.confidenceRow}>
+            <View style={[styles.confidenceDot, { backgroundColor: confidenceColor(confidence, p) }]} />
+            <Text style={[styles.confidence, { color: p.tertiary }]}>{confidence}</Text>
           </View>
-        </View>
-        <TextInput
-          value={value}
-          onChangeText={onFieldChange}
-          placeholder={placeholder}
-          placeholderTextColor={p.tertiary}
-          keyboardType={keyboardType}
-          style={[styles.rowInput, { color: p.label }]}
-          accessibilityLabel={label}
-          autoCapitalize={label === 'Currency' ? 'characters' : 'sentences'}
-        />
-      </View>
-    );
-  }
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
 
-  function confidenceColor(confidence: CaptureConfidence) {
-    if (confidence === 'high') return p.success;
-    if (confidence === 'medium') return p.warning;
-    return p.danger;
-  }
+function ReviewField({
+  label,
+  field,
+  needsReview,
+  value,
+  confidence,
+  onChange: onFieldChange,
+  onConfirm,
+  placeholder,
+  keyboardType = 'default',
+  last = false
+}: {
+  label: string;
+  field: CaptureField;
+  needsReview: CaptureField[];
+  value: string;
+  confidence?: CaptureConfidence;
+  onChange: (value: string) => void;
+  onConfirm?: () => void;
+  placeholder: string;
+  keyboardType?: 'default' | 'decimal-pad';
+  last?: boolean;
+}) {
+  const p = useNeverV5Palette();
+  const unresolved = needsReview.includes(field);
+  const [editing, setEditing] = useState(false);
+  const [rawValue, setRawValue] = useState(value);
+  return (
+    <View style={[styles.fieldRow, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.separator }]}>
+      <View style={styles.fieldNameWrap}>
+        <Text style={[styles.rowLabel, { color: p.label }]}>{label}</Text>
+        <View style={styles.fieldMetaLine}>
+          {confidence ? (
+            <View style={styles.inlineConfidenceRow}>
+              <View style={[styles.miniDot, { backgroundColor: confidenceColor(confidence, p) }]} />
+              <Text style={[styles.inlineConfidence, { color: p.tertiary }]}>{confidence}</Text>
+            </View>
+          ) : null}
+          {unresolved && onConfirm ? (
+            <Pressable accessibilityRole="button" accessibilityLabel={`Confirm ${label}`} onPress={onConfirm} style={{ minHeight: 44, justifyContent: 'center' }}>
+              <Text style={[styles.confirmText, { color: p.chrome }]}>{value ? 'Confirm' : 'Keep blank'}</Text>
+            </Pressable>
+          ) : null}
+        </View>
+      </View>
+      <NeverInput
+        value={editing ? rawValue : value}
+        onFocus={() => { setRawValue(value); setEditing(true); }}
+        onBlur={() => setEditing(false)}
+        onChangeText={(text) => { setRawValue(text); onFieldChange(text); }}
+        placeholder={placeholder}
+        placeholderTextColor={p.tertiary}
+        keyboardType={keyboardType}
+        style={[styles.rowInput, { color: p.label }]}
+        accessibilityLabel={label}
+        autoCapitalize={label === 'Currency' ? 'characters' : 'sentences'}
+      />
+    </View>
+  );
+}
+
+function confidenceColor(confidence: CaptureConfidence, p: ReturnType<typeof useNeverV5Palette>) {
+  if (confidence === 'high') return p.success;
+  if (confidence === 'medium') return p.warning;
+  return p.danger;
 }
 
 function splitTags(value: string) {
@@ -279,34 +295,34 @@ const styles = StyleSheet.create({
   wrapper: { gap: 16 },
   headingRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   heading: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.2 },
-  subheading: { marginTop: 3, maxWidth: 430, fontSize: 12, lineHeight: 16.5 },
+  subheading: { marginTop: 3, maxWidth: 430, ...neverType.caption },
   reviewState: { paddingTop: 2, flexDirection: 'row', alignItems: 'center', gap: 5 },
   stateDot: { width: 5, height: 5, borderRadius: 3 },
-  reviewStateText: { fontSize: 10.5, lineHeight: 13, fontWeight: '600' },
+  reviewStateText: { ...neverType.caption, fontWeight: '600' },
   ambiguityCard: { paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth },
-  ambiguityTitle: { fontSize: 11.5, lineHeight: 14, fontWeight: '600', marginBottom: 2 },
-  ambiguityText: { marginTop: 3, fontSize: 11, lineHeight: 15.5 },
+  ambiguityTitle: { ...neverType.caption, fontWeight: '600', marginBottom: 2 },
+  ambiguityText: { marginTop: 3, ...neverType.caption },
   section: { gap: 7 },
   fieldLabelRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 2 },
   fieldLabel: { fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
   confidenceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   confidenceDot: { width: 4, height: 4, borderRadius: 2 },
-  confidence: { fontSize: 9.5, lineHeight: 12, fontWeight: '500', textTransform: 'capitalize' },
+  confidence: { ...neverType.caption, fontWeight: '500', textTransform: 'capitalize' },
   kindRow: { gap: 4, paddingRight: 4 },
-  kindChip: { minHeight: 31, borderRadius: 10, paddingHorizontal: 11, alignItems: 'center', justifyContent: 'center' },
-  kindText: { fontSize: 11.5, lineHeight: 14 },
-  fieldRow: { minHeight: 58, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  fieldNameWrap: { width: 100 },
+  kindChip: { minHeight: 44, borderRadius: 10, paddingHorizontal: 11, alignItems: 'center', justifyContent: 'center' },
+  kindText: { ...neverType.caption },
+  fieldRow: { minHeight: 84, paddingHorizontal: 16, paddingVertical: 12, gap: 4 },
+  fieldNameWrap: { alignSelf: 'stretch' },
   rowLabel: { fontSize: 13, lineHeight: 16, fontWeight: '600' },
-  fieldMetaLine: { marginTop: 2, flexDirection: 'row', alignItems: 'center', gap: 7 },
+  fieldMetaLine: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 12 },
   inlineConfidenceRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   miniDot: { width: 4, height: 4, borderRadius: 2 },
-  inlineConfidence: { fontSize: 8.75, lineHeight: 11, textTransform: 'capitalize' },
-  confirmText: { fontSize: 9.25, lineHeight: 12, fontWeight: '600' },
-  rowInput: { flex: 1, minHeight: 42, fontSize: 13.5, lineHeight: 17, textAlign: 'right' },
+  inlineConfidence: { ...neverType.caption, textTransform: 'capitalize' },
+  confirmText: { ...neverType.caption, fontWeight: '600' },
+  rowInput: { minHeight: 44, ...neverType.body, fontSize: 16 },
   textBlock: { gap: 7 },
-  largeInput: { minHeight: 86, borderRadius: 16, padding: 13, fontSize: 13.5, lineHeight: 19.5, textAlignVertical: 'top' },
-  singleInput: { minHeight: 46, borderRadius: 14, paddingHorizontal: 13, fontSize: 13.5 },
-  extractedInput: { minHeight: 116, borderRadius: 16, padding: 13, fontSize: 12, lineHeight: 18 },
-  help: { marginLeft: 2, fontSize: 10.25, lineHeight: 14.5 }
+  largeInput: { minHeight: 86, borderRadius: 16, padding: 13, ...neverType.body, textAlignVertical: 'top' },
+  singleInput: { minHeight: 46, borderRadius: 14, paddingHorizontal: 13, fontSize: 16 },
+  extractedInput: { minHeight: 116, borderRadius: 16, padding: 13, ...neverType.body },
+  help: { marginLeft: 2, ...neverType.caption }
 });

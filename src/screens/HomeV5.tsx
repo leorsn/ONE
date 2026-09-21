@@ -1,9 +1,9 @@
+import { NeverInput } from '@/src/ui/NeverInput';
 import { useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MemoryRow } from '@/src/ui/MemoryRow';
 import { selectionFeedback } from '@/src/ui/material';
 import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import { neverSpacing, neverType } from '@/src/theme/tokens';
@@ -48,14 +48,12 @@ export default function HomeV5() {
   const structuredReview = draft ? requiresStructuredReview(draft) : false;
   const now = new Date();
   const firstName = displayFirstName(session?.user.user_metadata);
-  const recentItems = [...items]
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
-    .slice(0, 6);
+  const recentItems = useMemo(() => [...items].sort(sortUpdated).slice(0, 6), [items]);
   const todayEntries = buildTodayEntries(items, now).slice(0, 3);
-  const inboxItems = items
-    .filter((item) => !item.completed && isInboxActive(item, now))
-    .sort((a, b) => triagePriority(a) - triagePriority(b) || sortUpdated(a, b))
-    .slice(0, 3);
+  const reviewItems = items
+    .filter((item) => !item.completed && isInboxActive(item, new Date()))
+    .sort((a, b) => triagePriority(a) - triagePriority(b) || sortUpdated(a, b));
+  const inboxItems = reviewItems.slice(0, 3);
 
   async function handleSave() {
     if (!draft || !input.trim() || !draft.title.trim() || savingRef.current) return;
@@ -83,7 +81,7 @@ export default function HomeV5() {
     const changes = triageActionChanges(item, action);
     if (!changes) return;
     const updated = await update(item.id, changes);
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
     if (updated) {
       const warning = notificationSaveWarning(updated);
       if (warning) Alert.alert('Saved to NEVER', warning);
@@ -100,7 +98,7 @@ export default function HomeV5() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <NeverBackdrop />
       <ScrollView
         contentContainerStyle={styles.content}
@@ -124,15 +122,15 @@ export default function HomeV5() {
           </Text>
         </View>
 
-        <NeverHeroSurface style={styles.captureStage}>
+        <NeverHeroSurface glass style={styles.captureStage}>
           <View style={styles.captureStageHeader}>
             <View>
               <NeverEyebrow>Quick capture</NeverEyebrow>
               <Text style={[styles.captureStageTitle, { color: p.label }]}>Put it in memory.</Text>
             </View>
             <View style={styles.captureMetrics}>
-              <NeverMetric value={`${items.length}`} label="saved" />
-              <NeverMetric value={`${inboxItems.length}`} label="review" />
+              <NeverMetric value={`${items.length}`} label="captured" />
+              <NeverMetric value={`${reviewItems.length}`} label="review" />
             </View>
           </View>
 
@@ -145,7 +143,7 @@ export default function HomeV5() {
             >
               <OneIcon name={icons.plus} size={20} color={p.onAccent} />
             </Pressable>
-            <TextInput
+            <NeverInput
               ref={captureRef}
               value={input}
               onChangeText={(value) => { setInput(value); setReviewedDraft(null); setCaptureStatus(''); }}
@@ -242,7 +240,7 @@ export default function HomeV5() {
           <V5SectionHeader
             title="Recent memory"
             action={recentItems.length ? (
-              <Pressable onPress={() => router.push('/(tabs)/saved')} hitSlop={8}>
+              <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/saved')} hitSlop={8}>
                 <Text style={[styles.seeAll, { color: p.chrome }]}>See All</Text>
               </Pressable>
             ) : undefined}
@@ -267,14 +265,14 @@ export default function HomeV5() {
               title="Needs Review"
               meta={`${inboxItems.length}`}
               action={(
-                <Pressable onPress={() => router.push('/inbox')} hitSlop={8}>
+                <Pressable accessibilityRole="button" onPress={() => router.push('/inbox')} hitSlop={8}>
                   <Text style={[styles.seeAll, { color: p.chrome }]}>Open</Text>
                 </Pressable>
               )}
             />
             <V5Group>
-              {inboxItems.map((item) => (
-                <TriageRow key={item.id} item={item} onOpen={() => router.push({ pathname: '/inbox/[id]', params: { id: item.id } })} onExecute={(action) => executeAction(item, action)} />
+              {inboxItems.map((item, index) => (
+                <TriageRow last={index === inboxItems.length - 1} key={item.id} item={item} onOpen={() => router.push({ pathname: '/inbox/[id]', params: { id: item.id } })} onExecute={(action) => executeAction(item, action)} />
               ))}
             </V5Group>
           </View>
@@ -283,66 +281,6 @@ export default function HomeV5() {
     </SafeAreaView>
   );
 
-  function QuickAction({ label, icon, onPress }: { label: string; icon: (typeof icons)[keyof typeof icons]; onPress: () => void }) {
-    return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={label}
-        onPress={() => { selectionFeedback(); onPress(); }}
-        style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.58 : 1 }]}
-      >
-        <View style={[styles.actionIcon, { backgroundColor: p.dark ? '#FFFFFF0D' : '#FFFFFF70', borderColor: p.glassBorder }]}>
-          <OneIcon name={icon} size={19} color={p.chrome} />
-        </View>
-        <Text style={[styles.quickActionLabel, { color: p.secondary }]}>{label}</Text>
-      </Pressable>
-    );
-  }
-
-  function TodayRow({ item, reason }: { item: OneItem; reason: string }) {
-    const activeInbox = isInboxActive(item, now);
-    const overdue = reason === 'Overdue';
-    const detail = [item.location, item.summary].filter(Boolean).join(' · ') || reason;
-    const timeLabel = item.time || (overdue ? 'Past' : reason);
-    return (
-      <Pressable
-        onPress={() => router.push({ pathname: activeInbox ? '/inbox/[id]' : '/item/[id]', params: { id: item.id } } as never)}
-        style={({ pressed }) => [styles.todayCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
-      >
-        <View style={[styles.todayRail, { backgroundColor: overdue ? p.warning : p.chrome }]} />
-        <View style={styles.todayCopy}>
-          <View style={styles.listTitleLine}>
-            <Text style={[styles.listTitle, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
-            <Text style={[styles.listMeta, { color: overdue ? p.warning : p.tertiary }]}>{timeLabel}</Text>
-          </View>
-          <Text style={[styles.listSubtitle, { color: p.secondary }]} numberOfLines={1}>{detail}</Text>
-        </View>
-        <V5Chevron />
-      </Pressable>
-    );
-  }
-
-  function RecentCard({ item }: { item: OneItem }) {
-    return (
-      <Pressable
-        onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.recentCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
-      >
-        <View style={styles.recentCardTop}>
-          <View style={[styles.recentIcon, { backgroundColor: p.fillSoft }]}>
-            <OneIcon name={iconForType(item.type)} size={18} color={p.chrome} />
-          </View>
-          <Text style={[styles.recentDate, { color: p.tertiary }]}>{shortDate(item.updatedAt)}</Text>
-        </View>
-        <Text style={[styles.recentTitle, { color: p.label }]} numberOfLines={2}>{item.title}</Text>
-        <Text style={[styles.recentMeta, { color: p.secondary }]} numberOfLines={1}>{item.category || labelForKind(item.type)}</Text>
-        <View style={styles.recentFooter}>
-          <Text style={[styles.recentOpen, { color: p.chrome }]}>Open memory</Text>
-          <V5Chevron />
-        </View>
-      </Pressable>
-    );
-  }
 }
 
 function displayFirstName(metadata?: Record<string, unknown>) {
@@ -371,6 +309,70 @@ function shortDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
   return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
+}
+
+function QuickAction({ label, icon, onPress }: { label: string; icon: (typeof icons)[keyof typeof icons]; onPress: () => void }) {
+  const p = useNeverV5Palette();
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      onPress={() => { selectionFeedback(); onPress(); }}
+      style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.58 : 1 }]}
+    >
+      <View style={[styles.actionIcon, { backgroundColor: p.dark ? '#FFFFFF0D' : '#FFFFFF70', borderColor: p.glassBorder }]}>
+        <OneIcon name={icon} size={19} color={p.chrome} />
+      </View>
+      <Text style={[styles.quickActionLabel, { color: p.secondary }]}>{label}</Text>
+    </Pressable>
+  );
+}
+
+function TodayRow({ item, reason }: { item: OneItem; reason: string }) {
+  const p = useNeverV5Palette();
+  const activeInbox = isInboxActive(item, new Date());
+  const overdue = reason === 'Overdue';
+  const detail = [item.location, item.summary].filter(Boolean).join(' · ') || reason;
+  const timeLabel = item.time || (overdue ? 'Past' : reason);
+  return (
+    <Pressable accessibilityRole="button"
+      onPress={() => router.push({ pathname: activeInbox ? '/inbox/[id]' : '/item/[id]', params: { id: item.id } } as never)}
+      style={({ pressed }) => [styles.todayCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+    >
+      <View style={[styles.todayRail, { backgroundColor: overdue ? p.warning : p.chrome }]} />
+      <View style={styles.todayCopy}>
+        <View style={styles.listTitleLine}>
+          <Text style={[styles.listTitle, { color: p.label }]} numberOfLines={2}>{item.title}</Text>
+          <Text style={[styles.listMeta, { color: overdue ? p.warning : p.tertiary }]}>{timeLabel}</Text>
+        </View>
+        <Text style={[styles.listSubtitle, { color: p.secondary }]} numberOfLines={1}>{detail}</Text>
+      </View>
+      <V5Chevron />
+    </Pressable>
+  );
+}
+
+function RecentCard({ item }: { item: OneItem }) {
+  const p = useNeverV5Palette();
+  return (
+    <Pressable accessibilityRole="button"
+      onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
+      style={({ pressed }) => [styles.recentCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+    >
+      <View style={styles.recentCardTop}>
+        <View style={[styles.recentIcon, { backgroundColor: p.fillSoft }]}>
+          <OneIcon name={iconForType(item.type)} size={18} color={p.chrome} />
+        </View>
+        <Text style={[styles.recentDate, { color: p.tertiary }]}>{shortDate(item.updatedAt)}</Text>
+      </View>
+      <Text style={[styles.recentTitle, { color: p.label }]} numberOfLines={2}>{item.title}</Text>
+      <Text style={[styles.recentMeta, { color: p.secondary }]} numberOfLines={1}>{item.category || labelForKind(item.type)}</Text>
+      <View style={styles.recentFooter}>
+        <Text style={[styles.recentOpen, { color: p.chrome }]}>Open memory</Text>
+        <V5Chevron />
+      </View>
+    </Pressable>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -404,11 +406,11 @@ const styles = StyleSheet.create({
   },
   capturePlus: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   captureInput: { flex: 1, minHeight: 46, fontSize: 15.5, lineHeight: 20, paddingVertical: 0 },
-  captureSave: { width: 42, height: 42, borderRadius: 21, alignItems: 'center', justifyContent: 'center' },
+  captureSave: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   quickActions: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 },
   quickAction: { flex: 1, alignItems: 'center', gap: 6 },
   actionIcon: { width: 46, height: 46, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  quickActionLabel: { fontSize: 10.5, lineHeight: 14, fontWeight: '600' },
+  quickActionLabel: { textAlign: 'center', fontSize: 12, lineHeight: 17, fontWeight: '600' },
   captureStatus: { ...neverType.caption },
   section: { gap: neverSpacing.md },
   draftGroup: { padding: 13 },
