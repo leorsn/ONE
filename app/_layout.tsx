@@ -10,6 +10,7 @@ import { OnboardingProvider, useOnboarding } from '@/src/context/OnboardingConte
 import { ThemeProvider, useThemeContext } from '@/src/context/ThemeContext';
 import { PlanProvider, usePlan } from '@/src/context/PlanContext';
 import { recordNativeAcceptanceEvent } from '@/src/native/acceptance';
+import { useReducedMotion } from '@/src/ui/material';
 import { V5Wordmark, useNeverV5Palette } from '@/src/ui/appleV5';
 
 export default function RootLayout() {
@@ -29,6 +30,7 @@ export default function RootLayout() {
 }
 
 function RootNavigation() {
+  const reducedMotion = useReducedMotion();
   const router = useRouter();
   const segments = useSegments();
   const { loaded, completed } = useOnboarding();
@@ -137,7 +139,7 @@ function RootNavigation() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: p.canvas },
-          animation: 'default'
+          animation: reducedMotion ? 'none' : 'default'
         }}
       />
     </>

@@ -1,8 +1,11 @@
 import { useMemo, useRef, useState } from 'react';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { MemoryRow } from '@/src/ui/MemoryRow';
+import { NeverMaterial, selectionFeedback } from '@/src/ui/material';
+import { neverSpacing, neverType } from '@/src/theme/tokens';
 import { buildItemFromCapture } from '@/src/capture/buildItem';
 import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
 import { interpretCapture, requiresStructuredReview, type CaptureDraft } from '@/src/capture/core';
@@ -20,6 +23,7 @@ import {
   V5LargeHeader,
   V5SectionHeader,
   V5Wordmark,
+  V5IconButton,
   useNeverV5Palette
 } from '@/src/ui/appleV5';
 import type { OneInboxAction, OneItem } from '@/src/types/item';
@@ -29,6 +33,9 @@ export default function HomeV5() {
   const { session } = useAuth();
   const captureRef = useRef<TextInput>(null);
   const [input, setInput] = useState('');
+  const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
+  const [captureStatus, setCaptureStatus] = useState('');
   const [reviewedDraft, setReviewedDraft] = useState<CaptureDraft | null>(null);
   const { items, add, update } = useItems();
 
@@ -50,14 +57,25 @@ export default function HomeV5() {
     .slice(0, 3);
 
   async function handleSave() {
-    if (!draft || !input.trim()) return;
-    const item = buildItemFromCapture({ draft, sourceType: 'manual', rawInput: input, originalText: input });
-    const savedItem = await add(item);
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    setInput('');
-    setReviewedDraft(null);
-    const warning = notificationSaveWarning(savedItem);
-    if (warning) Alert.alert('Saved to NEVER', warning);
+    if (!draft || !input.trim() || !draft.title.trim() || savingRef.current) return;
+    savingRef.current = true;
+    setSaving(true);
+    setCaptureStatus('Saving your capture…');
+    try {
+      const item = buildItemFromCapture({ draft, sourceType: 'manual', rawInput: input, originalText: input });
+      const savedItem = await add(item);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+      setInput('');
+      setReviewedDraft(null);
+      setCaptureStatus('Saved to NEVER');
+      const warning = notificationSaveWarning(savedItem);
+      if (warning) Alert.alert('Saved to NEVER', warning);
+    } catch {
+      setCaptureStatus('Could not save. Your capture is still here — try again.');
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
+    }
   }
 
   async function executeAction(item: OneItem, action: OneInboxAction) {
@@ -72,6 +90,7 @@ export default function HomeV5() {
   }
 
   function focusCapture(seed?: string) {
+    if (savingRef.current) return;
     if (typeof seed === 'string') {
       setInput(seed);
       setReviewedDraft(null);
@@ -85,64 +104,50 @@ export default function HomeV5() {
         contentContainerStyle={styles.content}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
+        automaticallyAdjustKeyboardInsets
+        keyboardDismissMode="interactive"
       >
-        <View style={styles.brandBar}><V5Wordmark /></View>
-
+        <View style={styles.brandBar}>
+          <V5Wordmark />
+          <V5IconButton icon={icons.person} accessibilityLabel="Open your settings" onPress={() => router.push('/(tabs)/settings')} />
+        </View>
         <V5LargeHeader
-          eyebrow={`${greetingFor(now)}${firstName ? `, ${firstName}` : ''}.`}
-          title="What do you need to remember?"
+          title={`${greetingFor(now)}${firstName ? `,\n${firstName}.` : '.'}`}
+          subtitle="Capture today. Remember tomorrow."
         />
 
-        <V5Group>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Ask NEVER"
-            onPress={() => router.push('/ask')}
-            style={({ pressed }) => [styles.askRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
-          >
-            <View style={[styles.askIcon, { backgroundColor: p.graphite }]}>
-              <OneIcon name={icons.ask} size={15} color={p.dark ? '#111113' : '#FFFFFF'} />
-            </View>
-            <View style={styles.askCopy}>
-              <Text style={[styles.askTitle, { color: p.label }]}>Ask NEVER</Text>
-              <Text style={[styles.askSubtitle, { color: p.secondary }]} numberOfLines={1}>Find something you saved, in your own words</Text>
-            </View>
-            <V5Chevron />
-          </Pressable>
-        </V5Group>
-
         <View style={styles.section}>
-          <V5SectionHeader title="Capture" />
-          <V5Group>
+          <NeverMaterial glass>
             <View style={styles.captureComposer}>
-              <Pressable onPress={() => focusCapture()} style={[styles.capturePlus, { backgroundColor: p.fillSoft }]}>
-                <OneIcon name={icons.plus} size={17} color={p.chrome} />
+              <Pressable onPress={() => focusCapture()} accessibilityRole="button" accessibilityLabel="Start a capture" style={[styles.capturePlus, { backgroundColor: p.graphite }]}>
+                <OneIcon name={icons.plus} size={20} color={p.onAccent} />
               </Pressable>
               <TextInput
                 ref={captureRef}
                 value={input}
-                onChangeText={(value) => { setInput(value); setReviewedDraft(null); }}
-                placeholder="Remember something…"
+                onChangeText={(value) => { setInput(value); setReviewedDraft(null); setCaptureStatus(''); }}
+                editable={!saving}
+                placeholder="Capture something…"
                 placeholderTextColor={p.tertiary}
                 style={[styles.captureInput, { color: p.label }]}
                 returnKeyType={structuredReview ? 'default' : 'done'}
                 onSubmitEditing={structuredReview ? undefined : handleSave}
                 accessibilityLabel="Quick capture"
               />
-              {input.trim() ? (
-                <Pressable onPress={handleSave} style={[styles.captureSave, { backgroundColor: p.graphite }]}>
-                  <OneIcon name={icons.check} size={13} color={p.dark ? '#111113' : '#FFFFFF'} />
+              {saving ? <ActivityIndicator color={p.chrome} /> : input.trim() ? (
+                <Pressable accessibilityRole="button" accessibilityLabel="Save capture" disabled={saving || !draft?.title.trim()} onPress={handleSave} style={[styles.captureSave, { backgroundColor: p.graphite }]}>
+                  <OneIcon name={icons.check} size={18} color={p.onAccent} />
                 </Pressable>
-              ) : <OneIcon name={icons.more} size={15} color={p.tertiary} />}
+              ) : null}
             </View>
-            <View style={[styles.captureDivider, { backgroundColor: p.separator }]} />
+          </NeverMaterial>
             <View style={styles.quickActions}>
               <QuickAction label="Scan" icon={icons.scan} onPress={() => router.push('/scan')} />
-              <QuickAction label="Link" icon={icons.link} onPress={() => focusCapture('https://')} />
-              <QuickAction label="Note" icon={icons.note} onPress={() => focusCapture('')} />
-              <QuickAction label="Share" icon={icons.upload} onPress={() => router.push('/share')} last />
+              <QuickAction label="Add link" icon={icons.link} onPress={() => focusCapture('https://')} />
+              <QuickAction label="New note" icon={icons.note} onPress={() => focusCapture('')} />
+              <QuickAction label="Share" icon={icons.upload} onPress={() => router.push('/share')} />
             </View>
-          </V5Group>
+          {captureStatus ? <Text accessibilityLiveRegion="polite" style={[styles.captureStatus, { color: p.secondary }]}>{captureStatus}</Text> : null}
         </View>
 
         {draft ? (
@@ -160,17 +165,35 @@ export default function HomeV5() {
                       <Text style={[styles.draftMeta, { color: p.secondary }]}>{labelForKind(draft.canonicalKind)} · Ready to save</Text>
                     </View>
                   </View>
-                  <View style={styles.draftButton}><NeverChromeButton label="Save to NEVER" icon={icons.check} onPress={handleSave} /></View>
+                  <View style={styles.draftButton}><NeverChromeButton label={saving ? "Saving…" : "Save to NEVER"} icon={icons.check} onPress={handleSave} disabled={saving} /></View>
                 </>
               ) : (
                 <View style={styles.reviewEditor}>
                   <CaptureReviewEditor draft={draft} onChange={setReviewedDraft} showExtractedText={false} />
-                  <NeverChromeButton label="Save to NEVER" icon={icons.check} onPress={handleSave} disabled={!draft.title.trim()} />
+                  <NeverChromeButton label="Save to NEVER" icon={icons.check} onPress={handleSave} disabled={saving || !draft.title.trim()} />
                 </View>
               )}
             </V5Group>
           </View>
         ) : null}
+
+        <V5Group>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Ask NEVER"
+            onPress={() => router.push('/ask')}
+            style={({ pressed }) => [styles.askRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
+          >
+            <View style={[styles.askIcon, { backgroundColor: p.graphite }]}>
+              <OneIcon name={icons.ask} size={15} color={p.onAccent} />
+            </View>
+            <View style={styles.askCopy}>
+              <Text style={[styles.askTitle, { color: p.label }]}>Ask NEVER</Text>
+              <Text style={[styles.askSubtitle, { color: p.secondary }]} numberOfLines={1}>Find something you saved, in your own words</Text>
+            </View>
+            <V5Chevron />
+          </Pressable>
+        </V5Group>
 
         {todayEntries.length ? (
           <View style={styles.section}>
@@ -194,7 +217,7 @@ export default function HomeV5() {
           />
           <V5Group>
             {recentItems.length ? recentItems.map((item, index) => (
-              <RecentRow key={item.id} item={item} last={index === recentItems.length - 1} />
+              <MemoryRow key={item.id} item={item} last={index === recentItems.length - 1} />
             )) : (
               <View style={styles.emptyRow}>
                 <Text style={[styles.emptyTitle, { color: p.label }]}>Your memory starts here.</Text>
@@ -226,13 +249,14 @@ export default function HomeV5() {
     </SafeAreaView>
   );
 
-  function QuickAction({ label, icon, onPress, last = false }: { label: string; icon: (typeof icons)[keyof typeof icons]; onPress: () => void; last?: boolean }) {
+  function QuickAction({ label, icon, onPress }: { label: string; icon: (typeof icons)[keyof typeof icons]; onPress: () => void }) {
     return (
       <Pressable
-        onPress={async () => { await Haptics.selectionAsync(); onPress(); }}
-        style={({ pressed }) => [styles.quickAction, !last && { borderRightWidth: StyleSheet.hairlineWidth, borderRightColor: p.separator }, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
+        accessibilityRole="button" accessibilityLabel={label}
+        onPress={() => { selectionFeedback(); onPress(); }}
+        style={({ pressed }) => [styles.quickAction, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
       >
-        <OneIcon name={icon} size={15} color={p.chrome} />
+        <View style={[styles.actionIcon, { backgroundColor: p.fillSoft, borderColor: p.glassBorder }]}><OneIcon name={icon} size={22} color={p.chrome} /></View>
         <Text style={[styles.quickActionLabel, { color: p.label }]}>{label}</Text>
       </Pressable>
     );
@@ -263,24 +287,7 @@ export default function HomeV5() {
     );
   }
 
-  function RecentRow({ item, last }: { item: OneItem; last: boolean }) {
-    const preview = imagePreviewUri(item);
-    return (
-      <Pressable onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })} style={({ pressed }) => [styles.recentRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
-        <View style={[styles.recentThumb, { backgroundColor: p.fillSoft }]}>
-          {preview ? <Image source={{ uri: preview }} style={styles.recentImage} resizeMode="cover" /> : <OneIcon name={iconForRecent(item)} size={18} color={p.chrome} />}
-        </View>
-        <View style={[styles.recentContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[styles.recentTitle, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
-            <Text style={[styles.recentSubtitle, { color: p.secondary }]} numberOfLines={1}>{[item.userContext, item.summary, item.merchant, item.category].find(Boolean) || 'Saved memory'}</Text>
-          </View>
-          <Text style={[styles.recentDate, { color: p.tertiary }]}>{formatRelative(item.updatedAt)}</Text>
-          <V5Chevron />
-        </View>
-      </Pressable>
-    );
-  }
+
 }
 
 function displayFirstName(metadata?: Record<string, unknown>) {
@@ -303,42 +310,28 @@ function iconForDraft(draft: CaptureDraft) {
   if (draft.captureKind === 'idea') return icons.idea;
   return icons.note;
 }
-function iconForRecent(item: OneItem) {
-  if (item.type === 'link') return icons.link;
-  if (item.type === 'document') return icons.document;
-  if (item.type === 'idea') return icons.idea;
-  if (item.type === 'reminder') return icons.reminder;
-  return icons.note;
-}
-function imagePreviewUri(item: OneItem) {
-  const candidate = item.localAttachmentUri || item.imageUrl;
-  return candidate && /^(file|content|ph|https?):\/\//i.test(candidate) ? candidate : undefined;
-}
-function formatRelative(iso: string) {
-  const date = new Date(iso);
-  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
-}
 function labelForKind(kind: string) { return kind.charAt(0).toUpperCase() + kind.slice(1); }
 function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(); }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 10, paddingBottom: 118, gap: 18 },
-  brandBar: { minHeight: 24, justifyContent: 'center' },
+  content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: neverSpacing.md, paddingBottom: 118, gap: neverSpacing.xxl },
+  brandBar: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   askRow: { minHeight: 62, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 11 },
   askIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   askCopy: { flex: 1, minWidth: 0 },
   askTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
   askSubtitle: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
-  section: { gap: 7 },
-  captureComposer: { minHeight: 56, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  capturePlus: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  section: { gap: neverSpacing.md },
+  captureComposer: { minHeight: 72, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  capturePlus: { width: 44, height: 44, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   captureInput: { flex: 1, minHeight: 46, fontSize: 16, lineHeight: 20, paddingVertical: 0 },
-  captureSave: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  captureDivider: { height: StyleSheet.hairlineWidth, marginLeft: 12 },
-  quickActions: { minHeight: 52, flexDirection: 'row' },
-  quickAction: { flex: 1, minHeight: 52, alignItems: 'center', justifyContent: 'center', gap: 4 },
+  captureSave: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  quickActions: { flexDirection: 'row', gap: neverSpacing.sm },
+  quickAction: { flex: 1, minHeight: 82, borderRadius: 14, alignItems: 'center', justifyContent: 'center', gap: 8 },
   quickActionLabel: { fontSize: 11.5, lineHeight: 14, fontWeight: '500' },
+  actionIcon: { width: 48, height: 48, borderRadius: 16, borderWidth: 1, alignItems: 'center', justifyContent: 'center' },
+  captureStatus: { ...neverType.caption },
   draftGroup: { padding: 13 },
   draftRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
   draftIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
@@ -354,13 +347,6 @@ const styles = StyleSheet.create({
   listTitle: { flex: 1, fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
   listMeta: { fontSize: 11.5, lineHeight: 14 },
   listSubtitle: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
-  recentRow: { minHeight: 64, paddingLeft: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  recentThumb: { width: 44, height: 44, borderRadius: 11, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  recentImage: { width: '100%', height: '100%' },
-  recentContent: { flex: 1, minHeight: 64, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  recentTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
-  recentSubtitle: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
-  recentDate: { fontSize: 11.5, lineHeight: 14 },
   emptyRow: { minHeight: 80, padding: 14, justifyContent: 'center' },
   emptyTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
   emptyBody: { marginTop: 2, fontSize: 12.5, lineHeight: 16 }

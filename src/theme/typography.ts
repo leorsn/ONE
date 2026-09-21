@@ -1,11 +1,10 @@
 import { Platform } from 'react-native';
 
-// NEVER V5 uses platform-native typography. The product identity now comes
-// from hierarchy, grouped layout, spacing and restrained platinum material.
+// Editorial titles echo the reference; utility text stays platform-native.
 export const editorialFontFamily = Platform.select({
-  ios: 'System',
-  android: 'sans-serif',
-  web: 'system-ui'
+  ios: 'Georgia',
+  android: 'serif',
+  web: 'Georgia, serif'
 });
 
 export const uiFontFamily = Platform.select({
@@ -18,14 +17,16 @@ export const neverType = {
   hero: {
     fontSize: 34,
     lineHeight: 39,
-    fontWeight: '700' as const,
-    letterSpacing: -1.05
+    fontFamily: editorialFontFamily,
+    fontWeight: '400' as const,
+    letterSpacing: -0.8
   },
   display: {
     fontSize: 32,
     lineHeight: 37,
-    fontWeight: '700' as const,
-    letterSpacing: -0.9
+    fontFamily: editorialFontFamily,
+    fontWeight: '400' as const,
+    letterSpacing: -0.7
   },
   title: {
     fontSize: 22,

@@ -1,923 +1,127 @@
-# NEVER — DESIGN BIBLE V5.3
-
-**Status:** Canonical  
-**Primary platform:** iOS / iPadOS  
-**Design direction:** Native Platinum Minimalism  
-**Brand principle:** Quiet intelligence.  
-**Implementation source of truth:** `src/ui/appleV5.tsx`
-
----
-
-## 01 — DESIGN VISION
-
-NEVER soll sich nicht wie eine typische Productivity-, AI-, SaaS- oder No-Code-App anfühlen.
-
-Die Oberfläche soll wirken wie eine hochwertige iOS-Anwendung, die selbstverständlich auf dem Gerät lebt:
-
-**präzise, ruhig, privat, intelligent, hochwertig und funktional.**
-
-Technologie soll nicht die Hauptrolle spielen. Der Nutzer soll seine Erinnerungen, Dokumente, Links, Termine und Informationen sehen – nicht das System, das sie verwaltet.
-
-NEVER darf niemals wirken wie:
-
-- ein Base44-/Lovable-Template
-- ein generisches SaaS-Dashboard
-- eine bunte AI-App
-- ein futuristisches Neon-Produkt
-- ein Karten-Showcase
-- eine Web-App in einer iPhone-Hülle
-- ein Crypto-, Gaming- oder Analytics-Interface
-
----
-
-## 02 — CORE PRINCIPLES
-
-### 2.1 Native first
-
-Wenn iOS bereits ein gutes visuelles oder interaktives Muster besitzt, orientiert sich NEVER daran.
-
-Bevorzugt:
-
-- system grouped backgrounds
-- native push transitions
-- grouped lists
-- SF-Symbol-artige Icons
-- systemnahe Search Fields
-- systemnahe Segmented Controls
-- kompakte Navigation
-- echte Inhaltsdichte statt Marketing-Whitespace
-
-NEVER darf Markencharakter besitzen, aber nicht auf Kosten nativer Bedienbarkeit.
-
-### 2.2 Quiet
-
-Keine unnötigen Badges, Farben, Glows, Gradients oder Statusflächen.
-
-Ein Element bekommt visuelles Gewicht nur, wenn seine Funktion dieses Gewicht verdient.
-
-### 2.3 Dense enough to be useful
-
-V5.3 ersetzt die frühere Regel „eher zu viel als zu wenig Raum“.
-
-Whitespace bleibt wichtig, aber NEVER ist eine täglich genutzte Utility-App und kein Editorial-Landingpage-Layout.
-
-Ziel:
-
-- klare Scanbarkeit
-- ausreichende Touch Targets
-- kompakte Row-Höhen
-- wenig leere Fläche ohne Funktion
-- keine zehn Informationen gleichzeitig
-
-### 2.4 Hierarchy over decoration
-
-Hierarchie entsteht primär durch:
-
-1. Typografie
-2. Position
-3. Spacing
-4. Materialkontrast
-5. erst danach Farbe
-
-### 2.5 Product truth
-
-Bei AI, OCR, Privacy, Sync, Billing und Security werden nur technisch belegte Aussagen gezeigt.
-
-Keine Claims wie `end-to-end encrypted`, sofern dies nicht tatsächlich implementiert und geprüft ist.
-
----
-
-## 03 — BRAND CHARACTER
-
-NEVER ist:
-
-**Calm · Precise · Private · Intelligent · Premium · Minimal · Useful**
-
-NEVER ist nicht:
-
-**Playful · Loud · Colorful · Cute · Futuristic · Gamified · Corporate**
-
-Consumer-facing Brand Name:
-
-**NEVER**
-
-Campaign line:
-
-**NEVER forget.**
-
-Die Campaign line gehört zu Marketing- und Launch-Momenten, nicht auf jeden Produktscreen.
-
----
-
-## 04 — V5.3 COLOR SYSTEM
-
-Die tatsächlichen Werte in `src/ui/appleV5.tsx` sind verbindlich.
-
-### Light Mode
-
-| Token | Wert | Verwendung |
-|---|---|---|
-| Canvas | `#F2F2F7` | systemGroupedBackground-artiger Hauptcanvas |
-| Surface | `#FFFFFF` | grouped list / content surface |
-| Elevated | `#FFFFFF` | nur wenn echte Elevation nötig ist |
-| Fill | `#E5E5EA` | selected state / stronger neutral fill |
-| Fill Soft | `#E9E9ED` | Search, passive icon wells, subtle controls |
-| Label | `#111113` | Primary text |
-| Secondary | `#3C3C4399` | Secondary text |
-| Tertiary | `#3C3C434D` | Metadata / placeholders |
-| Separator | `#3C3C4324` | Hairline separators |
-| Graphite | `#1C1C1E` | Primary neutral action |
-| Chrome | `#70757D` | neutral premium accent |
-| Chrome Soft | `#E5E5EA` | quiet accent fill |
-
-### Dark Mode
-
-| Token | Wert |
-|---|---|
-| Canvas | `#000000` |
-| Surface | `#1C1C1E` |
-| Elevated | `#2C2C2E` |
-| Fill | `#2C2C2E` |
-| Fill Soft | `#242426` |
-| Label | `#FFFFFF` |
-| Secondary | `#EBEBF599` |
-| Tertiary | `#EBEBF54D` |
-| Separator | `#54545899` |
-| Graphite | `#F2F2F7` |
-| Chrome | `#D1D1D6` |
-| Chrome Soft | `#3A3A3C` |
-
-### Functional colors
-
-- Success: `#34C759`
-- Danger Light: `#FF3B30`
-- Danger Dark: `#FF453A`
-- Warning: `#C5892F`
-
-Functional colors werden nur für echte Zustände verwendet.
-
----
-
-## 05 — STRICT COLOR RULES
-
-NEVER besitzt keine klassische bunte Brandfarbe.
-
-Die Markenwirkung entsteht aus:
-
-**Platinum · Graphite · Chrome · Typography · Material Contrast**
-
-Verboten:
-
-- Royal Blue als Brandfarbe
-- AI Purple
-- Cyan
-- Neon
-- Regenbogen-AI-Effekte
-- starke Gradients
-- fake chrome gradients
-- Glow-Effekte
-
----
-
-## 06 — TYPOGRAPHY
-
-Primary Typeface auf iOS:
-
-**SF Pro / native Apple system typography**
-
-Keine externe Schrift wird eingesetzt, wenn dadurch native Qualität verloren geht.
-
-### Canonical hierarchy
-
-- Large Screen Title: `32 / 36`, Weight `700`, leicht negatives Tracking
-- Section Title: etwa `18 / 22`, Weight `700`
-- Primary Row Title: etwa `15.5 / 19`, Weight `600`
-- Body: `12.5–14`, Weight `400–500`
-- Metadata: `10.5–12.5`
-- Micro Labels: `8–11`, Weight `600–700`, positives Tracking erlaubt
-
-Keine extremen 800/900-Weights außerhalb des kompakten NEVER-Wordmarks.
-
----
-
-## 07 — NEVER WORDMARK
-
-Der In-App-Wordmark ist kompakt und subtil.
-
-Canonical V5.3:
-
-- `13 pt`
-- Weight `800`
-- Letter spacing etwa `4.5`
-- kleine neutrale Signalmarke
-
-Der Wordmark soll nicht auf jedem Utility-Screen wiederholt werden.
-
-Home und besondere Brand-Momente dürfen ihn prominent führen; Calendar, Saved, Settings und ähnliche Utility-Flows benötigen kein redundantes Branding über der Navigation.
-
----
-
-## 08 — SPACING
-
-Base unit:
-
-**4 pt**
-
-Häufige Schritte:
-
-`4 / 8 / 12 / 16 / 20 / 24 / 32`
-
-Canonical iPhone horizontal screen padding:
-
-**20 pt**
-
-Screen-to-section spacing ist typischerweise `16–24 pt`, nicht automatisch `32–48 pt`.
-
-Rows dürfen kompakt sein, solange Touch Targets und Lesbarkeit erhalten bleiben.
-
----
-
-## 09 — RADIUS SYSTEM
-
-V5.3 reduziert die frühere Card-Rundung deutlich.
-
-Canonical:
-
-- Search Field: `11`
-- Small icon wells: `9–12`
-- Buttons: `13–14`
-- Grouped Surface: `14`
-- Tab Bar: `22`
-- vollständig kreisförmige Controls nur dort, wo die Form semantisch passt
-
-Keine omnipräsenten 18–24px Kartenradien.
-
-Keine Bubble UI.
-
----
-
-## 10 — SHADOWS & MATERIALS
-
-Default:
-
-**kein Shadow.**
-
-Bevorzugt werden:
-
-- Canvas/Surface-Kontrast
-- Hairline Separators
-- Fill States
-
-Shadows nur, wenn das Element tatsächlich über Inhalt schwebt, z. B. die Tab Bar oder ein selected segment.
-
-Keine:
-
-- harten Drop Shadows
-- Glassmorphism
-- große Blur-Flächen
-- Glows
-- schwebenden Card-Stapel
-
----
-
-## 11 — GROUPED SURFACES
-
-`V5Group` ist die Standardoberfläche für zusammengehörige Rows.
-
-Canonical:
-
-- Surface: White / `#1C1C1E`
-- Radius: `14`
-- kein Standard-Border
-- kein Standard-Shadow
-- interne Hairline Separators
-
-Wichtig:
-
-Nicht jeder Contentblock wird zu einer Card.
-
-Eine Seite mit fünf unabhängigen Cards ist fast immer ein Zeichen, dass die Informationsarchitektur vereinfacht werden sollte.
-
----
-
-## 12 — ROWS
-
-Canonical Row:
-
-**optional Icon → Title/Metadata → Accessory/Chevron**
-
-V5.3 Standardhöhe liegt typischerweise um `58–66 pt`.
-
-Regeln:
-
-- Titel ist primär
-- Metadata maximal zwei Zeilen
-- Status nur anzeigen, wenn er handlungsrelevant ist
-- keine Badge-Sammlung
-- keine parallelen konkurrierenden Buttons in einer normalen Row
-
----
-
-## 13 — THUMBNAILS
-
-Typische Content-Thumbnails:
-
-- `40–48 pt`
-- Radius `10–12`
-- echtes Content-Material bevorzugen
-- keine dekorativen Stockbilder
-
-Originalbilder und Dokumente bleiben später aus dem Memory Detail erneut öffnbar.
-
----
-
-## 14 — ICONS
-
-NEVER verwendet `OneIcon` / SF-Symbol-artige Symbole.
-
-Icons sind:
-
-- monochrom
-- dünn bis medium
-- semantisch
-- konsistent
-
-Verboten:
-
-- Emoji als funktionale Icons
-- bunte Icon Packs
-- cartoonartige Illustrationen
-
----
-
-## 15 — BUTTONS
-
-### Primary
-
-- Graphite Background
-- White Text im Light Mode
-- kontrastinvertiert im Dark Mode
-- etwa `44–48 pt` Höhe
-- Radius `13–14`
-
-### Secondary
-
-- Fill / Fill Soft / transparent
-- kein unnötiger Border
-
-### Destructive
-
-- Rot primär als Text/Icon
-- rote Vollfläche nur bei echter finaler destructive confirmation
-
----
-
-## 16 — SEARCH FIELD
-
-V5.3 Canon:
-
-- Höhe etwa `44 pt`
-- Radius `11`
-- `Fill Soft`
-- Search/Ask icon links
-- native wirkender Clear-Control rechts
-- kein Shadow
-- kein Blue Focus Ring
-
-Search ist Utility, keine Hero Card.
-
----
-
-## 17 — SEGMENTED CONTROL
-
-V5.3 Canon:
-
-- Container etwa `32 pt` hoch
-- Radius `8`
-- Fill Soft
-- Selected Surface White / Surface
-- minimaler selected shadow
-- kein farbiger Brand-State
-
----
-
-## 18 — TAB BAR
-
-Die V5.3 Tab Bar ist die einzige bewusst schwebende globale Surface.
-
-Canonical:
-
-- Höhe `56 pt`
-- Radius `22`
-- kleiner Außenabstand
-- Light: nahezu weiß und leicht transluzent
-- Dark: nahezu `#1C1C1E`
-- sehr geringer Shadow
-- aktives Icon bekommt nur ein dezentes Fill-Soft-Well
-- Label bleibt klein
-
-Keine große Floating-Pill pro aktivem Tab.
-
-Keine bunte Tab Bar.
-
----
-
-## 19 — NAVIGATION & MOTION
-
-Root Stack verwendet native Plattformanimationen (`animation: default`).
-
-Keine globale Fade-Transition zwischen normalen Push-Screens.
-
-Motion ist funktional und zurückhaltend.
-
-Keine:
-
-- Bounces
-- Confetti
-- große Zooms
-- Marketing-Animationen in normalen Arbeitsflows
-
----
-
-## 20 — HOME
-
-Home ist die wichtigste Utility-Oberfläche.
-
-Canonical Reihenfolge:
-
-1. subtiler NEVER Brand Moment
-2. Greeting / Primary Question
-3. Ask NEVER Entry
-4. Capture Composer
-5. Today, sofern relevant
-6. Recent
-7. Needs Review, sofern relevant
-
-Home darf nicht wie ein Dashboard mit KPI-Widgets wirken.
-
-Der Screen soll innerhalb weniger Sekunden beantwortbar machen:
-
-**Was muss ich heute wissen oder speichern?**
-
----
-
-## 21 — CAPTURE
-
-Capture folgt:
-
-**Input → Interpretation → Review wenn nötig → Save**
-
-NEVER formuliert, wo belastbar möglich:
-
-- eine sinnvolle Überschrift
-- einen knappen Kontext
-- erkannte URLs
-- strukturierte Fakten
-
-Der Nutzer darf diese Vorschläge anschließend ändern.
-
-Wichtig:
-
-Unsichere Beträge, Händler, Termine oder andere consequential facts werden nicht still als Wahrheit übernommen.
-
----
-
-## 22 — OCR / SCAN
-
-Scan bewahrt das Original und macht es nach dem Speichern erneut zugänglich.
-
-V5.3 Verhalten:
-
-- Kamera-/Dateinamen wie `IMG_4821.JPG` sind keine akzeptablen finalen Titel, wenn brauchbarer OCR-Text existiert.
-- brauchbare OCR-Zeilen dürfen als Titelvorschlag dienen.
-- erkannte `http(s)`- und `www`-URLs werden als echte Links gespeichert.
-- normaler Dokument-Scan darf direkt nach Saved gelangen, wenn nur Dokumenttyp und OCR-Titel betroffen sind.
-- unsichere Beträge, Händler, Datum oder Zeit bleiben Review-Felder.
-
-Visuell:
-
-1. Original
-2. Recognition Status
-3. Structured Review
-4. Storage/Privacy Information
-5. Save
-
-Keine „Magic AI“-Sprache.
-
----
-
-## 23 — SHARE TO NEVER
-
-Native Share und Scan verwenden dieselbe Capture-Semantik.
-
-Ein geteilter Screenshot oder Link soll nicht wie ein zweites Produkt wirken.
-
-Original, OCR, Titel, Kontext, URLs und Destination folgen denselben Regeln wie Capture/Scan.
-
----
-
-## 24 — ASK NEVER
-
-Ask NEVER ist kein generischer Chatbot.
-
-Canonical Modell:
-
-**Question → Grounded Answer → Sources**
-
-Für Link-Fragen wird der tatsächliche gespeicherte Link zurückgegeben, wenn er im Memory vorhanden ist.
-
-Keine endlosen Chat-Bubbles.
-
-Keine erfundenen Quellen.
-
-Wenn die gespeicherten Daten nicht reichen, sagt NEVER das klar.
-
----
-
-## 25 — SEARCH
-
-Search priorisiert:
-
-**Relevanz > Dekoration.**
-
-Resultate verwenden kompakte grouped rows und echte Content-Thumbnails.
-
-Filter sind klein und neutral.
-
-Keine große Filter-Pill-Landschaft.
-
----
-
-## 26 — CALENDAR
-
-Calendar bleibt neutral.
-
-Unterschiede entstehen über:
-
-- Punkte
-- Typografie
-- Zeit
-- Labels
-
-Nicht über bunte Category Colors.
-
-Selected date darf Graphite sein.
-
----
-
-## 27 — SAVED & DOCUMENTS
-
-Saved ist die persistente Memory-Bibliothek.
-
-Dokumente verwenden:
-
-- Merchant/Title
-- Dokumenttyp
-- Datum
-- optional Betrag
-- echtes Original / Thumbnail
-
-Documents soll sich eher wie ein intelligenter Memory-Bereich als wie ein technischer Dateimanager anfühlen.
-
----
-
-## 28 — MEMORY DETAIL
-
-Memory Detail ist die langfristige Quelle der Wahrheit nach dem Speichern.
-
-Es muss ermöglichen:
-
-- Titel bearbeiten
-- Original erneut öffnen
-- gespeicherte Links öffnen
-- Datum/Zeit/Kategorie/Ort bearbeiten
-- Kontext und Notizen bearbeiten
-- Saved/Completed Status setzen
-- Memory löschen
-
-Hintergrund-Sync darf laufende, noch nicht gespeicherte Formulareingaben nicht still überschreiben.
-
----
-
-## 29 — INBOX / NEEDS REVIEW
-
-Needs Review zeigt nur Informationen, die eine Entscheidung benötigen.
-
-Canonical Hierarchie:
-
-**Title → Context → small status → optional one action**
-
-Keine konkurrierenden Confidence-Badges, Source-Badges, Buttons und Chevrons gleichzeitig.
-
----
-
-## 30 — SETTINGS
-
-Settings orientiert sich stärker an iOS als an Marketing-UI.
-
-- Large Title
-- kleine Section Labels
-- grouped rows
-- Icon Wells
-- Secondary Descriptions
-- Chevron nur bei Navigation
-
-Die Unterseiten Appearance, Notifications und Privacy verwenden dieselbe Systemlogik.
-
----
-
-## 31 — PRIVACY
-
-Privacy muss überprüfbar und nüchtern sein.
-
-Canonical actions:
-
-- Privacy Policy
-- Terms
-- Export Data
-- Delete Account
-- Support
-
-Keine falschen Security Claims.
-
----
-
-## 32 — MEMBERSHIP / PAYWALL
-
-Paywall ist ruhig und transparent.
-
-NEVER und NEVER AI werden ohne manipulative Ranking-Badges dargestellt.
-
-Verboten:
-
-- Countdown Timer
-- Fake Discounts
-- Fake `MOST POPULAR`
-- künstliche Dringlichkeit
-- manipulative Dark Patterns
-
-Preis und Intro Offer kommen aus App Store / RevenueCat.
-
-Apple bestimmt Intro-Offer-Eignung zum Kaufzeitpunkt; diese Einschränkung bleibt in der UI sichtbar.
-
----
-
-## 33 — AUTH & ONBOARDING
-
-Auth und Onboarding gehören zum Produkt und dürfen keine separate visuelle Generation bilden.
-
-Sie verwenden:
-
-- V5 Canvas
-- V5 Wordmark
-- ruhige Grouped Surfaces
-- dieselbe Typografie
-- dieselben neutralen Actions
-
-Onboarding erklärt Produktnutzen statt technische Architektur.
-
----
-
-## 34 — EMPTY STATES
-
-Empty State:
-
-1. kleines neutrales Icon
-2. kurzer Titel
-3. ein erklärender Satz
-4. nur wenn nötig eine klare Action
-
-Keine Illustrationsflut.
-
-Keine Fake-Skeletons als permanenter Empty State.
-
----
-
-## 35 — LOADING
-
-Loading verwendet:
-
-- kleinen Activity Indicator
-- optional NEVER Wordmark bei App Bootstrap
-- dezente Skeletons nur wenn wirklich nötig
-
-Kein großes animiertes Logo bei normalen Aktionen.
-
----
-
-## 36 — ERRORS
-
-Fehlertexte sind:
-
-**präzise · ruhig · handlungsorientiert**
-
-Beispiel:
-
-**Couldn’t save this yet. Try again.**
-
-Nicht:
-
-**ERROR 500 SYNC FAILED**
-
----
-
-## 37 — HAPTICS
-
-Haptics nur für:
-
-- erfolgreiche Saves
-- wichtige Selection
-- destructive confirmations
-- zentrale Capture Actions
-
-Nicht bei jedem Tap.
-
----
-
-## 38 — COPY STYLE
-
-NEVER spricht kurz.
-
-Beispiele:
-
-- `Save anything.`
-- `Ask NEVER.`
-- `Find it again.`
-- `Saved to NEVER.`
-
-Keine generische AI-/SaaS-Sprache.
-
----
-
-## 39 — AI LANGUAGE
-
-NEVER behauptet nicht zu wissen, was nicht belegt ist.
-
-Bevorzugt:
-
-**I found this in your saved memories.**
-
-oder:
-
-**I couldn't find enough saved information to answer that.**
-
-Antworten müssen aus den gespeicherten Memories ableitbar sein.
-
----
-
-## 40 — LIGHT MODE PRIORITY
-
-Light Mode bleibt die primäre Brand-Präsentation für:
-
-- App Store
-- Website
-- Marketing
-- Screenshots
-
-Dark Mode ist trotzdem vollständig produktionsfähig und keine zweite visuelle Sprache.
-
----
-
-## 41 — ABSOLUTE DESIGN BANS
-
-In NEVER verboten:
-
-- blaue Brand-Akzente
-- violette AI-Gradients
-- Neon
-- Glassmorphism
-- große Blur-Flächen
-- cartoonartige Illustrationen
-- Emojis als UI
-- übermäßige Pills
-- übermäßige Badges
-- große Drop Shadows
-- 3D Buttons
-- fake chrome gradients
-- ständig animierte AI-Sparkles
-- große Dashboard-KPI-Blöcke
-- Template-Hero-Cards
-- Cards für jeden einzelnen Abschnitt
-
----
-
-## 42 — ACTIVE GENERATION RULE
-
-Im Produktionsbaum existiert nur die aktive V5-Screen-Generation.
-
-Verboten:
-
-- neue `V3`-/`V4`-Screens
-- parallele Legacy-Versionen eines aktiven Screens
-- Route-Wrapper, die auf eine alte Generation zeigen
-
-Canonical route implementations:
-
-- Home → `HomeV5`
-- Search → `SearchV5`
-- Ask → `AskV5`
-- Calendar → `CalendarV5`
-- Saved → `SavedV5`
-- Settings → `SettingsV5`
-
----
-
-## 43 — SCREEN DENSITY RULE
-
-Auf jedem Screen muss klar sein:
-
-**Was ist hier das Wichtigste?**
-
-Wenn fünf Elemente gleichzeitig Aufmerksamkeit verlangen, wird reduziert.
-
-Wenn ein Screen gleichzeitig sehr viel leere Fläche und sehr kleine Nutzinformation besitzt, wird verdichtet.
-
----
-
-## 44 — VISUAL HIERARCHY
-
-Reihenfolge:
-
-1. Primary information/action
-2. Main content
-3. Secondary metadata
-4. Controls
-5. System information
-
-Nie umgekehrt.
-
----
-
-## 45 — IMPLEMENTATION CHECK
-
-Jeder Screen wird gegen diese sieben Punkte geprüft:
-
-### A — Layout
-Ist die Informationshierarchie eindeutig?
-
-### B — Typography
-Wirkt sie systemnah, ruhig und hochwertig?
-
-### C — Color
-Bleibt sie Platinum / Graphite / Chrome plus funktionale Statusfarben?
-
-### D — Components
-Verwendet der Screen V5-Komponenten statt eigener Legacy-Surfaces?
-
-### E — Density
-Ist er nützlich kompakt statt leer oder überladen?
-
-### F — Native Quality
-Fühlt sich Navigation, Search, Rows und Feedback wie iOS an?
-
-### G — Product Truth
-Zeigt der Screen ausschließlich reale Funktionen und Claims?
-
----
-
-## 46 — DESIGN QA
-
-Ein Screen gilt erst als fertig, wenn:
-
-- [ ] native iOS hierarchy
-- [ ] V5 palette
-- [ ] no legacy blue/purple
-- [ ] no template appearance
-- [ ] V5 spacing/radius system
-- [ ] Light + Dark readable
-- [ ] relevant accessibility labels/states
-- [ ] no unnecessary card/shadow
-- [ ] functional behavior preserved or intentionally improved
-- [ ] product claims technically true
-
----
-
-## 47 — RELEASE QUALITY GATE
-
-Designänderungen gelten erst als Release-Kandidat, wenn die NEVER Quality Pipeline grün ist:
-
-- TypeScript
-- lint
-- automated tests
-- release script checks
-- Expo dependency check
-- Expo Doctor
-- native release/config checks
-- web export
-- clean checkout
-
-Ein visueller Pass darf keine technischen Regressionen verdecken.
-
----
-
-## 48 — FINAL DESIGN STATEMENT
-
-**NEVER is not designed to look technological.**
-
-It is designed to make technology disappear.
-
-The user should see their memories, documents, plans and information.
-
-Not the software managing them.
-
-**NEVER forget.**
+# NEVER — Design foundation, pass 1
+
+Status: canonical implementation specification, 21 September 2026.
+Replaces the V5.3 palette and typography specification. The V5 screen/component
+names remain compatibility entry points; they do not define a second design system.
+
+## Intent and references
+
+The supplied five-screen Light Mode NEVER board is the primary reference:
+compact spaced wordmark, personal editorial greeting, platinum canvas, restrained
+translucent capture control, clear content rows, and compact bottom navigation.
+The second board contributes the quiet hierarchy of Monolith and Archive, not
+Aurora's colored scenery, Orbit's space imagery, or Tactile's paper simulation.
+No reference's example names, content, avatar, subscription status, or statistics
+are inserted into the application. All content comes from existing providers.
+
+Identity: platinum, silver, graphite; material and typography carry the brand.
+No core blue accent, chrome gradients, neon, ornamental backgrounds, or grids of
+unrelated dashboard cards. Readability is the first material constraint.
+
+## Source of truth
+
+| Concern | Canonical implementation |
+| --- | --- |
+| Light/dark semantic colors | `src/theme/colors.ts` |
+| Type, spacing, radii | `src/theme/typography.ts` |
+| Control, icon, material and motion dimensions | `src/theme/tokens.ts` |
+| Native material and interaction | `src/ui/material.tsx` |
+| Headers, groups, search, filters, row and icon controls | `src/ui/appleV5.tsx` |
+| Memory content rows | `src/ui/MemoryRow.tsx` |
+| Existing reusable action buttons | `src/ui/never.tsx` |
+
+`useNeverV5Palette()` maps existing names onto `useTheme()`; it contains no color
+literals. `NeverGlass` and legacy `Surface` now delegate to `NeverMaterial`.
+Do not introduce per-screen theme palettes.
+
+## Color and material
+
+| Role | Light | Dark |
+| --- | --- | --- |
+| Canvas | `#E9EDF0` | `#191D22` |
+| Content surface | `#F5F7F8` | `#242A31` |
+| Elevated surface | `#FCFDFD` | `#303840` |
+| Primary text | `#222930` | `#F1F4F6` |
+| Secondary text | `#59636E` | `#B7C1CA` |
+| Tertiary text | `#606A74` | `#A3AFBA` |
+| Primary control | `#414D59` | `#DCE4EB` |
+| On primary control | `#FAFCFD` | `#20272E` |
+| Separator | `#CDD5DC` | `#404B56` |
+
+Opaque content groups use one subtle perimeter and inset row separators, without
+individual row shadows. Native glass is limited to the capture composer, search
+field, and floating navigation. On supported iOS builds these use Expo GlassView;
+other platforms and unavailable native APIs use the shared material fallback.
+Reduce Transparency selects opaque material. Native blur is controlled by iOS;
+the 24-point blur token is reserved for future fallback renderers, not a simulated
+iOS effect. Light/dark preference is passed explicitly to the glass view.
+
+Shadows are shallow (opacity .09, radius 16, vertical offset 6), only on floating
+controls. Material borders and subtle reflected edges replace visible gradients.
+Text contrast tests cover primary/secondary/tertiary text on the three opaque
+surfaces and the primary-action label. Translucent compositing still needs device QA.
+
+## Typography and density
+
+Large titles and the Home greeting use the device's Georgia face (serif fallback
+on Android/web), following the supplied concept. Utility text uses the native
+system font. No downloaded font or font-loading gate is added.
+
+| Role | Size / line height | Weight |
+| --- | --- | --- |
+| Hero | 34 / 39 | Regular, editorial |
+| Detail title | 32 / 37 | Regular, editorial |
+| Section | 17 / 21 | Semibold, system |
+| Memory title | 15 / 21 | Semibold, system |
+| Body | 15 / 21 | Regular, system |
+| Metadata | 12 / 16 | Medium, system |
+
+Use the 4/8/12/16/20/24/32/40 spacing scale. Core screens use 20-point horizontal
+insets and a 680-point maximum content width. Memory rows have a 76-point minimum,
+46-point previews and two title lines; they grow with text. Primary icon buttons
+and filters have a 44-point minimum. Search fields are 54 points minimum.
+Tab icons are 21 points; text remains visible. Font scaling remains enabled.
+
+## Core composition
+
+- **Home:** wordmark/profile access, real greeting, capture composer and four
+  existing capture actions, existing Ask entry, relevant Today entries, recent
+  memories and real review items. Capture has pending, success and failure copy,
+  with an immediate duplicate-submission guard. No invented suggestions.
+- **Search:** editorial heading, material input, persistent type filters, category
+  suggestions, real recent searches from this mounted session, results and the
+  existing grounded/AI answer flow. Filters apply before retrieval limits so old
+  documents remain discoverable. Recent searches are clearable and not persisted.
+  Query edits and mode changes invalidate pending answer display.
+- **Saved:** existing saved-item rules and document analytics, unified filters,
+  real category grouping, shared content rows. Categories are existing metadata;
+  this does not add a collection service or new storage schema.
+- **Inbox:** explicit back/capture access, state labels and review actions. Inline
+  actions stop propagation so a confirmation does not also open the row.
+- **Detail:** original/source, editable memory content, organization, links,
+  disclosed OCR text, state and actions. Done and Save Changes call the same save
+  operation. The keyed form preserves in-progress edits across background sync;
+  field components retain identity and keyboard focus while typing.
+- **Shell:** the five existing tabs, floating material, selected icon well and
+  labels; actual keyboard events hide the custom tab bar. Existing routes,
+  deep links, notification entry points and native navigation remain intact.
+
+## Interaction and accessibility
+
+Use brief spring press feedback (damping 22, stiffness 320, mass .7) on shared icon
+controls. Haptics must not block actions. Reduce Motion disables scale feedback
+and stack animation. Use native stack transitions otherwise. Core editors/search
+adjust scroll insets for the keyboard and allow interactive keyboard dismissal.
+Actions need labels, filters need selected state, disclosures need expanded state.
+No new gesture-only actions. Primary content remains accessible without glass.
+
+## Pass 2 boundary
+
+Do not revisit storage, auth, subscription or retrieval architecture for polish.
+Validate and tune on iPhone first: material compositing, small and large Dynamic
+Type, 320/390/430-point layouts, keyboard safe areas, reduced motion/transparency,
+VoiceOver, long documents and real imported thumbnails. Then tune Calendar,
+Settings, scan/share review and other secondary workflows using these foundations.
+
+A web export is not evidence of native glass, keyboard, haptics or iOS build quality.
+See `DESIGN_PASS_1.md` for completed gates and remaining device verification.

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import CommunityDateTimePicker from '@expo/ui/community/datetime-picker';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -6,6 +6,8 @@ import * as Haptics from 'expo-haptics';
 import * as Sharing from 'expo-sharing';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
+import type { OneItem } from '@/src/types/item';
+import { neverType, neverSpacing } from '@/src/theme/tokens';
 import { iconForType } from '@/src/ui/OneItemRow';
 import { OneIcon, icons } from '@/src/ui/icons';
 import {
@@ -19,37 +21,8 @@ import {
 export default function ItemDetailScreen() {
   const p = useNeverV5Palette();
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { items, update, remove } = useItems();
+  const { items } = useItems();
   const item = useMemo(() => items.find((candidate) => candidate.id === id), [items, id]);
-
-  const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
-  const [category, setCategory] = useState('');
-  const [location, setLocation] = useState('');
-  const [context, setContext] = useState('');
-  const [notes, setNotes] = useState('');
-  const [saved, setSaved] = useState(false);
-  const [completed, setCompleted] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [sourceExpanded, setSourceExpanded] = useState(false);
-  const [activePicker, setActivePicker] = useState<'date' | 'time' | null>(null);
-
-  useEffect(() => {
-    if (!item) return;
-    setTitle(item.title);
-    setDate(item.date || '');
-    setTime(item.time || '');
-    setCategory(item.category || '');
-    setLocation(item.location || '');
-    setContext(item.userContext || item.summary || '');
-    setNotes(item.notes || '');
-    setSaved(item.saved);
-    setCompleted(item.completed);
-    // Form state intentionally reloads only when navigation changes to another memory.
-    // A background sync of this item must not overwrite unsaved user edits.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [item?.id]);
 
   if (!item) {
     return (
@@ -63,6 +36,26 @@ export default function ItemDetailScreen() {
       </SafeAreaView>
     );
   }
+
+  return <MemoryDetailForm key={item.id} item={item} />;
+}
+
+// The key resets the draft only when navigation changes item, never on background sync.
+function MemoryDetailForm({ item }: { item: OneItem }) {
+  const p = useNeverV5Palette();
+  const { update, remove } = useItems();
+  const [title, setTitle] = useState(item.title);
+  const [date, setDate] = useState(item.date || '');
+  const [time, setTime] = useState(item.time || '');
+  const [category, setCategory] = useState(item.category || '');
+  const [location, setLocation] = useState(item.location || '');
+  const [context, setContext] = useState(item.userContext || item.summary || '');
+  const [notes, setNotes] = useState(item.notes || '');
+  const [saved, setSaved] = useState(item.saved);
+  const [completed, setCompleted] = useState(item.completed);
+  const [saving, setSaving] = useState(false);
+  const [showRecognized, setShowRecognized] = useState(false);
+  const [sourceExpanded, setSourceExpanded] = useState(false);
 
   const currentItem = item;
   const sourceUri = currentItem.localAttachmentUri || currentItem.imageUrl || currentItem.attachmentUrl;
@@ -146,11 +139,11 @@ export default function ItemDetailScreen() {
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
           <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.back()} />
           <Text style={[styles.navTitle, { color: p.label }]}>Memory</Text>
-          <View style={{ width: 38 }} />
+          <Pressable accessibilityRole="button" accessibilityLabel="Save changes" disabled={saving || !title.trim()} onPress={saveChanges} style={styles.navSave}><Text style={{ color: p.chrome, fontWeight: '600', opacity: saving || !title.trim() ? 0.4 : 1 }}>{saving ? 'Saving…' : 'Done'}</Text></Pressable>
         </View>
 
         <View style={styles.identity}>
@@ -225,23 +218,24 @@ export default function ItemDetailScreen() {
         ) : null}
 
         <View style={styles.section}>
-          <V5SectionHeader title="Details" />
+          <V5SectionHeader title="Your memory" />
           <V5Group>
-            <DateTimeFieldRow kind="date" label="Date" value={date} icon={icons.calendar} />
-            <DateTimeFieldRow kind="time" label="Time" value={time} icon={icons.clock} />
-            <TextFieldRow label="Category" value={category} onChange={setCategory} placeholder="General" icon={icons.saved} />
-            <TextFieldRow label="Location" value={location} onChange={setLocation} placeholder="Optional" icon={icons.travel} last />
+            <Text style={[styles.inputLabel, { color: p.secondary }]}>CONTEXT</Text>
+            <TextInput value={context} onChangeText={setContext} style={[styles.largeInput, { color: p.label }]} placeholder="What should NEVER remember this as?" placeholderTextColor={p.tertiary} accessibilityLabel="Memory context" multiline />
+            <View style={[styles.inputDivider, { backgroundColor: p.separator }]} />
+            <Text style={[styles.inputLabel, { color: p.secondary }]}>NOTES</Text>
+            <TextInput value={notes} onChangeText={setNotes} style={[styles.largeInput, { color: p.label }]} placeholder="Add a thought or a little more detail…" placeholderTextColor={p.tertiary} accessibilityLabel="Notes" multiline />
           </V5Group>
         </View>
 
         <View style={styles.section}>
-          <V5SectionHeader title="Context" />
-          <TextInput value={context} onChangeText={setContext} style={[styles.largeInput, { color: p.label, backgroundColor: p.surface }]} placeholder="What should NEVER remember this as?" placeholderTextColor={p.tertiary} accessibilityLabel="Memory context" multiline />
-        </View>
-
-        <View style={styles.section}>
-          <V5SectionHeader title="Notes" />
-          <TextInput value={notes} onChangeText={setNotes} style={[styles.largeInput, { color: p.label, backgroundColor: p.surface }]} placeholder="Add notes" placeholderTextColor={p.tertiary} accessibilityLabel="Notes" multiline />
+          <V5SectionHeader title="Organization" />
+          <V5Group>
+            <DateTimeFieldRow kind="date" label="Date" value={date} onChange={setDate} icon={icons.calendar} />
+            <DateTimeFieldRow kind="time" label="Time" value={time} onChange={setTime} icon={icons.clock} />
+            <TextFieldRow label="Category" value={category} onChange={setCategory} placeholder="General" icon={icons.saved} />
+            <TextFieldRow label="Location" value={location} onChange={setLocation} placeholder="Optional" icon={icons.travel} last />
+          </V5Group>
         </View>
 
         {savedLinks.length ? (
@@ -261,10 +255,10 @@ export default function ItemDetailScreen() {
 
         {currentItem.extractedText ? (
           <View style={styles.section}>
-            <V5SectionHeader title="Recognized Text" />
-            <V5Group style={styles.extractedGroup}>
+            <Pressable accessibilityRole="button" accessibilityState={{ expanded: showRecognized }} onPress={() => setShowRecognized((value) => !value)} style={styles.disclosure}><V5SectionHeader title="Recognized text" /><Text style={{ color: p.chrome }}>{showRecognized ? 'Hide' : 'Show'}</Text></Pressable>
+            {showRecognized ? <V5Group style={styles.extractedGroup}>
               <Text style={[styles.extracted, { color: p.secondary }]} selectable>{currentItem.extractedText}</Text>
-            </V5Group>
+            </V5Group> : null}
           </View>
         ) : null}
 
@@ -288,8 +282,8 @@ export default function ItemDetailScreen() {
         </View>
 
         <Pressable disabled={saving || !title.trim()} onPress={saveChanges} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !title.trim() ? 0.38 : pressed ? 0.72 : 1 }]}>
-          <OneIcon name={icons.check} size={15} color={p.dark ? '#111113' : '#FFFFFF'} />
-          <Text style={[styles.primaryButtonText, { color: p.dark ? '#111113' : '#FFFFFF' }]}>{saving ? 'Saving…' : 'Save Changes'}</Text>
+          <OneIcon name={icons.check} size={15} color={p.onAccent} />
+          <Text style={[styles.primaryButtonText, { color: p.onAccent }]}>{saving ? 'Saving…' : 'Save Changes'}</Text>
         </Pressable>
 
         <Pressable onPress={confirmDelete} style={styles.deleteAction}>
@@ -300,84 +294,90 @@ export default function ItemDetailScreen() {
     </SafeAreaView>
   );
 
-  function MemoryGlyph({ icon }: { icon: (typeof icons)[keyof typeof icons] }) {
-    return <View style={[styles.memoryGlyph, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={15} color={p.chrome} /></View>;
-  }
-
-  function InfoLine({ label, value }: { label: string; value: string }) {
-    return <View style={styles.infoLine}><Text style={[styles.infoLabel, { color: p.tertiary }]}>{label}</Text><Text style={[styles.infoValue, { color: p.label }]} numberOfLines={1}>{value}</Text></View>;
-  }
-
-  function DateTimeFieldRow({ kind, label, value, icon }: { kind: 'date' | 'time'; label: string; value: string; icon: (typeof icons)[keyof typeof icons] }) {
-    const pickerValue = kind === 'date' ? dateValue(value) : timeValue(value);
-    const isIos = Platform.OS === 'ios';
-    const isWeb = Platform.OS === 'web';
-
-    function applySelected(next: Date) {
-      if (kind === 'date') setDate(toIsoDate(next));
-      else setTime(toTime(next));
-      setActivePicker(null);
-      void Haptics.selectionAsync();
-    }
-    function clearValue() {
-      if (kind === 'date') setDate('');
-      else setTime('');
-      setActivePicker(null);
-      void Haptics.selectionAsync();
-    }
-    function activatePicker() {
-      if (isIos && !value) {
-        applySelected(new Date());
-        return;
-      }
-      setActivePicker(kind);
-    }
-
-    return (
-      <>
-        <View style={[styles.fieldRow, { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-          <MemoryGlyph icon={icon} />
-          <Text style={[styles.fieldLabel, { color: p.label }]}>{label}</Text>
-          {isWeb ? (
-            <TextInput value={value} onChangeText={kind === 'date' ? setDate : setTime} placeholder={kind === 'date' ? 'YYYY-MM-DD' : 'HH:MM'} placeholderTextColor={p.tertiary} accessibilityLabel={label} style={[styles.fieldInput, { color: p.label }]} autoCapitalize="none" />
-          ) : isIos && value ? (
-            <View style={styles.nativePickerWrap}>
-              <CommunityDateTimePicker value={pickerValue} mode={kind} display="compact" is24Hour accentColor={p.chrome} onValueChange={(_event, selected) => applySelected(selected)} />
-            </View>
-          ) : (
-            <Pressable onPress={activatePicker} style={({ pressed }) => [styles.pickerButton, { backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
-              <Text style={[styles.pickerButtonText, { color: value ? p.label : p.tertiary }]}>{value ? (kind === 'date' ? formatHumanDate(value) : value) : `Add ${label.toLowerCase()}`}</Text>
-            </Pressable>
-          )}
-          {value ? <Pressable hitSlop={8} onPress={clearValue} style={styles.clearButton}><OneIcon name={icons.close} size={11.5} color={p.tertiary} /></Pressable> : null}
-        </View>
-        {!isWeb && !isIos && activePicker === kind ? (
-          <CommunityDateTimePicker value={pickerValue} mode={kind} presentation="dialog" is24Hour accentColor={p.chrome} onValueChange={(_event, selected) => applySelected(selected)} onDismiss={() => setActivePicker(null)} />
-        ) : null}
-      </>
-    );
-  }
-
-  function TextFieldRow({ label, value, onChange, placeholder, icon, last = false }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; icon: (typeof icons)[keyof typeof icons]; last?: boolean }) {
-    return (
-      <View style={[styles.fieldRow, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-        <MemoryGlyph icon={icon} />
-        <Text style={[styles.fieldLabel, { color: p.label }]}>{label}</Text>
-        <TextInput value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={p.tertiary} accessibilityLabel={label} style={[styles.fieldInput, { color: p.label }]} autoCapitalize="none" />
-      </View>
-    );
-  }
-
-  function ToggleRow({ label, value, onChange, icon, last = false }: { label: string; value: boolean; onChange: (value: boolean) => void; icon: (typeof icons)[keyof typeof icons]; last?: boolean }) {
-    return (
-      <View style={[styles.fieldRow, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-        <MemoryGlyph icon={icon} />
-        <Text style={[styles.fieldLabel, { color: p.label }]}>{label}</Text>
-        <Switch accessibilityLabel={label} value={value} onValueChange={onChange} trackColor={{ true: p.chrome }} />
-      </View>
-    );
-  }
 }
+
+function MemoryGlyph({ icon }: { icon: (typeof icons)[keyof typeof icons] }) {
+  const p = useNeverV5Palette();
+  return <View style={[styles.memoryGlyph, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={15} color={p.chrome} /></View>;
+}
+
+function InfoLine({ label, value }: { label: string; value: string }) {
+  const p = useNeverV5Palette();
+  return <View style={styles.infoLine}><Text style={[styles.infoLabel, { color: p.tertiary }]}>{label}</Text><Text style={[styles.infoValue, { color: p.label }]} numberOfLines={1}>{value}</Text></View>;
+}
+
+function DateTimeFieldRow({ kind, label, value, icon, onChange }: { kind: 'date' | 'time'; label: string; value: string; icon: (typeof icons)[keyof typeof icons]; onChange: (value: string) => void }) {
+  const p = useNeverV5Palette();
+  const [activePicker, setActivePicker] = useState<'date' | 'time' | null>(null);
+  const pickerValue = kind === 'date' ? dateValue(value) : timeValue(value);
+  const isIos = Platform.OS === 'ios';
+  const isWeb = Platform.OS === 'web';
+
+  function applySelected(next: Date) {
+    onChange(kind === 'date' ? toIsoDate(next) : toTime(next));
+    setActivePicker(null);
+    void Haptics.selectionAsync();
+  }
+  function clearValue() {
+    onChange('');
+    setActivePicker(null);
+    void Haptics.selectionAsync();
+  }
+  function activatePicker() {
+    if (isIos && !value) {
+      applySelected(new Date());
+      return;
+    }
+    setActivePicker(kind);
+  }
+
+  return (
+    <>
+      <View style={[styles.fieldRow, { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+        <MemoryGlyph icon={icon} />
+        <Text style={[styles.fieldLabel, { color: p.label }]}>{label}</Text>
+        {isWeb ? (
+          <TextInput value={value} onChangeText={onChange} placeholder={kind === 'date' ? 'YYYY-MM-DD' : 'HH:MM'} placeholderTextColor={p.tertiary} accessibilityLabel={label} style={[styles.fieldInput, { color: p.label }]} autoCapitalize="none" />
+        ) : isIos && value ? (
+          <View style={styles.nativePickerWrap}>
+            <CommunityDateTimePicker value={pickerValue} mode={kind} display="compact" is24Hour accentColor={p.chrome} onValueChange={(_event, selected) => applySelected(selected)} />
+          </View>
+        ) : (
+          <Pressable onPress={activatePicker} style={({ pressed }) => [styles.pickerButton, { backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
+            <Text style={[styles.pickerButtonText, { color: value ? p.label : p.tertiary }]}>{value ? (kind === 'date' ? formatHumanDate(value) : value) : `Add ${label.toLowerCase()}`}</Text>
+          </Pressable>
+        )}
+        {value ? <Pressable hitSlop={8} onPress={clearValue} style={styles.clearButton}><OneIcon name={icons.close} size={11.5} color={p.tertiary} /></Pressable> : null}
+      </View>
+      {!isWeb && !isIos && activePicker === kind ? (
+        <CommunityDateTimePicker value={pickerValue} mode={kind} presentation="dialog" is24Hour accentColor={p.chrome} onValueChange={(_event, selected) => applySelected(selected)} onDismiss={() => setActivePicker(null)} />
+      ) : null}
+    </>
+  );
+}
+
+function TextFieldRow({ label, value, onChange, placeholder, icon, last = false }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; icon: (typeof icons)[keyof typeof icons]; last?: boolean }) {
+  const p = useNeverV5Palette();
+  return (
+    <View style={[styles.fieldRow, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+      <MemoryGlyph icon={icon} />
+      <Text style={[styles.fieldLabel, { color: p.label }]}>{label}</Text>
+      <TextInput value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={p.tertiary} accessibilityLabel={label} style={[styles.fieldInput, { color: p.label }]} autoCapitalize="none" />
+    </View>
+  );
+}
+
+function ToggleRow({ label, value, onChange, icon, last = false }: { label: string; value: boolean; onChange: (value: boolean) => void; icon: (typeof icons)[keyof typeof icons]; last?: boolean }) {
+  const p = useNeverV5Palette();
+  return (
+    <View style={[styles.fieldRow, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+      <MemoryGlyph icon={icon} />
+      <Text style={[styles.fieldLabel, { color: p.label }]}>{label}</Text>
+      <Switch accessibilityLabel={label} value={value} onValueChange={onChange} trackColor={{ true: p.chrome }} />
+    </View>
+  );
+}
+
 
 function normalizeWebUrl(value: string) { return /^https?:\/\//i.test(value) ? value : `https://${value}`; }
 function clean(value: string) { return value.trim() || undefined; }
@@ -424,16 +424,20 @@ function toTime(value: Date) { return `${String(value.getHours()).padStart(2, '0
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 36, gap: 18 },
+  content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 36, gap: neverSpacing.xxl },
   nav: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navTitle: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
+  navSave: { minWidth: 52, minHeight: 44, justifyContent: 'center', alignItems: 'flex-end' },
+  inputLabel: { paddingHorizontal: 16, paddingTop: 16, fontSize: 10, letterSpacing: 1.2, fontWeight: '600' },
+  inputDivider: { height: StyleSheet.hairlineWidth, marginHorizontal: 16 },
+  disclosure: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   identity: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   identityGlyph: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   memoryGlyph: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   type: { fontSize: 9.5, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.9 },
   source: { marginTop: 2, fontSize: 11.5, lineHeight: 14 },
-  titleInput: { minHeight: 54, paddingVertical: 1, fontSize: 28, lineHeight: 33, fontWeight: '700', letterSpacing: -0.85, textAlignVertical: 'top' },
-  section: { gap: 7 },
+  titleInput: { ...neverType.display, minHeight: 54, paddingVertical: 1, textAlignVertical: 'top' },
+  section: { gap: neverSpacing.md },
   sourceCard: { borderRadius: 16, overflow: 'hidden', padding: 8 },
   sourceImage: { width: '100%', height: 210, borderRadius: 10 },
   sourceImageExpanded: { height: 520 },
@@ -455,10 +459,10 @@ const styles = StyleSheet.create({
   fieldLabel: { width: 64, fontSize: 14, lineHeight: 18, fontWeight: '500' },
   fieldInput: { flex: 1, fontSize: 13.5, lineHeight: 17, textAlign: 'right', paddingVertical: 8 },
   nativePickerWrap: { flex: 1, alignItems: 'flex-end' },
-  pickerButton: { flex: 1, minHeight: 32, borderRadius: 9, paddingHorizontal: 10, alignItems: 'flex-end', justifyContent: 'center' },
+  pickerButton: { flex: 1, minHeight: 44, borderRadius: 9, paddingHorizontal: 10, alignItems: 'flex-end', justifyContent: 'center' },
   pickerButtonText: { fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
   clearButton: { width: 24, height: 28, alignItems: 'center', justifyContent: 'center' },
-  largeInput: { minHeight: 96, borderRadius: 16, padding: 13, fontSize: 14, lineHeight: 20, textAlignVertical: 'top' },
+  largeInput: { minHeight: 80, padding: 16, fontSize: 16, lineHeight: 24, textAlignVertical: 'top' },
   extractedGroup: { padding: 14 },
   extracted: { fontSize: 12.5, lineHeight: 19 },
   extractedLink: { minHeight: 54, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
@@ -468,9 +472,9 @@ const styles = StyleSheet.create({
   linkText: { marginTop: 2, fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
   primaryButton: { minHeight: 46, borderRadius: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   primaryButtonText: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
-  deleteAction: { minHeight: 38, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center' },
+  deleteAction: { minHeight: 44, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center' },
   deleteText: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
-  missing: { flex: 1, width: '100%', maxWidth: 760, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', padding: 24 },
+  missing: { flex: 1, width: '100%', maxWidth: 680, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', padding: 24 },
   missingIcon: { width: 44, height: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   missingTitle: { marginTop: 12, fontSize: 18, lineHeight: 22, fontWeight: '700' },
   missingBody: { marginTop: 3, fontSize: 13, lineHeight: 18 },

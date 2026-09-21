@@ -1,3 +1,5 @@
+> Pass 1 update (21 September 2026): the current specification is `NEVER_DESIGN_BIBLE.md`; implementation and validation status are in `DESIGN_PASS_1.md`. Historical V5.3 visual assumptions below are superseded where they conflict.
+
 # NEVER — Visual QA & Premium iPhone Acceptance
 
 This document is the visual acceptance contract for NEVER. It complements `docs/NEVER_DESIGN_BIBLE.md` and the functional device test plan. A screen is not visually accepted because it merely works; it must feel coherent, native, restrained and premium on a real iPhone.

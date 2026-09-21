@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -12,12 +12,15 @@ import {
   groupDocumentsByMonth
 } from '@/src/documents/analytics';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { iconForType } from '@/src/ui/OneItemRow';
+import { MemoryRow } from '@/src/ui/MemoryRow';
+import { neverSpacing } from '@/src/theme/tokens';
 import {
   V5Chevron,
   V5Group,
   V5LargeHeader,
   V5SearchField,
+  V5Segmented,
+  V5IconButton,
   V5SectionHeader,
   useNeverV5Palette
 } from '@/src/ui/appleV5';
@@ -55,19 +58,30 @@ export default function SavedV5() {
           .some((value) => value!.toLowerCase().includes(clean));
       });
 
+    base.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     if (filter === 'All') return base;
     if (filter === 'Documents') return [];
-    if (filter === 'Images') return base.filter((item) => item.kind === 'image' || item.sourceType === 'screenshot' || Boolean(item.imageUrl || item.localAttachmentUri));
+    if (filter === 'Images') return base.filter((item) => item.kind === 'image' || item.sourceType === 'screenshot' || Boolean(item.imageUrl) || Boolean(item.localAttachmentMimeType?.startsWith('image/')));
     if (filter === 'Links') return base.filter((item) => item.type === 'link' || Boolean(item.url));
     return base.filter((item) => item.type === 'idea' || item.type === 'note');
   }, [items, filter, query]);
 
+  const groups = useMemo(() => {
+    const grouped = new Map<string, OneItem[]>();
+    for (const item of savedItems) {
+      const label = item.category?.trim() || 'Unfiled';
+      grouped.set(label, [...(grouped.get(label) || []), item]);
+    }
+    return [...grouped].map(([label, entries]) => ({ label, items: entries }));
+  }, [savedItems]);
+
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         <V5LargeHeader
           title={filter === 'Documents' ? 'Documents' : 'Saved'}
-          subtitle="Everything you've saved to NEVER."
+          subtitle="Your curated memory library."
+          action={<V5IconButton icon={icons.plus} accessibilityLabel="Capture a memory" onPress={() => router.push('/(tabs)')} />}
         />
 
         <V5SearchField
@@ -76,28 +90,7 @@ export default function SavedV5() {
           placeholder={filter === 'Documents' ? 'Search documents' : 'Search saved items'}
         />
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.filterRail}>
-          {filters.map((name) => {
-            const active = name === filter;
-            return (
-              <Pressable
-                key={name}
-                accessibilityRole="button"
-                accessibilityState={{ selected: active }}
-                onPress={async () => { await Haptics.selectionAsync(); setFilter(name); }}
-                style={({ pressed }) => [
-                  styles.filterChip,
-                  {
-                    backgroundColor: active ? p.fill : 'transparent',
-                    opacity: pressed ? 0.62 : 1
-                  }
-                ]}
-              >
-                <Text style={[styles.filterText, { color: active ? p.label : p.secondary, fontWeight: active ? '600' : '500' }]}>{name}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        <V5Segmented options={[...filters]} selected={filter} onSelect={(value) => setFilter(value as typeof filter)} />
 
         {filter === 'Documents' ? (
           <DocumentsView
@@ -109,46 +102,23 @@ export default function SavedV5() {
         ) : (
           <View style={styles.section}>
             <V5SectionHeader title={filter === 'All' ? 'Memories' : filter} meta={`${savedItems.length}`} />
-            <V5Group>
-              {savedItems.length ? savedItems.map((item, index) => (
-                <MemoryRow key={item.id} item={item} last={index === savedItems.length - 1} />
-              )) : (
-                <View style={styles.emptyState}>
-                  <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.saved} size={18} color={p.chrome} /></View>
-                  <Text style={[styles.emptyTitle, { color: p.label }]}>Nothing here yet</Text>
-                  <Text style={[styles.emptyBody, { color: p.secondary }]}>Capture or save something and it will appear here.</Text>
-                </View>
-              )}
-            </V5Group>
+            {savedItems.length ? groups.map((group) => (
+              <View key={group.label} style={styles.section}>
+                <Text style={[styles.collectionLabel, { color: p.secondary }]}>{group.label} · {group.items.length}</Text>
+                <V5Group>{group.items.map((item, index) => <MemoryRow key={item.id} item={item} last={index === group.items.length - 1} />)}</V5Group>
+              </View>
+            )) : (
+              <V5Group><View style={styles.emptyState}>
+                <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.saved} size={22} color={p.chrome} /></View>
+                <Text style={[styles.emptyTitle, { color: p.label }]}>{query.trim() ? 'No matching memories' : 'A place for what matters'}</Text>
+                <Text style={[styles.emptyBody, { color: p.secondary }]}>{query.trim() ? 'Try another phrase or filter.' : 'Save a capture and build your personal library.'}</Text>
+              </View></V5Group>
+            )}
           </View>
         )}
       </ScrollView>
     </SafeAreaView>
   );
-
-  function MemoryRow({ item, last }: { item: OneItem; last: boolean }) {
-    const preview = imagePreviewUri(item);
-    return (
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={`Open ${item.title}`}
-        onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.memoryRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
-      >
-        <View style={[styles.memoryThumb, { backgroundColor: p.fillSoft }]}>
-          {preview ? <Image source={{ uri: preview }} style={styles.memoryImage} resizeMode="cover" /> : <OneIcon name={iconForType(item.type)} size={18} color={p.chrome} />}
-        </View>
-        <View style={[styles.memoryContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[styles.memoryTitle, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
-            <Text style={[styles.memoryMeta, { color: p.secondary }]} numberOfLines={1}>{tileMeta(item)}</Text>
-          </View>
-          <Text style={[styles.memoryDate, { color: p.tertiary }]}>{prettyCaptured(item.updatedAt)}</Text>
-          <V5Chevron />
-        </View>
-      </Pressable>
-    );
-  }
 
   function DocumentsView({ groups, summary, selectedFilter, setSelectedFilter }: {
     groups: { label: string; items: OneItem[] }[];
@@ -236,17 +206,7 @@ export default function SavedV5() {
   }
 }
 
-function imagePreviewUri(item: OneItem) {
-  const candidate = item.localAttachmentUri || item.imageUrl;
-  return candidate && /^(file|content|ph|https?):\/\//i.test(candidate) ? candidate : undefined;
-}
-function tileMeta(item: OneItem) { return [item.category, item.userContext, item.merchant, item.location].filter(Boolean).join(' · ') || (item.saved ? 'Saved memory' : item.type); }
-function prettyCaptured(value?: string) {
-  if (!value) return 'Memory';
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return 'Memory';
-  return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(date);
-}
+
 function formatKind(kind?: OneDocumentKind) {
   if (!kind || kind === 'other') return 'Document';
   return kind.split('_').map((part) => part.charAt(0).toUpperCase() + part.slice(1)).join(' ');
@@ -258,22 +218,13 @@ function prettyDate(iso?: string) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 18, paddingBottom: 118, gap: 18 },
-  filterRail: { gap: 5, paddingRight: 6 },
-  filterChip: { minHeight: 31, paddingHorizontal: 12, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  filterText: { fontSize: 12.5, lineHeight: 15 },
-  section: { gap: 7 },
-  memoryRow: { minHeight: 66, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  memoryThumb: { width: 44, height: 44, borderRadius: 11, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
-  memoryImage: { width: '100%', height: '100%' },
-  memoryContent: { flex: 1, minHeight: 66, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  memoryTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
-  memoryMeta: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
-  memoryDate: { fontSize: 11.5, lineHeight: 14 },
+  content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 118, gap: neverSpacing.xxl },
+  section: { gap: neverSpacing.md },
   emptyState: { minHeight: 150, padding: 22, alignItems: 'center', justifyContent: 'center' },
   emptyIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { marginTop: 10, fontSize: 16, lineHeight: 20, fontWeight: '600' },
   emptyBody: { marginTop: 3, maxWidth: 250, fontSize: 12.5, lineHeight: 17, textAlign: 'center' },
+  collectionLabel: { fontSize: 12, lineHeight: 17, fontWeight: '600', paddingHorizontal: 4, marginTop: 8 },
   documents: { gap: 15 },
   summaryHeader: { minHeight: 52, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   summaryMonth: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
@@ -283,7 +234,7 @@ const styles = StyleSheet.create({
   factValue: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
   factLabel: { marginTop: 2, fontSize: 10.5, lineHeight: 13 },
   documentFilters: { gap: 5, paddingRight: 6 },
-  documentFilter: { minHeight: 31, paddingHorizontal: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  documentFilter: { minHeight: 44, paddingHorizontal: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   documentFilterText: { fontSize: 12, lineHeight: 15 },
   documentRow: { minHeight: 62, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
   documentIcon: { width: 36, height: 36, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
