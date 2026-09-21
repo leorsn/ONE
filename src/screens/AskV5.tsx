@@ -1,5 +1,10 @@
+import { openMemoryLink } from '@/src/ui/openLink';
+import { NeverNotice } from '@/src/ui/NeverNotice';
+import { MemoryRow } from '@/src/ui/MemoryRow';
+import { useReducedMotion } from '@/src/ui/material';
+import { NeverInput } from '@/src/ui/NeverInput';
 import { useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -9,7 +14,6 @@ import { usePlan } from '@/src/context/PlanContext';
 import { answerFromRetrievedItems } from '@/src/recall/service';
 import { retrieveOneItems } from '@/src/search/retrieve';
 import { searchSemantically } from '@/src/search/semantic';
-import { iconForType } from '@/src/ui/OneItemRow';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import {
@@ -50,6 +54,10 @@ export default function AskV5() {
   const [query, setQuery] = useState(typeof q === 'string' ? q : '');
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sending, setSending] = useState(false);
+  const sendingRef = useRef(false);
+  const nearBottom = useRef(true);
+  const reducedMotion = useReducedMotion();
+  const [failedQuestion, setFailedQuestion] = useState<string | null>(null);
 
   const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
   const previousSourceIds = useMemo(() => {
@@ -60,11 +68,14 @@ export default function AskV5() {
     return [];
   }, [messages]);
 
-  async function submitQuestion(value = query) {
+  async function submitQuestion(value = query, retry = false) {
     const clean = value.trim();
-    if (!clean || sending) return;
-    await Haptics.selectionAsync();
-    setMessages((current) => [...current, { id: makeId('user'), role: 'user', text: clean }]);
+    if (!clean || sendingRef.current) return;
+    sendingRef.current = true;
+    nearBottom.current = true;
+    setFailedQuestion(null);
+    void Haptics.selectionAsync().catch(() => undefined);
+    if (!retry) setMessages((current) => [...current, { id: makeId('user'), role: 'user', text: clean }]);
     setQuery('');
     setSending(true);
     try {
@@ -88,17 +99,20 @@ export default function AskV5() {
         sourceIds: answer.sourceIds,
         mode: answer.mode
       }]);
-      requestAnimationFrame(() => scrollRef.current?.scrollToEnd({ animated: true }));
+      requestAnimationFrame(() => { if (nearBottom.current) scrollRef.current?.scrollToEnd({ animated: !reducedMotion }); });
+    } catch {
+      setFailedQuestion(clean);
     } finally {
+      sendingRef.current = false;
       setSending(false);
     }
   }
 
   if (!hasAi) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
+      <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
         <NeverBackdrop />
-        <View style={styles.lockedPage}>
+        <ScrollView contentContainerStyle={styles.lockedPage} showsVerticalScrollIndicator={false}>
           <View style={styles.lockedTop}>
             <V5Wordmark />
             <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.back()} />
@@ -115,17 +129,17 @@ export default function AskV5() {
             <NeverEyebrow>NEVER AI</NeverEyebrow>
             <Text style={[styles.lockedTitle, { color: p.label }]}>Your memory, conversational.</Text>
             <Text style={[styles.lockedText, { color: p.secondary }]}>Ask questions about saved documents, links, dates and ideas. NEVER searches your own evidence first.</Text>
-            <Pressable onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: pressed ? 0.7 : 1 }]}>
+            <Pressable accessibilityRole="button" onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: pressed ? 0.7 : 1 }]}>
               <Text style={[styles.primaryButtonText, { color: p.onAccent }]}>View NEVER AI</Text>
             </Pressable>
           </NeverHeroSurface>
-        </View>
+        </ScrollView>
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <NeverBackdrop />
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={4}>
         <View style={styles.shell}>
@@ -135,11 +149,15 @@ export default function AskV5() {
               <Text style={[styles.navTitle, { color: p.label }]}>Ask NEVER</Text>
               <View style={[styles.liveDot, { backgroundColor: p.success }]} />
             </View>
-            {messages.length ? <V5IconButton icon={icons.close} accessibilityLabel="Clear conversation" onPress={() => setMessages([])} /> : <View style={{ width: 44 }} />}
+            {messages.length && !sending ? <V5IconButton icon={icons.close} accessibilityLabel="Clear conversation" onPress={() => { setMessages([]); setFailedQuestion(null); }} /> : <View style={{ width: 44 }} />}
           </View>
 
           <ScrollView
             ref={scrollRef}
+            keyboardDismissMode="interactive"
+            onScroll={(event) => { const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent; nearBottom.current = contentOffset.y + layoutMeasurement.height >= contentSize.height - 80; }}
+            scrollEventThrottle={32}
+            onContentSizeChange={() => { if (nearBottom.current) scrollRef.current?.scrollToEnd({ animated: !reducedMotion }); }}
             style={styles.chat}
             contentContainerStyle={messages.length ? styles.chatContent : styles.emptyContent}
             keyboardShouldPersistTaps="handled"
@@ -175,7 +193,7 @@ export default function AskV5() {
                   <V5SectionHeader title="Try asking" />
                   <View style={styles.suggestionGrid}>
                     {examples.map((example) => (
-                      <Pressable
+                      <Pressable accessibilityRole="button"
                         key={example.text}
                         onPress={() => submitQuestion(example.text)}
                         style={({ pressed }) => [styles.suggestionTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}
@@ -192,8 +210,9 @@ export default function AskV5() {
                   </View>
                 </View>
               </>
-            ) : messages.map((message) => <MessageBubble key={message.id} message={message} />)}
+            ) : messages.map((message) => <MessageBubble key={message.id} message={message} itemById={itemById} />)}
 
+            {failedQuestion ? <NeverNotice tone="error" title="Could not retrieve an answer" body="Your conversation is still here. Check your connection and try again." action="Try again" onAction={() => void submitQuestion(failedQuestion, true)} /> : null}
             {sending ? (
               <NeverHeroSurface compact style={styles.loadingSurface}>
                 <View style={styles.loadingLine}>
@@ -206,9 +225,9 @@ export default function AskV5() {
           </ScrollView>
 
           <View style={[styles.composerWrap, { borderTopColor: p.separator }]}>
-            <NeverHeroSurface compact style={styles.composerSurface}>
+            <NeverHeroSurface compact glass style={styles.composerSurface}>
               <View style={styles.composer}>
-                <TextInput
+                <NeverInput accessibilityLabel="Your question"
                   value={query}
                   onChangeText={setQuery}
                   placeholder={messages.length ? 'Ask a follow-up…' : 'Ask anything you saved…'}
@@ -223,6 +242,7 @@ export default function AskV5() {
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Send question"
+                  accessibilityState={{ disabled: !query.trim() || sending, busy: sending }}
                   disabled={!query.trim() || sending}
                   onPress={() => submitQuestion()}
                   style={[styles.sendButton, { backgroundColor: query.trim() && !sending ? p.graphite : p.fill, opacity: sending ? 0.5 : 1 }]}
@@ -237,69 +257,7 @@ export default function AskV5() {
     </SafeAreaView>
   );
 
-  function MessageBubble({ message }: { message: ChatMessage }) {
-    if (message.role === 'user') {
-      return (
-        <View style={styles.userMessageWrap}>
-          <NeverEyebrow>You</NeverEyebrow>
-          <View style={[styles.userBubble, { backgroundColor: p.graphite }]}>
-            <Text style={[styles.userText, { color: p.onAccent }]}>{message.text}</Text>
-          </View>
-        </View>
-      );
-    }
 
-    const sources = (message.sourceIds || []).map((id) => itemById.get(id)).filter((item): item is OneItem => Boolean(item)).slice(0, 6);
-    const answerUrls = extractHttpUrls(message.body);
-    const bodyText = withoutStandaloneUrlLines(message.body);
-
-    return (
-      <NeverHeroSurface compact style={styles.assistantSurface}>
-        <View style={styles.assistantBody}>
-          <View style={styles.assistantHeader}>
-            <View style={[styles.assistantMark, { backgroundColor: p.graphite }]}><OneIcon name={icons.ask} size={12.5} color={p.onAccent} /></View>
-            <Text style={[styles.assistantBrand, { color: p.label }]}>NEVER</Text>
-            {message.mode ? <Text style={[styles.modeLabel, { color: p.tertiary }]}>{message.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text> : null}
-          </View>
-
-          {message.title ? <Text style={[styles.answerTitle, { color: p.label }]}>{message.title}</Text> : null}
-          {bodyText ? <Text style={[styles.answerBody, { color: p.secondary }]}>{bodyText}</Text> : null}
-          {message.meta ? <Text style={[styles.answerMeta, { color: p.tertiary }]}>{message.meta}</Text> : null}
-        </View>
-
-        {answerUrls.length ? (
-          <View style={[styles.answerLinks, { borderTopColor: p.separator }]}>
-            {answerUrls.map((url, index) => (
-              <Pressable key={url} onPress={async () => { await Haptics.selectionAsync(); await Linking.openURL(url); }} style={({ pressed }) => [styles.linkRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
-                <OneIcon name={icons.link} size={13.5} color={p.chrome} />
-                <View style={[styles.linkContent, index !== answerUrls.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.separator }]}>
-                  <Text style={[styles.linkText, { color: p.label }]} numberOfLines={1}>{url}</Text>
-                  <V5Chevron />
-                </View>
-              </Pressable>
-            ))}
-          </View>
-        ) : null}
-
-        {sources.length ? (
-          <View style={[styles.sourcesWrap, { borderTopColor: p.separator }]}>
-            <V5SectionHeader title="Sources" meta={`${sources.length}`} />
-            <V5Group>
-              {sources.map((item, index) => (
-                <Pressable key={item.id} onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })} style={({ pressed }) => [styles.sourceRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
-                  <View style={[styles.sourceIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={iconForType(item.type)} size={14.5} color={p.chrome} /></View>
-                  <View style={[styles.sourceContent, index !== sources.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.separator }]}>
-                    <Text style={[styles.sourceTitle, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
-                    <V5Chevron />
-                  </View>
-                </Pressable>
-              ))}
-            </V5Group>
-          </View>
-        ) : null}
-      </NeverHeroSurface>
-    );
-  }
 }
 
 function extractHttpUrls(value?: string) {
@@ -312,6 +270,63 @@ function withoutStandaloneUrlLines(value?: string) {
   return remaining || undefined;
 }
 function makeId(prefix: string) { return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`; }
+
+function MessageBubble({ message, itemById }: { message: ChatMessage; itemById: Map<string, OneItem> }) {
+  const p = useNeverV5Palette();
+  if (message.role === 'user') {
+    return (
+      <View style={styles.userMessageWrap}>
+        <NeverEyebrow>You</NeverEyebrow>
+        <View style={[styles.userBubble, { backgroundColor: p.graphite }]}>
+          <Text style={[styles.userText, { color: p.onAccent }]}>{message.text}</Text>
+        </View>
+      </View>
+    );
+  }
+
+  const sources = (message.sourceIds || []).map((id) => itemById.get(id)).filter((item): item is OneItem => Boolean(item)).slice(0, 6);
+  const answerUrls = extractHttpUrls(message.body);
+  const bodyText = withoutStandaloneUrlLines(message.body);
+
+  return (
+    <NeverHeroSurface compact style={styles.assistantSurface}>
+      <View style={styles.assistantBody}>
+        <View style={styles.assistantHeader}>
+          <View style={[styles.assistantMark, { backgroundColor: p.graphite }]}><OneIcon name={icons.ask} size={12.5} color={p.onAccent} /></View>
+          <Text style={[styles.assistantBrand, { color: p.label }]}>NEVER</Text>
+          {message.mode ? <Text style={[styles.modeLabel, { color: p.tertiary }]}>{message.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text> : null}
+        </View>
+
+        {message.title ? <Text style={[styles.answerTitle, { color: p.label }]}>{message.title}</Text> : null}
+        {bodyText ? <Text selectable style={[styles.answerBody, { color: p.secondary }]}>{bodyText}</Text> : null}
+        {message.meta ? <Text style={[styles.answerMeta, { color: p.tertiary }]}>{message.meta}</Text> : null}
+      </View>
+
+      {answerUrls.length ? (
+        <View style={[styles.answerLinks, { borderTopColor: p.separator }]}>
+          {answerUrls.map((url, index) => (
+            <Pressable accessibilityRole="button" key={url} onPress={async () => { void Haptics.selectionAsync().catch(() => undefined); await openMemoryLink(url); }} style={({ pressed }) => [styles.linkRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
+              <OneIcon name={icons.link} size={13.5} color={p.chrome} />
+              <View style={[styles.linkContent, index !== answerUrls.length - 1 && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: p.separator }]}>
+                <Text style={[styles.linkText, { color: p.label }]} numberOfLines={1}>{url}</Text>
+                <V5Chevron />
+              </View>
+            </Pressable>
+          ))}
+        </View>
+      ) : null}
+
+      {sources.length ? (
+        <View style={[styles.sourcesWrap, { borderTopColor: p.separator }]}>
+          <V5SectionHeader title="Sources" meta={`${sources.length}`} />
+          <V5Group>
+            {sources.map((item, index) => <MemoryRow key={item.id} item={item} last={index === sources.length - 1} onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })} />)}
+          </V5Group>
+        </View>
+      ) : null}
+    </NeverHeroSurface>
+  );
+}
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
@@ -335,7 +350,7 @@ const styles = StyleSheet.create({
   trustMetrics: { minHeight: 64, paddingTop: 11, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   section: { gap: 9 },
   suggestionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  suggestionTile: { width: '48.6%', minHeight: 118, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13, justifyContent: 'space-between' },
+  suggestionTile: { flexBasis: '47%', flexGrow: 1, minWidth: 130, minHeight: 118, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13, justifyContent: 'space-between' },
   suggestionTileTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   suggestionIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   suggestionText: { marginTop: 16, fontSize: 13.5, lineHeight: 18, fontWeight: '600' },
@@ -359,16 +374,12 @@ const styles = StyleSheet.create({
   linkContent: { flex: 1, minHeight: 50, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
   linkText: { flex: 1, fontSize: 12.5, lineHeight: 16 },
   sourcesWrap: { padding: 14, gap: 8, borderTopWidth: StyleSheet.hairlineWidth },
-  sourceRow: { minHeight: 54, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  sourceIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  sourceContent: { flex: 1, minHeight: 54, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  sourceTitle: { flex: 1, fontSize: 14.5, lineHeight: 18, fontWeight: '500' },
   composerWrap: { paddingHorizontal: 12, paddingTop: 8, paddingBottom: 5, borderTopWidth: StyleSheet.hairlineWidth },
   composerSurface: { minHeight: 56 },
   composer: { minHeight: 56, paddingLeft: 15, paddingRight: 7, flexDirection: 'row', alignItems: 'flex-end', gap: 8 },
   input: { flex: 1, minHeight: 50, maxHeight: 116, fontSize: 15, lineHeight: 20, paddingTop: 13, paddingBottom: 11 },
-  sendButton: { width: 40, height: 40, borderRadius: 20, marginBottom: 8, alignItems: 'center', justifyContent: 'center' },
-  lockedPage: { flex: 1, width: '100%', maxWidth: 620, alignSelf: 'center', padding: 20, gap: 24 },
+  sendButton: { width: 44, height: 44, borderRadius: 22, marginBottom: 6, alignItems: 'center', justifyContent: 'center' },
+  lockedPage: { flexGrow: 1, width: '100%', maxWidth: 620, alignSelf: 'center', padding: 20, gap: 24 },
   lockedTop: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   lockedHeroCopy: { gap: 5 },
   lockedStage: { padding: 18 },

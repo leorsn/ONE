@@ -16,3 +16,13 @@ export function memoryPreview(item: OneItem) {
   const image = item.localAttachmentMimeType?.startsWith('image/') || item.imageUrl || item.kind === 'image' || ['scan', 'photo', 'screenshot'].includes(item.sourceType);
   return image && candidate && /^(file|content|ph|https?):\/\//i.test(candidate) ? candidate : undefined;
 }
+
+export function memoryDateLabel(value: string | undefined, withTime = false) {
+  if (!value) return 'Date unavailable';
+  const date = new Date(value.length === 10 ? `${value}T12:00:00` : value);
+  if (!Number.isFinite(date.getTime())) return 'Date unavailable';
+  return new Intl.DateTimeFormat('en', {
+    month: 'short', day: 'numeric',
+    ...(withTime ? { hour: '2-digit', minute: '2-digit' } as const : {})
+  }).format(date);
+}

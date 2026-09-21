@@ -1,20 +1,33 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { memoryDateLabel } from '@/src/ui/memoryPresentation';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { proposedActionsForItem, triageStateForItem } from '@/src/inbox/triage';
-import { OneIcon, icons } from '@/src/ui/icons';
 import { useNeverV5Palette } from '@/src/ui/appleV5';
 import type { OneInboxAction, OneItem } from '@/src/types/item';
 
 export function TriageRow({
   item,
   onOpen,
-  onExecute
+  onExecute,
+  last = false
 }: {
   item: OneItem;
+  last?: boolean;
   onOpen: () => void;
   onExecute: (action: OneInboxAction) => void | Promise<void>;
 }) {
   const p = useNeverV5Palette();
+  const [working, setWorking] = useState(false);
+  const workingRef = useRef(false);
   const state = triageStateForItem(item);
+  async function execute(action: OneInboxAction) {
+    if (workingRef.current) return;
+    workingRef.current = true;
+    setWorking(true);
+    try { await onExecute(action); }
+    catch { Alert.alert('Could not update memory', 'Please try again.'); }
+    finally { workingRef.current = false; setWorking(false); }
+  }
   const action = proposedActionsForItem(item)[0];
   const stateColor = state === 'needs_review'
     ? p.warning
@@ -23,7 +36,7 @@ export function TriageRow({
       : p.tertiary;
 
   return (
-    <View style={[styles.row, { borderBottomColor: p.separator }]}>
+    <View style={[styles.row, { borderBottomColor: p.separator, borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth }]}>
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={`Open ${item.title}`}
@@ -33,7 +46,7 @@ export function TriageRow({
         <View style={[styles.marker, { backgroundColor: stateColor }]} />
 
         <View style={styles.body}>
-          <Text style={[styles.title, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
+          <Text style={[styles.title, { color: p.label }]} numberOfLines={2}>{item.title}</Text>
           <Text style={[styles.summary, { color: p.secondary }]} numberOfLines={1}>
             {item.summary || fallbackSummary(item)}
           </Text>
@@ -43,17 +56,19 @@ export function TriageRow({
           </View>
         </View>
 
+      </Pressable>
         {action ? (
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={`${action.label} for ${item.title}`}
-            onPress={(event) => { event.stopPropagation(); void onExecute(action.id); }}
+            disabled={working}
+            accessibilityState={{ disabled: working, busy: working }}
+            onPress={() => void execute(action.id)}
             style={({ pressed }) => [styles.action, { backgroundColor: p.fill, opacity: pressed ? 0.55 : 1 }]}
           >
-            <Text style={[styles.actionText, { color: p.label }]}>{shortActionLabel(action.label)}</Text>
+            {working ? <ActivityIndicator color={p.chrome} /> : <Text style={[styles.actionText, { color: p.label }]}>{shortActionLabel(action.label)}</Text>}
           </Pressable>
-        ) : <OneIcon name={icons.chevron} size={11.5} color={p.tertiary} />}
-      </Pressable>
+        ) : null}
     </View>
   );
 }
@@ -76,7 +91,7 @@ function sourceLabel(item: OneItem) {
         : item.sourceType === 'manual'
           ? 'Captured'
           : item.sourceType;
-  return `${source} · ${new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(item.createdAt))}`;
+  return `${source} · ${memoryDateLabel(item.createdAt)}`;
 }
 
 function fallbackSummary(item: OneItem) {
@@ -91,8 +106,9 @@ function shortActionLabel(label: string) {
 }
 
 const styles = StyleSheet.create({
-  row: { borderBottomWidth: StyleSheet.hairlineWidth },
+  row: { flexDirection: 'row', alignItems: 'center', paddingRight: 12 },
   openArea: {
+    flex: 1,
     minHeight: 92,
     paddingLeft: 13,
     paddingRight: 12,
@@ -105,7 +121,7 @@ const styles = StyleSheet.create({
   body: { flex: 1, minWidth: 0 },
   title: { fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
   summary: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
-  metaLine: { marginTop: 4, flexDirection: 'row', alignItems: 'center', gap: 7 },
+  metaLine: { marginTop: 4, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 7 },
   source: { flex: 1, minWidth: 0, fontSize: 12, lineHeight: 16 },
   state: { fontSize: 12, lineHeight: 16, fontWeight: '600' },
   action: { minHeight: 44, minWidth: 56, paddingHorizontal: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },

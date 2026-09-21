@@ -1,5 +1,7 @@
-import { useState } from 'react';
-import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { neverType } from '@/src/theme/tokens';
+import { NeverInput } from '@/src/ui/NeverInput';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/src/context/AuthContext';
@@ -14,8 +16,10 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [resetting, setResetting] = useState(false);
+  const submittingRef = useRef(false);
 
   async function submit() {
+    if (!configured || submittingRef.current || resetting) return;
     const cleanEmail = email.trim();
     if (!isValidEmail(cleanEmail)) {
       Alert.alert('NEVER Account', 'Enter a valid email address.');
@@ -25,8 +29,9 @@ export default function SignInScreen() {
       Alert.alert('NEVER Account', 'Use a password with at least 8 characters.');
       return;
     }
+    submittingRef.current = true;
     setSubmitting(true);
-    await Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
     try {
       const error = mode === 'signin' ? await signIn(cleanEmail, password) : await signUp(cleanEmail, password);
       if (error) {
@@ -34,12 +39,16 @@ export default function SignInScreen() {
         return;
       }
       if (mode === 'signup') Alert.alert('Check your email', 'Confirm your email address to finish creating your NEVER account.');
+    } catch {
+      Alert.alert('Could not connect', 'Check your connection and try again.');
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   }
 
   async function resetPassword() {
+    if (!configured || resetting || submittingRef.current) return;
     const cleanEmail = email.trim();
     if (!isValidEmail(cleanEmail)) {
       Alert.alert('Reset password', 'Enter your NEVER account email first.');
@@ -50,15 +59,17 @@ export default function SignInScreen() {
       const error = await requestPasswordReset(cleanEmail);
       if (error) Alert.alert('Reset password', error);
       else Alert.alert('Check your email', 'NEVER sent a secure password reset link if an account exists for that address.');
+    } catch {
+      Alert.alert('Could not send reset link', 'Check your connection and try again.');
     } finally {
       setResetting(false);
     }
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={styles.scrollContent} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.shell}>
             <V5Wordmark />
 
@@ -79,26 +90,26 @@ export default function SignInScreen() {
               <View style={styles.form}>
                 <View>
                   <Text style={[styles.inputLabel, { color: p.secondary }]}>Email</Text>
-                  <TextInput value={email} onChangeText={setEmail} placeholder="you@example.com" placeholderTextColor={p.tertiary} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" textContentType="emailAddress" accessibilityLabel="Email address" style={[styles.input, { color: p.label, backgroundColor: p.fillSoft }]} />
+                  <NeverInput value={email} onChangeText={setEmail} placeholder="you@example.com" placeholderTextColor={p.tertiary} autoCapitalize="none" autoCorrect={false} keyboardType="email-address" textContentType="emailAddress" accessibilityLabel="Email address" style={[styles.input, { color: p.label, backgroundColor: p.fillSoft }]} />
                 </View>
                 <View>
                   <Text style={[styles.inputLabel, { color: p.secondary }]}>Password</Text>
-                  <TextInput value={password} onChangeText={setPassword} placeholder={mode === 'signup' ? 'At least 8 characters' : 'Password'} placeholderTextColor={p.tertiary} secureTextEntry textContentType={mode === 'signup' ? 'newPassword' : 'password'} accessibilityLabel="Password" onSubmitEditing={() => void submit()} style={[styles.input, { color: p.label, backgroundColor: p.fillSoft }]} />
+                  <NeverInput value={password} onChangeText={setPassword} placeholder={mode === 'signup' ? 'At least 8 characters' : 'Password'} placeholderTextColor={p.tertiary} secureTextEntry autoCapitalize="none" autoCorrect={false} textContentType={mode === 'signup' ? 'newPassword' : 'password'} accessibilityLabel="Password" onSubmitEditing={() => void submit()} style={[styles.input, { color: p.label, backgroundColor: p.fillSoft }]} />
                 </View>
 
-                <Pressable disabled={!configured || submitting} onPress={submit} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: !configured || submitting ? 0.38 : pressed ? 0.72 : 1 }]}>
-                  {submitting ? <ActivityIndicator size="small" color={p.dark ? '#111113' : '#FFFFFF'} /> : null}
-                  <Text style={[styles.primaryText, { color: p.dark ? '#111113' : '#FFFFFF' }]}>{mode === 'signin' ? 'Sign In to NEVER' : 'Create NEVER Account'}</Text>
+                <Pressable accessibilityRole="button" accessibilityState={{ disabled: !configured || submitting || resetting, busy: submitting }} disabled={!configured || submitting || resetting} onPress={submit} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: !configured || submitting ? 0.38 : pressed ? 0.72 : 1 }]}>
+                  {submitting ? <ActivityIndicator size="small" color={p.onAccent} /> : null}
+                  <Text style={[styles.primaryText, { color: p.onAccent }]}>{mode === 'signin' ? 'Sign In to NEVER' : 'Create NEVER Account'}</Text>
                 </Pressable>
               </View>
 
               <View style={[styles.formFooter, { borderTopColor: p.separator }]}>
-                <Pressable onPress={() => setMode((current) => current === 'signin' ? 'signup' : 'signin')} style={({ pressed }) => [styles.textAction, { opacity: pressed ? 0.55 : 1 }]}>
+                <Pressable accessibilityRole="button" disabled={submitting || resetting} onPress={() => setMode((current) => current === 'signin' ? 'signup' : 'signin')} style={({ pressed }) => [styles.textAction, { opacity: pressed ? 0.55 : 1 }]}>
                   <Text style={[styles.switchText, { color: p.label }]}>{mode === 'signin' ? 'Create an account' : 'I already have an account'}</Text>
                   <OneIcon name={icons.chevron} size={11.5} color={p.tertiary} />
                 </Pressable>
                 {mode === 'signin' ? (
-                  <Pressable disabled={resetting} onPress={() => void resetPassword()} style={({ pressed }) => [styles.textAction, { opacity: pressed || resetting ? 0.55 : 1 }]}>
+                  <Pressable accessibilityRole="button" disabled={resetting} onPress={() => void resetPassword()} style={({ pressed }) => [styles.textAction, { opacity: pressed || resetting ? 0.55 : 1 }]}>
                     <Text style={[styles.resetText, { color: p.secondary }]}>{resetting ? 'Sending reset link…' : 'Forgot password?'}</Text>
                   </Pressable>
                 ) : null}
@@ -120,9 +131,9 @@ const styles = StyleSheet.create({
   scrollContent: { flexGrow: 1, justifyContent: 'center', paddingVertical: 22 },
   shell: { width: '100%', maxWidth: 500, alignSelf: 'center', paddingHorizontal: 20 },
   hero: { marginTop: 38, marginBottom: 24 },
-  eyebrow: { fontSize: 8.5, lineHeight: 11, fontWeight: '700', letterSpacing: 1.8 },
-  title: { marginTop: 9, maxWidth: 400, fontSize: 30, lineHeight: 35, fontWeight: '700', letterSpacing: -0.95 },
-  body: { marginTop: 8, maxWidth: 390, fontSize: 13, lineHeight: 19 },
+  eyebrow: { ...neverType.eyebrow },
+  title: { marginTop: 9, maxWidth: 400, ...neverType.hero },
+  body: { marginTop: 8, maxWidth: 390, ...neverType.body },
   formCard: { padding: 15 },
   formTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.2 },
   formCaption: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
@@ -130,13 +141,13 @@ const styles = StyleSheet.create({
   configurationError: { flex: 1, fontSize: 11, lineHeight: 15.5 },
   form: { marginTop: 15, gap: 12 },
   inputLabel: { marginLeft: 2, marginBottom: 5, fontSize: 11.5, lineHeight: 14, fontWeight: '500' },
-  input: { minHeight: 48, borderRadius: 13, paddingHorizontal: 13, fontSize: 14.5, lineHeight: 18 },
-  primaryButton: { minHeight: 46, borderRadius: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
-  primaryText: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  input: { minHeight: 54, paddingVertical: 12, borderRadius: 14, paddingHorizontal: 13, fontSize: 16, lineHeight: 22 },
+  primaryButton: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  primaryText: { flexShrink: 1, textAlign: 'center', fontSize: 16, lineHeight: 22, fontWeight: '600' },
   formFooter: { marginTop: 15, paddingTop: 7, borderTopWidth: StyleSheet.hairlineWidth },
-  textAction: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  textAction: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   switchText: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
   resetText: { fontSize: 12, lineHeight: 15, fontWeight: '500' },
   trustRow: { marginTop: 17, paddingHorizontal: 3, flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
-  privacy: { flex: 1, fontSize: 10.5, lineHeight: 14.5 }
+  privacy: { flex: 1, ...neverType.caption }
 });

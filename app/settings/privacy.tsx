@@ -1,3 +1,5 @@
+import { neverType } from '@/src/theme/tokens';
+import { NeverNavigation } from '@/src/ui/utility';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
@@ -6,7 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useItems } from '@/src/context/ItemsContext';
 import { exportOneData } from '@/src/export/exportOneData';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { V5Chevron, V5Group, V5IconButton, V5LargeHeader, useNeverV5Palette } from '@/src/ui/appleV5';
+import { V5Chevron, V5Group, V5LargeHeader, useNeverV5Palette } from '@/src/ui/appleV5';
 
 const PRIVACY_POLICY_URL = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL?.trim();
 const TERMS_URL = process.env.EXPO_PUBLIC_TERMS_URL?.trim();
@@ -28,7 +30,7 @@ export default function PrivacyScreen() {
   async function runExport() {
     if (exporting) return;
     setExporting(true);
-    await Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
     try {
       const error = await exportOneData(items);
       if (error) Alert.alert('Export NEVER data', error);
@@ -55,13 +57,9 @@ export default function PrivacyScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={styles.nav}>
-          <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.back()} />
-          <Text style={[styles.navTitle, { color: p.label }]}>Privacy</Text>
-          <View style={{ width: 38 }} />
-        </View>
+        <NeverNavigation title="Privacy" onBack={() => router.back()} />
 
         <V5LargeHeader title="Privacy" subtitle="Your personal memory stays under your control." />
 
@@ -78,7 +76,7 @@ export default function PrivacyScreen() {
         </SettingsBlock>
 
         <SettingsBlock title="Your Controls">
-          <Pressable disabled={exporting} onPress={() => void runExport()} style={({ pressed }) => [styles.controlRow, { borderBottomColor: p.separator, backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: exporting ? 0.58 : 1 }]}>
+          <Pressable accessibilityRole="button" disabled={exporting} onPress={() => void runExport()} style={({ pressed }) => [styles.controlRow, { borderBottomColor: p.separator, backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: exporting ? 0.58 : 1 }]}>
             <MemoryGlyph icon={icons.upload} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.rowTitle, { color: p.label }]}>Export Your Data</Text>
@@ -86,7 +84,7 @@ export default function PrivacyScreen() {
             </View>
             {exporting ? <ActivityIndicator size="small" /> : <V5Chevron />}
           </Pressable>
-          <Pressable onPress={() => router.replace('/(tabs)/settings')} style={({ pressed }) => [styles.controlRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
+          <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)/settings')} style={({ pressed }) => [styles.controlRow, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
             <MemoryGlyph icon={icons.delete} danger />
             <View style={{ flex: 1 }}>
               <Text style={[styles.rowTitle, { color: p.label }]}>Delete Your Account</Text>
@@ -124,7 +122,7 @@ export default function PrivacyScreen() {
 
   function PolicyRow({ label, detail, url, icon, last = false }: { label: string; detail: string; url?: string; icon: (typeof icons)[keyof typeof icons]; last?: boolean }) {
     return (
-      <Pressable onPress={() => void openExternal(label, url)} style={({ pressed }) => [styles.linkRow, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
+      <Pressable accessibilityRole="button" onPress={() => void openExternal(label, url)} style={({ pressed }) => [styles.linkRow, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
         <MemoryGlyph icon={icon} />
         <View style={{ flex: 1 }}>
           <Text style={[styles.rowTitle, { color: p.label }]}>{label}</Text>
@@ -139,8 +137,6 @@ export default function PrivacyScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 36, gap: 18 },
-  nav: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navTitle: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
   block: { gap: 6 },
   groupTitle: { paddingHorizontal: 4, fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
   row: { minHeight: 66, paddingHorizontal: 13, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 10 },
@@ -148,8 +144,8 @@ const styles = StyleSheet.create({
   controlRow: { minHeight: 64, paddingHorizontal: 13, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomWidth: StyleSheet.hairlineWidth },
   linkRow: { minHeight: 62, paddingHorizontal: 13, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 10 },
   rowTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
-  rowBody: { marginTop: 2, fontSize: 11.5, lineHeight: 15.5 },
+  rowBody: { marginTop: 2, ...neverType.caption },
   devNotice: { minHeight: 48, borderRadius: 13, paddingHorizontal: 12, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  devNoticeText: { flex: 1, fontSize: 10.5, lineHeight: 14.5 },
+  devNoticeText: { flex: 1, ...neverType.caption },
   footer: { textAlign: 'center', fontSize: 8.5, fontWeight: '600', letterSpacing: 0.9 }
 });

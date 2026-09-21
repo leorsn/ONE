@@ -1,3 +1,4 @@
+import { neverType } from '@/src/theme/tokens';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
@@ -174,7 +175,7 @@ export default function NativeAcceptanceScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
           <Pressable onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill }]} accessibilityRole="button" accessibilityLabel="Go back">
@@ -259,15 +260,15 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 48, gap: 16 },
   nav: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  navButton: { width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  navButton: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 16, fontWeight: '800' },
-  lead: { marginTop: 6, fontSize: 26, fontWeight: '800', letterSpacing: -0.7 },
-  body: { fontSize: 12.5, lineHeight: 18 },
+  lead: { marginTop: 6, ...neverType.display },
+  body: { ...neverType.body },
   row: { minHeight: 54, paddingHorizontal: 14, paddingVertical: 10, flexDirection: 'row', alignItems: 'center', gap: 12 },
   rowLabel: { width: 112, fontSize: 12, fontWeight: '700' },
   rowValue: { flex: 1, textAlign: 'right', fontSize: 12.5, fontWeight: '600' },
   actions: { gap: 9 },
-  sectionTitle: { fontSize: 14, fontWeight: '800' },
+  sectionTitle: { ...neverType.section },
   mono: { marginTop: 8, fontSize: 11.5, lineHeight: 16 },
   eventHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   clear: { fontSize: 12.5, fontWeight: '700' },

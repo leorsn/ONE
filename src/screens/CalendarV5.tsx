@@ -1,3 +1,4 @@
+import { shiftCalendarMonth } from '@/src/ui/calendarPresentation';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
@@ -39,20 +40,18 @@ export default function CalendarV5() {
   const weekdayName = new Intl.DateTimeFormat('en', { weekday: 'long' }).format(selected);
 
   async function moveMonth(delta: number) {
-    await Haptics.selectionAsync();
-    const value = new Date(`${selectedDate}T12:00:00`);
-    value.setMonth(value.getMonth() + delta);
-    setSelectedDate(toIsoDate(value));
+    void Haptics.selectionAsync().catch(() => undefined);
+    setSelectedDate(shiftCalendarMonth(selectedDate, delta));
   }
 
   async function jumpToday() {
-    await Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
     setSelectedDate(today);
     setMode('Day');
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <NeverBackdrop />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCopy}>
@@ -74,30 +73,30 @@ export default function CalendarV5() {
             </View>
             <View style={styles.dateActions}>
               <NeverMetric value={`${selectedItems.length}`} label="today" />
-              <Pressable onPress={jumpToday} style={({ pressed }) => [styles.todayButton, { backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
+              <Pressable accessibilityRole="button" onPress={jumpToday} style={({ pressed }) => [styles.todayButton, { backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
                 <Text style={[styles.todayText, { color: p.chrome }]}>Now</Text>
               </Pressable>
             </View>
           </View>
 
           <View style={styles.monthControls}>
-            <Pressable onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.dark ? '#FFFFFF0B' : '#FFFFFF70', opacity: pressed ? 0.5 : 1 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.dark ? '#FFFFFF0B' : '#FFFFFF70', opacity: pressed ? 0.5 : 1 }]}>
               <OneIcon name={icons.chevronLeft} size={13.5} color={p.chrome} />
             </Pressable>
             <Text style={[styles.monthControlLabel, { color: p.secondary }]}>{monthName} {selected.getFullYear()}</Text>
-            <Pressable onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.dark ? '#FFFFFF0B' : '#FFFFFF70', opacity: pressed ? 0.5 : 1 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.dark ? '#FFFFFF0B' : '#FFFFFF70', opacity: pressed ? 0.5 : 1 }]}>
               <OneIcon name={icons.chevron} size={13.5} color={p.chrome} />
             </Pressable>
           </View>
 
-          <View style={styles.dayStrip}>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayStrip}>
             {strip.map((day) => {
               const active = day.iso === selectedDate;
               const hasItems = datedItems.some((item) => item.date === day.iso);
               return (
-                <Pressable
-                  key={day.iso}
-                  onPress={async () => { await Haptics.selectionAsync(); setSelectedDate(day.iso); }}
+                <Pressable accessibilityRole="button"
+                  accessibilityLabel={prettyGroupDate(day.iso)} accessibilityState={{ selected: active }} key={day.iso}
+                  onPress={async () => { void Haptics.selectionAsync().catch(() => undefined); setSelectedDate(day.iso); }}
                   style={({ pressed }) => [styles.day, { opacity: pressed ? 0.55 : 1 }]}
                 >
                   <Text style={[styles.weekday, { color: active ? p.label : p.tertiary }]}>{day.weekday}</Text>
@@ -108,7 +107,7 @@ export default function CalendarV5() {
                 </Pressable>
               );
             })}
-          </View>
+          </ScrollView>
 
           <View style={[styles.segmentWrap, { borderTopColor: p.separator }]}>
             <V5Segmented options={['Day', 'Week', 'Month']} selected={mode} onSelect={(value) => setMode(value as CalendarMode)} />
@@ -149,50 +148,6 @@ export default function CalendarV5() {
     </SafeAreaView>
   );
 
-  function AgendaSection({ title, items: sectionItems, emptyTitle, emptyBody }: { title: string; items: OneItem[]; emptyTitle: string; emptyBody: string }) {
-    return (
-      <View style={styles.section}>
-        <V5SectionHeader title={title} meta={`${sectionItems.length}`} />
-        {sectionItems.length ? (
-          <View style={styles.agendaStack}>
-            {sectionItems.map((item) => <AgendaCard key={item.id} item={item} />)}
-          </View>
-        ) : (
-          <V5Group><EmptyAgenda title={emptyTitle} body={emptyBody} /></V5Group>
-        )}
-      </View>
-    );
-  }
-
-  function AgendaCard({ item }: { item: OneItem }) {
-    return (
-      <Pressable
-        onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-        style={({ pressed }) => [styles.agendaCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}
-      >
-        <View style={[styles.timeBadge, { backgroundColor: p.fillSoft }]}>
-          <Text style={[styles.time, { color: p.chrome }]}>{item.time || 'Any'}</Text>
-        </View>
-        <View style={styles.agendaCopy}>
-          <Text style={[styles.itemTitle, { color: p.label }]} numberOfLines={1}>{item.title}</Text>
-          <Text style={[styles.itemMeta, { color: p.secondary }]} numberOfLines={1}>{[item.location, item.summary, item.category].filter(Boolean).join(' · ') || item.type}</Text>
-        </View>
-        <V5Chevron />
-      </Pressable>
-    );
-  }
-
-  function EmptyAgenda({ title, body }: { title: string; body: string }) {
-    return (
-      <View style={styles.emptyRow}>
-        <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.calendar} size={16} color={p.chrome} /></View>
-        <View style={{ flex: 1 }}>
-          <Text style={[styles.emptyTitle, { color: p.label }]}>{title}</Text>
-          <Text style={[styles.emptyBody, { color: p.secondary }]}>{body}</Text>
-        </View>
-      </View>
-    );
-  }
 }
 
 function filterForMode(items: OneItem[], selectedDate: string, mode: CalendarMode) {
@@ -241,6 +196,53 @@ function toIsoDate(date: Date) {
   return `${y}-${m}-${d}`;
 }
 
+function AgendaSection({ title, items: sectionItems, emptyTitle, emptyBody }: { title: string; items: OneItem[]; emptyTitle: string; emptyBody: string }) {
+  return (
+    <View style={styles.section}>
+      <V5SectionHeader title={title} meta={`${sectionItems.length}`} />
+      {sectionItems.length ? (
+        <View style={styles.agendaStack}>
+          {sectionItems.map((item) => <AgendaCard key={item.id} item={item} />)}
+        </View>
+      ) : (
+        <V5Group><EmptyAgenda title={emptyTitle} body={emptyBody} /></V5Group>
+      )}
+    </View>
+  );
+}
+
+function AgendaCard({ item }: { item: OneItem }) {
+  const p = useNeverV5Palette();
+  return (
+    <Pressable accessibilityRole="button"
+      onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
+      style={({ pressed }) => [styles.agendaCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}
+    >
+      <View style={[styles.timeBadge, { backgroundColor: p.fillSoft }]}>
+        <Text style={[styles.time, { color: p.chrome }]}>{item.time || 'Any'}</Text>
+      </View>
+      <View style={styles.agendaCopy}>
+        <Text style={[styles.itemTitle, { color: p.label }]} numberOfLines={2}>{item.title}</Text>
+        <Text style={[styles.itemMeta, { color: p.secondary }]} numberOfLines={1}>{[item.location, item.summary, item.category].filter(Boolean).join(' · ') || item.type}</Text>
+      </View>
+      <V5Chevron />
+    </Pressable>
+  );
+}
+
+function EmptyAgenda({ title, body }: { title: string; body: string }) {
+  const p = useNeverV5Palette();
+  return (
+    <View style={styles.emptyRow}>
+      <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.calendar} size={16} color={p.chrome} /></View>
+      <View style={{ flex: 1 }}>
+        <Text style={[styles.emptyTitle, { color: p.label }]}>{title}</Text>
+        <Text style={[styles.emptyBody, { color: p.secondary }]}>{body}</Text>
+      </View>
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 26, paddingBottom: 126, gap: 26 },
@@ -256,15 +258,15 @@ const styles = StyleSheet.create({
   monthTitle: { marginTop: 4, fontSize: 21, lineHeight: 25, fontWeight: '600', letterSpacing: -0.45 },
   yearText: { marginTop: 1, fontSize: 11.5, lineHeight: 15 },
   dateActions: { alignItems: 'flex-end', gap: 8 },
-  todayButton: { minHeight: 34, paddingHorizontal: 13, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  todayButton: { minHeight: 44, paddingHorizontal: 13, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   todayText: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
   monthControls: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  monthArrow: { width: 34, height: 34, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  monthArrow: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   monthControlLabel: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
-  dayStrip: { flexDirection: 'row', justifyContent: 'space-between' },
-  day: { width: 40, alignItems: 'center' },
+  dayStrip: { flexGrow: 1, flexDirection: 'row', justifyContent: 'space-between', gap: 4 },
+  day: { minWidth: 44, alignItems: 'center' },
   weekday: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.25 },
-  dayNumberWrap: { width: 36, height: 36, marginTop: 5, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  dayNumberWrap: { minWidth: 36, minHeight: 36, padding: 6, marginTop: 5, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   dayNumberSmall: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   dot: { width: 4, height: 4, borderRadius: 2, marginTop: 4 },
   segmentWrap: { paddingTop: 12, borderTopWidth: StyleSheet.hairlineWidth },

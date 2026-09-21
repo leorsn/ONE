@@ -57,11 +57,10 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
   if (keyboardVisible) return null;
 
   return (
-    <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(7, insets.bottom - 7) }]}>
+    <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(7, insets.bottom - 7), left: Math.max(18, insets.left), right: Math.max(18, insets.right) }]}>
       <NeverMaterial glass style={styles.bar}>
         <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.reflection }]} />
-        {state.routes.map((route) => {
-          const index = state.routes.indexOf(route);
+        {state.routes.map((route, index) => {
           const focused = state.index === index;
           const routeName = route.name as keyof typeof tabIcon;
           const label = tabLabel[routeName] ?? route.name;
@@ -96,7 +95,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
                   styles.label,
                   { color: focused ? p.label : p.secondary, fontWeight: focused ? '600' : '500' }
                 ]}
-                numberOfLines={1}
+                numberOfLines={1} maxFontSizeMultiplier={1.3}
               >
                 {label}
               </Text>

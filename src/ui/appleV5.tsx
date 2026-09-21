@@ -1,5 +1,6 @@
+import { NeverInput } from '@/src/ui/NeverInput';
 import { useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { NeverMaterial, NeverPressable, selectionFeedback } from '@/src/ui/material';
 import { neverType, neverSpacing, neverRadius, neverControl } from '@/src/theme/tokens';
@@ -116,7 +117,7 @@ export function V5Row({
       <View style={[styles.rowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
         <View style={styles.rowText}>
           <View style={styles.rowTitleLine}>
-            <Text style={[styles.rowTitle, { color: destructive ? p.danger : p.label }]} numberOfLines={1}>{title}</Text>
+            <Text style={[styles.rowTitle, { color: destructive ? p.danger : p.label }]} numberOfLines={2}>{title}</Text>
             {meta ? <Text style={[styles.rowMeta, { color: p.tertiary }]} numberOfLines={1}>{meta}</Text> : null}
           </View>
           {subtitle ? <Text style={[styles.rowSubtitle, { color: p.secondary }]} numberOfLines={2}>{subtitle}</Text> : null}
@@ -152,7 +153,7 @@ export function V5SearchField({
   return (
     <NeverMaterial glass style={[styles.searchField, { borderColor: focused ? p.chrome : p.glassBorder }]}>
       <OneIcon name={ask ? icons.ask : icons.search} size={16} color={p.secondary} />
-      <TextInput
+      <NeverInput
         accessibilityLabel={placeholder}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
@@ -212,10 +213,10 @@ export function V5Segmented({
   );
 }
 
-export function V5IconButton({ icon, onPress, accessibilityLabel }: { icon: IconName; onPress: () => void; accessibilityLabel: string }) {
+export function V5IconButton({ icon, onPress, accessibilityLabel, disabled = false }: { icon: IconName; onPress: () => void; accessibilityLabel: string; disabled?: boolean }) {
   const p = useNeverV5Palette();
   return (
-    <NeverPressable accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={({ pressed }) => [styles.iconButton, { backgroundColor: p.fillSoft, opacity: pressed ? 0.6 : 1 }]}>
+    <NeverPressable disabled={disabled} accessibilityState={{ disabled }} accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={({ pressed }) => [styles.iconButton, { backgroundColor: p.fillSoft, opacity: disabled ? 0.4 : pressed ? 0.6 : 1 }]}>
       <OneIcon name={icon} size={20} color={p.label} />
     </NeverPressable>
   );
@@ -232,20 +233,20 @@ const styles = StyleSheet.create({
   largeTitle: { ...neverType.hero },
   subtitle: { marginTop: 5, maxWidth: 520, fontSize: 14, lineHeight: 19 },
   sectionHeader: { minHeight: 24, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  sectionTitle: { ...neverType.section },
-  sectionRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sectionTitle: { ...neverType.section, flexShrink: 1 },
+  sectionRight: { flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionMeta: { fontSize: 12, lineHeight: 15, fontWeight: '500' },
   group: { borderRadius: neverRadius.lg },
   glyph: { alignItems: 'center', justifyContent: 'center', marginLeft: 13 },
   row: { minHeight: 58, flexDirection: 'row', alignItems: 'center' },
   rowContent: { flex: 1, minHeight: 58, marginLeft: 11, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
   rowText: { flex: 1, minWidth: 0, paddingVertical: 9 },
-  rowTitleLine: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  rowTitleLine: { flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 },
   rowTitle: { flex: 1, fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
-  rowSubtitle: { marginTop: 2, fontSize: 12.5, lineHeight: 16.5 },
+  rowSubtitle: { marginTop: 2, fontSize: 13, lineHeight: 18 },
   rowMeta: { maxWidth: 110, fontSize: 11.5, lineHeight: 14, textAlign: 'right' },
   searchField: { minHeight: neverControl.input, borderRadius: neverRadius.lg, paddingHorizontal: neverSpacing.lg, flexDirection: 'row', alignItems: 'center', gap: 8 },
-  searchInput: { flex: 1, minHeight: 42, fontSize: 16, lineHeight: 20, paddingVertical: 0 },
+  searchInput: { flex: 1, minHeight: 44, fontSize: 16, lineHeight: 20, paddingVertical: 0 },
   clearButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   clearCircle: { width: 17, height: 17, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   segmented: { minHeight: neverControl.minimum, flexDirection: 'row', alignItems: 'center', gap: neverSpacing.sm },

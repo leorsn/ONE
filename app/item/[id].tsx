@@ -1,5 +1,8 @@
+import { openMemoryLink } from '@/src/ui/openLink';
+import { memoryDateLabel } from '@/src/ui/memoryPresentation';
+import { NeverInput } from '@/src/ui/NeverInput';
 import { useMemo, useState } from 'react';
-import { Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Linking, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, useWindowDimensions, View } from 'react-native';
 import CommunityDateTimePicker from '@expo/ui/community/datetime-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -31,7 +34,7 @@ export default function ItemDetailScreen() {
           <View style={[styles.missingIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.note} size={19} color={p.chrome} /></View>
           <Text style={[styles.missingTitle, { color: p.label }]}>Memory not found</Text>
           <Text style={[styles.missingBody, { color: p.secondary }]}>This memory may have been removed.</Text>
-          <Pressable onPress={() => router.back()}><Text style={[styles.missingBack, { color: p.chrome }]}>Go Back</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={() => router.back()}><Text style={[styles.missingBack, { color: p.chrome }]}>Go Back</Text></Pressable>
         </View>
       </SafeAreaView>
     );
@@ -84,8 +87,10 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
         saved,
         completed
       });
-      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       router.back();
+    } catch {
+      Alert.alert('Could not save changes', 'Your edits are still here. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -93,7 +98,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
 
   async function openOriginal() {
     if (!sourceUri) return;
-    await Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
 
     if (sourceIsImage) {
       setSourceExpanded((value) => !value);
@@ -129,21 +134,21 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
         text: 'Delete',
         style: 'destructive',
         onPress: async () => {
-          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
-          await remove(currentItem.id);
-          router.back();
+          void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning).catch(() => undefined);
+          try { await remove(currentItem.id); router.back(); }
+          catch { Alert.alert('Could not delete memory', 'Please try again.'); }
         }
       }
     ]);
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
           <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.back()} />
           <Text style={[styles.navTitle, { color: p.label }]}>Memory</Text>
-          <Pressable accessibilityRole="button" accessibilityLabel="Save changes" disabled={saving || !title.trim()} onPress={saveChanges} style={styles.navSave}><Text style={{ color: p.chrome, fontWeight: '600', opacity: saving || !title.trim() ? 0.4 : 1 }}>{saving ? 'Saving…' : 'Done'}</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityLabel="Save changes" accessibilityState={{ disabled: saving || !title.trim(), busy: saving }} disabled={saving || !title.trim()} onPress={saveChanges} style={styles.navSave}><Text style={{ color: p.chrome, fontWeight: '600', opacity: saving || !title.trim() ? 0.4 : 1 }}>{saving ? 'Saving…' : 'Done'}</Text></Pressable>
         </View>
 
         <View style={styles.identity}>
@@ -156,7 +161,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
           </View>
         </View>
 
-        <TextInput
+        <NeverInput
           value={title}
           onChangeText={setTitle}
           style={[styles.titleInput, { color: p.label }]}
@@ -221,10 +226,10 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
           <V5SectionHeader title="Your memory" />
           <V5Group>
             <Text style={[styles.inputLabel, { color: p.secondary }]}>CONTEXT</Text>
-            <TextInput value={context} onChangeText={setContext} style={[styles.largeInput, { color: p.label }]} placeholder="What should NEVER remember this as?" placeholderTextColor={p.tertiary} accessibilityLabel="Memory context" multiline />
+            <NeverInput value={context} onChangeText={setContext} style={[styles.largeInput, { color: p.label }]} placeholder="What should NEVER remember this as?" placeholderTextColor={p.tertiary} accessibilityLabel="Memory context" multiline />
             <View style={[styles.inputDivider, { backgroundColor: p.separator }]} />
             <Text style={[styles.inputLabel, { color: p.secondary }]}>NOTES</Text>
-            <TextInput value={notes} onChangeText={setNotes} style={[styles.largeInput, { color: p.label }]} placeholder="Add a thought or a little more detail…" placeholderTextColor={p.tertiary} accessibilityLabel="Notes" multiline />
+            <NeverInput value={notes} onChangeText={setNotes} style={[styles.largeInput, { color: p.label }]} placeholder="Add a thought or a little more detail…" placeholderTextColor={p.tertiary} accessibilityLabel="Notes" multiline />
           </V5Group>
         </View>
 
@@ -243,7 +248,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
             <V5SectionHeader title="Links" meta={`${savedLinks.length}`} />
             <V5Group>
               {savedLinks.map((link, index) => (
-                <Pressable key={`${link}-${index}`} onPress={() => Linking.openURL(normalizeWebUrl(link))} style={({ pressed }) => [styles.extractedLink, index !== savedLinks.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
+                <Pressable accessibilityRole="button" key={`${link}-${index}`} onPress={() => openMemoryLink(normalizeWebUrl(link))} style={({ pressed }) => [styles.extractedLink, index !== savedLinks.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
                   <MemoryGlyph icon={icons.link} />
                   <Text style={[styles.extractedLinkText, { color: p.label }]} numberOfLines={2}>{link}</Text>
                   <V5Chevron />
@@ -263,7 +268,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
         ) : null}
 
         {currentItem.url && !savedLinks.length ? (
-          <Pressable onPress={() => Linking.openURL(currentItem.url!)} style={({ pressed }) => [styles.linkCard, { backgroundColor: p.surface, opacity: pressed ? 0.62 : 1 }]}>
+          <Pressable accessibilityRole="button" onPress={() => openMemoryLink(currentItem.url!)} style={({ pressed }) => [styles.linkCard, { backgroundColor: p.surface, opacity: pressed ? 0.62 : 1 }]}>
             <MemoryGlyph icon={icons.link} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.linkLabel, { color: p.tertiary }]}>SAVED LINK</Text>
@@ -281,12 +286,12 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
           </V5Group>
         </View>
 
-        <Pressable disabled={saving || !title.trim()} onPress={saveChanges} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !title.trim() ? 0.38 : pressed ? 0.72 : 1 }]}>
+        <Pressable accessibilityRole="button" accessibilityState={{ disabled: saving || !title.trim(), busy: saving }} disabled={saving || !title.trim()} onPress={saveChanges} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !title.trim() ? 0.38 : pressed ? 0.72 : 1 }]}>
           <OneIcon name={icons.check} size={15} color={p.onAccent} />
           <Text style={[styles.primaryButtonText, { color: p.onAccent }]}>{saving ? 'Saving…' : 'Save Changes'}</Text>
         </Pressable>
 
-        <Pressable onPress={confirmDelete} style={styles.deleteAction}>
+        <Pressable accessibilityRole="button" onPress={confirmDelete} style={styles.deleteAction}>
           <OneIcon name={icons.delete} size={14} color={p.danger} />
           <Text style={[styles.deleteText, { color: p.danger }]}>Delete Memory</Text>
         </Pressable>
@@ -303,11 +308,13 @@ function MemoryGlyph({ icon }: { icon: (typeof icons)[keyof typeof icons] }) {
 
 function InfoLine({ label, value }: { label: string; value: string }) {
   const p = useNeverV5Palette();
-  return <View style={styles.infoLine}><Text style={[styles.infoLabel, { color: p.tertiary }]}>{label}</Text><Text style={[styles.infoValue, { color: p.label }]} numberOfLines={1}>{value}</Text></View>;
+  return <View style={styles.infoLine}><Text style={[styles.infoLabel, { color: p.tertiary }]}>{label}</Text><Text style={[styles.infoValue, { color: p.label }]} >{value}</Text></View>;
 }
 
 function DateTimeFieldRow({ kind, label, value, icon, onChange }: { kind: 'date' | 'time'; label: string; value: string; icon: (typeof icons)[keyof typeof icons]; onChange: (value: string) => void }) {
   const p = useNeverV5Palette();
+  const { width, fontScale } = useWindowDimensions();
+  const stacked = width < 390 || fontScale > 1.25;
   const [activePicker, setActivePicker] = useState<'date' | 'time' | null>(null);
   const pickerValue = kind === 'date' ? dateValue(value) : timeValue(value);
   const isIos = Platform.OS === 'ios';
@@ -316,12 +323,12 @@ function DateTimeFieldRow({ kind, label, value, icon, onChange }: { kind: 'date'
   function applySelected(next: Date) {
     onChange(kind === 'date' ? toIsoDate(next) : toTime(next));
     setActivePicker(null);
-    void Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
   }
   function clearValue() {
     onChange('');
     setActivePicker(null);
-    void Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
   }
   function activatePicker() {
     if (isIos && !value) {
@@ -333,21 +340,21 @@ function DateTimeFieldRow({ kind, label, value, icon, onChange }: { kind: 'date'
 
   return (
     <>
-      <View style={[styles.fieldRow, { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+      <View style={[styles.fieldRow, stacked && styles.stackedField, { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
         <MemoryGlyph icon={icon} />
         <Text style={[styles.fieldLabel, { color: p.label }]}>{label}</Text>
         {isWeb ? (
-          <TextInput value={value} onChangeText={onChange} placeholder={kind === 'date' ? 'YYYY-MM-DD' : 'HH:MM'} placeholderTextColor={p.tertiary} accessibilityLabel={label} style={[styles.fieldInput, { color: p.label }]} autoCapitalize="none" />
+          <NeverInput value={value} onChangeText={onChange} placeholder={kind === 'date' ? 'YYYY-MM-DD' : 'HH:MM'} placeholderTextColor={p.tertiary} accessibilityLabel={label} style={[styles.fieldInput, stacked && styles.stackedInput, { color: p.label }]} autoCapitalize="none" />
         ) : isIos && value ? (
-          <View style={styles.nativePickerWrap}>
+          <View style={[styles.nativePickerWrap, stacked && styles.stackedPicker]}>
             <CommunityDateTimePicker value={pickerValue} mode={kind} display="compact" is24Hour accentColor={p.chrome} onValueChange={(_event, selected) => applySelected(selected)} />
           </View>
         ) : (
-          <Pressable onPress={activatePicker} style={({ pressed }) => [styles.pickerButton, { backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
+          <Pressable accessibilityRole="button" onPress={activatePicker} style={({ pressed }) => [styles.pickerButton, { backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
             <Text style={[styles.pickerButtonText, { color: value ? p.label : p.tertiary }]}>{value ? (kind === 'date' ? formatHumanDate(value) : value) : `Add ${label.toLowerCase()}`}</Text>
           </Pressable>
         )}
-        {value ? <Pressable hitSlop={8} onPress={clearValue} style={styles.clearButton}><OneIcon name={icons.close} size={11.5} color={p.tertiary} /></Pressable> : null}
+        {value ? <Pressable accessibilityRole="button" accessibilityLabel={`Clear ${label.toLowerCase()}`} onPress={clearValue} style={styles.clearButton}><OneIcon name={icons.close} size={11.5} color={p.tertiary} /></Pressable> : null}
       </View>
       {!isWeb && !isIos && activePicker === kind ? (
         <CommunityDateTimePicker value={pickerValue} mode={kind} presentation="dialog" is24Hour accentColor={p.chrome} onValueChange={(_event, selected) => applySelected(selected)} onDismiss={() => setActivePicker(null)} />
@@ -358,11 +365,13 @@ function DateTimeFieldRow({ kind, label, value, icon, onChange }: { kind: 'date'
 
 function TextFieldRow({ label, value, onChange, placeholder, icon, last = false }: { label: string; value: string; onChange: (value: string) => void; placeholder: string; icon: (typeof icons)[keyof typeof icons]; last?: boolean }) {
   const p = useNeverV5Palette();
+  const { width, fontScale } = useWindowDimensions();
+  const stacked = width < 390 || fontScale > 1.25;
   return (
-    <View style={[styles.fieldRow, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+    <View style={[styles.fieldRow, stacked && styles.stackedField, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
       <MemoryGlyph icon={icon} />
       <Text style={[styles.fieldLabel, { color: p.label }]}>{label}</Text>
-      <TextInput value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={p.tertiary} accessibilityLabel={label} style={[styles.fieldInput, { color: p.label }]} autoCapitalize="none" />
+      <NeverInput value={value} onChangeText={onChange} placeholder={placeholder} placeholderTextColor={p.tertiary} accessibilityLabel={label} style={[styles.fieldInput, stacked && styles.stackedInput, { color: p.label }]} autoCapitalize="none" />
     </View>
   );
 }
@@ -396,7 +405,7 @@ function formatMoney(amount: number, currency = 'EUR') {
   try { return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount); }
   catch { return `${amount.toFixed(2)} ${currency}`; }
 }
-function formatUpdated(value: string) { return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(value)); }
+function formatUpdated(value: string) { return memoryDateLabel(value); }
 function formatHumanDate(value: string) { return new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric', year: 'numeric' }).format(dateValue(value)); }
 function dateValue(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
@@ -440,7 +449,7 @@ const styles = StyleSheet.create({
   section: { gap: neverSpacing.md },
   sourceCard: { borderRadius: 16, overflow: 'hidden', padding: 8 },
   sourceImage: { width: '100%', height: 210, borderRadius: 10 },
-  sourceImageExpanded: { height: 520 },
+  sourceImageExpanded: { height: undefined, aspectRatio: 0.7 },
   sourceFile: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 10, padding: 6 },
   sourceFileTitle: { fontSize: 14, lineHeight: 18, fontWeight: '600' },
   sourceFileMeta: { marginTop: 2, fontSize: 11.5, lineHeight: 14 },
@@ -455,13 +464,16 @@ const styles = StyleSheet.create({
   infoLine: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   infoLabel: { width: 74, fontSize: 10.5, fontWeight: '600' },
   infoValue: { flex: 1, textAlign: 'right', fontSize: 12, fontWeight: '500' },
+  stackedField: { flexWrap: 'wrap', paddingVertical: 12 },
+  stackedInput: { flexBasis: '100%', textAlign: 'left' },
+  stackedPicker: { flexBasis: '65%', alignItems: 'flex-start' },
   fieldRow: { minHeight: 58, paddingLeft: 11, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  fieldLabel: { width: 64, fontSize: 14, lineHeight: 18, fontWeight: '500' },
-  fieldInput: { flex: 1, fontSize: 13.5, lineHeight: 17, textAlign: 'right', paddingVertical: 8 },
-  nativePickerWrap: { flex: 1, alignItems: 'flex-end' },
+  fieldLabel: { flexShrink: 1, minWidth: 54, fontSize: 14, lineHeight: 18, fontWeight: '500' },
+  fieldInput: { flex: 1, minWidth: 0, fontSize: 16, lineHeight: 22, textAlign: 'right', paddingVertical: 8 },
+  nativePickerWrap: { minWidth: 0, flex: 1, alignItems: 'flex-end' },
   pickerButton: { flex: 1, minHeight: 44, borderRadius: 9, paddingHorizontal: 10, alignItems: 'flex-end', justifyContent: 'center' },
   pickerButtonText: { fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
-  clearButton: { width: 24, height: 28, alignItems: 'center', justifyContent: 'center' },
+  clearButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   largeInput: { minHeight: 80, padding: 16, fontSize: 16, lineHeight: 24, textAlignVertical: 'top' },
   extractedGroup: { padding: 14 },
   extracted: { fontSize: 12.5, lineHeight: 19 },
@@ -470,8 +482,8 @@ const styles = StyleSheet.create({
   linkCard: { minHeight: 58, borderRadius: 16, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
   linkLabel: { fontSize: 8, fontWeight: '700', letterSpacing: 0.8 },
   linkText: { marginTop: 2, fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
-  primaryButton: { minHeight: 46, borderRadius: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
-  primaryButtonText: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  primaryButton: { minHeight: 52, padding: 12, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  primaryButtonText: { flexShrink: 1, textAlign: 'center', fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   deleteAction: { minHeight: 44, flexDirection: 'row', gap: 7, alignItems: 'center', justifyContent: 'center' },
   deleteText: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
   missing: { flex: 1, width: '100%', maxWidth: 680, alignSelf: 'center', alignItems: 'center', justifyContent: 'center', padding: 24 },

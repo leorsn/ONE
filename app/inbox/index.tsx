@@ -21,11 +21,11 @@ export default function InboxIndexScreen() {
     const changes = triageActionChanges(item, action);
     if (!changes) return;
     await update(item.id, changes);
-    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top']}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}><V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')} /><Text style={[styles.navLabel, { color: p.secondary }]}>CAPTURE & ORGANIZE</Text></View>
         <V5LargeHeader title="Inbox" subtitle="A little clarity. Everything in its place." action={<V5IconButton icon={icons.plus} accessibilityLabel="Capture a memory" onPress={() => router.push('/(tabs)')} />} />
@@ -33,8 +33,9 @@ export default function InboxIndexScreen() {
         <View style={styles.section}>
           <V5SectionHeader title="Needs Review" meta={`${inboxItems.length}`} />
           <V5Group>
-            {inboxItems.length ? inboxItems.map((item) => (
+            {inboxItems.length ? inboxItems.map((item, index) => (
               <TriageRow
+                last={index === inboxItems.length - 1}
                 key={item.id}
                 item={item}
                 onOpen={() => router.push({ pathname: '/inbox/[id]', params: { id: item.id } })}

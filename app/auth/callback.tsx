@@ -1,5 +1,6 @@
+import { neverType } from '@/src/theme/tokens';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { supabase } from '@/src/supabase/client';
@@ -30,13 +31,13 @@ export default function AuthCallbackScreen() {
       }
       router.replace('/(tabs)/settings');
     }
-    void completeAuth();
+    void completeAuth().catch(() => { if (!cancelled) setErrorMessage('Could not connect. Open your email link again when your connection is available.'); });
     return () => { cancelled = true; };
   }, [params.code, params.error, params.error_description]);
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom']}>
-      <View style={styles.shell}>
+    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+      <ScrollView contentContainerStyle={styles.shell}>
         <V5Wordmark />
 
         <View style={styles.hero}>
@@ -48,29 +49,29 @@ export default function AuthCallbackScreen() {
         {!errorMessage ? (
           <V5Group><View style={styles.statusRow}><ActivityIndicator size="small" color={p.chrome} /><View style={{ flex: 1 }}><Text style={[styles.statusTitle, { color: p.label }]}>Confirming account</Text><Text style={[styles.statusBody, { color: p.secondary }]}>This should finish automatically.</Text></View></View></V5Group>
         ) : (
-          <Pressable onPress={() => router.replace('/(tabs)/settings')} style={({ pressed }) => [styles.button, { backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
-            <Text style={[styles.buttonText, { color: p.dark ? '#111113' : '#FFFFFF' }]}>Return to NEVER</Text>
+          <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)/settings')} style={({ pressed }) => [styles.button, { backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
+            <Text style={[styles.buttonText, { color: p.onAccent }]}>Return to NEVER</Text>
           </Pressable>
         )}
 
         <View style={styles.trustRow}><OneIcon name={icons.lock} size={12.5} color={p.chrome} /><Text style={[styles.trustText, { color: p.tertiary }]}>The link is exchanged for your authenticated NEVER session on this device.</Text></View>
-      </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safe: { flex: 1 },
-  shell: { flex: 1, width: '100%', maxWidth: 500, alignSelf: 'center', justifyContent: 'center', paddingHorizontal: 20 },
+  shell: { flexGrow: 1, paddingVertical: 24, width: '100%', maxWidth: 500, alignSelf: 'center', justifyContent: 'center', paddingHorizontal: 20 },
   hero: { marginTop: 38, marginBottom: 22 },
-  eyebrow: { fontSize: 8.5, lineHeight: 11, fontWeight: '700', letterSpacing: 1.8 },
-  title: { marginTop: 9, maxWidth: 420, fontSize: 30, lineHeight: 35, fontWeight: '700', letterSpacing: -0.95 },
-  body: { marginTop: 8, maxWidth: 405, fontSize: 13, lineHeight: 19 },
+  eyebrow: { ...neverType.eyebrow },
+  title: { marginTop: 9, maxWidth: 420, ...neverType.hero },
+  body: { marginTop: 8, maxWidth: 405, ...neverType.body },
   statusRow: { minHeight: 62, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  statusTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  statusTitle: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
   statusBody: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
-  button: { minHeight: 46, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  buttonText: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
+  button: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  buttonText: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
   trustRow: { marginTop: 17, flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
-  trustText: { flex: 1, fontSize: 10.5, lineHeight: 14.5 }
+  trustText: { flex: 1, ...neverType.caption }
 });

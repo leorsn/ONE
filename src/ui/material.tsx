@@ -18,7 +18,7 @@ export function useReducedMotion() {
   const [reduced, setReduced] = useState(true);
   useEffect(() => {
     let alive = true;
-    void AccessibilityInfo.isReduceMotionEnabled().then((value) => { if (alive) setReduced(value); });
+    void AccessibilityInfo.isReduceMotionEnabled().then((value) => { if (alive) setReduced(value); }).catch(() => undefined);
     const listener = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduced);
     return () => { alive = false; listener.remove(); };
   }, []);
@@ -31,12 +31,12 @@ export function NeverMaterial({ children, style, glass = false }: { children?: R
   const { resolvedMode } = useThemePreference();
   const [reduced, setReduced] = useState(Platform.OS === 'ios');
   useEffect(() => {
-    if (Platform.OS !== 'ios') return;
+    if (!glass || Platform.OS !== 'ios') return;
     let alive = true;
-    void AccessibilityInfo.isReduceTransparencyEnabled().then((value) => { if (alive) setReduced(value); });
+    void AccessibilityInfo.isReduceTransparencyEnabled().then((value) => { if (alive) setReduced(value); }).catch(() => undefined);
     const listener = AccessibilityInfo.addEventListener('reduceTransparencyChanged', setReduced);
     return () => { alive = false; listener.remove(); };
-  }, []);
+  }, [glass]);
   const nativeGlass = glass && !reduced && nativeGlassAvailable();
   return (
     <View style={[styles.surface, {
@@ -44,7 +44,7 @@ export function NeverMaterial({ children, style, glass = false }: { children?: R
       borderColor: glass ? theme.glassBorder : theme.border,
       ...(glass ? { shadowColor: theme.shadow, shadowOpacity: neverMaterial.shadowOpacity, shadowRadius: neverMaterial.shadowRadius, shadowOffset: neverMaterial.shadowOffset } : {})
     }, style]}>
-      {nativeGlass ? <GlassView pointerEvents="none" colorScheme={resolvedMode} glassEffectStyle="regular" style={[StyleSheet.absoluteFill, { borderRadius: neverRadius.xl }]} /> : null}
+      {nativeGlass ? <GlassView pointerEvents="none" colorScheme={resolvedMode} glassEffectStyle="regular" style={StyleSheet.absoluteFill} /> : null}
       {children}
     </View>
   );
