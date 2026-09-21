@@ -57,8 +57,9 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
   if (keyboardVisible) return null;
 
   return (
-    <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(6, insets.bottom - 8) }]}>
+    <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(7, insets.bottom - 7) }]}>
       <NeverMaterial glass style={styles.bar}>
+        <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.reflection }]} />
         {state.routes.map((route) => {
           const index = state.routes.indexOf(route);
           const focused = state.index === index;
@@ -81,13 +82,13 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               testID={options?.tabBarButtonTestID}
               onPress={onPress}
               onLongPress={onLongPress}
-              style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.55 : 1 }]}
+              style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.54 : 1 }]}
             >
-              <View style={[styles.iconWell, focused && { backgroundColor: p.fillSoft }]}>
+              <View style={[styles.iconWell, focused && { backgroundColor: p.graphite, borderColor: p.dark ? p.glassBorder : p.graphite }]}>
                 <OneIcon
                   name={tabIcon[routeName]}
-                  size={21}
-                  color={focused ? p.label : p.secondary}
+                  size={focused ? 19 : 20}
+                  color={focused ? p.onAccent : p.secondary}
                 />
               </View>
               <Text
@@ -108,31 +109,34 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { position: 'absolute', left: 16, right: 16 },
+  wrap: { position: 'absolute', left: 18, right: 18 },
   bar: {
     width: '100%',
     maxWidth: 648,
     alignSelf: 'center',
-    minHeight: neverControl.tabBar,
-    borderRadius: 24,
+    minHeight: neverControl.tabBar + 4,
+    borderRadius: 28,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 6,
-    paddingVertical: 3,
+    paddingVertical: 5,
     flexDirection: 'row',
     alignItems: 'center',
     overflow: 'hidden',
-    shadowOpacity: 0.07,
-    shadowRadius: 14,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 4
+    shadowOpacity: 0.11,
+    shadowRadius: 20,
+    shadowOffset: { width: 0, height: 9 },
+    elevation: 6
   },
-  tab: { flex: 1, minHeight: 56, alignItems: 'center', justifyContent: 'center', gap: 1 },
+  highlight: { position: 'absolute', left: 24, right: 24, top: 0, height: StyleSheet.hairlineWidth, opacity: 0.9 },
+  tab: { flex: 1, minHeight: 56, alignItems: 'center', justifyContent: 'center', gap: 3 },
   iconWell: {
-    width: 44,
-    height: 32,
-    borderRadius: 9,
+    width: 42,
+    height: 30,
+    borderRadius: 11,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center'
   },
-  label: { fontSize: 10, lineHeight: 14, letterSpacing: -0.04 }
+  label: { fontSize: 9.5, lineHeight: 12, letterSpacing: 0.02 }
 });
