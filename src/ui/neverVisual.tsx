@@ -1,30 +1,8 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
+import { useTheme } from '@/src/theme/useTheme';
 import { NeverMaterial } from '@/src/ui/material';
 import { useNeverV5Palette } from '@/src/ui/appleV5';
-
-export function NeverBackdrop() {
-  const p = useNeverV5Palette();
-  return (
-    <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
-      <View
-        style={[
-          styles.ambientOrb,
-          styles.ambientOrbTop,
-          { backgroundColor: p.dark ? '#DDE7EE0D' : '#FFFFFFA6' }
-        ]}
-      />
-      <View
-        style={[
-          styles.ambientOrb,
-          styles.ambientOrbBottom,
-          { backgroundColor: p.dark ? '#91A5B20B' : '#AEB9C326' }
-        ]}
-      />
-      <View style={[styles.ambientLine, { backgroundColor: p.dark ? '#FFFFFF12' : '#FFFFFFB8' }]} />
-    </View>
-  );
-}
 
 export function NeverHeroSurface({
   children,
@@ -38,17 +16,18 @@ export function NeverHeroSurface({
   glass?: boolean;
 }) {
   const p = useNeverV5Palette();
+  const theme = useTheme();
   return (
     <NeverMaterial glass={glass} style={[styles.hero, compact && styles.heroCompact, style]}>
-      <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
+      {theme.effects.reflection ? <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
         <View style={[styles.heroReflection, { backgroundColor: p.reflection }]} />
         <View
           style={[
             styles.heroGlow,
-            { backgroundColor: p.dark ? '#D7E3EA0D' : '#FFFFFF8F' }
+            { backgroundColor: theme.effects.light }
           ]}
         />
-      </View>
+      </View> : null}
       {children}
     </NeverMaterial>
   );
@@ -78,31 +57,6 @@ export function NeverMetric({
 }
 
 const styles = StyleSheet.create({
-  ambientOrb: {
-    position: 'absolute',
-    borderRadius: 999,
-    transform: [{ rotate: '-14deg' }]
-  },
-  ambientOrbTop: {
-    width: 360,
-    height: 250,
-    right: -175,
-    top: 22
-  },
-  ambientOrbBottom: {
-    width: 420,
-    height: 260,
-    left: -255,
-    bottom: 140
-  },
-  ambientLine: {
-    position: 'absolute',
-    top: 126,
-    right: 26,
-    width: 86,
-    height: StyleSheet.hairlineWidth,
-    opacity: 0.72
-  },
   hero: {
     minHeight: 150,
     borderRadius: 30,

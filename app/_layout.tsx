@@ -1,3 +1,4 @@
+import { ThemeBackdrop } from '@/src/ui/ThemeBackdrop';
 import { NeverNotice } from '@/src/ui/NeverNotice';
 import { useEffect, useRef } from 'react';
 import { ActivityIndicator, Platform, Text, View } from 'react-native';
@@ -39,7 +40,7 @@ function RootNavigation() {
   const { loaded, completed } = useOnboarding();
   const { loading: authLoading, session, configured } = useAuth();
   const { hydrated: itemsHydrated, hydrationError, retryHydration, items } = useItems();
-  const { resolvedMode, loaded: themeLoaded } = useThemeContext();
+  const { theme, resolvedMode, loaded: themeLoaded } = useThemeContext();
   const { loading: subscriptionLoading, hasBaseAccess } = usePlan();
   const p = useNeverV5Palette();
   const itemsRef = useRef(items);
@@ -129,6 +130,7 @@ function RootNavigation() {
   if (!appReady) {
     return (
       <View style={{ flex: 1, backgroundColor: p.canvas, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <ThemeBackdrop theme={theme} />
         <StatusBar style={resolvedMode === 'dark' ? 'light' : 'dark'} />
         <V5Wordmark />
         {hydrationError ? <View style={{ width: '100%', maxWidth: 420, paddingHorizontal: 24 }}><NeverNotice tone="error" title="Your memory could not be opened" body="Your saved data has not been cleared. Try opening it again." action="Try again" onAction={retryHydration} /></View> : <>

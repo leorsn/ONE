@@ -1,3 +1,4 @@
+import { materialStyle } from '@/src/theme/editions';
 import { NeverInput } from '@/src/ui/NeverInput';
 import { useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -19,7 +20,10 @@ export function useNeverV5Palette() {
     chrome: t.chrome, chromeSoft: t.chromeSoft, warning: t.warning,
     success: t.success, danger: t.danger, glass: t.glassStrong,
     glassBorder: t.glassBorder, reflection: t.reflection, shadow: t.shadow,
-    onAccent: t.onAccent
+    onAccent: t.onAccent, heading: t.typography.heading, wordmark: t.typography.wordmark,
+    radius: t.radius, cardStyle: materialStyle(t, 'card'), inputStyle: materialStyle(t, 'input'),
+    pageStyle: { paddingHorizontal: t.spacing.page, gap: t.spacing.section },
+    rowHeight: t.spacing.row
   } as const;
 }
 
@@ -27,7 +31,7 @@ export function V5Wordmark() {
   const p = useNeverV5Palette();
   return (
     <View style={styles.wordmarkRow}>
-      <Text style={[styles.wordmark, { color: p.label }]}>NEVER</Text>
+      <Text style={[styles.wordmark, p.wordmark, { color: p.label }]}>NEVER</Text>
       <View style={styles.signal}>
         <View style={[styles.signalLong, { backgroundColor: p.chrome }]} />
         <View style={[styles.signalShort, { backgroundColor: p.tertiary }]} />
@@ -52,7 +56,7 @@ export function V5LargeHeader({
     <View style={styles.largeHeader}>
       <View style={{ flex: 1, minWidth: 0 }}>
         {eyebrow ? <Text style={[styles.eyebrow, { color: p.secondary }]}>{eyebrow}</Text> : null}
-        <Text accessibilityRole="header" style={[styles.largeTitle, { color: p.label }]}>{title}</Text>
+        <Text accessibilityRole="header" style={[styles.largeTitle, p.heading, { color: p.label }]}>{title}</Text>
         {subtitle ? <Text style={[styles.subtitle, { color: p.secondary }]}>{subtitle}</Text> : null}
       </View>
       {action}
@@ -80,7 +84,7 @@ export function V5Group({ children, style }: { children: ReactNode; style?: obje
 export function V5Glyph({ icon, filled = false, size = 36 }: { icon: IconName; filled?: boolean; size?: number }) {
   const p = useNeverV5Palette();
   return (
-    <View style={[styles.glyph, { width: size, height: size, borderRadius: Math.round(size * 0.28), backgroundColor: filled ? p.graphite : p.fillSoft }]}>
+    <View style={[styles.glyph, { width: size, height: size, borderRadius: p.radius.icon, backgroundColor: filled ? p.graphite : p.fillSoft }]}>
       <OneIcon name={icon} size={Math.round(size * 0.44)} color={filled ? (p.onAccent) : p.chrome} />
     </View>
   );
@@ -127,9 +131,9 @@ export function V5Row({
     </>
   );
 
-  if (!onPress) return <View style={styles.row}>{body}</View>;
+  if (!onPress) return <View style={[styles.row, { minHeight: p.rowHeight }]}>{body}</View>;
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.row, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.row, { minHeight: p.rowHeight, backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
       {body}
     </Pressable>
   );
@@ -151,7 +155,7 @@ export function V5SearchField({
   const p = useNeverV5Palette();
   const [focused, setFocused] = useState(false);
   return (
-    <NeverMaterial glass style={[styles.searchField, { borderColor: focused ? p.chrome : p.glassBorder }]}>
+    <NeverMaterial role="input" focused={focused} style={styles.searchField}>
       <OneIcon name={ask ? icons.ask : icons.search} size={16} color={p.secondary} />
       <NeverInput
         accessibilityLabel={placeholder}
@@ -201,7 +205,7 @@ export function V5Segmented({
             onPress={() => { selectionFeedback(); onSelect(option); }}
             style={({ pressed }) => [
               styles.segment,
-              { backgroundColor: active ? p.graphite : p.fillSoft },
+              { backgroundColor: active ? p.graphite : p.fillSoft, borderRadius: p.radius.chip },
               { opacity: pressed ? 0.65 : 1 }
             ]}
           >
@@ -216,7 +220,7 @@ export function V5Segmented({
 export function V5IconButton({ icon, onPress, accessibilityLabel, disabled = false }: { icon: IconName; onPress: () => void; accessibilityLabel: string; disabled?: boolean }) {
   const p = useNeverV5Palette();
   return (
-    <NeverPressable disabled={disabled} accessibilityState={{ disabled }} accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={({ pressed }) => [styles.iconButton, { backgroundColor: p.fillSoft, opacity: disabled ? 0.4 : pressed ? 0.6 : 1 }]}>
+    <NeverPressable disabled={disabled} accessibilityState={{ disabled }} accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={({ pressed }) => [styles.iconButton, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, opacity: disabled ? 0.4 : pressed ? 0.6 : 1 }]}>
       <OneIcon name={icon} size={20} color={p.label} />
     </NeverPressable>
   );

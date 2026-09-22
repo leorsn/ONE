@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/src/supabase/client';
 import { OneIcon, icons } from '@/src/ui/icons';
@@ -80,7 +80,7 @@ export default function ResetPasswordScreen() {
   const body = errorMessage || (ready ? 'Set a new password for your NEVER account. It must contain at least eight characters.' : 'NEVER is validating the recovery session on this device.');
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.shell}>
@@ -88,7 +88,7 @@ export default function ResetPasswordScreen() {
 
             <View style={styles.hero}>
               <Text style={[styles.eyebrow, { color: errorMessage ? p.danger : p.chrome }]}>{eyebrow}</Text>
-              <Text style={[styles.title, { color: p.label }]}>{title}</Text>
+              <Text style={[styles.title, p.heading, { color: p.label }]}>{title}</Text>
               <Text style={[styles.body, { color: p.secondary }]}>{body}</Text>
             </View>
 
@@ -106,7 +106,7 @@ export default function ResetPasswordScreen() {
                   <Text style={[styles.label, { color: p.secondary }]}>Confirm Password</Text>
                   <NeverInput value={confirmPassword} onChangeText={setConfirmPassword} placeholder="Repeat new password" placeholderTextColor={p.tertiary} secureTextEntry textContentType="newPassword" autoCapitalize="none" accessibilityLabel="Confirm new password" onSubmitEditing={() => void savePassword()} style={[styles.input, { color: p.label, backgroundColor: p.fillSoft }]} />
                 </View>
-                <Pressable accessibilityRole="button" disabled={saving} onPress={savePassword} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving ? 0.45 : pressed ? 0.72 : 1 }]}>
+                <Pressable accessibilityRole="button" disabled={saving} onPress={savePassword} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: saving ? 0.45 : pressed ? 0.72 : 1 }]}>
                   {saving ? <ActivityIndicator size="small" color={p.onAccent} /> : <OneIcon name={icons.check} size={14} color={p.onAccent} />}
                   <Text style={[styles.primaryText, { color: p.onAccent }]}>{saving ? 'Updating…' : 'Update Password'}</Text>
                 </Pressable>
@@ -114,7 +114,7 @@ export default function ResetPasswordScreen() {
             ) : null}
 
             {errorMessage ? (
-              <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)/settings')} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
+              <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)/settings')} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
                 <Text style={[styles.primaryText, { color: p.onAccent }]}>Return to NEVER</Text>
               </Pressable>
             ) : null}
@@ -123,7 +123,7 @@ export default function ResetPasswordScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 }
 

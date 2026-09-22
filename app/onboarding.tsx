@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from 'react';
 import { Alert, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useAuth } from '@/src/context/AuthContext';
 import { useOnboarding } from '@/src/context/OnboardingContext';
 import { OneIcon, icons } from '@/src/ui/icons';
@@ -61,7 +62,7 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <View style={styles.top}>
         <V5Wordmark />
         <Pressable accessibilityRole="button" accessibilityLabel="Skip introduction" onPress={finish} style={{ minHeight: 44, justifyContent: 'center' }}>
@@ -76,7 +77,7 @@ export default function OnboardingScreen() {
               <ProductVignette slide={slide} />
               <View style={styles.copy}>
                 <Text style={[styles.eyebrow, { color: p.chrome }]}>{slide.eyebrow}</Text>
-                <Text style={[styles.title, { color: p.label }]}>{slide.title}</Text>
+                <Text style={[styles.title, p.heading, { color: p.label }]}>{slide.title}</Text>
                 <Text style={[styles.body, { color: p.secondary }]}>{slide.body}</Text>
               </View>
             </View>
@@ -91,14 +92,14 @@ export default function OnboardingScreen() {
           ))}
         </View>
 
-        <Pressable accessibilityRole="button" onPress={next} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
+        <Pressable accessibilityRole="button" onPress={next} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
           <Text style={[styles.primaryText, { color: p.onAccent }]}>{index === slides.length - 1 ? 'Continue to NEVER' : 'Continue'}</Text>
           <OneIcon name={index === slides.length - 1 ? icons.check : icons.chevron} size={13.5} color={p.onAccent} />
         </Pressable>
 
         <Text style={[styles.privacy, { color: p.tertiary }]}>Private by default. Your memory belongs to you.</Text>
       </View>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 }

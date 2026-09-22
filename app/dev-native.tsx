@@ -17,7 +17,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import Constants from 'expo-constants';
 import * as ImagePicker from 'expo-image-picker';
 import * as Notifications from 'expo-notifications';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import {
@@ -176,7 +176,7 @@ export default function NativeAcceptanceScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
+    <NeverScreen style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
           <Pressable onPress={() => goBackOrHome()} style={[styles.navButton, { backgroundColor: theme.fill }]} accessibilityRole="button" accessibilityLabel="Go back">
@@ -244,7 +244,7 @@ export default function NativeAcceptanceScreen() {
           )}
         </Surface>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
   function DiagnosticRow({ label, value, last = false }: { label: string; value: string; last?: boolean }) {

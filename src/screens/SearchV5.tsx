@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { usePlan } from '@/src/context/PlanContext';
@@ -13,7 +13,7 @@ import { retrieveLocalOneItems, retrieveOneItems } from '@/src/search/retrieve';
 import { searchSemantically } from '@/src/search/semantic';
 import { matchesMemoryCategory } from '@/src/ui/memoryPresentation';
 import { MemoryRow } from '@/src/ui/MemoryRow';
-import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
+import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import { neverSpacing, neverType } from '@/src/theme/tokens';
 import { NeverChromeButton } from '@/src/ui/never';
 import { iconForType } from '@/src/ui/OneItemRow';
@@ -139,10 +139,9 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
   const discovery = mode === 'quick' && !query.trim() && category === 'All';
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
-      <NeverBackdrop />
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, p.pageStyle]}
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         keyboardDismissMode="interactive"
@@ -150,7 +149,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
       >
         <View style={styles.heroCopy}>
           <NeverEyebrow>{mode === 'ask' ? 'Grounded recall' : 'Memory index'}</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>
             {mode === 'ask' ? 'Ask NEVER.' : 'Search.'}
           </Text>
           <Text style={[styles.heroSubtitle, { color: p.secondary }]}>
@@ -160,7 +159,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
 
         <NeverHeroSurface style={styles.searchStage}>
           <View style={styles.modeRow}>
-            <View style={[styles.modeSwitch, { backgroundColor: p.dark ? '#FFFFFF0A' : '#FFFFFF66', borderColor: p.glassBorder }]}>
+            <View style={[styles.modeSwitch, { backgroundColor: p.fillSoft, borderColor: p.glassBorder }]}>
               <ModeButton label="Search" active={mode === 'quick'} onPress={() => void setSearchMode('quick')} />
               <ModeButton label="Ask" active={mode === 'ask'} onPress={() => void setSearchMode('ask')} />
             </View>
@@ -290,7 +289,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 }

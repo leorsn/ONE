@@ -2,7 +2,7 @@ import { goBackOrHome } from '@/src/ui/navigation';
 import { neverType } from '@/src/theme/tokens';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { usePlan } from '@/src/context/PlanContext';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { V5Group, V5IconButton, V5LargeHeader, useNeverV5Palette } from '@/src/ui/appleV5';
@@ -45,8 +45,8 @@ export default function UpgradeScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
           {hardPaywall ? <View style={{ width: 44 }} /> : <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Close plans" onPress={() => goBackOrHome()} />}
           <Text style={[styles.navTitle, { color: p.label }]}>Membership</Text>
@@ -123,7 +123,7 @@ export default function UpgradeScreen() {
           <Pressable accessibilityRole="button" onPress={() => void openLegal('Privacy Policy', PRIVACY_POLICY_URL)} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={[styles.legalLink, { color: PRIVACY_POLICY_URL ? p.chrome : p.tertiary }]}>Privacy Policy</Text></Pressable>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
   function PlanCard({ name, descriptor, price, period, offer, features, planKey, current = false, featured = false }: {

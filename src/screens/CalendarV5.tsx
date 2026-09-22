@@ -5,10 +5,10 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useItems } from '@/src/context/ItemsContext';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
+import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import {
   V5Chevron,
   V5Group,
@@ -54,12 +54,11 @@ export default function CalendarV5() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
-      <NeverBackdrop />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCopy}>
           <NeverEyebrow>Time intelligence</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>Calendar.</Text>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>Calendar.</Text>
           <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Dates, reminders and plans extracted from what you save.</Text>
         </View>
 
@@ -83,11 +82,11 @@ export default function CalendarV5() {
           </View>
 
           <View style={styles.monthControls}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.dark ? '#FFFFFF0B' : '#FFFFFF70', opacity: pressed ? 0.5 : 1 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.fillSoft, opacity: pressed ? 0.5 : 1 }]}>
               <OneIcon name={icons.chevronLeft} size={13.5} color={p.chrome} />
             </Pressable>
             <Text style={[styles.monthControlLabel, { color: p.secondary }]}>{monthName} {selected.getFullYear()}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.dark ? '#FFFFFF0B' : '#FFFFFF70', opacity: pressed ? 0.5 : 1 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.fillSoft, opacity: pressed ? 0.5 : 1 }]}>
               <OneIcon name={icons.chevron} size={13.5} color={p.chrome} />
             </Pressable>
           </View>
@@ -103,7 +102,7 @@ export default function CalendarV5() {
                   style={({ pressed }) => [styles.day, { opacity: pressed ? 0.55 : 1 }]}
                 >
                   <Text style={[styles.weekday, { color: active ? p.label : p.tertiary }]}>{day.weekday}</Text>
-                  <View style={[styles.dayNumberWrap, { backgroundColor: active ? p.graphite : p.dark ? '#FFFFFF08' : '#FFFFFF55', borderColor: active ? p.graphite : p.glassBorder }]}>
+                  <View style={[styles.dayNumberWrap, { backgroundColor: active ? p.graphite : p.fillSoft, borderColor: active ? p.graphite : p.glassBorder }]}>
                     <Text style={[styles.dayNumberSmall, { color: active ? p.onAccent : p.label }]}>{day.number}</Text>
                   </View>
                   <View style={[styles.dot, { backgroundColor: hasItems ? p.chrome : 'transparent' }]} />
@@ -148,7 +147,7 @@ export default function CalendarV5() {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 }
@@ -219,7 +218,7 @@ function AgendaCard({ item }: { item: OneItem }) {
   return (
     <Pressable accessibilityRole="button"
       onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-      style={({ pressed }) => [styles.agendaCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}
+      style={({ pressed }) => [styles.agendaCard, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}
     >
       <View style={[styles.timeBadge, { backgroundColor: p.fillSoft }]}>
         <Text style={[styles.time, { color: p.chrome }]}>{item.time || 'Any'}</Text>

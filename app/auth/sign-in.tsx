@@ -2,7 +2,7 @@ import { neverType } from '@/src/theme/tokens';
 import { NeverInput } from '@/src/ui/NeverInput';
 import { useRef, useState } from 'react';
 import { ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import * as Haptics from 'expo-haptics';
 import { useAuth } from '@/src/context/AuthContext';
 import { OneIcon, icons } from '@/src/ui/icons';
@@ -67,7 +67,7 @@ export default function SignInScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={styles.scrollContent} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.shell}>
@@ -75,7 +75,7 @@ export default function SignInScreen() {
 
             <View style={styles.hero}>
               <Text style={[styles.eyebrow, { color: p.chrome }]}>{mode === 'signin' ? 'WELCOME BACK' : 'CREATE YOUR MEMORY'}</Text>
-              <Text style={[styles.title, { color: p.label }]}>{mode === 'signin' ? 'Your memory, with you.' : 'One private place for what matters.'}</Text>
+              <Text style={[styles.title, p.heading, { color: p.label }]}>{mode === 'signin' ? 'Your memory, with you.' : 'One private place for what matters.'}</Text>
               <Text style={[styles.body, { color: p.secondary }]}>{mode === 'signin' ? 'Sign in to keep your saved information available across your NEVER devices.' : 'Create a NEVER account to sync memories, documents and context across your devices.'}</Text>
             </View>
 
@@ -97,7 +97,7 @@ export default function SignInScreen() {
                   <NeverInput value={password} onChangeText={setPassword} placeholder={mode === 'signup' ? 'At least 8 characters' : 'Password'} placeholderTextColor={p.tertiary} secureTextEntry autoCapitalize="none" autoCorrect={false} textContentType={mode === 'signup' ? 'newPassword' : 'password'} accessibilityLabel="Password" onSubmitEditing={() => void submit()} style={[styles.input, { color: p.label, backgroundColor: p.fillSoft }]} />
                 </View>
 
-                <Pressable accessibilityRole="button" accessibilityState={{ disabled: !configured || submitting || resetting, busy: submitting }} disabled={!configured || submitting || resetting} onPress={submit} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: !configured || submitting ? 0.38 : pressed ? 0.72 : 1 }]}>
+                <Pressable accessibilityRole="button" accessibilityState={{ disabled: !configured || submitting || resetting, busy: submitting }} disabled={!configured || submitting || resetting} onPress={submit} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: !configured || submitting ? 0.38 : pressed ? 0.72 : 1 }]}>
                   {submitting ? <ActivityIndicator size="small" color={p.onAccent} /> : null}
                   <Text style={[styles.primaryText, { color: p.onAccent }]}>{mode === 'signin' ? 'Sign In to NEVER' : 'Create NEVER Account'}</Text>
                 </Pressable>
@@ -120,7 +120,7 @@ export default function SignInScreen() {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 }
 

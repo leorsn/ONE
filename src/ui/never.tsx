@@ -107,6 +107,7 @@ export function NeverChromeButton({
         compact && styles.primaryButtonCompact,
         {
           backgroundColor: theme.accent,
+          borderRadius: theme.radius.button,
           opacity: disabled || busy ? 0.32 : pressed ? 0.72 : 1
         }
       ]}
@@ -139,7 +140,7 @@ export function NeverIconButton({
       }}
       style={({ pressed }) => [
         styles.iconButton,
-        {
+        { borderRadius: theme.radius.icon,
           backgroundColor: filled ? theme.text : theme.surface,
           opacity: pressed ? 0.58 : 1
         }
@@ -159,7 +160,7 @@ export function NeverWordmark({ compact = false }: { compact?: boolean }) {
   const theme = useTheme();
   return (
     <View style={styles.wordmarkRow}>
-      <Text style={[compact ? styles.wordmarkCompact : styles.wordmark, { color: theme.text }]}>NEVER</Text>
+      <Text style={[compact ? styles.wordmarkCompact : styles.wordmark, theme.typography.wordmark, { color: theme.text }]}>NEVER</Text>
       <View style={styles.signal}>
         <View style={[styles.signalLong, { backgroundColor: theme.chrome }]} />
         <View style={[styles.signalShort, { backgroundColor: theme.textTertiary }]} />

@@ -4,7 +4,7 @@ import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressa
 import { router } from 'expo-router';
 import { useIncomingShare } from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
 import type { CaptureDraft } from '@/src/capture/core';
 import { useAuth } from '@/src/context/AuthContext';
@@ -242,9 +242,9 @@ export default function HandleShareScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={4}>
-        <ScrollView contentContainerStyle={styles.content} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.nav}>
             <V5IconButton disabled={saving} icon={icons.close} accessibilityLabel="Cancel share" onPress={() => void handleCancel()} />
             <Text style={[styles.navTitle, { color: p.label }]}>Save to NEVER</Text>
@@ -283,7 +283,7 @@ export default function HandleShareScreen() {
 
               <View style={styles.storageLine}><OneIcon name={icons.cloud} size={12.5} color={p.chrome} /><Text style={[styles.storageText, { color: p.tertiary }]}>{session ? 'NEVER saves locally first. Account sync can retry when the network is available.' : 'This capture stays on this device until you sign in.'}</Text></View>
 
-              <Pressable accessibilityRole="button" disabled={saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')} onPress={handleSave} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready') ? 0.38 : pressed ? 0.72 : 1 }]}>
+              <Pressable accessibilityRole="button" disabled={saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')} onPress={handleSave} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready') ? 0.38 : pressed ? 0.72 : 1 }]}>
                 <OneIcon name={icons.check} size={14.5} color={p.onAccent} />
                 <Text style={[styles.primaryText, { color: p.onAccent }]}>{saving ? 'Saving…' : allowDuplicate ? 'Save Again' : sharedPayloads.length - completedIndices.length > 1 ? 'Save & review next' : 'Save to NEVER'}</Text>
               </Pressable>
@@ -293,7 +293,7 @@ export default function HandleShareScreen() {
           ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
   function StatusLine({ icon, tone, title, body, loading = false }: { icon: (typeof icons)[keyof typeof icons]; tone: 'chrome' | 'success' | 'warning'; title: string; body: string; loading?: boolean }) {

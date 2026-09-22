@@ -2,7 +2,7 @@ import { goBackOrHome } from '@/src/ui/navigation';
 import { neverType } from '@/src/theme/tokens';
 import { NeverNavigation } from '@/src/ui/utility';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { V5Group, V5LargeHeader, useNeverV5Palette } from '@/src/ui/appleV5';
 
@@ -16,8 +16,8 @@ export default function ShareGuideScreen() {
   const p = useNeverV5Palette();
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]}>
         <NeverNavigation title="Share" onBack={() => goBackOrHome()} />
 
         <V5LargeHeader title="Save from anywhere." subtitle="Send a link, message, screenshot or document to NEVER without breaking your flow." />
@@ -65,7 +65,7 @@ export default function ShareGuideScreen() {
           <Text style={[styles.noticeText, { color: p.tertiary }]}>Supported screenshots can be read on-device before you save them.</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 }
 

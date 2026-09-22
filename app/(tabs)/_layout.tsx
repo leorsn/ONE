@@ -58,7 +58,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
 
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(7, insets.bottom - 7), left: Math.max(18, insets.left), right: Math.max(18, insets.right) }]}>
-      <NeverMaterial glass style={styles.bar}>
+      <NeverMaterial role="navigation" style={styles.bar}>
         <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.reflection }]} />
         {state.routes.map((route, index) => {
           const focused = state.index === index;
@@ -83,7 +83,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               onLongPress={onLongPress}
               style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.54 : 1 }]}
             >
-              <View style={[styles.iconWell, focused && { backgroundColor: p.graphite, borderColor: p.dark ? p.glassBorder : p.graphite }]}>
+              <View style={[styles.iconWell, { borderRadius: p.radius.icon }, focused && { backgroundColor: p.graphite, borderColor: p.dark ? p.glassBorder : p.graphite }]}>
                 <OneIcon
                   name={tabIcon[routeName]}
                   size={focused ? 19 : 20}
