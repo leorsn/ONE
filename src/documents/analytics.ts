@@ -190,16 +190,18 @@ function isInMonth(iso: string | undefined, year: number, month: number) {
 function sortNewestFirst(a: OneItem, b: OneItem) {
   const aDate = a.date ? new Date(a.date + 'T12:00:00').getTime() : new Date(a.createdAt).getTime();
   const bDate = b.date ? new Date(b.date + 'T12:00:00').getTime() : new Date(b.createdAt).getTime();
-  return bDate - aDate;
+  return (Number.isFinite(bDate) ? bDate : 0) - (Number.isFinite(aDate) ? aDate : 0);
 }
 
 function monthKey(item: OneItem) {
   const date = item.date ? new Date(item.date + 'T12:00:00') : new Date(item.createdAt);
+  if (!Number.isFinite(date.getTime())) return 'undated';
   return String(date.getFullYear()) + '-' + String(date.getMonth() + 1).padStart(2, '0');
 }
 
 function monthLabel(item: OneItem) {
   const date = item.date ? new Date(item.date + 'T12:00:00') : new Date(item.createdAt);
+  if (!Number.isFinite(date.getTime())) return 'Date unavailable';
   return new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(date);
 }
 

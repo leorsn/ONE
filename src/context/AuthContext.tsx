@@ -33,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
+    let authEventReceived = false;
 
     // The initial state already resolves loading=false when cloud auth is not
     // configured. Avoid a synchronous effect state update that can introduce a
@@ -40,27 +41,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (!isSupabaseConfigured) return;
 
     void restoreAuthSession().then(async (result) => {
-      if (!mounted) return;
+      if (!mounted || authEventReceived) return;
       setSession(result.session);
       setError(result.error);
       setLoading(false);
       if (result.session?.user.id) {
         try {
           await ensureOneProfile(result.session.user.id);
-        } catch (profileError) {
-          console.warn('ONE profile bootstrap deferred', profileError);
+        } catch {
+          if (__DEV__) console.warn('ONE profile bootstrap deferred');
         }
       }
+    }).catch(() => {
+      if (!mounted || authEventReceived) return;
+      setError('Could not restore your session. Please sign in again.');
+      setLoading(false);
     });
 
     const unsubscribe = subscribeToAuthState((_event, nextSession) => {
       if (!mounted) return;
+      authEventReceived = true;
       setSession(nextSession);
       setError(null);
       setLoading(false);
       if (nextSession?.user.id) {
         void ensureOneProfile(nextSession.user.id).catch((profileError) => {
-          console.warn('ONE profile bootstrap deferred', profileError);
+          if (__DEV__) console.warn('ONE profile bootstrap deferred');
         });
       }
     });

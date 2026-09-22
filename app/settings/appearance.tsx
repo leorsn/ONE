@@ -1,9 +1,10 @@
+import { NeverNotice } from '@/src/ui/NeverNotice';
+import { goBackOrHome } from '@/src/ui/navigation';
 import { NeverSettingsSection, NeverNavigation } from '@/src/ui/utility';
 import { lightTheme, darkTheme } from '@/src/theme/colors';
 import { neverType } from '@/src/theme/tokens';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useThemePreference } from '@/src/theme/useTheme';
@@ -29,14 +30,22 @@ export default function AppearanceScreen() {
   const [appIcon, setAppIcon] = useState<NeverAppIconName>(() => getNeverAppIcon());
   const [iconError, setIconError] = useState<string | null>(null);
   const canSwitchAppIcon = supportsNeverAppIcons();
+  const changingRef = useRef(false);
+  const [changing, setChanging] = useState(false);
+  const [appearanceError, setAppearanceError] = useState<string | null>(null);
 
   async function select(value: ThemePreference) {
     void Haptics.selectionAsync().catch(() => undefined);
-    await setPreference(value);
+    if (changingRef.current) return;
+    changingRef.current = true; setChanging(true); setAppearanceError(null);
+    try { await setPreference(value); }
+    catch { setAppearanceError('Your appearance could not be saved. Please try again.'); }
+    finally { changingRef.current = false; setChanging(false); }
   }
 
   async function selectAppIcon(value: NeverAppIconName) {
-    if (value === appIcon || !canSwitchAppIcon) return;
+    if (value === appIcon || !canSwitchAppIcon || changingRef.current) return;
+    changingRef.current = true; setChanging(true);
     void Haptics.selectionAsync().catch(() => undefined);
     setIconError(null);
     try {
@@ -44,13 +53,13 @@ export default function AppearanceScreen() {
       setAppIcon(value);
     } catch {
       setIconError('NEVER could not change the app icon. Reopen the app and try again.');
-    }
+    } finally { changingRef.current = false; setChanging(false); }
   }
 
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <NeverNavigation title="Appearance" onBack={() => router.back()} />
+        <NeverNavigation title="Appearance" onBack={() => goBackOrHome()} />
 
         <V5LargeHeader title="Appearance" subtitle="Choose how NEVER looks on this iPhone." />
 
@@ -58,7 +67,7 @@ export default function AppearanceScreen() {
           {options.map((option, index) => {
             const active = preference === option.value;
             return (
-              <Pressable key={option.value} accessibilityRole="radio" accessibilityState={{ checked: active }} onPress={() => select(option.value)} style={({ pressed }) => [styles.row, index < options.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
+              <Pressable key={option.value} accessibilityRole="radio" disabled={changing} accessibilityState={{ checked: active, disabled: changing }} onPress={() => select(option.value)} style={({ pressed }) => [styles.row, index < options.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
                 <View style={[styles.preview, { backgroundColor: previewBackground(option.value, p.canvas) }]}>
                   <View style={[styles.previewHeader, { backgroundColor: previewText(option.value, p.label) }]} />
                   <View style={[styles.previewCard, { backgroundColor: previewSurface(option.value, p.surface) }]}>
@@ -80,7 +89,7 @@ export default function AppearanceScreen() {
           {iconOptions.map((option, index) => {
             const active = appIcon === option.value;
             return (
-              <Pressable key={option.value} accessibilityRole="radio" accessibilityState={{ checked: active, disabled: !canSwitchAppIcon }} disabled={!canSwitchAppIcon} onPress={() => selectAppIcon(option.value)} style={({ pressed }) => [styles.row, index < iconOptions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: !canSwitchAppIcon ? 0.55 : 1 }]}>
+              <Pressable key={option.value} accessibilityRole="radio" accessibilityState={{ checked: active, disabled: !canSwitchAppIcon || changing }} disabled={!canSwitchAppIcon || changing} onPress={() => selectAppIcon(option.value)} style={({ pressed }) => [styles.row, index < iconOptions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: !canSwitchAppIcon ? 0.55 : 1 }]}>
                 <Image source={option.source} style={styles.appIconPreview} />
                 <View style={styles.rowCopy}>
                   <Text style={[styles.rowTitle, { color: p.label }]}>{option.title}</Text>
@@ -95,6 +104,7 @@ export default function AppearanceScreen() {
         {!canSwitchAppIcon ? (
           <View style={styles.note}><OneIcon name={icons.appearance} size={12.5} color={p.chrome} /><Text style={[styles.noteText, { color: p.tertiary }]}>Icon switching becomes available in the installed iOS native build.</Text></View>
         ) : null}
+        {appearanceError ? <NeverNotice tone="error" title="Appearance unchanged" body={appearanceError} /> : null}
         {iconError ? <Text style={[styles.errorText, { color: p.danger }]}>{iconError}</Text> : null}
       </ScrollView>
     </SafeAreaView>

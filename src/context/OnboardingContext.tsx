@@ -22,6 +22,7 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
       .then((value) => {
         if (mounted) setCompleted(value === 'done');
       })
+      .catch(() => { /* Keep the safe initial preference if local storage is unavailable. */ })
       .finally(() => {
         if (mounted) setLoaded(true);
       });
@@ -32,13 +33,13 @@ export function OnboardingProvider({ children }: { children: React.ReactNode }) 
   }, []);
 
   async function complete() {
-    setCompleted(true);
     await AsyncStorage.setItem(STORAGE_KEY, 'done');
+    setCompleted(true);
   }
 
   async function reset() {
-    setCompleted(false);
     await AsyncStorage.removeItem(STORAGE_KEY);
+    setCompleted(false);
   }
 
   const value = useMemo(

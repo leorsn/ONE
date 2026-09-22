@@ -89,3 +89,15 @@ function scoreShareRepresentation(payload: SharePayloadLike, resolved?: Resolved
   if (hasValue) return 20;
   return 0;
 }
+
+/** Keep remaining native attachments available until each has been reviewed. */
+export function selectPendingShareCandidate(
+  payloads: SharePayloadLike[],
+  resolved: ResolvedShareLike[],
+  completedIndices: readonly number[]
+): NormalizedShareCandidate | undefined {
+  const completed = new Set(completedIndices);
+  const indices = payloads.map((_, index) => index).filter((index) => !completed.has(index));
+  const candidate = selectShareCandidate(indices.map((index) => payloads[index]), indices.map((index) => resolved[index]));
+  return candidate ? { ...candidate, index: indices[candidate.index] } : undefined;
+}

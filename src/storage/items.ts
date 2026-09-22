@@ -1,3 +1,4 @@
+import { decodeStoredItems } from '@/src/storage/validation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ensureCanonicalItemMetadata } from '@/src/capture/itemMetadata';
 import type { OneItem } from '@/src/types/item';
@@ -21,11 +22,6 @@ export async function loadItems(scope: ItemStorageScope): Promise<OneItem[] | nu
   if (legacyRaw === null) return null;
 
   const legacyItems = parseItems(legacyRaw);
-  if (legacyItems === null) {
-    await AsyncStorage.removeItem(LEGACY_STORAGE_KEY);
-    return null;
-  }
-
   await AsyncStorage.multiSet([
     [scopedKey, JSON.stringify(legacyItems)],
     ['@one/items/migrated-v2', new Date().toISOString()]
@@ -48,13 +44,6 @@ function storageKey(scope: ItemStorageScope) {
   return `${STORAGE_PREFIX}${scope}`;
 }
 
-function parseItems(raw: string): OneItem[] | null {
-  try {
-    const parsed = JSON.parse(raw) as unknown;
-    return Array.isArray(parsed)
-      ? (parsed as OneItem[]).map(ensureCanonicalItemMetadata)
-      : null;
-  } catch {
-    return null;
-  }
+function parseItems(raw: string): OneItem[] {
+  return decodeStoredItems(raw).map(ensureCanonicalItemMetadata);
 }

@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { validatePng } from './png-integrity.mjs';
 
 const root = process.cwd();
 const appConfigPath = path.join(root, 'app.json');
@@ -31,6 +32,14 @@ function inspectPng(iconPath, label) {
     return;
   }
 
+  let chunks;
+  try {
+    chunks = validatePng(buffer);
+  } catch (error) {
+    failures.push(`${label} has corrupt PNG image data: ${iconPath} (${error.message})`);
+    return;
+  }
+
   const width = buffer.readUInt32BE(16);
   const height = buffer.readUInt32BE(20);
   const colorType = buffer[25];
@@ -38,7 +47,7 @@ function inspectPng(iconPath, label) {
   if (width !== height) failures.push(`${label} must be exactly square (found ${width}x${height})`);
   if (width !== 1024 || height !== 1024) failures.push(`${label} must be 1024x1024 for the NEVER release source asset (found ${width}x${height})`);
 
-  const hasTransparencyChunk = buffer.includes(Buffer.from('tRNS', 'ascii'));
+  const hasTransparencyChunk = chunks.includes('tRNS');
   if (hasTransparencyChunk) failures.push(`${label} contains a PNG transparency chunk; iOS app icon artwork must fill the square without transparency`);
   if (colorType === 4 || colorType === 6) {
     warnings.push(`${label} uses an alpha-capable PNG color type; visually/export-verify that every pixel is fully opaque before TestFlight`);

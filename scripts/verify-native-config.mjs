@@ -40,10 +40,10 @@ assert(
 );
 
 const requiredPackages = {
-  'expo-sharing': '~57.0.18',
-  'expo-notifications': '~57.0.17',
-  'expo-image-picker': '~57.0.16',
-  'expo-file-system': '~57.0.6',
+  'expo-sharing': '~57.0.21',
+  'expo-notifications': '~57.0.20',
+  'expo-image-picker': '~57.0.19',
+  'expo-file-system': '~57.0.7',
   'expo-ocr-kit': '0.1.4',
   'react-native-purchases': '10.9.0'
 };
@@ -122,3 +122,5 @@ console.log('Native release configuration verified.');
 function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
+
+assert(fs.existsSync(path.join(root, 'modules/never-app-icon/ios/NeverAppIcon.podspec')), 'NEVER app icon module needs a Podspec for iOS autolinking');

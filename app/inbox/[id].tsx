@@ -1,3 +1,4 @@
+import { goBackOrHome } from '@/src/ui/navigation';
 import { memoryDateLabel, memoryPreview } from '@/src/ui/memoryPresentation';
 import { useMemo, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -104,7 +105,7 @@ export default function InboxItemDetailScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         <View style={styles.nav}>
-          <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Back to Inbox" onPress={() => router.back()} />
+          <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Back to Inbox" onPress={() => goBackOrHome()} />
           <Text style={[styles.navTitle, { color: p.label }]}>Review</Text>
           <V5IconButton icon={icons.edit} accessibilityLabel="Edit item details" onPress={() => router.push({ pathname: '/item/[id]', params: { id: currentItem.id } })} />
         </View>

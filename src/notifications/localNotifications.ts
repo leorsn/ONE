@@ -63,20 +63,23 @@ export async function getScheduledNotificationIds() {
   return scheduled ? new Set(scheduled.map((entry) => entry.identifier)) : null;
 }
 
-export async function scheduleItemNotification(item: OneItem): Promise<NotificationScheduleResult> {
+export async function scheduleItemNotification(item: OneItem, options: { requestPermission?: boolean } = {}): Promise<NotificationScheduleResult> {
   if (!item.date) return { status: 'not_scheduled' };
   if (Platform.OS === 'web') return { status: 'unsupported' };
 
   try {
-    const granted = await ensureNotificationPermissions();
+    const preferences = await loadNotificationPreferences();
+    const triggerDate = getReminderDate(item, preferences.leadMinutes);
+    if (!triggerDate || triggerDate.getTime() <= Date.now()) return { status: 'not_scheduled' };
+
+    // Background hydration/reconciliation must never trigger the system prompt.
+    const granted = options.requestPermission === true
+      ? await ensureNotificationPermissions()
+      : await getNotificationPermissionStatus() === 'granted';
     if (!granted) {
       await recordNativeAcceptanceEvent('notification_denied', item.type);
       return { status: 'permission_denied' };
     }
-
-    const preferences = await loadNotificationPreferences();
-    const triggerDate = getReminderDate(item, preferences.leadMinutes);
-    if (!triggerDate || triggerDate.getTime() <= Date.now()) return { status: 'not_scheduled' };
 
     const notificationId = await Notifications.scheduleNotificationAsync({
       content: {
@@ -100,7 +103,7 @@ export async function scheduleItemNotification(item: OneItem): Promise<Notificat
     await recordNativeAcceptanceEvent('notification_scheduled', item.type);
     return { status: 'scheduled', notificationId };
   } catch (error) {
-    console.warn('NEVER local reminder scheduling failed', error);
+    if (__DEV__) console.warn('NEVER local reminder scheduling failed');
     await recordLastNativeError('notification-schedule', error);
     return { status: 'error' };
   }
@@ -112,7 +115,7 @@ export async function cancelItemNotification(notificationId?: string) {
     await Notifications.cancelScheduledNotificationAsync(notificationId);
     await recordNativeAcceptanceEvent('notification_cancelled');
   } catch (error) {
-    console.warn('NEVER local reminder cancellation failed', error);
+    if (__DEV__) console.warn('NEVER local reminder cancellation failed');
     await recordLastNativeError('notification-cancel', error);
   }
 }

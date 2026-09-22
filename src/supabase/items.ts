@@ -98,8 +98,8 @@ export async function upsertCloudItem(
   if (options.refreshEmbedding !== false) {
     try {
       await refreshItemEmbedding(item.id);
-    } catch (embeddingError) {
-      console.warn('ONE semantic indexing failed', embeddingError);
+    } catch {
+      if (__DEV__) console.warn('ONE semantic indexing failed');
     }
   }
 }

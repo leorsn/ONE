@@ -1,3 +1,4 @@
+import { goBackOrHome } from '@/src/ui/navigation';
 import { neverType } from '@/src/theme/tokens';
 import { NeverNavigation } from '@/src/ui/utility';
 import { useState } from 'react';
@@ -59,7 +60,7 @@ export default function PrivacyScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <NeverNavigation title="Privacy" onBack={() => router.back()} />
+        <NeverNavigation title="Privacy" onBack={() => goBackOrHome()} />
 
         <V5LargeHeader title="Privacy" subtitle="Your personal memory stays under your control." />
 

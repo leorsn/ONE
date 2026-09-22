@@ -1,9 +1,9 @@
+import { goBackOrHome } from '@/src/ui/navigation';
 import { NeverNotice } from '@/src/ui/NeverNotice';
 import { NeverSettingsSection, NeverNavigation } from '@/src/ui/utility';
 import { neverType } from '@/src/theme/tokens';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, AppState, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ensureNotificationPermissions, getNotificationPermissionStatus } from '@/src/notifications/localNotifications';
@@ -73,7 +73,7 @@ export default function NotificationSettingsScreen() {
   return (
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        <NeverNavigation title="Notifications" onBack={() => router.back()} />
+        <NeverNavigation title="Notifications" onBack={() => goBackOrHome()} />
 
         <V5LargeHeader title="Notifications" subtitle="Useful reminders, without the noise." />
 

@@ -1,3 +1,5 @@
+import { useLocalDay } from '@/src/ui/useLocalDay';
+import { getReminderDate } from '@/src/notifications/reminderDate';
 import { shiftCalendarMonth } from '@/src/ui/calendarPresentation';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -21,12 +23,13 @@ type CalendarMode = 'Day' | 'Week' | 'Month';
 export default function CalendarV5() {
   const p = useNeverV5Palette();
   const { items } = useItems();
-  const today = toIsoDate(new Date());
-  const [selectedDate, setSelectedDate] = useState(today);
+  const today = useLocalDay();
+  const [chosenDate, setSelectedDate] = useState<string | null>(null);
+  const selectedDate = chosenDate ?? today;
   const [mode, setMode] = useState<CalendarMode>('Day');
 
   const datedItems = useMemo(
-    () => items.filter((item) => item.date && !item.completed).sort((a, b) => `${a.date}T${a.time || '23:59'}`.localeCompare(`${b.date}T${b.time || '23:59'}`)),
+    () => items.filter((item) => getReminderDate({ date: item.date }, 0) && !item.completed).sort((a, b) => `${a.date}T${a.time || '23:59'}`.localeCompare(`${b.date}T${b.time || '23:59'}`)),
     [items]
   );
   const selected = new Date(`${selectedDate}T12:00:00`);
@@ -46,7 +49,7 @@ export default function CalendarV5() {
 
   async function jumpToday() {
     void Haptics.selectionAsync().catch(() => undefined);
-    setSelectedDate(today);
+    setSelectedDate(null);
     setMode('Day');
   }
 

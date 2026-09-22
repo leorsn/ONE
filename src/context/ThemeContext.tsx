@@ -31,6 +31,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
           setPreferenceState(value);
         }
       })
+      .catch(() => { /* Keep the safe initial preference if local storage is unavailable. */ })
       .finally(() => {
         if (mounted) setLoaded(true);
       });
@@ -41,8 +42,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   async function setPreference(next: ThemePreference) {
-    setPreferenceState(next);
     await AsyncStorage.setItem(STORAGE_KEY, next);
+    setPreferenceState(next);
   }
 
   const resolvedMode = preference === 'system' ? systemMode : preference;
