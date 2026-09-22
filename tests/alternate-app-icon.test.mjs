@@ -1,3 +1,4 @@
+import { validPng as fakePng } from './helpers/png.mjs';
 import assert from 'node:assert/strict';
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
@@ -7,18 +8,6 @@ import test from 'node:test';
 
 const root = path.resolve(new URL('..', import.meta.url).pathname);
 
-function fakePng(width = 1024, height = 1024) {
-  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-  const ihdrLength = Buffer.alloc(4);
-  ihdrLength.writeUInt32BE(13, 0);
-  const ihdrType = Buffer.from('IHDR', 'ascii');
-  const ihdrData = Buffer.alloc(13);
-  ihdrData.writeUInt32BE(width, 0);
-  ihdrData.writeUInt32BE(height, 4);
-  ihdrData[8] = 8;
-  ihdrData[9] = 2;
-  return Buffer.concat([signature, ihdrLength, ihdrType, ihdrData, Buffer.alloc(4)]);
-}
 
 function fixture() {
   const directory = mkdtempSync(path.join(os.tmpdir(), 'never-alt-icon-'));

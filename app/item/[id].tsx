@@ -1,3 +1,4 @@
+import { goBackOrHome } from '@/src/ui/navigation';
 import { openMemoryLink } from '@/src/ui/openLink';
 import { memoryDateLabel } from '@/src/ui/memoryPresentation';
 import { NeverInput } from '@/src/ui/NeverInput';
@@ -34,7 +35,7 @@ export default function ItemDetailScreen() {
           <View style={[styles.missingIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.note} size={19} color={p.chrome} /></View>
           <Text style={[styles.missingTitle, { color: p.label }]}>Memory not found</Text>
           <Text style={[styles.missingBody, { color: p.secondary }]}>This memory may have been removed.</Text>
-          <Pressable accessibilityRole="button" onPress={() => router.back()}><Text style={[styles.missingBack, { color: p.chrome }]}>Go Back</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={() => goBackOrHome()}><Text style={[styles.missingBack, { color: p.chrome }]}>Go Back</Text></Pressable>
         </View>
       </SafeAreaView>
     );
@@ -146,7 +147,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
-          <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.back()} />
+          <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => goBackOrHome()} />
           <Text style={[styles.navTitle, { color: p.label }]}>Memory</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Save changes" accessibilityState={{ disabled: saving || !title.trim(), busy: saving }} disabled={saving || !title.trim()} onPress={saveChanges} style={styles.navSave}><Text style={{ color: p.chrome, fontWeight: '600', opacity: saving || !title.trim() ? 0.4 : 1 }}>{saving ? 'Saving…' : 'Done'}</Text></Pressable>
         </View>

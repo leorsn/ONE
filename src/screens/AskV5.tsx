@@ -1,9 +1,10 @@
+import { goBackOrHome } from '@/src/ui/navigation';
 import { openMemoryLink } from '@/src/ui/openLink';
 import { NeverNotice } from '@/src/ui/NeverNotice';
 import { MemoryRow } from '@/src/ui/MemoryRow';
 import { useReducedMotion } from '@/src/ui/material';
 import { NeverInput } from '@/src/ui/NeverInput';
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -55,6 +56,8 @@ export default function AskV5() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [sending, setSending] = useState(false);
   const sendingRef = useRef(false);
+  const requestVersion = useRef(0);
+  useEffect(() => () => { requestVersion.current += 1; }, []);
   const nearBottom = useRef(true);
   const reducedMotion = useReducedMotion();
   const [failedQuestion, setFailedQuestion] = useState<string | null>(null);
@@ -72,6 +75,7 @@ export default function AskV5() {
     const clean = value.trim();
     if (!clean || sendingRef.current) return;
     sendingRef.current = true;
+    const version = ++requestVersion.current;
     nearBottom.current = true;
     setFailedQuestion(null);
     void Haptics.selectionAsync().catch(() => undefined);
@@ -83,6 +87,7 @@ export default function AskV5() {
         limit: 12,
         semanticSearch: session?.user.id ? searchSemantically : undefined
       });
+      if (version !== requestVersion.current) return;
       const answer = await answerFromRetrievedItems({
         query: clean,
         retrieval: retrieval.results,
@@ -90,6 +95,7 @@ export default function AskV5() {
         previousSourceIds,
         allowAI: Boolean(session?.user.id)
       });
+      if (version !== requestVersion.current) return;
       setMessages((current) => [...current, {
         id: makeId('assistant'),
         role: 'assistant',
@@ -101,10 +107,9 @@ export default function AskV5() {
       }]);
       requestAnimationFrame(() => { if (nearBottom.current) scrollRef.current?.scrollToEnd({ animated: !reducedMotion }); });
     } catch {
-      setFailedQuestion(clean);
+      if (version === requestVersion.current) setFailedQuestion(clean);
     } finally {
-      sendingRef.current = false;
-      setSending(false);
+      if (version === requestVersion.current) { sendingRef.current = false; setSending(false); }
     }
   }
 
@@ -115,7 +120,7 @@ export default function AskV5() {
         <ScrollView contentContainerStyle={styles.lockedPage} showsVerticalScrollIndicator={false}>
           <View style={styles.lockedTop}>
             <V5Wordmark />
-            <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.back()} />
+            <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => goBackOrHome()} />
           </View>
           <View style={styles.lockedHeroCopy}>
             <NeverEyebrow>Grounded recall</NeverEyebrow>
@@ -144,7 +149,7 @@ export default function AskV5() {
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={4}>
         <View style={styles.shell}>
           <View style={[styles.nav, { borderBottomColor: p.separator }]}>
-            <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.back()} />
+            <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => goBackOrHome()} />
             <View style={styles.navBrand}>
               <Text style={[styles.navTitle, { color: p.label }]}>Ask NEVER</Text>
               <View style={[styles.liveDot, { backgroundColor: p.success }]} />

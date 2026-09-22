@@ -1,3 +1,4 @@
+import { useLocalDay } from '@/src/ui/useLocalDay';
 import { NeverInput } from '@/src/ui/NeverInput';
 import { useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
@@ -46,6 +47,7 @@ export default function HomeV5() {
   );
   const draft = reviewedDraft ?? automaticDraft;
   const structuredReview = draft ? requiresStructuredReview(draft) : false;
+  useLocalDay();
   const now = new Date();
   const firstName = displayFirstName(session?.user.user_metadata);
   const recentItems = useMemo(() => [...items].sort(sortUpdated).slice(0, 6), [items]);

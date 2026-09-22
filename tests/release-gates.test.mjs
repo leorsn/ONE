@@ -1,3 +1,4 @@
+import { validPng as fakePng } from './helpers/png.mjs';
 import assert from 'node:assert/strict';
 import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
@@ -24,21 +25,6 @@ const baseReleaseEnv = {
   EXPO_PUBLIC_REVENUECAT_IOS_KEY: ''
 };
 
-function fakePng(width, height, colorType = 2, withTransparencyChunk = false) {
-  const signature = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
-  const ihdrLength = Buffer.alloc(4);
-  ihdrLength.writeUInt32BE(13, 0);
-  const ihdrType = Buffer.from('IHDR', 'ascii');
-  const ihdrData = Buffer.alloc(13);
-  ihdrData.writeUInt32BE(width, 0);
-  ihdrData.writeUInt32BE(height, 4);
-  ihdrData[8] = 8;
-  ihdrData[9] = colorType;
-  const fakeCrc = Buffer.alloc(4);
-  const chunks = [signature, ihdrLength, ihdrType, ihdrData, fakeCrc];
-  if (withTransparencyChunk) chunks.push(Buffer.from('tRNS', 'ascii'));
-  return Buffer.concat(chunks);
-}
 
 function writeAssetFixture(directory, { icon, configureIcon = true } = {}) {
   const expo = {
@@ -170,4 +156,14 @@ test('store asset gate accepts a valid opaque 1024x1024 PNG source', () => {
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }
+});
+
+test('store asset gate rejects a truncated image even with a valid PNG header', () => {
+  const fixture = mkdtempSync(path.join(os.tmpdir(), 'never-corrupt-icon-'));
+  try {
+    writeAssetFixture(fixture, { icon: fakePng(1024, 1024).subarray(0, 50) });
+    const result = runScript('scripts/verify-store-assets.mjs', [], {}, fixture);
+    assert.equal(result.status, 1);
+    assert.match(result.stderr, /corrupt PNG image data/);
+  } finally { rmSync(fixture, { recursive: true, force: true }); }
 });

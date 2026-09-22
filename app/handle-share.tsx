@@ -11,7 +11,7 @@ import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { recordLastNativeError, recordNativeAcceptanceEvent } from '@/src/native/acceptance';
 import { isRecentlyHandledShare, markShareHandled } from '@/src/native/shareGuard';
-import { selectShareCandidate } from '@/src/native/sharePayload';
+import { selectPendingShareCandidate } from '@/src/native/sharePayload';
 import { notificationSaveWarning } from '@/src/notifications/status';
 import { extractTextFromImage } from '@/src/ocr/extractText';
 import { mergeLateOcrDraft } from '@/src/ocr/mergeLateOcr';
@@ -30,7 +30,11 @@ export default function HandleShareScreen() {
   const { sharedPayloads, resolvedSharedPayloads, isResolving, error, clearSharedPayloads } = useIncomingShare();
 
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [allowDuplicate, setAllowDuplicate] = useState(false);
+  const [completedShares, setCompletedShares] = useState<{ batch: string; indices: number[] }>({ batch: '', indices: [] });
+  const batch = JSON.stringify(sharedPayloads.map((payload) => [payload.shareType, payload.value]));
+  const completedIndices = useMemo(() => completedShares.batch === batch ? completedShares.indices : [], [completedShares, batch]);
   const [ocrState, setOcrState] = useState<OcrState>('idle');
   const [extractedText, setExtractedText] = useState('');
   const [reviewedDraft, setReviewedDraft] = useState<CaptureDraft | null>(null);
@@ -42,14 +46,14 @@ export default function HandleShareScreen() {
   const attachmentCommittedRef = useRef(false);
   const attachmentRevisionRef = useRef(0);
 
-  const selected = useMemo(() => selectShareCandidate(sharedPayloads, resolvedSharedPayloads), [sharedPayloads, resolvedSharedPayloads]);
+  const selected = useMemo(() => selectPendingShareCandidate(sharedPayloads, resolvedSharedPayloads, completedIndices), [sharedPayloads, resolvedSharedPayloads, completedIndices]);
   const selectedFingerprint = selected?.fingerprint;
   const selectedRepresentationCount = selected?.representationCount;
   const primary = selected ? sharedPayloads[selected.index] : undefined;
   const resolved = selected ? resolvedSharedPayloads[selected.index] : undefined;
   const contentUri = resolved && 'contentUri' in resolved ? resolved.contentUri : null;
   const isImage = resolved?.contentType === 'image' || primary?.shareType === 'image';
-  const isAttachment = Boolean(contentUri) && Boolean(primary && ['image', 'file', 'video', 'audio'].includes(primary.shareType || ''));
+  const isAttachment = Boolean(primary && (['image', 'file', 'video', 'audio'].includes(primary.shareType || '') || ['image', 'file', 'video', 'audio'].includes(resolved?.contentType || '')));
   const imageUri = isImage ? localAttachmentUri : null;
 
   const automaticDraft = useMemo(() => primary ? createShareDraft({ payload: primary, resolved, extractedText }) : null, [primary, resolved, extractedText]);
@@ -86,12 +90,12 @@ export default function HandleShareScreen() {
 
     async function secureAttachment() {
       await Promise.resolve();
-      if (previous && !previousCommitted) await removeLocalAttachment(previous);
+      if (previous && !previousCommitted) await removeLocalAttachment(previous).catch((error) => recordLastNativeError('share-cleanup', error));
       if (attachmentRef.current === previous) attachmentRef.current = null;
       if (cancelled || revision !== attachmentRevisionRef.current) return;
       setLocalAttachmentUri(null);
       if (!isAttachment || !contentUri) {
-        setAttachmentState('idle');
+        setAttachmentState(isAttachment ? 'failed' : 'idle');
         return;
       }
       setAttachmentState('securing');
@@ -120,7 +124,7 @@ export default function HandleShareScreen() {
   useEffect(() => () => {
     attachmentRevisionRef.current += 1;
     const local = attachmentRef.current;
-    if (local && !attachmentCommittedRef.current) void removeLocalAttachment(local);
+    if (local && !attachmentCommittedRef.current) void removeLocalAttachment(local).catch((error) => recordLastNativeError('share-cleanup', error));
   }, []);
 
   useEffect(() => {
@@ -147,7 +151,7 @@ export default function HandleShareScreen() {
         await recordNativeAcceptanceEvent(text ? 'ocr_success' : 'ocr_empty', 'share-image');
       } catch (ocrError) {
         if (cancelled) return;
-        console.warn('NEVER OCR failed', ocrError);
+        if (__DEV__) console.warn('NEVER OCR failed');
         setOcrState('failed');
         await recordLastNativeError('share-ocr', ocrError);
         await recordNativeAcceptanceEvent('ocr_failed', 'share-image');
@@ -166,7 +170,7 @@ export default function HandleShareScreen() {
   }, [primary, resolved]);
 
   async function handleSave() {
-    if (!primary || !draft || !selected || saving) return;
+    if (!primary || !draft?.title.trim() || !selected || savingRef.current || isResolving) return;
     if (isAttachment && attachmentState !== 'ready') {
       Alert.alert(
         attachmentState === 'failed' ? 'Attachment not secured' : 'Securing attachment',
@@ -177,6 +181,7 @@ export default function HandleShareScreen() {
       return;
     }
 
+    savingRef.current = true;
     setSaving(true);
     try {
       if (!allowDuplicate && await isRecentlyHandledShare(selected.fingerprint)) {
@@ -198,12 +203,20 @@ export default function HandleShareScreen() {
       });
       const savedItem = await add(item);
       attachmentCommittedRef.current = true;
-      await markShareHandled(selected.fingerprint);
+      await markShareHandled(selected.fingerprint).catch((error) => recordLastNativeError('share-dedup', error));
       await recordNativeAcceptanceEvent('share_saved', selected.fingerprint);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
-      clearSharedPayloads();
+      const nextIndices = [...completedIndices, selected.index];
+      const nextShare = selectPendingShareCandidate(sharedPayloads, resolvedSharedPayloads, nextIndices);
       setReviewedDraft(null);
       setAllowDuplicate(false);
+      if (nextShare) {
+        setCompletedShares({ batch, indices: nextIndices });
+        const warning = notificationSaveWarning(savedItem);
+        if (warning) Alert.alert('Saved to NEVER', warning);
+        return;
+      }
+      clearSharedPayloads();
       const reminderWarning = notificationSaveWarning(savedItem);
       if (reminderWarning) Alert.alert('Saved to NEVER', reminderWarning);
       router.replace(savedItem.destination === 'saved' ? '/(tabs)/saved' : '/(tabs)');
@@ -211,16 +224,17 @@ export default function HandleShareScreen() {
       await recordLastNativeError('share-save', saveError);
       Alert.alert('Could not save to NEVER', 'The shared content was not discarded. Try saving again.');
     } finally {
+      savingRef.current = false;
       setSaving(false);
     }
   }
 
   async function handleCancel() {
-    if (saving) return;
+    if (savingRef.current) return;
     attachmentRevisionRef.current += 1;
     const local = attachmentRef.current;
     attachmentRef.current = null;
-    if (local && !attachmentCommittedRef.current) await removeLocalAttachment(local);
+    if (local && !attachmentCommittedRef.current) await removeLocalAttachment(local).catch((error) => recordLastNativeError('share-cleanup', error));
     clearSharedPayloads();
     setReviewedDraft(null);
     setAllowDuplicate(false);
@@ -250,7 +264,7 @@ export default function HandleShareScreen() {
           {primary ? (
             <>
               <View style={styles.section}>
-                <V5SectionHeader title="Original" meta={selected && selected.representationCount > 1 ? `${selected.representationCount} representations` : undefined} />
+                <V5SectionHeader title="Original" meta={sharedPayloads.length > 1 ? `${completedIndices.length + 1} of ${sharedPayloads.length}` : undefined} />
                 <V5Group style={styles.originalCard}>
                   {imageUri ? <Image source={{ uri: imageUri }} style={[styles.image, { backgroundColor: p.fill }]} resizeMode="cover" /> : <View style={[styles.originalIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={primary.shareType === 'url' ? icons.link : icons.upload} size={22} color={p.chrome} /></View>}
                   <View style={{ flex: 1, minWidth: 0 }}><Text style={[styles.kind, { color: p.tertiary }]}>{labelFor(primary.shareType)}</Text><Text style={[styles.previewTitle, { color: p.label }]} numberOfLines={4}>{preview}</Text></View>
@@ -269,9 +283,9 @@ export default function HandleShareScreen() {
 
               <View style={styles.storageLine}><OneIcon name={icons.cloud} size={12.5} color={p.chrome} /><Text style={[styles.storageText, { color: p.tertiary }]}>{session ? 'NEVER saves locally first. Account sync can retry when the network is available.' : 'This capture stays on this device until you sign in.'}</Text></View>
 
-              <Pressable accessibilityRole="button" disabled={saving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')} onPress={handleSave} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready') ? 0.38 : pressed ? 0.72 : 1 }]}>
+              <Pressable accessibilityRole="button" disabled={saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')} onPress={handleSave} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready') ? 0.38 : pressed ? 0.72 : 1 }]}>
                 <OneIcon name={icons.check} size={14.5} color={p.onAccent} />
-                <Text style={[styles.primaryText, { color: p.onAccent }]}>{saving ? 'Saving…' : allowDuplicate ? 'Save Again' : 'Save to NEVER'}</Text>
+                <Text style={[styles.primaryText, { color: p.onAccent }]}>{saving ? 'Saving…' : allowDuplicate ? 'Save Again' : sharedPayloads.length - completedIndices.length > 1 ? 'Save & review next' : 'Save to NEVER'}</Text>
               </Pressable>
             </>
           ) : !isResolving ? (

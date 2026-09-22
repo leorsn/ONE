@@ -1,3 +1,4 @@
+import { goBackOrHome } from '@/src/ui/navigation';
 import { neverType } from '@/src/theme/tokens';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
@@ -178,7 +179,7 @@ export default function NativeAcceptanceScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: theme.background }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
-          <Pressable onPress={() => router.back()} style={[styles.navButton, { backgroundColor: theme.fill }]} accessibilityRole="button" accessibilityLabel="Go back">
+          <Pressable onPress={() => goBackOrHome()} style={[styles.navButton, { backgroundColor: theme.fill }]} accessibilityRole="button" accessibilityLabel="Go back">
             <OneIcon name={icons.chevronLeft} size={18} color={theme.text} />
           </Pressable>
           <Text style={[styles.navTitle, { color: theme.text }]}>Native Acceptance</Text>

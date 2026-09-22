@@ -1,3 +1,4 @@
+import { NeverNotice } from '@/src/ui/NeverNotice';
 import { useEffect, useRef } from 'react';
 import { ActivityIndicator, Platform, Text, View } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
@@ -12,6 +13,8 @@ import { PlanProvider, usePlan } from '@/src/context/PlanContext';
 import { recordNativeAcceptanceEvent } from '@/src/native/acceptance';
 import { useReducedMotion } from '@/src/ui/material';
 import { V5Wordmark, useNeverV5Palette } from '@/src/ui/appleV5';
+
+export { RouteError as ErrorBoundary } from '@/src/ui/RouteError';
 
 export default function RootLayout() {
   return (
@@ -35,7 +38,7 @@ function RootNavigation() {
   const segments = useSegments();
   const { loaded, completed } = useOnboarding();
   const { loading: authLoading, session, configured } = useAuth();
-  const { hydrated: itemsHydrated, items } = useItems();
+  const { hydrated: itemsHydrated, hydrationError, retryHydration, items } = useItems();
   const { resolvedMode, loaded: themeLoaded } = useThemeContext();
   const { loading: subscriptionLoading, hasBaseAccess } = usePlan();
   const p = useNeverV5Palette();
@@ -88,7 +91,7 @@ function RootNavigation() {
         handledNotificationResponsesRef.current = new Set([responseKey]);
       }
 
-      await Notifications.clearLastNotificationResponseAsync();
+      await Notifications.clearLastNotificationResponseAsync().catch(() => undefined);
       if (cancelled) return;
 
       const data = response.notification.request.content.data;
@@ -111,10 +114,10 @@ function RootNavigation() {
       router.push({ pathname: '/item/[id]', params: { id: itemId } });
     }
 
-    void Notifications.getLastNotificationResponseAsync().then(openNotificationItem);
+    void Notifications.getLastNotificationResponseAsync().then(openNotificationItem).catch(() => undefined);
 
     const subscription = Notifications.addNotificationResponseReceivedListener((response) => {
-      void openNotificationItem(response);
+      void openNotificationItem(response).catch(() => undefined);
     });
 
     return () => {
@@ -128,8 +131,10 @@ function RootNavigation() {
       <View style={{ flex: 1, backgroundColor: p.canvas, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
         <StatusBar style={resolvedMode === 'dark' ? 'light' : 'dark'} />
         <V5Wordmark />
+        {hydrationError ? <View style={{ width: '100%', maxWidth: 420, paddingHorizontal: 24 }}><NeverNotice tone="error" title="Your memory could not be opened" body="Your saved data has not been cleared. Try opening it again." action="Try again" onAction={retryHydration} /></View> : <>
         <Text accessibilityLiveRegion="polite" style={{ color: p.secondary, fontSize: 15 }}>Opening your memory…</Text>
         <ActivityIndicator accessibilityLabel="Loading NEVER" color={p.chrome} />
+        </>}
       </View>
     );
   }

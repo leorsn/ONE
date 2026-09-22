@@ -6,7 +6,10 @@ export type NativeRouteResolution = {
 };
 
 export function resolveOneNativePath(path: string): NativeRouteResolution {
-  if (!path) return { route: '/', kind: 'invalid' };
+  if (!path || path.length > 8192 || /[\u0000-\u001f]/.test(path)) return { route: '/', kind: 'invalid' };
+  // Reject malformed encoding before Expo Router's query parser receives it.
+  try { decodeURIComponent(path); }
+  catch { return { route: '/', kind: 'invalid' }; }
 
   if (path.startsWith('/')) {
     if (path.startsWith('/auth/callback')) return { route: path, kind: 'auth_callback' };

@@ -1,7 +1,7 @@
+import { goBackOrHome } from '@/src/ui/navigation';
 import { neverType } from '@/src/theme/tokens';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePlan } from '@/src/context/PlanContext';
 import { OneIcon, icons } from '@/src/ui/icons';
@@ -48,7 +48,7 @@ export default function UpgradeScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
-          {hardPaywall ? <View style={{ width: 44 }} /> : <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Close plans" onPress={() => router.back()} />}
+          {hardPaywall ? <View style={{ width: 44 }} /> : <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Close plans" onPress={() => goBackOrHome()} />}
           <Text style={[styles.navTitle, { color: p.label }]}>Membership</Text>
           <View style={{ width: 44 }} />
         </View>
@@ -106,7 +106,7 @@ export default function UpgradeScreen() {
         ) : null}
 
         {!hardPaywall ? (
-          <Pressable accessibilityRole="button" onPress={() => router.back()} style={({ pressed }) => [styles.backButton, { backgroundColor: p.fill, opacity: pressed ? 0.65 : 1 }]}>
+          <Pressable accessibilityRole="button" onPress={() => goBackOrHome()} style={({ pressed }) => [styles.backButton, { backgroundColor: p.fill, opacity: pressed ? 0.65 : 1 }]}>
             <Text style={[styles.backButtonText, { color: p.label }]}>Back to NEVER</Text>
           </Pressable>
         ) : null}

@@ -1,3 +1,4 @@
+import { useLocalDay } from '@/src/ui/useLocalDay';
 import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
@@ -41,7 +42,8 @@ export default function SavedV5() {
   const [documentFilter, setDocumentFilter] = useState<'all' | OneDocumentKind>('all');
   const [query, setQuery] = useState('');
 
-  const documentSummary = useMemo(() => getDocumentSummary(items), [items]);
+  const today = useLocalDay();
+  const documentSummary = useMemo(() => getDocumentSummary(items, new Date(`${today}T12:00:00`)), [items, today]);
   const documents = useMemo(() => filterDocuments(items, documentFilter, query), [items, documentFilter, query]);
   const documentGroups = useMemo(() => groupDocumentsByMonth(documents), [documents]);
 

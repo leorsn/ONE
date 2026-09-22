@@ -1,3 +1,4 @@
+import { safeMemoryUrl } from '@/src/ui/linkPolicy';
 import type { ResolvedSharePayload, SharePayload } from 'expo-sharing';
 import { buildItemFromCapture } from '@/src/capture/buildItem';
 import { interpretCapture, type CaptureDraft } from '@/src/capture/core';
@@ -27,7 +28,7 @@ export function createShareDraft({
     userContext: context,
     sourceType: 'share' as const,
     isImage: envelope.kind === 'image',
-    url: envelope.normalizedUrl,
+    url: envelope.sharedUrl ? safeMemoryUrl(envelope.sharedUrl) : undefined,
     now
   };
 

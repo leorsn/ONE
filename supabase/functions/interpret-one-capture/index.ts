@@ -1,3 +1,5 @@
+import { createClient } from 'npm:@supabase/supabase-js@2.115.0'
+
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -6,8 +8,17 @@ const corsHeaders = {
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
+  const authorization = req.headers.get('Authorization')
+  if (!authorization?.startsWith('Bearer ')) return json({ error: 'authentication_required' }, 401)
 
   try {
+    // Validate the user independently of the gateway's JWT configuration before spending model credits.
+    const client = createClient(Deno.env.get('SUPABASE_URL') ?? '', publicKey(), {
+      auth: { persistSession: false, autoRefreshToken: false }
+    })
+    const { data, error } = await client.auth.getUser(authorization.slice(7))
+    if (error || !data.user) return json({ error: 'authentication_required' }, 401)
     const openAiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openAiKey) return json({ error: 'ai_not_configured' }, 503)
 
@@ -86,7 +97,7 @@ Deno.serve(async (req: Request) => {
     })
 
     const responseBody = await response.json()
-    if (!response.ok) return json({ error: 'model_request_failed', detail: responseBody?.error?.message || 'OpenAI request failed' }, 502)
+    if (!response.ok) return json({ error: 'model_request_failed', detail: 'upstream_request_failed'?.error?.message || 'OpenAI request failed' }, 502)
     const outputText = extractOutputText(responseBody)
     if (!outputText) return json({ error: 'empty_model_response' }, 502)
 
@@ -95,19 +106,36 @@ Deno.serve(async (req: Request) => {
     catch { return json({ error: 'invalid_model_json' }, 502) }
 
     return json({ interpretation, model }, 200)
-  } catch (error) {
-    return json({ error: error instanceof Error ? error.message : 'Unknown error' }, 400)
+  } catch {
+    return json({ error: 'capture_interpretation_unavailable' }, 400)
   }
 })
 
-function extractOutputText(response: any) {
-  if (typeof response?.output_text === 'string' && response.output_text.trim()) return response.output_text.trim()
-  for (const item of response?.output ?? []) {
-    for (const content of item?.content ?? []) {
-      if (typeof content?.text === 'string' && content.text.trim()) return content.text.trim()
+function extractOutputText(response: unknown): string | undefined {
+  if (!response || typeof response !== 'object') return undefined
+  const value = response as Record<string, unknown>
+  if (typeof value.output_text === 'string' && value.output_text.trim()) return value.output_text.trim()
+  if (!Array.isArray(value.output)) return undefined
+  for (const item of value.output) {
+    if (!item || typeof item !== 'object' || !Array.isArray(item.content)) continue
+    for (const content of item.content) {
+      if (content && typeof content.text === 'string' && content.text.trim()) return content.text.trim()
     }
   }
   return undefined
+}
+
+function publicKey(): string {
+  const configured = Deno.env.get('SUPABASE_PUBLISHABLE_KEY')
+  if (configured) return configured
+  try {
+    const names = JSON.parse(Deno.env.get('SUPABASE_PUBLISHABLE_KEYS') || '{}')
+    if (typeof names.default === 'string') {
+      const key = Deno.env.get(names.default)
+      if (key) return key
+    }
+  } catch { /* Fall back to the runtime's legacy anon key. */ }
+  return Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 }
 
 function json(value: unknown, status: number) {

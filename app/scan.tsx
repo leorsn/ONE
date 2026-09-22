@@ -1,3 +1,4 @@
+import { goBackOrHome } from '@/src/ui/navigation';
 import { neverType } from '@/src/theme/tokens';
 import { NeverNavigation } from '@/src/ui/utility';
 import { useEffect, useRef, useState } from 'react';
@@ -165,7 +166,7 @@ export default function ScanScreen() {
         void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       } catch (ocrError) {
         if (revision !== processingRevisionRef.current) return;
-        console.warn('NEVER scan OCR failed', ocrError);
+        if (__DEV__) console.warn('NEVER scan OCR failed');
         setState('failed');
         await recordLastNativeError('scan-ocr', ocrError);
         await recordNativeAcceptanceEvent('ocr_failed', 'scan');
@@ -227,7 +228,7 @@ export default function ScanScreen() {
     <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={4}>
         <ScrollView contentContainerStyle={styles.content} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
-          <NeverNavigation title="Scan" onBack={() => router.back()} />
+          <NeverNavigation title="Scan" onBack={() => goBackOrHome()} />
 
           <V5LargeHeader
             title="Scan a document."

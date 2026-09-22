@@ -1,4 +1,4 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useAuth } from '@/src/context/AuthContext';
 import { fallbackPlanForRuntime, isDevelopmentBetaAccess } from '@/src/subscription/access';
@@ -49,12 +49,21 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [managementUrl, setManagementUrl] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
+  const resolvedUserRef = useRef<string | null>(null);
+  const refreshVersionRef = useRef(0);
+  const purchaseLockRef = useRef(false);
+  const identityRef = useRef(userId);
+  useLayoutEffect(() => { identityRef.current = userId; }, [userId]);
 
   const refresh = useCallback(async () => {
-    setLoading(true);
+    const version = ++refreshVersionRef.current;
+    const identity = userId ?? 'anonymous';
+    const background = resolvedUserRef.current === identity;
+    if (!background) setLoading(true);
 
     try {
       const configured = await configureRevenueCat(userId);
+      if (version !== refreshVersionRef.current) return;
 
       if (!configured) {
         setBillingConfigured(false);
@@ -69,17 +78,21 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         getRevenueCatPlan(),
         getSubscriptionManagementURL(),
         getRevenueCatStorefront().catch((error) => {
-          console.warn('NEVER subscription storefront refresh failed', error);
+          if (__DEV__) console.warn('NEVER subscription storefront refresh failed');
           return { prices: {}, introOffers: {} };
         })
       ]);
+      if (version !== refreshVersionRef.current) return;
       setBillingConfigured(true);
       setPlan(nextPlan);
       setLocalizedPrices(storefront.prices);
       setIntroOffers(storefront.introOffers);
       setManagementUrl(nextManagementUrl);
-    } catch (error) {
-      console.warn('NEVER subscription refresh failed', error);
+    } catch {
+      if (version !== refreshVersionRef.current) return;
+      if (__DEV__) console.warn('NEVER subscription refresh failed');
+      // Keep the last resolved entitlement on transient foreground refresh failure.
+      if (background) return;
 
       if (isRevenueCatConfigured()) {
         setBillingConfigured(true);
@@ -95,7 +108,10 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         setManagementUrl(undefined);
       }
     } finally {
-      setLoading(false);
+      if (version === refreshVersionRef.current) {
+        resolvedUserRef.current = identity;
+        setLoading(false);
+      }
     }
   }, [userId, runtimeFallbackPlan]);
 
@@ -104,7 +120,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       void refresh();
     }, 0);
 
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); refreshVersionRef.current += 1; };
   }, [refresh]);
 
   useEffect(() => {
@@ -123,18 +139,25 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       };
     }
 
+    if (purchaseLockRef.current) return { ok: false, cancelled: true };
+    purchaseLockRef.current = true;
+    const purchaseIdentity = userId;
     setPurchasing(true);
     try {
       const outcome = await purchaseRevenueCatPlan(nextPlan);
+      if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
       if (outcome.ok && outcome.plan) {
+        const url = await getSubscriptionManagementURL().catch(() => undefined);
+        if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
         setPlan(outcome.plan);
-        setManagementUrl(await getSubscriptionManagementURL());
+        setManagementUrl(url);
       }
       return outcome;
     } finally {
+      purchaseLockRef.current = false;
       setPurchasing(false);
     }
-  }, [billingConfigured]);
+  }, [billingConfigured, userId]);
 
   const restore = useCallback(async () => {
     if (!billingConfigured) {
@@ -144,18 +167,25 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       };
     }
 
+    if (purchaseLockRef.current) return { ok: false, cancelled: true };
+    purchaseLockRef.current = true;
+    const purchaseIdentity = userId;
     setPurchasing(true);
     try {
       const outcome = await restoreRevenueCatPurchases();
+      if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
       if (outcome.ok && outcome.plan) {
+        const url = await getSubscriptionManagementURL().catch(() => undefined);
+        if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
         setPlan(outcome.plan);
-        setManagementUrl(await getSubscriptionManagementURL());
+        setManagementUrl(url);
       }
       return outcome;
     } finally {
+      purchaseLockRef.current = false;
       setPurchasing(false);
     }
-  }, [billingConfigured]);
+  }, [billingConfigured, userId]);
 
   const value = useMemo<PlanContextValue>(
     () => ({
