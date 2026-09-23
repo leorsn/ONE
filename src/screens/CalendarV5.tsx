@@ -75,18 +75,33 @@ export default function CalendarV5() {
             </View>
             <View style={styles.dateActions}>
               <NeverMetric value={`${selectedItems.length}`} label={selectedDate === today ? 'today' : 'on date'} />
-              <Pressable accessibilityRole="button" onPress={jumpToday} style={({ pressed }) => [styles.todayButton, { borderRadius: p.radius.chip, backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
+              <Pressable accessibilityRole="button" onPress={jumpToday} style={({ pressed }) => [styles.todayButton, {
+                borderRadius: p.radius.chip,
+                backgroundColor: p.fillSoft,
+                borderColor: p.border,
+                opacity: pressed ? 0.62 : 1
+              }]}>
                 <Text style={[styles.todayText, { color: p.chrome }]}>Now</Text>
               </Pressable>
             </View>
           </View>
 
           <View style={styles.monthControls}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, opacity: pressed ? 0.5 : 1 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, {
+              borderRadius: p.radius.icon,
+              backgroundColor: p.fillSoft,
+              borderColor: p.border,
+              opacity: pressed ? 0.5 : 1
+            }]}>
               <OneIcon name={icons.chevronLeft} size={13.5} color={p.chrome} />
             </Pressable>
             <Text style={[styles.monthControlLabel, { color: p.secondary }]}>{monthName} {selected.getFullYear()}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, opacity: pressed ? 0.5 : 1 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, {
+              borderRadius: p.radius.icon,
+              backgroundColor: p.fillSoft,
+              borderColor: p.border,
+              opacity: pressed ? 0.5 : 1
+            }]}>
               <OneIcon name={icons.chevron} size={13.5} color={p.chrome} />
             </Pressable>
           </View>
@@ -102,7 +117,11 @@ export default function CalendarV5() {
                   style={({ pressed }) => [styles.day, { opacity: pressed ? 0.55 : 1 }]}
                 >
                   <Text style={[styles.weekday, { color: active ? p.label : p.tertiary }]}>{day.weekday}</Text>
-                  <View style={[styles.dayNumberWrap, { borderRadius: p.radius.chip, backgroundColor: active ? p.graphite : p.fillSoft, borderColor: active ? p.graphite : p.glassBorder }]}>
+                  <View style={[styles.dayNumberWrap, {
+                    borderRadius: p.radius.chip,
+                    backgroundColor: active ? p.graphite : p.fillSoft,
+                    borderColor: active ? p.graphite : p.border
+                  }]}>
                     <Text style={[styles.dayNumberSmall, { color: active ? p.onAccent : p.label }]}>{day.number}</Text>
                   </View>
                   <View style={[styles.dot, { backgroundColor: hasItems ? p.chrome : 'transparent' }]} />
@@ -218,9 +237,13 @@ function AgendaCard({ item }: { item: OneItem }) {
   return (
     <Pressable accessibilityRole="button"
       onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-      style={({ pressed }) => [styles.agendaCard, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}
+      style={({ pressed }) => [styles.agendaCard, p.cardStyle, { opacity: pressed ? 0.65 : 1 }]}
     >
-      <View style={[styles.timeBadge, { backgroundColor: p.fillSoft }]}>
+      <View style={[styles.timeBadge, {
+        borderRadius: p.radius.chip,
+        backgroundColor: p.fillSoft,
+        borderColor: p.border
+      }]}>
         <Text style={[styles.time, { color: p.chrome }]}>{item.time || 'Any'}</Text>
       </View>
       <View style={styles.agendaCopy}>
@@ -260,10 +283,10 @@ const styles = StyleSheet.create({
   monthTitle: { marginTop: 4, fontSize: 21, lineHeight: 25, fontWeight: '600', letterSpacing: -0.45 },
   yearText: { marginTop: 1, fontSize: 11.5, lineHeight: 15 },
   dateActions: { alignItems: 'flex-end', gap: 8 },
-  todayButton: { minHeight: 44, paddingHorizontal: 13, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  todayButton: { minHeight: 44, paddingHorizontal: 13, borderRadius: 17, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   todayText: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
   monthControls: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  monthArrow: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  monthArrow: { width: 44, height: 44, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   monthControlLabel: { flex: 1, textAlign: 'center', paddingHorizontal: 6, fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
   dayStrip: { flexGrow: 1, flexDirection: 'row', justifyContent: 'space-between', gap: 4 },
   day: { minWidth: 44, alignItems: 'center' },
@@ -277,7 +300,7 @@ const styles = StyleSheet.create({
   dateLabel: { paddingHorizontal: 4, fontSize: 11.5, lineHeight: 14, fontWeight: '600' },
   agendaStack: { gap: 8 },
   agendaCard: { minHeight: 72, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  timeBadge: { width: 50, minHeight: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  timeBadge: { width: 50, minHeight: 38, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   time: { fontSize: 11, lineHeight: 14, fontWeight: '700' },
   agendaCopy: { flex: 1, minWidth: 0 },
   itemTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
