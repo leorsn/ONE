@@ -78,9 +78,8 @@ export default function CalendarV5() {
               <NeverMetric value={`${selectedItems.length}`} label={selectedDate === today ? 'today' : 'on date'} />
               <Pressable accessibilityRole="button" onPress={jumpToday} style={({ pressed }) => [styles.todayButton, {
                 borderRadius: p.radius.chip,
-                backgroundColor: p.fillSoft,
-                borderColor: p.border,
-                opacity: pressed ? 0.62 : 1
+                backgroundColor: pressed ? p.fill : p.fillSoft,
+                borderColor: pressed ? p.chrome : p.border
               }]}>
                 <Text style={[styles.todayText, { color: p.chrome }]}>Now</Text>
               </Pressable>
@@ -90,18 +89,16 @@ export default function CalendarV5() {
           <View style={styles.monthControls}>
             <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, {
               borderRadius: p.radius.icon,
-              backgroundColor: p.fillSoft,
-              borderColor: p.border,
-              opacity: pressed ? 0.5 : 1
+              backgroundColor: pressed ? p.fill : p.fillSoft,
+              borderColor: pressed ? p.chrome : p.border
             }]}>
               <OneIcon name={icons.chevronLeft} size={13.5} color={p.chrome} />
             </Pressable>
             <Text style={[styles.monthControlLabel, { color: p.secondary }]}>{monthName} {selected.getFullYear()}</Text>
             <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, {
               borderRadius: p.radius.icon,
-              backgroundColor: p.fillSoft,
-              borderColor: p.border,
-              opacity: pressed ? 0.5 : 1
+              backgroundColor: pressed ? p.fill : p.fillSoft,
+              borderColor: pressed ? p.chrome : p.border
             }]}>
               <OneIcon name={icons.chevron} size={13.5} color={p.chrome} />
             </Pressable>
@@ -115,7 +112,7 @@ export default function CalendarV5() {
                 <Pressable accessibilityRole="button"
                   accessibilityLabel={prettyGroupDate(day.iso)} accessibilityState={{ selected: active }} key={day.iso}
                   onPress={async () => { void Haptics.selectionAsync().catch(() => undefined); setSelectedDate(day.iso); }}
-                  style={({ pressed }) => [styles.day, { opacity: pressed ? 0.55 : 1 }]}
+                  style={({ pressed }) => [styles.day, { borderRadius: p.radius.chip, backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
                 >
                   <Text style={[styles.weekday, { color: active ? p.label : p.tertiary }]}>{day.weekday}</Text>
                   <View style={[styles.dayNumberWrap, {
@@ -238,7 +235,7 @@ function AgendaCard({ item }: { item: OneItem }) {
   return (
     <Pressable accessibilityRole="button"
       onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-      style={({ pressed }) => [styles.agendaCard, p.cardStyle, { opacity: pressed ? 0.65 : 1 }]}
+      style={({ pressed }) => [styles.agendaCard, p.cardStyle, pressed ? { backgroundColor: p.fillSoft, borderColor: p.chrome } : null]}
     >
       <View style={[styles.timeBadge, {
         borderRadius: p.radius.chip,
