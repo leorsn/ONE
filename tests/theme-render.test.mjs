@@ -8,7 +8,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { themes } from '../src/theme/editions.ts';
 
-const require = createRequire(import.meta.url);
+const require = createRequire(import.meta.dirname, '..');
 const root = path.resolve(import.meta.dirname, '..');
 const nativeWeb = require('react-native-web');
 
@@ -75,7 +75,9 @@ test('explicit Material World geometry overrides the shared material default', (
     React.createElement(NeverMaterial, { role: 'card', style: { borderRadius: 3 } }, React.createElement('span', null, 'Custom geometry'))
   );
   assert.match(markup, /Custom geometry/);
-  assert.match(markup, /border-radius:3px/);
+  for (const corner of ['top-left', 'top-right', 'bottom-right', 'bottom-left']) {
+    assert.match(markup, new RegExp(`border-${corner}-radius:3px`));
+  }
 });
 test('System preview renders both material editions together', () => {
   const { ThemePreview } = loadComponents(themes.platinum, false);
