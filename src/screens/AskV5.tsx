@@ -127,7 +127,7 @@ export default function AskV5() {
             <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Turn your saved memory into direct, evidence-backed answers.</Text>
           </View>
           <NeverHeroSurface style={styles.lockedStage}>
-            <View style={[styles.lockedIcon, { backgroundColor: p.graphite }]}>
+            <View style={[styles.lockedIcon, { borderRadius: p.radius.icon, backgroundColor: p.graphite }]}>
               <OneIcon name={icons.crown} size={22} color={p.onAccent} />
             </View>
             <NeverEyebrow>NEVER AI</NeverEyebrow>
@@ -176,7 +176,7 @@ export default function AskV5() {
 
                 <NeverHeroSurface style={styles.trustStage}>
                   <View style={styles.trustTop}>
-                    <View style={[styles.trustMark, { backgroundColor: p.graphite }]}>
+                    <View style={[styles.trustMark, { borderRadius: p.radius.icon, backgroundColor: p.graphite }]}>
                       <OneIcon name={icons.shield} size={18} color={p.onAccent} />
                     </View>
                     <View style={styles.trustCopy}>
@@ -199,10 +199,10 @@ export default function AskV5() {
                       <Pressable accessibilityRole="button"
                         key={example.text}
                         onPress={() => submitQuestion(example.text)}
-                        style={({ pressed }) => [styles.suggestionTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}
+                        style={({ pressed }) => [styles.suggestionTile, p.cardStyle, { opacity: pressed ? 0.65 : 1 }]}
                       >
                         <View style={styles.suggestionTileTop}>
-                          <View style={[styles.suggestionIcon, { backgroundColor: p.fillSoft }]}>
+                          <View style={[styles.suggestionIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
                             <OneIcon name={example.icon} size={16} color={p.chrome} />
                           </View>
                           <V5Chevron />
@@ -219,7 +219,7 @@ export default function AskV5() {
             {sending ? (
               <NeverHeroSurface compact style={styles.loadingSurface}>
                 <View style={styles.loadingLine}>
-                  <View style={[styles.assistantMark, { backgroundColor: p.graphite }]}><OneIcon name={icons.ask} size={12.5} color={p.onAccent} /></View>
+                  <View style={[styles.assistantMark, { borderRadius: p.radius.icon, backgroundColor: p.graphite }]}><OneIcon name={icons.ask} size={12.5} color={p.onAccent} /></View>
                   <ActivityIndicator size="small" color={p.chrome} />
                   <Text style={[styles.loadingText, { color: p.secondary }]}>Looking through your memory…</Text>
                 </View>
@@ -248,7 +248,11 @@ export default function AskV5() {
                   accessibilityState={{ disabled: !query.trim() || sending, busy: sending }}
                   disabled={!query.trim() || sending}
                   onPress={() => submitQuestion()}
-                  style={[styles.sendButton, { backgroundColor: query.trim() && !sending ? p.graphite : p.fill, opacity: sending ? 0.5 : 1 }]}
+                  style={[styles.sendButton, {
+                    borderRadius: p.radius.icon,
+                    backgroundColor: query.trim() && !sending ? p.graphite : p.fill,
+                    opacity: sending ? 0.5 : 1
+                  }]}
                 >
                   <OneIcon name={icons.upload} size={14} color={query.trim() && !sending ? p.onAccent : p.tertiary} />
                 </Pressable>
@@ -259,7 +263,6 @@ export default function AskV5() {
       </KeyboardAvoidingView>
     </NeverScreen>
   );
-
 
 }
 
@@ -277,10 +280,15 @@ function makeId(prefix: string) { return `${prefix}-${Date.now()}-${Math.random(
 function MessageBubble({ message, itemById }: { message: ChatMessage; itemById: Map<string, OneItem> }) {
   const p = useNeverV5Palette();
   if (message.role === 'user') {
+    const bubbleRadius = p.radius.button;
     return (
       <View style={styles.userMessageWrap}>
         <NeverEyebrow>You</NeverEyebrow>
-        <View style={[styles.userBubble, { backgroundColor: p.graphite }]}>
+        <View style={[styles.userBubble, {
+          borderRadius: bubbleRadius,
+          borderBottomRightRadius: Math.max(5, Math.round(bubbleRadius * 0.35)),
+          backgroundColor: p.graphite
+        }]}>
           <Text style={[styles.userText, { color: p.onAccent }]}>{message.text}</Text>
         </View>
       </View>
@@ -295,7 +303,7 @@ function MessageBubble({ message, itemById }: { message: ChatMessage; itemById: 
     <NeverHeroSurface compact style={styles.assistantSurface}>
       <View style={styles.assistantBody}>
         <View style={styles.assistantHeader}>
-          <View style={[styles.assistantMark, { backgroundColor: p.graphite }]}><OneIcon name={icons.ask} size={12.5} color={p.onAccent} /></View>
+          <View style={[styles.assistantMark, { borderRadius: p.radius.icon, backgroundColor: p.graphite }]}><OneIcon name={icons.ask} size={12.5} color={p.onAccent} /></View>
           <Text style={[styles.assistantBrand, { color: p.label }]}>NEVER</Text>
           {message.mode ? <Text style={[styles.modeLabel, { color: p.tertiary }]}>{message.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text> : null}
         </View>
