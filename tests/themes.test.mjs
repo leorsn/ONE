@@ -41,6 +41,15 @@ for (const id of themeIds) test(`${id} has complete semantic tokens and readable
     assert.equal(typeof t.materials[role].glass, 'boolean');
   }
 });
+test('world-specific material surfaces keep primary text readable', () => {
+  for (const id of themeIds) {
+    const theme = themes[id];
+    for (const role of ['card', 'input', 'navigation', 'modal']) {
+      const material = theme.materials[role];
+      assert.ok(contrast(theme.text, material.color) >= 4.5, `${id}: text on ${role}`);
+    }
+  }
+});
 test('editions differ in materials and geometry, not only color', () => {
   assert.equal(themes.archive.materials.card.shadow.shadowOpacity, 0);
   assert.equal(themes.archive.materials.input.glass, false);
@@ -49,9 +58,21 @@ test('editions differ in materials and geometry, not only color', () => {
   assert.equal(themes.aurora.materials.navigation.glass, true);
   assert.equal(themes.orbit.radius.icon, 999);
   assert.equal(new Set(themeIds.map((id) => themes[id].radius.card)).size, 6);
+  assert.equal(new Set(themeIds.map((id) => themes[id].radius.button)).size, 6);
+  assert.equal(new Set(themeIds.map((id) => themes[id].background)).size, 6);
+  assert.equal(new Set(themeIds.map((id) => themes[id].accent)).size, 6);
   assert.equal(new Set(themeIds.map((id) => themes[id].materials.card.color)).size, 6);
   assert.equal(new Set(themeIds.map((id) => themes[id].materials.input.color)).size, 6);
   assert.equal(new Set(themeIds.map((id) => themes[id].materials.navigation.color)).size, 6);
+  assert.equal(new Set(themeIds.map((id) => themes[id].materials.modal.color)).size, 6);
+});
+test('active and quiet controls remain visually distinct in every world', () => {
+  for (const id of themeIds) {
+    const theme = themes[id];
+    assert.notEqual(theme.accent.slice(0, 7).toLowerCase(), theme.accentSoft.slice(0, 7).toLowerCase(), `${id}: accent vs accentSoft`);
+    assert.notEqual(theme.accentSoft.slice(0, 7).toLowerCase(), theme.materials.card.color.slice(0, 7).toLowerCase(), `${id}: accentSoft vs card`);
+    assert.ok(contrast(theme.onAccent, theme.accent) >= 4.5, `${id}: active control contrast`);
+  }
 });
 test('Archive and Tactile remain intentionally distinct', () => {
   const archive = themes.archive;
