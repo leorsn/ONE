@@ -131,7 +131,7 @@ export default function SettingsV5() {
               onPress={() => router.push('/settings/privacy')}
               style={({ pressed }) => [styles.profileTop, { opacity: pressed ? 0.66 : 1 }]}
             >
-              <View style={[styles.avatar, { backgroundColor: p.graphite }]}> 
+              <View style={[styles.avatar, { borderRadius: p.radius.icon, backgroundColor: p.graphite, borderColor: p.graphite }]}> 
                 {initials ? <Text style={[styles.avatarText, { color: p.onAccent }]}>{initials}</Text> : <OneIcon name={icons.person} size={24} color={p.onAccent} />}
               </View>
               <View style={styles.profileCopy}>
@@ -139,7 +139,7 @@ export default function SettingsV5() {
                 <Text style={[styles.profileTitle, { color: p.label }]} numberOfLines={2}>{profileName}</Text>
                 <Text style={[styles.profileEmail, { color: p.secondary }]} numberOfLines={1}>{session.user.email}</Text>
               </View>
-              <View style={[styles.profileArrow, { backgroundColor: p.fillSoft }]}><V5Chevron /></View>
+              <View style={[styles.profileArrow, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><V5Chevron /></View>
             </Pressable>
             <View style={[styles.profileMetrics, { borderTopColor: p.separator }]}> 
               <NeverMetric value={appearanceLabel(preference)} label="appearance" style={styles.profileMetric} />
@@ -169,7 +169,7 @@ export default function SettingsV5() {
           </View>
           <NeverHeroSurface compact>
             <Pressable accessibilityRole="button" onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.membershipRow, { opacity: pressed ? 0.65 : 1 }]}> 
-              <View style={[styles.membershipIcon, { backgroundColor: p.graphite }]}> 
+              <View style={[styles.membershipIcon, { borderRadius: p.radius.icon, backgroundColor: p.graphite, borderColor: p.graphite }]}> 
                 <OneIcon name={icons.crown} size={18} color={p.onAccent} />
               </View>
               <View style={styles.membershipCopy}>
@@ -215,7 +215,7 @@ export default function SettingsV5() {
               onPress={confirmDeleteAccount}
               style={({ pressed }) => [styles.dangerRow, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: deletingAccount ? 0.58 : 1 }]}
             >
-              <View style={[styles.rowIcon, { backgroundColor: p.danger + '18' }]}> 
+              <View style={[styles.rowIcon, { borderRadius: p.radius.icon, backgroundColor: p.danger + '18', borderColor: p.danger + '33' }]}> 
                 <OneIcon name={icons.delete} size={15} color={p.danger} />
               </View>
               <View style={styles.rowCopy}>
@@ -234,7 +234,7 @@ export default function SettingsV5() {
 }
 
 function rowTint(tone: RowTone, p: ReturnType<typeof useNeverV5Palette>) {
-  if (tone === 'accent') return p.chrome;
+  if (tone === 'accent') return p.graphite;
   if (tone === 'success') return p.success;
   if (tone === 'warning') return p.warning;
   if (tone === 'danger') return p.danger;
@@ -279,7 +279,7 @@ function PreferenceTile({
   const body = (
     <>
       <View style={styles.preferenceTop}>
-        <View style={[styles.preferenceIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18', borderColor: tone === 'neutral' ? p.border : tint + '33' }]}> 
+        <View style={[styles.preferenceIcon, { borderRadius: p.radius.icon, backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18', borderColor: tone === 'neutral' ? p.border : tint + '33' }]}> 
           <OneIcon name={icon} size={17} color={tint} />
         </View>
         {onPress ? <V5Chevron /> : null}
@@ -325,7 +325,7 @@ function SettingsRow({
   const tint = rowTint(tone, p);
   const content = (
     <>
-      <View style={[styles.rowIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18', borderColor: tone === 'neutral' ? p.border : tint + '33' }]}> 
+      <View style={[styles.rowIcon, { borderRadius: p.radius.icon, backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18', borderColor: tone === 'neutral' ? p.border : tint + '33' }]}> 
         <OneIcon name={icon} size={15} color={tint} />
       </View>
       <View style={[styles.rowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}> 
@@ -354,12 +354,12 @@ const styles = StyleSheet.create({
   heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
   profileStage: { padding: 16 },
   profileTop: { minHeight: 92, flexDirection: 'row', alignItems: 'center', gap: 13 },
-  avatar: { width: 58, height: 58, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  avatar: { width: 58, height: 58, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   avatarText: { fontSize: 17, lineHeight: 21, fontWeight: '700', letterSpacing: 0.4 },
   profileCopy: { flex: 1, minWidth: 0 },
   profileTitle: { marginTop: 4, fontSize: 19, lineHeight: 23, fontWeight: '600', letterSpacing: -0.3 },
   profileEmail: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
-  profileArrow: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  profileArrow: { width: 32, height: 32, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   profileMetrics: { minHeight: 66, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 9 },
   profileMetric: { flex: 1 },
   section: { gap: 9 },
@@ -369,11 +369,11 @@ const styles = StyleSheet.create({
   preferenceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
   preferenceTile: { flexBasis: '47%', flexGrow: 1, minWidth: 130, minHeight: 128, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
   preferenceTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  preferenceIcon: { width: 38, height: 38, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  preferenceIcon: { width: 38, height: 38, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   preferenceLabel: { marginTop: 16, fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   preferenceValue: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
   membershipRow: { minHeight: 102, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 13 },
-  membershipIcon: { width: 50, height: 50, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  membershipIcon: { width: 50, height: 50, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   membershipCopy: { flex: 1, minWidth: 0 },
   membershipTitle: { marginTop: 2, fontSize: 18, lineHeight: 22, fontWeight: '600', letterSpacing: -0.28 },
   membershipValue: { marginTop: 2, fontSize: 12, lineHeight: 16 },
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
   manageText: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
   groupTitle: { paddingHorizontal: 4, fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
   row: { minHeight: 58, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  rowIcon: { width: 34, height: 34, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  rowIcon: { width: 34, height: 34, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   rowContent: { flex: 1, minHeight: 58, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
   rowCopy: { flex: 1, minWidth: 0 },
   rowLabel: { fontSize: 15, lineHeight: 18, fontWeight: '500' },
