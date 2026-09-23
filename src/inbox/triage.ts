@@ -263,23 +263,36 @@ export function findLikelyDuplicate(item: OneItem, items: OneItem[], maxAgeMs = 
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
 }
 
+export function triagePriority(item: OneItem) {
+  const state = triageStateForItem(item);
+  if (state === 'needs_review') return 0;
+  if (state === 'actionable') return 1;
+  if (state === 'new') return 2;
+  if (state === 'processed') return 3;
+  return 4;
+}
+
 function isActionableByEvidence(item: OneItem) {
-  if (item.reviewStatus === 'needs_review' || item.understandingConfidence === 'low') return false;
-  const eventLike = item.kind === 'event' || item.type === 'appointment' || item.type === 'event';
-  const reminderLike = item.kind === 'reminder' || item.type === 'reminder' || item.type === 'task';
-  return Boolean(item.date && (eventLike || reminderLike));
+  if (item.understandingConfidence === 'low') return false;
+  if (item.kind === 'event' || item.kind === 'reminder') return Boolean(item.date);
+  if (item.type === 'task' && item.date) return true;
+  if (item.kind === 'receipt' || item.kind === 'document') return true;
+  return false;
 }
 
-function formatAmount(amount: number, currency = 'EUR') {
-  try { return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount); }
-  catch { return `${amount.toFixed(2)} ${currency}`; }
-}
-
-function normalize(value: unknown) {
+function normalize(value: string | number | undefined | null) {
   return String(value ?? '')
     .trim()
     .toLowerCase()
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/\s+/g, ' ');
+}
+
+function formatAmount(amount: number, currency = 'EUR') {
+  try {
+    return new Intl.NumberFormat('en', { style: 'currency', currency }).format(amount);
+  } catch {
+    return `${amount.toFixed(2)} ${currency}`;
+  }
 }
