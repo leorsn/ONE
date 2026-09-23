@@ -1,4 +1,4 @@
-import { materialStyle } from '@/src/theme/editions';
+import { resolveMaterialAppearance } from '@/src/theme/editions';
 import { NeverInput } from '@/src/ui/NeverInput';
 import { useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
@@ -10,18 +10,21 @@ import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 type IconName = (typeof icons)[keyof typeof icons];
 
 export function useNeverV5Palette() {
-  const { resolvedMode } = useThemePreference();
+  const { resolvedMode, reduceTransparency } = useThemePreference();
   const dark = resolvedMode === 'dark';
   const t = useTheme();
+  const cardAppearance = resolveMaterialAppearance(t, 'card', { reduceTransparency });
+  const inputAppearance = resolveMaterialAppearance(t, 'input', { reduceTransparency });
+  const modalAppearance = resolveMaterialAppearance(t, 'modal', { reduceTransparency });
   return {
-    dark, canvas: t.background, surface: t.materials.card.color, elevated: t.materials.modal.color,
+    dark, canvas: t.background, surface: cardAppearance.style.backgroundColor, elevated: modalAppearance.style.backgroundColor,
     fill: t.fillStrong, fillSoft: t.accentSoft, label: t.text, secondary: t.textSecondary,
     tertiary: t.textTertiary, separator: t.border, border: t.border, graphite: t.accent,
     chrome: t.chrome, chromeSoft: t.chromeSoft, warning: t.warning,
     success: t.success, danger: t.danger, glass: t.glassStrong,
     glassBorder: t.glassBorder, reflection: t.reflection, shadow: t.shadow,
     onAccent: t.onAccent, heading: t.typography.heading, wordmark: t.typography.wordmark,
-    radius: t.radius, cardStyle: materialStyle(t, 'card'), inputStyle: materialStyle(t, 'input'),
+    radius: t.radius, cardStyle: cardAppearance.style, inputStyle: inputAppearance.style,
     pageStyle: { paddingHorizontal: t.spacing.page, gap: t.spacing.section },
     rowHeight: t.spacing.row
   } as const;
