@@ -9,10 +9,11 @@ export function NeverNotice({ title, body, tone = 'neutral', action, onAction }:
 }) {
   const t = useTheme();
   const color = tone === 'error' ? t.danger : tone === 'success' ? t.success : t.chrome;
-  const iconFill = tone === 'neutral' || tone === 'busy' ? t.accentSoft : `${color}18`;
+  const iconFill = tone === 'error' ? t.dangerSoft : tone === 'success' ? t.successSoft : t.accentSoft;
+  const iconBorder = tone === 'error' ? t.danger : tone === 'success' ? t.success : t.border;
   return <View accessibilityLiveRegion="polite" style={[styles.notice, materialStyle(t, 'card')]}> 
     <View style={styles.heading}>
-      <View style={[styles.iconWell, { borderRadius: t.radius.icon, backgroundColor: iconFill, borderColor: tone === 'neutral' || tone === 'busy' ? t.border : `${color}33` }]}> 
+      <View style={[styles.iconWell, { borderRadius: t.radius.icon, backgroundColor: iconFill, borderColor: iconBorder }]}> 
         {tone === 'busy' ? <ActivityIndicator color={color} /> : <OneIcon name={tone === 'success' ? icons.check : icons.info} color={color} size={18} />}
       </View>
       <View style={styles.copy}>
