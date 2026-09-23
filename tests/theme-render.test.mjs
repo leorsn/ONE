@@ -13,10 +13,17 @@ const root = path.resolve(import.meta.dirname, '..');
 const nativeWeb = require('react-native-web');
 
 // Render production primitives with the real React/web renderer. Native-only modules
-// are stubbed here; these checks do not assert native glass or pixel layout.
+// are stubbed here; these checks do not assert native glass, native symbols or pixel layout.
 function loadComponents(theme, reduced) {
   const cache = new Map();
   const context = { theme, preference: theme.id, resolvedMode: theme.mode, loaded: true, reduceTransparency: reduced, reduceMotion: true };
+  const iconStub = {
+    icons: {
+      check: { ios: 'checkmark', android: 'check', web: 'check' },
+      info: { ios: 'info.circle', android: 'info', web: 'info' }
+    },
+    OneIcon: ({ size = 20 }) => React.createElement(nativeWeb.View, { style: { width: size, height: size } })
+  };
   function load(filename) {
     if (cache.has(filename)) return cache.get(filename).exports;
     const module = { exports: {} }; cache.set(filename, module);
@@ -27,6 +34,7 @@ function loadComponents(theme, reduced) {
       if (name === 'expo-haptics') return { selectionAsync: async () => undefined };
       if (name === '@/src/theme/useTheme') return { useTheme: () => theme, useThemePreference: () => context };
       if (name === '@/src/context/ThemeContext') return { useThemeContext: () => context };
+      if (name === '@/src/ui/icons' || name === './icons') return iconStub;
       if (!name.startsWith('.') && !name.startsWith('@/')) return require(name);
       const base = name.startsWith('@/') ? path.join(root, name.slice(2)) : path.resolve(path.dirname(filename), name);
       const resolved = [base, `${base}.ts`, `${base}.tsx`].find(existsSync);
