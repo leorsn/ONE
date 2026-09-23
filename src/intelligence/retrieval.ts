@@ -1,6 +1,6 @@
-import type { RetrievalResult } from '@/src/search/retrieve';
-import type { OneItem } from '@/src/types/item';
-import { buildIntelligenceSnapshot } from './engine';
+import type { RetrievalResult } from '../search/retrieve.ts';
+import type { OneItem } from '../types/item';
+import { buildIntelligenceSnapshot } from './engine.ts';
 
 /** Adds deterministic structured-memory signals without replacing the existing search stack. */
 export function applyIntelligenceRetrievalSignals(query: string, results: RetrievalResult[]): RetrievalResult[] {
