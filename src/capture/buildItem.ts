@@ -1,20 +1,145 @@
 import { initialTriageStateForItem } from '../inbox/triage.ts';
 import { processItemIntelligence } from '../intelligence/pipeline';
+import { NEVER_INTELLIGENCE_VERSION } from '../intelligence/versioning';
 import { normalizeContextLabel, normalizeTags } from './contextNormalization.ts';
 import type { CaptureDraft } from './core';
 import type { OneItem, OneSourceType } from '../types/item';
 
-export function buildItemFromCapture({ draft, sourceType, rawInput, originalText, sourceApp, localAttachmentUri, attachmentMimeType, attachmentName, now = new Date() }: { draft: CaptureDraft; sourceType: OneSourceType; rawInput?: string; originalText?: string; sourceApp?: string; localAttachmentUri?: string; attachmentMimeType?: string; attachmentName?: string; now?: Date }): OneItem {
+export function buildItemFromCapture({
+  draft,
+  sourceType,
+  rawInput,
+  originalText,
+  sourceApp,
+  localAttachmentUri,
+  attachmentMimeType,
+  attachmentName,
+  now = new Date()
+}: {
+  draft: CaptureDraft;
+  sourceType: OneSourceType;
+  rawInput?: string;
+  originalText?: string;
+  sourceApp?: string;
+  localAttachmentUri?: string;
+  attachmentMimeType?: string;
+  attachmentName?: string;
+  now?: Date;
+}): OneItem {
   const timestamp = now.toISOString();
-  const isImage = sourceType === 'screenshot' || sourceType === 'photo' || Boolean(localAttachmentUri && attachmentMimeType?.startsWith('image/'));
-  const reviewStatus = draft.needsReview.length ? 'needs_review' as const : draft.confirmedFields.length || draft.destinationConfirmed ? 'reviewed' as const : 'ready' as const;
+  const isImage =
+    sourceType === 'screenshot' ||
+    sourceType === 'photo' ||
+    Boolean(localAttachmentUri && attachmentMimeType?.startsWith('image/'));
+  const reviewStatus = draft.needsReview.length
+    ? 'needs_review' as const
+    : draft.confirmedFields.length || draft.destinationConfirmed
+      ? 'reviewed' as const
+      : 'ready' as const;
   const userContext = normalizeContextLabel(draft.userContext);
-  const normalizedEntities = Array.from(new Set(draft.entities.map((value) => normalizeEntity(value)).filter((value): value is string => Boolean(value))));
-  const extractedUrls = Array.from(new Set([...(draft.url ? [draft.url] : []), ...normalizedEntities.filter((entity) => /^url:/i.test(entity)).map((entity) => entity.replace(/^url:/i, ''))].map((value) => normalizeStoredUrl(value)).filter((value): value is string => Boolean(value))));
-  const primaryUrl = normalizeStoredUrl(draft.url || '') || extractedUrls[0]; const taskIntent = draft.itemType === 'task' || draft.itemType === 'reminder'; const eventIntent = draft.itemType === 'appointment' || draft.itemType === 'event'; const resolvedDestination = draft.destination; const automaticallyProcessed = !draft.needsReview.length && resolvedDestination !== 'inbox';
-  const item: OneItem = { id: `${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`, title: draft.title.trim() || 'Captured in NEVER', rawInput: rawInput?.trim() || draft.extractedText || draft.userContext || draft.title, type: draft.itemType, kind: draft.canonicalKind, summary: draft.summary?.trim() || undefined, people: draft.people, destination: resolvedDestination, reviewStatus, ambiguities: draft.ambiguities.map((ambiguity) => ambiguity.message), understandingConfidence: draft.overallConfidence, processingStatus: reviewStatus === 'needs_review' ? 'needs_attention' : 'ready', confidenceMetadata: { overall: draft.overallConfidence, fields: draft.fieldConfidence }, aiMetadata: { origin: 'deterministic' }, executedActions: [], processedAt: draft.destinationConfirmed || automaticallyProcessed ? timestamp : undefined, capturedAt: timestamp, date: draft.date || undefined, time: draft.time || undefined, extractedDates: draft.date ? [draft.date] : [], extractedTimes: draft.time ? [draft.time] : [], extractedUrls, taskIntent, eventIntent, category: draft.category || undefined, location: draft.location || undefined, url: primaryUrl, completed: false, saved: draft.saved, sourceType, sourceApp, originalText: originalText?.trim() || undefined, attachmentUrl: localAttachmentUri, imageUrl: isImage ? localAttachmentUri : undefined, localAttachmentUri, localAttachmentMimeType: attachmentMimeType, localAttachmentName: attachmentName, extractedText: draft.extractedText?.trim() || undefined, userContext, documentKind: draft.documentKind, merchant: draft.merchant?.trim() || undefined, amount: draft.amount, currency: draft.currency?.trim().toUpperCase() || undefined, tags: normalizeTags(draft.tags), entities: normalizedEntities, notificationStatus: ['task', 'reminder', 'appointment', 'event'].includes(draft.itemType) && Boolean(draft.date) ? 'not_scheduled' : 'not_applicable', syncState: 'local', createdAt: timestamp, updatedAt: timestamp };
-  const triaged = { ...item, triageState: draft.destinationConfirmed || automaticallyProcessed ? 'processed' as const : initialTriageStateForItem(item) };
+  const normalizedEntities = Array.from(new Set(
+    draft.entities
+      .map((value) => normalizeEntity(value))
+      .filter((value): value is string => Boolean(value))
+  ));
+  const extractedUrls = Array.from(new Set([
+    ...(draft.url ? [draft.url] : []),
+    ...normalizedEntities
+      .filter((entity) => /^url:/i.test(entity))
+      .map((entity) => entity.replace(/^url:/i, ''))
+  ]
+    .map((value) => normalizeStoredUrl(value))
+    .filter((value): value is string => Boolean(value))));
+  const primaryUrl = normalizeStoredUrl(draft.url || '') || extractedUrls[0];
+  const taskIntent = draft.itemType === 'task' || draft.itemType === 'reminder';
+  const eventIntent = draft.itemType === 'appointment' || draft.itemType === 'event';
+  const resolvedDestination = draft.destination;
+  const automaticallyProcessed = !draft.needsReview.length && resolvedDestination !== 'inbox';
+
+  const item: OneItem = {
+    id: `${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
+    title: draft.title.trim() || 'Captured in NEVER',
+    rawInput: rawInput?.trim() || draft.extractedText || draft.userContext || draft.title,
+    type: draft.itemType,
+    kind: draft.canonicalKind,
+    summary: draft.summary?.trim() || undefined,
+    people: draft.people,
+    destination: resolvedDestination,
+    reviewStatus,
+    ambiguities: draft.ambiguities.map((ambiguity) => ambiguity.message),
+    understandingConfidence: draft.overallConfidence,
+    processingStatus: reviewStatus === 'needs_review' ? 'needs_attention' : 'ready',
+    confidenceMetadata: {
+      overall: draft.overallConfidence,
+      fields: draft.fieldConfidence
+    },
+    aiMetadata: {
+      origin: 'deterministic',
+      version: NEVER_INTELLIGENCE_VERSION,
+      interpretedAt: timestamp
+    },
+    executedActions: [],
+    processedAt: draft.destinationConfirmed || automaticallyProcessed ? timestamp : undefined,
+    capturedAt: timestamp,
+    date: draft.date || undefined,
+    time: draft.time || undefined,
+    extractedDates: draft.date ? [draft.date] : [],
+    extractedTimes: draft.time ? [draft.time] : [],
+    extractedUrls,
+    taskIntent,
+    eventIntent,
+    category: draft.category || undefined,
+    location: draft.location || undefined,
+    url: primaryUrl,
+    completed: false,
+    saved: draft.saved,
+    sourceType,
+    sourceApp,
+    originalText: originalText?.trim() || undefined,
+    attachmentUrl: localAttachmentUri,
+    imageUrl: isImage ? localAttachmentUri : undefined,
+    localAttachmentUri,
+    localAttachmentMimeType: attachmentMimeType,
+    localAttachmentName: attachmentName,
+    extractedText: draft.extractedText?.trim() || undefined,
+    userContext,
+    documentKind: draft.documentKind,
+    merchant: draft.merchant?.trim() || undefined,
+    amount: draft.amount,
+    currency: draft.currency?.trim().toUpperCase() || undefined,
+    tags: normalizeTags(draft.tags),
+    entities: normalizedEntities,
+    notificationStatus: ['task', 'reminder', 'appointment', 'event'].includes(draft.itemType) && Boolean(draft.date)
+      ? 'not_scheduled'
+      : 'not_applicable',
+    syncState: 'local',
+    createdAt: timestamp,
+    updatedAt: timestamp
+  };
+
+  const triaged: OneItem = {
+    ...item,
+    triageState: draft.destinationConfirmed || automaticallyProcessed
+      ? 'processed'
+      : initialTriageStateForItem(item)
+  };
+
   return processItemIntelligence(triaged, now).item;
 }
-function normalizeEntity(value: string) { const clean = value.trim(); if (!clean) return undefined; if (!/^url:/i.test(clean)) return clean; const url = normalizeStoredUrl(clean.replace(/^url:/i, '')); return url ? `url:${url}` : undefined; }
-function normalizeStoredUrl(value: string) { const clean = value.trim().replace(/[.,;:!?]+$/g, ''); if (!clean) return undefined; if (/^www\./i.test(clean)) return `https://${clean}`; if (/^https:\/\//i.test(clean)) return `https://${clean.slice(clean.indexOf('://') + 3)}`; if (/^http:\/\//i.test(clean)) return `http://${clean.slice(clean.indexOf('://') + 3)}`; return clean; }
+
+function normalizeEntity(value: string) {
+  const clean = value.trim();
+  if (!clean) return undefined;
+  if (!/^url:/i.test(clean)) return clean;
+  const url = normalizeStoredUrl(clean.replace(/^url:/i, ''));
+  return url ? `url:${url}` : undefined;
+}
+
+function normalizeStoredUrl(value: string) {
+  const clean = value.trim().replace(/[.,;:!?]+$/g, '');
+  if (!clean) return undefined;
+  if (/^www\./i.test(clean)) return `https://${clean}`;
+  if (/^https:\/\//i.test(clean)) return `https://${clean.slice(clean.indexOf('://') + 3)}`;
+  if (/^http:\/\//i.test(clean)) return `http://${clean.slice(clean.indexOf('://') + 3)}`;
+  return clean;
+}
