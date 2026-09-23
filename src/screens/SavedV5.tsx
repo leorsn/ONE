@@ -105,7 +105,7 @@ export default function SavedV5() {
               accessibilityRole="button"
               accessibilityLabel="Capture a memory"
               onPress={() => router.push('/(tabs)')}
-              style={({ pressed }) => [styles.captureButton, { backgroundColor: p.graphite, opacity: pressed ? 0.64 : 1 }]}
+              style={({ pressed }) => [styles.captureButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: pressed ? 0.64 : 1 }]}
             >
               <OneIcon name={icons.plus} size={18} color={p.onAccent} />
             </Pressable>
@@ -150,13 +150,13 @@ export default function SavedV5() {
                       <Text style={[styles.collectionLabel, { color: p.label }]}>{group.label}</Text>
                       <Text style={[styles.collectionCount, { color: p.tertiary }]}>{group.items.length} {group.items.length === 1 ? 'memory' : 'memories'}</Text>
                     </View>
-                    <View style={[styles.collectionMark, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.saved} size={14} color={p.chrome} /></View>
+                    <View style={[styles.collectionMark, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icons.saved} size={14} color={p.chrome} /></View>
                   </View>
                   <V5Group>{group.items.map((item, index) => <MemoryRow key={item.id} item={item} last={index === group.items.length - 1} />)}</V5Group>
                 </View>
               )) : (
                 <V5Group><View style={styles.emptyState}>
-                  <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.saved} size={22} color={p.chrome} /></View>
+                  <View style={[styles.emptyIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icons.saved} size={22} color={p.chrome} /></View>
                   <Text style={[styles.emptyTitle, { color: p.label }]}>{query.trim() ? 'No matching memories' : 'A place for what matters'}</Text>
                   <Text style={[styles.emptyBody, { color: p.secondary }]}>{query.trim() ? 'Try another phrase or filter.' : 'Save a capture and build your personal library.'}</Text>
                 </View></V5Group>
@@ -184,10 +184,10 @@ function LibraryTile({ label, count, icon, onPress }: { label: string; count: nu
   return (
     <Pressable accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.libraryTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      style={({ pressed }) => [styles.libraryTile, p.cardStyle, { opacity: pressed ? 0.66 : 1 }]}
     >
       <View style={styles.libraryTileTop}>
-        <View style={[styles.libraryTileIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={18} color={p.chrome} /></View>
+        <View style={[styles.libraryTileIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={18} color={p.chrome} /></View>
         <Text style={[styles.libraryTileCount, { color: p.tertiary }]}>{count}</Text>
       </View>
       <Text style={[styles.libraryTileTitle, { color: p.label }]}>{label}</Text>
@@ -228,7 +228,12 @@ function DocumentsView({ groups, summary, selectedFilter, setSelectedFilter }: {
             <Pressable accessibilityRole="button"
               key={entry.value}
               onPress={async () => { void Haptics.selectionAsync().catch(() => undefined); setSelectedFilter(entry.value); }}
-              style={({ pressed }) => [styles.documentFilter, { backgroundColor: active ? p.graphite : p.fillSoft, opacity: pressed ? 0.64 : 1 }]}
+              style={({ pressed }) => [styles.documentFilter, {
+                borderRadius: p.radius.chip,
+                backgroundColor: active ? p.graphite : p.fillSoft,
+                borderColor: active ? p.graphite : p.border,
+                opacity: pressed ? 0.64 : 1
+              }]}
             >
               <Text style={[styles.documentFilterText, { color: active ? p.onAccent : p.secondary, fontWeight: active ? '600' : '500' }]}>{entry.label}</Text>
             </Pressable>
@@ -246,7 +251,7 @@ function DocumentsView({ groups, summary, selectedFilter, setSelectedFilter }: {
       )) : (
         <V5Group>
           <View style={styles.emptyState}>
-            <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.document} size={18} color={p.chrome} /></View>
+            <View style={[styles.emptyIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icons.document} size={18} color={p.chrome} /></View>
             <Text style={[styles.emptyTitle, { color: p.label }]}>No matching documents</Text>
             <Text style={[styles.emptyBody, { color: p.secondary }]}>Try another search or document filter.</Text>
           </View>
@@ -308,5 +313,6 @@ const styles = StyleSheet.create({
   factValue: { fontSize: 17, lineHeight: 21, fontWeight: '600' },
   factLabel: { marginTop: 2, fontSize: 10.5, lineHeight: 13 },
   documentFilters: { gap: 7, paddingRight: 6 },
-  documentFilter: { minHeight: 40, paddingHorizontal: 13, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
-  documentFilterText: { fontSize: 11.5, lineHeight: 15 },});
+  documentFilter: { minHeight: 40, paddingHorizontal: 13, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  documentFilterText: { fontSize: 11.5, lineHeight: 15 },
+});
