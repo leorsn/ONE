@@ -177,7 +177,7 @@ export function resolveMaterialAppearance(theme: NeverTheme, role: MaterialRole,
     useGlass, tint: material.tint,
     style: {
       ...materialStyle(theme, role),
-      backgroundColor: useGlass ? 'transparent' : options.reduceTransparency && material.glass ? opaque : material.color,
+      backgroundColor: useGlass ? 'transparent' : options.reduceTransparency ? opaque : material.color,
       borderColor: options.focused ? theme.chrome : material.border
     }
   };
