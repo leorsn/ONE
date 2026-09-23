@@ -312,6 +312,6 @@ const styles = StyleSheet.create({
   factValue: { fontSize: 17, lineHeight: 21, fontWeight: '600' },
   factLabel: { marginTop: 2, fontSize: 10.5, lineHeight: 13 },
   documentFilters: { gap: 7, paddingRight: 6 },
-  documentFilter: { minHeight: 40, paddingHorizontal: 13, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  documentFilter: { minHeight: 44, paddingHorizontal: 13, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   documentFilterText: { fontSize: 11.5, lineHeight: 15 },
 });
