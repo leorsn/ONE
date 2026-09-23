@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { NeverMaterial, selectionFeedback } from '@/src/ui/material';
 import { neverControl } from '@/src/theme/tokens';
+import { useTheme } from '@/src/theme/useTheme';
 import { useNeverV5Palette } from '@/src/ui/appleV5';
 
 const tabIcon = {
@@ -47,6 +48,7 @@ export default function TabsLayout() {
 
 function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
   const p = useNeverV5Palette();
+  const theme = useTheme();
   const insets = useSafeAreaInsets();
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   useEffect(() => {
@@ -59,7 +61,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(7, insets.bottom - 7), left: Math.max(18, insets.left), right: Math.max(18, insets.right) }]}>
       <NeverMaterial role="navigation" style={styles.bar}>
-        <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.reflection }]} />
+        {theme.effects.reflection ? <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.reflection }]} /> : null}
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const routeName = route.name as keyof typeof tabIcon;
@@ -114,24 +116,18 @@ const styles = StyleSheet.create({
     maxWidth: 648,
     alignSelf: 'center',
     minHeight: neverControl.tabBar + 4,
-    borderRadius: 28,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 6,
     paddingVertical: 5,
     flexDirection: 'row',
     alignItems: 'center',
-    overflow: 'hidden',
-    shadowOpacity: 0.11,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 9 },
-    elevation: 6
+    overflow: 'hidden'
   },
   highlight: { position: 'absolute', left: 24, right: 24, top: 0, height: StyleSheet.hairlineWidth, opacity: 0.9 },
   tab: { flex: 1, minHeight: 56, alignItems: 'center', justifyContent: 'center', gap: 3 },
   iconWell: {
     width: 42,
     height: 30,
-    borderRadius: 11,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
     alignItems: 'center',
