@@ -1,4 +1,5 @@
 import { appearanceLabel } from '@/src/theme/editions';
+import { neverType } from '@/src/theme/tokens';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { router } from 'expo-router';
@@ -350,7 +351,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 26, paddingBottom: 126, gap: 26 },
   heroCopy: { gap: 5 },
-  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
+  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: neverType.hero.fontFamily, fontWeight: '400', letterSpacing: -1.35 },
   heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
   profileStage: { padding: 16 },
   profileTop: { minHeight: 92, flexDirection: 'row', alignItems: 'center', gap: 13 },
