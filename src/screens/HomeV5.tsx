@@ -135,12 +135,12 @@ export default function HomeV5() {
             </View>
           </View>
 
-          <View style={[styles.captureComposer, p.inputStyle, { backgroundColor: p.inputStyle.backgroundColor, borderColor: p.glassBorder }]}>
+          <View style={[styles.captureComposer, p.inputStyle]}>
             <Pressable
               onPress={() => focusCapture()}
               accessibilityRole="button"
               accessibilityLabel="Start a capture"
-              style={[styles.capturePlus, { borderRadius: p.radius.icon, backgroundColor: p.graphite }]}
+              style={[styles.capturePlus, { borderRadius: p.radius.icon, backgroundColor: p.graphite, borderColor: p.graphite }]}
             >
               <OneIcon name={icons.plus} size={20} color={p.onAccent} />
             </Pressable>
@@ -162,7 +162,7 @@ export default function HomeV5() {
                 accessibilityLabel="Save capture"
                 disabled={saving || !draft?.title.trim()}
                 onPress={handleSave}
-                style={[styles.captureSave, { backgroundColor: p.graphite }]}
+                style={[styles.captureSave, { borderRadius: p.radius.icon, backgroundColor: p.graphite, borderColor: p.graphite }]}
               >
                 <OneIcon name={icons.check} size={18} color={p.onAccent} />
               </Pressable>
@@ -185,7 +185,7 @@ export default function HomeV5() {
               {!structuredReview ? (
                 <>
                   <View style={styles.draftRow}>
-                    <View style={[styles.draftIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
+                    <View style={[styles.draftIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}>
                       <OneIcon name={iconForDraft(draft)} size={16} color={p.chrome} />
                     </View>
                     <View style={{ flex: 1 }}>
@@ -222,7 +222,7 @@ export default function HomeV5() {
                 Find a memory in your own words.
               </Text>
             </View>
-            <View style={[styles.askArrow, { backgroundColor: p.fillSoft }]}><V5Chevron /></View>
+            <View style={[styles.askArrow, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><V5Chevron /></View>
           </Pressable>
         </NeverHeroSurface>
 
@@ -281,7 +281,6 @@ export default function HomeV5() {
       </ScrollView>
     </NeverScreen>
   );
-
 }
 
 function displayFirstName(metadata?: Record<string, unknown>) {
@@ -321,7 +320,7 @@ function QuickAction({ label, icon, onPress }: { label: string; icon: (typeof ic
       onPress={() => { selectionFeedback(); onPress(); }}
       style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.58 : 1 }]}
     >
-      <View style={[styles.actionIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.glassBorder }]}>
+      <View style={[styles.actionIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}>
         <OneIcon name={icon} size={19} color={p.chrome} />
       </View>
       <Text style={[styles.quickActionLabel, { color: p.secondary }]}>{label}</Text>
@@ -338,7 +337,7 @@ function TodayRow({ item, reason }: { item: OneItem; reason: string }) {
   return (
     <Pressable accessibilityRole="button"
       onPress={() => router.push({ pathname: activeInbox ? '/inbox/[id]' : '/item/[id]', params: { id: item.id } } as never)}
-      style={({ pressed }) => [styles.todayCard, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      style={({ pressed }) => [styles.todayCard, p.cardStyle, { opacity: pressed ? 0.66 : 1 }]}
     >
       <View style={[styles.todayRail, { backgroundColor: overdue ? p.warning : p.chrome }]} />
       <View style={styles.todayCopy}>
@@ -358,10 +357,10 @@ function RecentCard({ item }: { item: OneItem }) {
   return (
     <Pressable accessibilityRole="button"
       onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-      style={({ pressed }) => [styles.recentCard, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      style={({ pressed }) => [styles.recentCard, p.cardStyle, { opacity: pressed ? 0.66 : 1 }]}
     >
       <View style={styles.recentCardTop}>
-        <View style={[styles.recentIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
+        <View style={[styles.recentIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}>
           <OneIcon name={iconForType(item.type)} size={18} color={p.chrome} />
         </View>
         <Text style={[styles.recentDate, { color: p.tertiary }]}>{shortDate(item.updatedAt)}</Text>
@@ -398,40 +397,38 @@ const styles = StyleSheet.create({
   captureComposer: {
     minHeight: 66,
     paddingHorizontal: 9,
-    borderRadius: 21,
     borderWidth: StyleSheet.hairlineWidth,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 9,
     overflow: 'hidden'
   },
-  capturePlus: { width: 46, height: 46, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  capturePlus: { width: 46, height: 46, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   captureInput: { flex: 1, minHeight: 46, fontSize: 15.5, lineHeight: 20, paddingVertical: 0 },
-  captureSave: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  captureSave: { width: 44, height: 44, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   quickActions: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 6 },
   quickAction: { flex: 1, alignItems: 'center', gap: 6 },
-  actionIcon: { width: 46, height: 46, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  actionIcon: { width: 46, height: 46, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   quickActionLabel: { textAlign: 'center', fontSize: 12, lineHeight: 17, fontWeight: '600' },
   captureStatus: { ...neverType.caption },
   section: { gap: neverSpacing.md },
   draftGroup: { padding: 13 },
   draftRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  draftIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  draftIcon: { width: 38, height: 38, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   draftTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
   draftMeta: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
   draftButton: { marginTop: 12 },
   reviewEditor: { gap: 10 },
   askStage: { minHeight: 104 },
   askRow: { minHeight: 104, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', gap: 13 },
-  askIcon: { width: 50, height: 50, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
+  askIcon: { width: 50, height: 50, alignItems: 'center', justifyContent: 'center' },
   askCopy: { flex: 1, minWidth: 0, gap: 1 },
   askTitle: { marginTop: 2, fontSize: 18.5, lineHeight: 22, fontWeight: '600', letterSpacing: -0.35 },
   askSubtitle: { fontSize: 12.5, lineHeight: 17 },
-  askArrow: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
+  askArrow: { width: 32, height: 32, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   todayStack: { gap: 8 },
   todayCard: {
     minHeight: 68,
-    borderRadius: 19,
     borderWidth: StyleSheet.hairlineWidth,
     paddingRight: 14,
     flexDirection: 'row',
@@ -450,13 +447,12 @@ const styles = StyleSheet.create({
   recentCard: {
     width: 212,
     minHeight: 150,
-    borderRadius: 22,
     borderWidth: StyleSheet.hairlineWidth,
     padding: 14,
     justifyContent: 'space-between'
   },
   recentCardTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  recentIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  recentIcon: { width: 38, height: 38, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   recentDate: { fontSize: 10.5, lineHeight: 14, fontWeight: '500' },
   recentTitle: { marginTop: 14, fontSize: 16, lineHeight: 20, fontWeight: '600', letterSpacing: -0.22 },
   recentMeta: { marginTop: 3, fontSize: 11.5, lineHeight: 15 },
