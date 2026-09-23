@@ -11,3 +11,5 @@ export * from './orchestrator';
 export * from './selectors';
 export * from './itemIntegration';
 export * from './presentation';
+export * from './cache';
+export * from './stateCache';
