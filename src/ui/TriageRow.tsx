@@ -66,9 +66,9 @@ export function TriageRow({
             onPress={() => void execute(action.id)}
             style={({ pressed }) => [styles.action, {
               borderRadius: p.radius.chip,
-              backgroundColor: p.fillSoft,
-              borderColor: p.border,
-              opacity: working ? 0.5 : pressed ? 0.55 : 1
+              backgroundColor: pressed ? p.fill : p.fillSoft,
+              borderColor: pressed ? p.chrome : p.border,
+              opacity: working ? 0.5 : 1
             }]}
           >
             {working ? <ActivityIndicator color={p.chrome} /> : <Text style={[styles.actionText, { color: p.chrome }]}>{shortActionLabel(action.label)}</Text>}
