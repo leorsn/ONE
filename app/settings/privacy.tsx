@@ -102,7 +102,7 @@ export default function PrivacyScreen() {
         </SettingsBlock>
 
         {__DEV__ && !legalReady ? (
-          <View style={[styles.devNotice, { backgroundColor: p.fillSoft }]}>
+          <View style={[styles.devNotice, { borderRadius: p.radius.button, backgroundColor: p.fillSoft, borderColor: p.warning }]}>
             <OneIcon name={icons.shield} size={13} color={p.warning} />
             <Text style={[styles.devNoticeText, { color: p.secondary }]}>Development: privacy policy and support URLs are not fully configured.</Text>
           </View>
@@ -118,7 +118,7 @@ export default function PrivacyScreen() {
   }
 
   function MemoryGlyph({ icon, danger = false }: { icon: (typeof icons)[keyof typeof icons]; danger?: boolean }) {
-    return <View style={[styles.memoryGlyph, { backgroundColor: danger ? p.danger + '18' : p.fillSoft }]}><OneIcon name={icon} size={15} color={danger ? p.danger : p.chrome} /></View>;
+    return <View style={[styles.memoryGlyph, { borderRadius: p.radius.icon, backgroundColor: danger ? p.danger + '18' : p.fillSoft, borderColor: danger ? p.danger : p.border }]}><OneIcon name={icon} size={15} color={danger ? p.danger : p.chrome} /></View>;
   }
 
   function PolicyRow({ label, detail, url, icon, last = false }: { label: string; detail: string; url?: string; icon: (typeof icons)[keyof typeof icons]; last?: boolean }) {
@@ -141,12 +141,12 @@ const styles = StyleSheet.create({
   block: { gap: 6 },
   groupTitle: { paddingHorizontal: 4, fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
   row: { minHeight: 66, paddingHorizontal: 13, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  memoryGlyph: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  memoryGlyph: { width: 34, height: 34, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   controlRow: { minHeight: 64, paddingHorizontal: 13, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 10, borderBottomWidth: StyleSheet.hairlineWidth },
   linkRow: { minHeight: 62, paddingHorizontal: 13, paddingVertical: 8, flexDirection: 'row', alignItems: 'center', gap: 10 },
   rowTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   rowBody: { marginTop: 2, ...neverType.caption },
-  devNotice: { minHeight: 48, borderRadius: 13, paddingHorizontal: 12, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  devNotice: { minHeight: 48, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 8 },
   devNoticeText: { flex: 1, ...neverType.caption },
   footer: { textAlign: 'center', fontSize: 8.5, fontWeight: '600', letterSpacing: 0.9 }
 });
