@@ -182,7 +182,7 @@ export function V5SearchField({
         onSubmitEditing={onSubmit}
       />
       {value ? (
-        <Pressable accessibilityRole="button" accessibilityLabel="Clear" onPress={() => onChangeText('')} style={styles.clearButton} hitSlop={8}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Clear" onPress={() => onChangeText('')} style={({ pressed }) => [styles.clearButton, { opacity: pressed ? 0.68 : 1 }]} hitSlop={8}>
           <View style={[styles.clearCircle, { borderRadius: Math.min(9, p.radius.icon), backgroundColor: p.graphite }]}>
             <OneIcon name={icons.close} size={9} color={p.onAccent} />
           </View>
@@ -215,11 +215,11 @@ export function V5Segmented({
             style={({ pressed }) => [
               styles.segment,
               {
-                backgroundColor: active ? p.graphite : p.fillSoft,
-                borderColor: active ? p.graphite : p.border,
-                borderRadius: p.radius.chip
-              },
-              { opacity: pressed ? 0.65 : 1 }
+                backgroundColor: active ? p.graphite : pressed ? p.fill : p.fillSoft,
+                borderColor: active ? p.graphite : pressed ? p.chrome : p.border,
+                borderRadius: p.radius.chip,
+                opacity: pressed ? 0.9 : 1
+              }
             ]}
           >
             <Text style={[styles.segmentText, { color: active ? p.onAccent : p.secondary, fontWeight: active ? '600' : '500' }]}>{option}</Text>
@@ -241,9 +241,9 @@ export function V5IconButton({ icon, onPress, accessibilityLabel, disabled = fal
       onPress={onPress}
       style={({ pressed }) => [styles.iconButton, {
         borderRadius: p.radius.icon,
-        backgroundColor: p.fillSoft,
-        borderColor: p.border,
-        opacity: disabled ? 0.4 : pressed ? 0.6 : 1
+        backgroundColor: pressed ? p.fill : p.fillSoft,
+        borderColor: pressed ? p.chrome : p.border,
+        opacity: disabled ? 0.4 : 1
       }]}
     >
       <OneIcon name={icon} size={20} color={p.chrome} />
