@@ -14,7 +14,7 @@ export function useNeverV5Palette() {
   const dark = resolvedMode === 'dark';
   const t = useTheme();
   return {
-    dark, canvas: t.background, surface: t.surface, elevated: t.surfaceElevated,
+    dark, canvas: t.background, surface: t.materials.card.color, elevated: t.materials.modal.color,
     fill: t.fillStrong, fillSoft: t.accentSoft, label: t.text, secondary: t.textSecondary,
     tertiary: t.textTertiary, separator: t.border, border: t.border, graphite: t.accent,
     chrome: t.chrome, chromeSoft: t.chromeSoft, warning: t.warning,
@@ -124,7 +124,7 @@ export function V5Row({
   const body = (
     <>
       {icon ? <V5Glyph icon={icon} size={36} /> : null}
-      <View style={[styles.rowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}> 
+      <View style={[styles.rowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
         <View style={styles.rowText}>
           <View style={styles.rowTitleLine}>
             <Text style={[styles.rowTitle, { color: destructive ? p.danger : p.label }]} numberOfLines={2}>{title}</Text>
@@ -139,7 +139,7 @@ export function V5Row({
 
   if (!onPress) return <View style={[styles.row, { minHeight: p.rowHeight }]}>{body}</View>;
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.row, { minHeight: p.rowHeight, backgroundColor: pressed ? p.fillSoft : 'transparent' }]}> 
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.row, { minHeight: p.rowHeight, backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
       {body}
     </Pressable>
   );
@@ -180,7 +180,7 @@ export function V5SearchField({
       />
       {value ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Clear" onPress={() => onChangeText('')} style={styles.clearButton} hitSlop={8}>
-          <View style={[styles.clearCircle, { backgroundColor: p.graphite }]}> 
+          <View style={[styles.clearCircle, { backgroundColor: p.graphite }]}>
             <OneIcon name={icons.close} size={9} color={p.onAccent} />
           </View>
         </Pressable>
