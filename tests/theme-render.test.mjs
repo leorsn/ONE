@@ -20,7 +20,11 @@ function loadComponents(theme, reduced) {
   const iconStub = {
     icons: {
       check: { ios: 'checkmark', android: 'check', web: 'check' },
-      info: { ios: 'info.circle', android: 'info', web: 'info' }
+      info: { ios: 'info.circle', android: 'info', web: 'info' },
+      search: { ios: 'magnifyingglass', android: 'search', web: 'search' },
+      ask: { ios: 'sparkles', android: 'auto-awesome', web: 'sparkles' },
+      close: { ios: 'xmark', android: 'close', web: 'close' },
+      chevron: { ios: 'chevron.right', android: 'chevron-right', web: 'chevron-right' }
     },
     OneIcon: ({ size = 20 }) => React.createElement(nativeWeb.View, { style: { width: size, height: size } })
   };
@@ -48,7 +52,8 @@ function loadComponents(theme, reduced) {
     ...load(path.join(root, 'src/ui/ThemePreview.tsx')),
     ...load(path.join(root, 'src/ui/material.tsx')),
     ...load(path.join(root, 'src/ui/NeverInput.tsx')),
-    ...load(path.join(root, 'src/ui/NeverNotice.tsx'))
+    ...load(path.join(root, 'src/ui/NeverNotice.tsx')),
+    ...load(path.join(root, 'src/ui/appleV5.tsx'))
   };
 }
 for (const theme of Object.values(themes)) test(`${theme.id} production preview, materials, notice and field render in both transparency modes`, () => {
@@ -77,6 +82,19 @@ test('explicit Material World geometry overrides the shared material default', (
   assert.match(markup, /Custom geometry/);
   for (const corner of ['top-left', 'top-right', 'bottom-right', 'bottom-left']) {
     assert.match(markup, new RegExp(`border-${corner}-radius:3px`));
+  }
+});
+for (const theme of Object.values(themes)) test(`${theme.id} V5 shared surfaces inherit Material World geometry`, () => {
+  const { V5Group, V5SearchField } = loadComponents(theme, false);
+  const groupMarkup = renderToStaticMarkup(
+    React.createElement(V5Group, null, React.createElement('span', null, 'World group'))
+  );
+  const searchMarkup = renderToStaticMarkup(
+    React.createElement(V5SearchField, { value: '', onChangeText() {}, placeholder: 'Search NEVER' })
+  );
+  for (const corner of ['top-left', 'top-right', 'bottom-right', 'bottom-left']) {
+    assert.match(groupMarkup, new RegExp(`border-${corner}-radius:${theme.materials.card.radius}px`));
+    assert.match(searchMarkup, new RegExp(`border-${corner}-radius:${theme.materials.input.radius}px`));
   }
 });
 test('System preview renders both material editions together', () => {
