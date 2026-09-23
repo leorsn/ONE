@@ -1,7 +1,7 @@
-import { materialStyle } from '@/src/theme/editions';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/src/theme/useTheme';
 import { neverType } from '@/src/theme/tokens';
+import { NeverMaterial } from '@/src/ui/material';
 import { OneIcon, icons } from './icons';
 
 export function NeverNotice({ title, body, tone = 'neutral', action, onAction }: {
@@ -11,7 +11,7 @@ export function NeverNotice({ title, body, tone = 'neutral', action, onAction }:
   const color = tone === 'error' ? t.danger : tone === 'success' ? t.success : t.chrome;
   const iconFill = tone === 'error' ? t.dangerSoft : tone === 'success' ? t.successSoft : t.accentSoft;
   const iconBorder = tone === 'error' ? t.danger : tone === 'success' ? t.success : t.border;
-  return <View accessibilityLiveRegion="polite" style={[styles.notice, materialStyle(t, 'card')]}> 
+  return <NeverMaterial style={styles.notice}>
     <View style={styles.heading}>
       <View style={[styles.iconWell, { borderRadius: t.radius.icon, backgroundColor: iconFill, borderColor: iconBorder }]}> 
         {tone === 'busy' ? <ActivityIndicator color={color} /> : <OneIcon name={tone === 'success' ? icons.check : icons.info} color={color} size={18} />}
@@ -22,7 +22,7 @@ export function NeverNotice({ title, body, tone = 'neutral', action, onAction }:
       </View>
     </View>
     {action && onAction ? <Pressable accessibilityRole="button" onPress={onAction} style={({ pressed }) => [styles.action, { opacity: pressed ? 0.6 : 1 }]}><Text style={[styles.actionText, { color }]}>{action}</Text></Pressable> : null}
-  </View>;
+  </NeverMaterial>;
 }
 const styles = StyleSheet.create({
   notice: { padding: 16 },
