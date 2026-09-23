@@ -1,9 +1,10 @@
 import { neverControl, neverRadius, neverType } from '@/src/theme/tokens';
+import { resolveMaterialAppearance } from '@/src/theme/editions';
 import { NeverMaterial, selectionFeedback } from '@/src/ui/material';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { useTheme } from '@/src/theme/useTheme';
+import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 
 type IconName = (typeof icons)[keyof typeof icons];
 type GlassTone = 'quiet' | 'default' | 'strong';
@@ -48,6 +49,8 @@ export function NeverCommandBar({
   onPress: () => void;
 }) {
   const theme = useTheme();
+  const { reduceTransparency } = useThemePreference();
+  const cardAppearance = resolveMaterialAppearance(theme, 'card', { reduceTransparency });
   return (
     <Pressable
       accessibilityRole="button"
@@ -58,9 +61,8 @@ export function NeverCommandBar({
       }}
       style={({ pressed }) => [
         styles.commandBar,
+        cardAppearance.style,
         {
-          backgroundColor: theme.materials.card.color,
-          borderColor: theme.materials.card.border,
           borderRadius: theme.radius.card,
           opacity: pressed ? 0.62 : 1
         }
