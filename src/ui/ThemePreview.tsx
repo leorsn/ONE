@@ -15,6 +15,10 @@ export const ThemePreview = memo(function ThemePreview({ preference }: { prefere
 });
 
 function Miniature({ theme: t, half = false }: { theme: NeverTheme; half?: boolean }) {
+  const miniatureIconRadius = Math.min(6, Math.max(2, t.radius.icon / 2));
+  const miniatureChipRadius = Math.min(3, Math.max(1, t.radius.chip / 4));
+  const miniatureThumbRadius = Math.min(5, Math.max(2, t.radius.icon / 3));
+
   return <View accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.preview, half && { flex: 1 }, { backgroundColor: t.background }]}>
     <ThemeBackdrop theme={t} preview />
     <Text allowFontScaling={false} style={[styles.brand, { color: t.text, letterSpacing: half ? 1 : 3 }]}>NEVER</Text>
@@ -36,16 +40,16 @@ function Miniature({ theme: t, half = false }: { theme: NeverTheme; half?: boole
       borderColor: t.materials.card.border,
       ...t.materials.card.shadow
     }]}>
-      <View style={[styles.tileGlyph, { borderRadius: t.radius.icon === 999 ? 9 : 3, backgroundColor: t.accentSoft, borderColor: t.border }]} />
+      <View style={[styles.tileGlyph, { borderRadius: miniatureIconRadius, backgroundColor: t.accentSoft, borderColor: t.border }]} />
       <View style={[styles.line, { backgroundColor: t.textSecondary, width: '60%' }]} />
     </View>)}</View>
-    <View style={[styles.list, { borderColor: t.border }]}><View style={[styles.thumbnail, { backgroundColor: t.fillStrong }]} /><View style={[styles.line, { backgroundColor: t.textSecondary }]} /></View>
+    <View style={[styles.list, { borderColor: t.border }]}><View style={[styles.thumbnail, { borderRadius: miniatureThumbRadius, backgroundColor: t.fillStrong }]} /><View style={[styles.line, { backgroundColor: t.textSecondary }]} /></View>
     <View style={[styles.dock, {
       backgroundColor: t.materials.navigation.color,
       borderColor: t.materials.navigation.border,
       borderRadius: Math.max(5, t.materials.navigation.radius / 2)
     }]}>
-      {[0, 1, 2, 3].map((key) => <View key={key} style={[styles.dockDot, { borderRadius: t.radius.icon === 999 ? 6 : 2, backgroundColor: key === 0 ? t.accent : t.textTertiary }]} />)}
+      {[0, 1, 2, 3].map((key) => <View key={key} style={[styles.dockDot, { borderRadius: miniatureChipRadius, backgroundColor: key === 0 ? t.accent : t.textTertiary }]} />)}
     </View>
   </View>;
 }
@@ -61,7 +65,7 @@ const styles = StyleSheet.create({
   tile: { flex: 1, height: 39, padding: 8, gap: 7, borderWidth: 0.5 },
   tileGlyph: { width: 12, height: 12, borderWidth: 0.5 },
   list: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingBottom: 5, borderBottomWidth: 0.5 },
-  thumbnail: { width: 18, height: 18, borderRadius: 3 },
+  thumbnail: { width: 18, height: 18 },
   dock: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', height: 22, borderWidth: 0.5, marginTop: 'auto' },
   dockDot: { width: 6, height: 6 },
   system: { flexDirection: 'row', height: 244, overflow: 'hidden' },
