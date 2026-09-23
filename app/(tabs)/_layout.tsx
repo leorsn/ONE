@@ -87,13 +87,13 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
                 <OneIcon
                   name={tabIcon[routeName]}
                   size={focused ? 19 : 20}
-                  color={focused ? p.onAccent : p.secondary}
+                  color={focused ? p.onAccent : p.chrome}
                 />
               </View>
               <Text
                 style={[
                   styles.label,
-                  { color: focused ? p.label : p.secondary, fontWeight: focused ? '600' : '500' }
+                  { color: focused ? p.graphite : p.secondary, fontWeight: focused ? '700' : '500' }
                 ]}
                 numberOfLines={1} maxFontSizeMultiplier={1.3}
               >
