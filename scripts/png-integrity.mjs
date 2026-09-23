@@ -11,6 +11,14 @@ export function crc32(bytes) {
 
 // Validate the actual image stream, not just the dimensions in its header.
 export function validatePng(buffer) {
+  const signature = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  if (buffer.length < 33 || !buffer.subarray(0, 8).equals(signature) ||
+      buffer.readUInt32BE(8) !== 13 || buffer.toString('ascii', 12, 16) !== 'IHDR') {
+    throw new Error('invalid PNG signature or header');
+  }
+  if (!buffer.readUInt32BE(16) || !buffer.readUInt32BE(20) || buffer[26] !== 0 || buffer[27] !== 0 || buffer[28] > 1) {
+    throw new Error('invalid PNG dimensions or encoding');
+  }
   let offset = 8;
   let ended = false;
   const compressed = [];

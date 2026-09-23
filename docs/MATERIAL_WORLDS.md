@@ -49,12 +49,14 @@ There is no separate Connected Apps route in this repository. Existing settings 
 
 ## Validation and limits
 
+Update 2026-09-23: the icon blocker is resolved; see [Icon pipeline repair](ICON_PIPELINE_REPAIR.md) for current native validation and device commands. The appearance-pass results below remain historical.
+
 - TypeScript, ESLint and all 170 Node tests pass (147 existing plus 23 theme/material/render checks), with none disabled or skipped.
 - Tests cover all selections, System mapping, legacy/invalid defaults, complete semantic tokens, contrast ≥4.5:1 for primary/secondary/tertiary text on principal opaque surfaces and action labels, actual storage round trips, read failure, and ordered writes recovering after failure.
 - Navigation audit: 54 literal targets / 26 route paths; native configuration gate passes.
 - Web export and iOS Hermes export pass. The latter is a JavaScript build, not an Xcode/native build.
 - All listed screen groups were inspected in source. **No native simulator or physical-device visual/interaction acceptance was performed on this Linux host.** This is not a claim of pixel-perfect match or device validation. In particular, native glass/gradient rendering, system appearance transitions, accessibility and keyboard behavior require the checks below.
-- Existing corrupted `never-nature.png` and `never-wordmark.png` sources still block native prebuild. Their original artwork was not replaced, and their integrity gate was not disabled. Intact approved exports are needed. Native provisioning requirements for App Groups/notifications also remain.
+- The formerly corrupted icon sources have now been replaced with the supplied approved PNG exports. Clean and repeat iOS prebuilds pass. Native provisioning requirements for App Groups/notifications remain.
 - The engineering pass's existing backend/dependency limitations still apply; this appearance change does not deploy an Edge Function or modify Supabase.
 
 ## Test on a physical iPhone
@@ -77,6 +79,7 @@ Do not blindly reapply old `app.json` edits that remove capabilities. Then:
 ```sh
 git fetch origin
 git switch design/never-material-worlds
+git pull --ff-only origin design/never-material-worlds
 npm ci
 npm run typecheck
 npm run lint
@@ -86,7 +89,7 @@ npm run native:release-check
 npm run release:asset-check
 ```
 
-If the asset check fails, stop and replace the two corrupted sources with intact approved opaque 1024×1024 exports. After it passes:
+The repaired icons pass the asset gate. After it passes locally:
 
 ```sh
 npx expo prebuild --platform ios
@@ -150,7 +153,7 @@ On device open Settings → Appearance and test all six editions on Home, Search
 - A single provider subscription now handles Reduce Motion for navigation, onboarding, Ask and press animations. Enabling it cancels an active press spring immediately.
 - `resolveMaterialAppearance` centralizes focus, opaque accessibility fallback and native glass tint. Form fields respect Reduce Transparency as well as standalone material surfaces. Monolith and Orbit glass use distinct subtle tint tokens.
 - Added production-component render smoke checks using React's web server renderer, with native-only capabilities explicitly stubbed. These assert all six previews/materials/fields and the System preview render, but do not establish native behavior, browser layout measurements or draft retention across a live switch.
-- Verification: 170 tests pass; TypeScript, lint, navigation and native configuration checks pass. Web/iOS JavaScript exports pass. Existing native build/icon and physical-device limitations remain.
+- Verification: 170 tests pass; TypeScript, lint, navigation and native configuration checks pass. Web/iOS JavaScript exports pass. Xcode compilation and physical-device validation remain outstanding; the subsequent icon repair resolves native prebuild failures.
 
 For a first appearance test using an **already installed compatible NEVER development client**, after checking out this branch and running `npm ci`:
 
