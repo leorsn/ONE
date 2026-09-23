@@ -13,7 +13,8 @@ function contrast(a, b) { const [hi, lo] = [luminance(a), luminance(b)].sort((a,
 test('all six selections resolve independently of OS appearance', () => {
   assert.equal(themeIds.length, 6);
   for (const id of themeIds) for (const os of ['light', 'dark']) assert.equal(resolveTheme(id, os), themes[id]);
-  assert.deepEqual(themes.platinum.colors, lightTheme);
+  assert.equal(themes.platinum.mode, 'light');
+  assert.equal(themes.monolith.mode, 'dark');
 });
 test('System follows changes in OS appearance without changing stored preference', () => {
   assert.equal(resolveTheme('system', 'light').id, 'platinum');
@@ -48,6 +49,21 @@ test('editions differ in materials and geometry, not only color', () => {
   assert.equal(themes.aurora.materials.navigation.glass, true);
   assert.equal(themes.orbit.radius.icon, 999);
   assert.equal(new Set(themeIds.map((id) => themes[id].radius.card)).size, 6);
+  assert.equal(new Set(themeIds.map((id) => themes[id].materials.card.color)).size, 6);
+  assert.equal(new Set(themeIds.map((id) => themes[id].materials.input.color)).size, 6);
+  assert.equal(new Set(themeIds.map((id) => themes[id].materials.navigation.color)).size, 6);
+});
+test('Archive and Tactile remain intentionally distinct', () => {
+  const archive = themes.archive;
+  const tactile = themes.tactile;
+  assert.notEqual(archive.accent, tactile.accent);
+  assert.notEqual(archive.accentSoft, tactile.accentSoft);
+  assert.notEqual(archive.materials.card.color, tactile.materials.card.color);
+  assert.notEqual(archive.materials.input.color, tactile.materials.input.color);
+  assert.notEqual(archive.materials.navigation.color, tactile.materials.navigation.color);
+  assert.notEqual(archive.radius.card, tactile.radius.card);
+  assert.equal(archive.effects.texture, false);
+  assert.equal(tactile.effects.texture, true);
 });
 test('each preference persists and reloads using the existing device key', async () => {
   const data = new Map();
