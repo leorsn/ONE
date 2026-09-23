@@ -68,19 +68,31 @@ export default function AppearanceScreen() {
           {[...themeIds, 'system' as const].map((value) => {
             const active = preference === value;
             const name = appearanceLabel(value);
-            const descriptor = value === 'system' ? 'Adapts automatically.' : themes[value].descriptor;
+            const optionTheme = value === 'system' ? null : themes[value];
+            const descriptor = value === 'system' ? 'Adapts automatically.' : optionTheme!.descriptor;
+            const optionSurface = optionTheme?.materials.card.color ?? p.surface;
+            const optionBorder = active ? (optionTheme?.accent ?? p.graphite) : (optionTheme?.materials.card.border ?? p.border);
+            const optionText = optionTheme?.text ?? p.label;
+            const optionSecondary = optionTheme?.textSecondary ?? p.secondary;
+            const optionTertiary = optionTheme?.textTertiary ?? p.tertiary;
+            const optionAccent = optionTheme?.accent ?? p.graphite;
+            const optionOnAccent = optionTheme?.onAccent ?? p.onAccent;
+            const optionRadius = optionTheme?.radius.card ?? p.radius.card;
             return <Pressable key={value} accessible accessibilityRole="radio"
               accessibilityLabel={`${name}. ${descriptor}${value === 'platinum' ? ' Default NEVER appearance.' : ''}`}
               accessibilityHint="Applies immediately and saves on this device"
               disabled={changing} accessibilityState={{ checked: active, disabled: changing }}
               onPress={() => void select(value)}
-              style={({ pressed }) => [styles.themeOption, singleColumn && { flexBasis: '100%' }, { backgroundColor: p.surface, borderColor: active ? p.graphite : p.border, borderWidth: 1.5, opacity: pressed ? 0.75 : 1, borderRadius: p.radius.card }]}>
-              <View style={styles.previewClip}><ThemePreview preference={value} /></View>
+              style={({ pressed }) => [styles.themeOption, singleColumn && { flexBasis: '100%' }, { backgroundColor: optionSurface, borderColor: optionBorder, borderWidth: active ? 1.5 : StyleSheet.hairlineWidth, opacity: pressed ? 0.75 : 1, borderRadius: optionRadius }]}>
+              <View style={[styles.previewClip, { borderRadius: Math.max(6, optionRadius - 4) }]}><ThemePreview preference={value} /></View>
               <View style={styles.themeCopy}>
-                <View style={styles.themeNameRow}><Text style={[styles.rowTitle, { color: p.label, flex: 1 }]}>{name}</Text><SelectionMark active={active} /></View>
-                <Text style={[styles.rowBody, { color: p.secondary }]}>{descriptor}</Text>
-                {value === 'platinum' ? <Text style={[styles.defaultLabel, { color: p.tertiary }]}>NEVER ORIGINAL</Text> : null}
-                {value === 'system' ? <Text style={[styles.rowBody, { color: p.tertiary }]}>Platinum by day. Monolith in dark mode.</Text> : null}
+                <View style={styles.themeNameRow}>
+                  <Text style={[styles.rowTitle, { color: optionText, flex: 1 }]}>{name}</Text>
+                  <SelectionMark active={active} accent={optionAccent} onAccent={optionOnAccent} tertiary={optionTertiary} />
+                </View>
+                <Text style={[styles.rowBody, { color: optionSecondary }]}>{descriptor}</Text>
+                {value === 'platinum' ? <Text style={[styles.defaultLabel, { color: optionTertiary }]}>NEVER ORIGINAL</Text> : null}
+                {value === 'system' ? <Text style={[styles.rowBody, { color: optionTertiary }]}>Platinum by day. Monolith in dark mode.</Text> : null}
               </View>
             </Pressable>;
           })}
@@ -97,7 +109,7 @@ export default function AppearanceScreen() {
                   <Text style={[styles.rowTitle, { color: p.label }]}>{option.title}</Text>
                   <Text style={[styles.rowBody, { color: p.secondary }]}>{option.body}</Text>
                 </View>
-                <SelectionMark active={active} />
+                <SelectionMark active={active} accent={p.graphite} onAccent={p.onAccent} tertiary={p.tertiary} />
               </Pressable>
             );
           })}
@@ -111,10 +123,9 @@ export default function AppearanceScreen() {
     </NeverScreen>
   );
 }
-function SelectionMark({ active }: { active: boolean }) {
-  const p = useNeverV5Palette();
-  return <View style={[styles.radio, { borderColor: active ? p.graphite : p.tertiary, backgroundColor: active ? p.graphite : 'transparent' }]}>
-    {active ? <OneIcon name={icons.check} size={10} color={p.onAccent} /> : null}
+function SelectionMark({ active, accent, onAccent, tertiary }: { active: boolean; accent: string; onAccent: string; tertiary: string }) {
+  return <View style={[styles.radio, { borderColor: active ? accent : tertiary, backgroundColor: active ? accent : 'transparent' }]}>
+    {active ? <OneIcon name={icons.check} size={10} color={onAccent} /> : null}
   </View>;
 }
 
@@ -122,7 +133,7 @@ const styles = StyleSheet.create({
   collectionHeading: { gap: 4 }, collectionTitle: { ...neverType.section },
   themeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'stretch' },
   themeOption: { flexBasis: '46%', flexGrow: 1, minWidth: 130, overflow: 'hidden' },
-  previewClip: { overflow: 'hidden', margin: 5, borderRadius: 7 },
+  previewClip: { overflow: 'hidden', margin: 5 },
   themeCopy: { padding: 12, gap: 5 }, themeNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   defaultLabel: { fontSize: 9, fontWeight: '600', letterSpacing: 1.1, marginTop: 3 },
 
