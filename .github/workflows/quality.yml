@@ -3,10 +3,10 @@ name: NEVER Quality
 on:
   push:
     branches:
-      - dev/foundation
-  pull_request:
-    branches:
       - main
+      - dev/foundation
+      - design/never-material-worlds
+  pull_request:
   workflow_dispatch:
 
 permissions:
