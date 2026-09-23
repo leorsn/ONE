@@ -1,6 +1,6 @@
 import type { OneItem } from '@/src/types/item';
-import { buildNeverIntelligenceState } from './orchestrator';
-import { buildIntelligenceSnapshot } from './engine';
+import { getMemoizedNeverIntelligenceState } from './stateCache';
+import { getCachedIntelligenceSnapshot } from './cache';
 
 export type IntelligenceBadge = { kind: 'confidence' | 'review' | 'action' | 'relationship'; label: string; tone: 'neutral' | 'attention' | 'positive' };
 export type IntelligenceItemView = { itemId: string; summary: string; badges: IntelligenceBadge[]; relatedItemIds: string[]; suggestedActionCount: number; needsReview: boolean };
@@ -8,7 +8,7 @@ export type IntelligenceItemView = { itemId: string; summary: string; badges: In
 /** Headless adapter: screens decide how this data looks. */
 export function buildIntelligenceItemView(itemId: string, items: OneItem[]): IntelligenceItemView | undefined {
   const item = items.find((entry) => entry.id === itemId); if (!item) return undefined;
-  const state = buildNeverIntelligenceState(items); const snapshot = buildIntelligenceSnapshot(item);
+  const state = getMemoizedNeverIntelligenceState(items); const snapshot = getCachedIntelligenceSnapshot(item);
   const relatedItemIds = state.relationships.filter((edge) => edge.itemId === itemId || edge.relatedItemId === itemId).map((edge) => edge.itemId === itemId ? edge.relatedItemId : edge.itemId);
   const actions = state.actions.filter((action) => action.itemId === itemId && action.state === 'suggested');
   const needsReview = item.reviewStatus === 'needs_review' || item.processingStatus === 'needs_attention';
@@ -20,6 +20,6 @@ export function buildIntelligenceItemView(itemId: string, items: OneItem[]): Int
 }
 
 export function buildIntelligenceInboxView(items: OneItem[]) {
-  const state = buildNeverIntelligenceState(items);
+  const state = getMemoizedNeverIntelligenceState(items);
   return state.items.filter((item) => item.reviewStatus === 'needs_review' || item.processingStatus === 'needs_attention').map((item) => buildIntelligenceItemView(item.id, state.items)!).filter(Boolean);
 }
