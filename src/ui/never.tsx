@@ -60,12 +60,13 @@ export function NeverCommandBar({
         styles.commandBar,
         {
           backgroundColor: theme.surface,
+          borderColor: theme.border,
           opacity: pressed ? 0.62 : 1
         }
       ]}
     >
-      <View style={[styles.commandGlyph, { backgroundColor: theme.fill }]}>
-        <OneIcon name={icons.ask} size={15} color={theme.chrome} />
+      <View style={[styles.commandGlyph, { backgroundColor: theme.accentSoft, borderRadius: theme.radius.icon }]}>
+        <OneIcon name={icons.ask} size={15} color={theme.accent} />
       </View>
       <View style={styles.commandCopy}>
         <Text style={[styles.commandLabel, { color: theme.text }]}>{label}</Text>
@@ -107,6 +108,7 @@ export function NeverChromeButton({
         compact && styles.primaryButtonCompact,
         {
           backgroundColor: theme.accent,
+          borderColor: theme.accent,
           borderRadius: theme.radius.button,
           opacity: disabled || busy ? 0.32 : pressed ? 0.72 : 1
         }
@@ -140,13 +142,15 @@ export function NeverIconButton({
       }}
       style={({ pressed }) => [
         styles.iconButton,
-        { borderRadius: theme.radius.icon,
-          backgroundColor: filled ? theme.text : theme.surface,
+        {
+          borderRadius: theme.radius.icon,
+          backgroundColor: filled ? theme.accent : theme.fill,
+          borderColor: filled ? theme.accent : theme.border,
           opacity: pressed ? 0.58 : 1
         }
       ]}
     >
-      <OneIcon name={icon} size={16} color={filled ? theme.background : theme.text} />
+      <OneIcon name={icon} size={16} color={filled ? theme.onAccent : theme.chrome} />
     </Pressable>
   );
 }
@@ -193,6 +197,7 @@ const styles = StyleSheet.create({
   commandBar: {
     minHeight: 68,
     borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -221,6 +226,7 @@ const styles = StyleSheet.create({
     minHeight: neverControl.primary,
     paddingVertical: 12,
     borderRadius: neverRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',
@@ -237,6 +243,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -259,21 +266,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 16,
     fontWeight: '800',
-    letterSpacing: 4.3
+    letterSpacing: 4.5
   },
-  signal: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3
-  },
-  signalLong: {
-    width: 18,
-    height: 3,
-    borderRadius: 2
-  },
-  signalShort: {
-    width: 7,
-    height: 3,
-    borderRadius: 2
-  }
+  signal: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  signalLong: { width: 16, height: 2.5, borderRadius: 2 },
+  signalShort: { width: 6, height: 2.5, borderRadius: 2 }
 });
