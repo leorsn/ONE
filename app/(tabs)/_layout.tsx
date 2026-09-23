@@ -59,9 +59,9 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
   if (keyboardVisible) return null;
 
   return (
-    <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(7, insets.bottom - 7), left: Math.max(18, insets.left), right: Math.max(18, insets.right) }]}>
+    <View style={[styles.wrap, { pointerEvents: 'box-none', bottom: Math.max(7, insets.bottom - 7), left: Math.max(18, insets.left), right: Math.max(18, insets.right) }]}>
       <NeverMaterial role="navigation" style={styles.bar}>
-        {theme.effects.reflection ? <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.reflection }]} /> : null}
+        {theme.effects.reflection ? <View style={[styles.highlight, { pointerEvents: 'none', backgroundColor: p.reflection }]} /> : null}
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const routeName = route.name as keyof typeof tabIcon;
@@ -83,7 +83,13 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               testID={options?.tabBarButtonTestID}
               onPress={onPress}
               onLongPress={onLongPress}
-              style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.54 : 1 }]}
+              style={({ pressed }) => [
+                styles.tab,
+                {
+                  borderRadius: p.radius.chip,
+                  backgroundColor: pressed ? p.fillSoft : 'transparent'
+                }
+              ]}
             >
               <View style={[styles.iconWell, { borderRadius: p.radius.icon }, focused && { backgroundColor: p.graphite, borderColor: p.dark ? p.glassBorder : p.graphite }]}>
                 <OneIcon
