@@ -27,10 +27,55 @@ export function NeverMaterial({ children, style, glass = false, role, focused = 
   const materialRole = role ?? (glass ? 'input' : 'card');
   const material = theme.materials[materialRole];
   const appearance = resolveMaterialAppearance(theme, materialRole, { reduceTransparency: reduced, nativeGlass: nativeGlassAvailable(), focused });
+  const override = StyleSheet.flatten(style);
+  const effectiveRadius = typeof override?.borderRadius === 'number' ? override.borderRadius : material.radius;
+
   return (
-    <View style={[styles.surface, style, appearance.style]}>
-      {appearance.useGlass ? <GlassView pointerEvents="none" colorScheme={resolvedMode} tintColor={appearance.tint} glassEffectStyle="regular" style={[StyleSheet.absoluteFill, { borderRadius: material.radius, overflow: 'hidden' }]} /> : null}
-      {theme.effects.texture ? <View pointerEvents="none" style={{ position: 'absolute', top: 1, left: 2, right: 2, bottom: 2, borderRadius: material.radius - 1, borderTopWidth: 1, borderBottomWidth: 1, borderTopColor: theme.glassBorder, borderBottomColor: theme.border }} /> : null}
+    <View style={[styles.surface, appearance.style, style]}>
+      {appearance.useGlass ? (
+        <GlassView
+          pointerEvents="none"
+          colorScheme={resolvedMode}
+          tintColor={appearance.tint}
+          glassEffectStyle="regular"
+          style={[StyleSheet.absoluteFill, { borderRadius: effectiveRadius, overflow: 'hidden' }]}
+        />
+      ) : null}
+      {appearance.useGlass && theme.effects.reflection ? (
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={[
+            StyleSheet.absoluteFill,
+            styles.glassEdge,
+            {
+              borderRadius: effectiveRadius,
+              borderTopColor: theme.reflection,
+              borderLeftColor: theme.reflection
+            }
+          ]}
+        />
+      ) : null}
+      {theme.effects.texture ? (
+        <View
+          pointerEvents="none"
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={{
+            position: 'absolute',
+            top: 1,
+            left: 2,
+            right: 2,
+            bottom: 2,
+            borderRadius: Math.max(0, effectiveRadius - 1),
+            borderTopWidth: 1,
+            borderBottomWidth: 1,
+            borderTopColor: theme.glassBorder,
+            borderBottomColor: theme.border
+          }}
+        />
+      ) : null}
       {children}
     </View>
   );
@@ -60,5 +105,6 @@ export function NeverPressable({ children, style, onPress, ...props }: Pressable
 }
 
 const styles = StyleSheet.create({
-  surface: { borderRadius: neverRadius.xl, borderWidth: StyleSheet.hairlineWidth, borderCurve: 'continuous', overflow: 'visible' }
+  surface: { borderRadius: neverRadius.xl, borderWidth: StyleSheet.hairlineWidth, borderCurve: 'continuous', overflow: 'visible' },
+  glassEdge: { borderTopWidth: StyleSheet.hairlineWidth, borderLeftWidth: StyleSheet.hairlineWidth }
 });
