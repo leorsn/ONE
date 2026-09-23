@@ -81,7 +81,7 @@ export function V5SectionHeader({ title, meta, action }: { title: string; meta?:
 }
 
 export function V5Group({ children, style }: { children: ReactNode; style?: object }) {
-  return <NeverMaterial style={[styles.group, style]}>{children}</NeverMaterial>;
+  return <NeverMaterial style={style}>{children}</NeverMaterial>;
 }
 
 export function V5Glyph({ icon, filled = false, size = 36 }: { icon: IconName; filled?: boolean; size?: number }) {
@@ -183,7 +183,7 @@ export function V5SearchField({
       />
       {value ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Clear" onPress={() => onChangeText('')} style={styles.clearButton} hitSlop={8}>
-          <View style={[styles.clearCircle, { backgroundColor: p.graphite }]}>
+          <View style={[styles.clearCircle, { borderRadius: Math.min(9, p.radius.icon), backgroundColor: p.graphite }]}>
             <OneIcon name={icons.close} size={9} color={p.onAccent} />
           </View>
         </Pressable>
@@ -265,7 +265,6 @@ const styles = StyleSheet.create({
   sectionTitle: { ...neverType.section, flexShrink: 1 },
   sectionRight: { flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionMeta: { fontSize: 12, lineHeight: 15, fontWeight: '500' },
-  group: { borderRadius: neverRadius.lg },
   glyph: { alignItems: 'center', justifyContent: 'center', marginLeft: 13, borderWidth: StyleSheet.hairlineWidth },
   row: { minHeight: 58, flexDirection: 'row', alignItems: 'center' },
   rowContent: { flex: 1, minHeight: 58, marginLeft: 11, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
@@ -274,10 +273,10 @@ const styles = StyleSheet.create({
   rowTitle: { flex: 1, fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
   rowSubtitle: { marginTop: 2, fontSize: 13, lineHeight: 18 },
   rowMeta: { maxWidth: 110, fontSize: 11.5, lineHeight: 14, textAlign: 'right' },
-  searchField: { minHeight: neverControl.input, borderRadius: neverRadius.lg, paddingHorizontal: neverSpacing.lg, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  searchField: { minHeight: neverControl.input, paddingHorizontal: neverSpacing.lg, flexDirection: 'row', alignItems: 'center', gap: 8 },
   searchInput: { flex: 1, minHeight: 44, fontSize: 16, lineHeight: 20, paddingVertical: 0 },
   clearButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  clearCircle: { width: 17, height: 17, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  clearCircle: { width: 17, height: 17, alignItems: 'center', justifyContent: 'center' },
   segmented: { minHeight: neverControl.minimum, flexDirection: 'row', alignItems: 'center', gap: neverSpacing.sm },
   segment: { minHeight: neverControl.minimum, paddingHorizontal: 17, borderRadius: neverRadius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   segmentText: { fontSize: 12, lineHeight: 14 },
