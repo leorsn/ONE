@@ -16,18 +16,47 @@ export type NeverTheme = OneTheme & {
   effects: { atmosphere?: string; kind: ThemeId; light: string; shade: string; edge: string; texture: boolean; reflection: boolean };
 };
 
-function edition(id: ThemeId, name: string, descriptor: string, mode: 'light' | 'dark', colors: OneTheme,
-  config: { radius: number; glass: boolean; depth: number; blurRadius: number; offset: number; light: string; shade: string; heading?: TextStyle }): NeverTheme {
-  const shadow: ViewStyle = { shadowColor: colors.shadow, shadowOpacity: config.depth, shadowRadius: config.blurRadius, shadowOffset: { width: 0, height: config.offset }, elevation: config.depth ? 2 : 0 };
-  const material = (color: string, radius: number, glass: boolean): MaterialToken => ({ color, tint: colors.chrome + '22', border: glass ? colors.glassBorder : colors.border, radius, glass, shadow });
+type EditionConfig = {
+  radius: number;
+  glass: boolean;
+  depth: number;
+  blurRadius: number;
+  offset: number;
+  light: string;
+  shade: string;
+  heading?: TextStyle;
+  material?: Partial<Record<MaterialRole, string>>;
+};
+
+function edition(id: ThemeId, name: string, descriptor: string, mode: 'light' | 'dark', colors: OneTheme, config: EditionConfig): NeverTheme {
+  const shadow: ViewStyle = {
+    shadowColor: colors.shadow,
+    shadowOpacity: config.depth,
+    shadowRadius: config.blurRadius,
+    shadowOffset: { width: 0, height: config.offset },
+    elevation: config.depth ? 2 : 0
+  };
+  const material = (color: string, radius: number, glass: boolean): MaterialToken => ({
+    color,
+    tint: colors.chrome + '22',
+    border: glass ? colors.glassBorder : colors.border,
+    radius,
+    glass,
+    shadow
+  });
   const cardShadow = id === 'archive' ? { ...shadow, shadowOpacity: 0, elevation: 0 } : shadow;
+  const cardColor = config.material?.card ?? colors.surface;
+  const inputColor = config.material?.input ?? (config.glass ? colors.glassStrong : colors.surfaceElevated);
+  const navigationColor = config.material?.navigation ?? (config.glass ? colors.glassStrong : colors.surface);
+  const modalColor = config.material?.modal ?? colors.surfaceElevated;
+
   return {
     ...colors, id, name, descriptor, mode, colors,
     materials: {
-      card: { ...material(colors.surface, config.radius, false), shadow: cardShadow },
-      input: material(config.glass ? colors.glassStrong : colors.surfaceElevated, config.radius, config.glass),
-      navigation: material(config.glass ? colors.glassStrong : colors.surface, config.radius + 4, config.glass),
-      modal: material(colors.surfaceElevated, config.radius + 6, false)
+      card: { ...material(cardColor, config.radius, false), shadow: cardShadow },
+      input: material(inputColor, config.radius, config.glass),
+      navigation: material(navigationColor, config.radius + 4, config.glass),
+      modal: material(modalColor, config.radius + 6, false)
     },
     radius: {
       card: config.radius,
@@ -64,36 +93,51 @@ export const themes: Record<ThemeId, NeverTheme> = {
     text: '#171B1E', textSecondary: '#5A646B', textTertiary: '#768087', border: '#C9CFD1', accent: '#303A40', accentSoft: '#E3E7E8',
     onAccent: '#FFFFFF', chrome: '#65727A', chromeSoft: '#E8ECEC', platinum: '#8C979D', platinumSoft: '#EEF0F0',
     glass: '#F8F8F4D6', glassStrong: '#F6F7F4E8', glassBorder: '#FFFFFFD9', reflection: '#FFFFFFC9', shadow: '#667078'
-  }, { radius: 20, glass: true, depth: 0.08, blurRadius: 18, offset: 5, light: '#FFFFFFB8', shade: '#8B959F1F' }),
+  }, {
+    radius: 20, glass: true, depth: 0.08, blurRadius: 18, offset: 5, light: '#FFFFFFB8', shade: '#8B959F1F',
+    material: { card: '#F7F8F5F0', input: '#F1F3F2E8', navigation: '#F2F4F3E8', modal: '#FBFCFA' }
+  }),
 
   monolith: edition('monolith', 'Monolith', 'Bold. Minimal. Timeless.', 'dark', {
     ...darkTheme,
     background: '#070809', surface: '#151719EE', surfaceElevated: '#202326', fill: '#24272A', fillStrong: '#34383C',
     text: '#F4F5F5', textSecondary: '#B2B7BB', textTertiary: '#8F969C', border: '#34383C', accent: '#E6EAEC', accentSoft: '#24282B',
     onAccent: '#111315', chrome: '#C8CED2', chromeSoft: '#2B3034', glass: '#191C1FDE', glassStrong: '#191C1FF2', glassBorder: '#F0F3F52B', reflection: '#FFFFFF1F', shadow: '#000000'
-  }, { radius: 14, glass: true, depth: 0.24, blurRadius: 12, offset: 5, light: '#D6DDE114', shade: '#00000052', heading: { letterSpacing: -1.1 } }),
+  }, {
+    radius: 14, glass: true, depth: 0.24, blurRadius: 12, offset: 5, light: '#D6DDE114', shade: '#00000052', heading: { letterSpacing: -1.1 },
+    material: { card: '#121416F2', input: '#1B1E21F4', navigation: '#1A1D20F2', modal: '#222629' }
+  }),
 
   aurora: edition('aurora', 'Aurora', 'Fluid. Modern. Alive.', 'light', {
     ...lightTheme,
     background: '#DCE8F6', surface: '#EEF5FCEB', surfaceElevated: '#FAFCFF', fill: '#D9E5F4', fillStrong: '#C1D3E8',
     text: '#182944', textSecondary: '#506783', textTertiary: '#6A7E97', border: '#C2D2E6', accent: '#36577D', accentSoft: '#D7E6F7',
     onAccent: '#FFFFFF', chrome: '#55779C', chromeSoft: '#D9E7F5', glass: '#F5FAFFD1', glassStrong: '#F3F8FFE8', glassBorder: '#FFFFFFF0', reflection: '#FFFFFFE5', shadow: '#5B78A0'
-  }, { radius: 26, glass: true, depth: 0.12, blurRadius: 24, offset: 7, light: '#FFFFFFB5', shade: '#8FADD23D', heading: { letterSpacing: -0.65 } }),
+  }, {
+    radius: 26, glass: true, depth: 0.12, blurRadius: 24, offset: 7, light: '#FFFFFFB5', shade: '#8FADD23D', heading: { letterSpacing: -0.65 },
+    material: { card: '#EEF6FDEB', input: '#F6FAFFE8', navigation: '#EDF5FDE8', modal: '#FBFDFF' }
+  }),
 
   archive: edition('archive', 'Archive', 'Structured. Focused. Efficient.', 'light', {
     ...lightTheme,
-    background: '#E6E8E1', surface: '#F2F4EEEE', surfaceElevated: '#FAFBF7', fill: '#E0E4DA', fillStrong: '#CBD2C5',
-    text: '#202620', textSecondary: '#586158', textTertiary: '#707970', border: '#C7CEC4', accent: '#38483D', accentSoft: '#DCE4DA',
-    onAccent: '#FAFCF7', chrome: '#6B7A70', chromeSoft: '#E1E6DF', platinum: '#879289', platinumSoft: '#EAEEE8',
-    glass: '#F1F3ED', glassStrong: '#F1F3ED', glassBorder: '#C7CEC4', reflection: '#FFFFFF00', shadow: '#3C463E'
-  }, { radius: 8, glass: false, depth: 0, blurRadius: 0, offset: 0, light: '#FFFFFF00', shade: '#38483D0A', heading: { letterSpacing: -0.55 } }),
+    background: '#E3E7E1', surface: '#F1F4EF', surfaceElevated: '#F8FAF6', fill: '#DCE3DA', fillStrong: '#C5D0C3',
+    text: '#1E2721', textSecondary: '#526157', textTertiary: '#6A796F', border: '#BFCBC1', accent: '#30483A', accentSoft: '#D6E1D8',
+    onAccent: '#F9FCF8', chrome: '#60776A', chromeSoft: '#DCE5DE', platinum: '#829188', platinumSoft: '#E8EDE9',
+    glass: '#EFF3EE', glassStrong: '#EFF3EE', glassBorder: '#BFCBC1', reflection: '#FFFFFF00', shadow: '#35443A'
+  }, {
+    radius: 8, glass: false, depth: 0, blurRadius: 0, offset: 0, light: '#FFFFFF00', shade: '#30483A0A', heading: { letterSpacing: -0.55 },
+    material: { card: '#F3F5F1F5', input: '#E7ECE6', navigation: '#EDF1ECF7', modal: '#F8FAF6' }
+  }),
 
   orbit: edition('orbit', 'Orbit', 'Dynamic. Visual. Intuitive.', 'dark', {
     ...darkTheme,
     background: '#050C14', surface: '#101D2AEF', surfaceElevated: '#192B3D', fill: '#1D3247', fillStrong: '#294A68',
     text: '#F2F7FC', textSecondary: '#B3C9DF', textTertiary: '#8EABC6', border: '#31506D', accent: '#BFDDFC', accentSoft: '#1F3D57',
     onAccent: '#0B2237', chrome: '#88BAE8', chromeSoft: '#203B53', glass: '#11273BDD', glassStrong: '#11273BF2', glassBorder: '#A8D5FF42', reflection: '#D4EBFF52', shadow: '#02060B'
-  }, { radius: 24, glass: true, depth: 0.26, blurRadius: 22, offset: 7, light: '#73A9E22B', shade: '#010711D1', heading: { letterSpacing: -1 } }),
+  }, {
+    radius: 24, glass: true, depth: 0.26, blurRadius: 22, offset: 7, light: '#73A9E22B', shade: '#010711D1', heading: { letterSpacing: -1 },
+    material: { card: '#0D1A28F2', input: '#12283DF2', navigation: '#10273AF2', modal: '#192D41' }
+  }),
 
   tactile: edition('tactile', 'Tactile', 'Warm. Real. Personal.', 'light', {
     ...lightTheme,
@@ -101,7 +145,10 @@ export const themes: Record<ThemeId, NeverTheme> = {
     text: '#342A22', textSecondary: '#665847', textTertiary: '#7A6955', border: '#C7B69D', accent: '#675541', accentSoft: '#E2D5C3',
     onAccent: '#FFF9F0', chrome: '#816C54', chromeSoft: '#E2D7C7', platinum: '#9D896F', platinumSoft: '#EEE4D6',
     glass: '#F1E7D8', glassStrong: '#F1E7D8', glassBorder: '#FFF8EC', reflection: '#FFF8EA73', shadow: '#5E4B37'
-  }, { radius: 15, glass: false, depth: 0.18, blurRadius: 7, offset: 4, light: '#FFF8EA38', shade: '#735C430F', heading: { letterSpacing: -0.45 } })
+  }, {
+    radius: 15, glass: false, depth: 0.18, blurRadius: 7, offset: 4, light: '#FFF8EA38', shade: '#735C430F', heading: { letterSpacing: -0.45 },
+    material: { card: '#F3EADCF5', input: '#E9DCCBF7', navigation: '#ECE1D2F7', modal: '#FBF4E9' }
+  })
 };
 
 export function resolveTheme(preference: ThemePreference, systemMode: 'light' | 'dark'): NeverTheme {
