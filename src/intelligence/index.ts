@@ -15,3 +15,5 @@ export * from './presentation';
 export * from './cache';
 export * from './stateCache';
 export * from './versioning';
+export * from './diagnostics';
+export * from './recovery';
