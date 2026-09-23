@@ -64,7 +64,8 @@ export function NeverCommandBar({
         cardAppearance.style,
         {
           borderRadius: theme.radius.card,
-          opacity: pressed ? 0.62 : 1
+          backgroundColor: pressed ? theme.accentSoft : cardAppearance.style.backgroundColor,
+          borderColor: pressed ? theme.chrome : cardAppearance.style.borderColor
         }
       ]}
     >
@@ -147,9 +148,9 @@ export function NeverIconButton({
         styles.iconButton,
         {
           borderRadius: theme.radius.icon,
-          backgroundColor: filled ? theme.accent : theme.accentSoft,
-          borderColor: filled ? theme.accent : theme.border,
-          opacity: pressed ? 0.58 : 1
+          backgroundColor: filled ? theme.accent : pressed ? theme.fillStrong : theme.accentSoft,
+          borderColor: filled ? theme.accent : pressed ? theme.chrome : theme.border,
+          opacity: filled && pressed ? 0.72 : 1
         }
       ]}
     >
