@@ -101,19 +101,21 @@ export default function AppearanceScreen() {
         {appearanceError ? <NeverNotice tone="error" title="Appearance could not be saved" body={appearanceError} /> : null}
 
         <NeverSettingsSection title="App Icon">
-          {iconOptions.map((option, index) => {
-            const active = appIcon === option.value;
-            return (
-              <Pressable key={option.value} accessibilityRole="radio" accessibilityState={{ checked: active, disabled: !canSwitchAppIcon || changing }} disabled={!canSwitchAppIcon || changing} onPress={() => selectAppIcon(option.value)} style={({ pressed }) => [styles.row, index < iconOptions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: !canSwitchAppIcon ? 0.55 : 1 }]}>
-                <Image source={option.source} style={styles.appIconPreview} />
-                <View style={styles.rowCopy}>
-                  <Text style={[styles.rowTitle, { color: p.label }]}>{option.title}</Text>
-                  <Text style={[styles.rowBody, { color: p.secondary }]}>{option.body}</Text>
-                </View>
-                <SelectionMark active={active} accent={p.graphite} onAccent={p.onAccent} tertiary={p.tertiary} />
-              </Pressable>
-            );
-          })}
+          <View accessibilityRole="radiogroup" accessibilityLabel="App icon">
+            {iconOptions.map((option, index) => {
+              const active = appIcon === option.value;
+              return (
+                <Pressable key={option.value} accessibilityRole="radio" accessibilityState={{ checked: active, disabled: !canSwitchAppIcon || changing }} disabled={!canSwitchAppIcon || changing} onPress={() => selectAppIcon(option.value)} style={({ pressed }) => [styles.row, index < iconOptions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: !canSwitchAppIcon ? 0.55 : 1 }]}>
+                  <Image source={option.source} style={styles.appIconPreview} />
+                  <View style={styles.rowCopy}>
+                    <Text style={[styles.rowTitle, { color: p.label }]}>{option.title}</Text>
+                    <Text style={[styles.rowBody, { color: p.secondary }]}>{option.body}</Text>
+                  </View>
+                  <SelectionMark active={active} accent={p.graphite} onAccent={p.onAccent} tertiary={p.tertiary} />
+                </Pressable>
+              );
+            })}
+          </View>
         </NeverSettingsSection>
 
         {!canSwitchAppIcon ? (
