@@ -79,12 +79,12 @@ export default function UpgradeScreen() {
         />
 
         {isBetaAccess ? (
-          <View style={[styles.notice, { backgroundColor: p.fillSoft }]}>
+          <View style={[styles.notice, { borderRadius: p.radius.button, backgroundColor: p.fillSoft, borderColor: p.border }]}>
             <OneIcon name={icons.ask} size={15} color={p.chrome} />
             <Text style={[styles.noticeText, { color: p.secondary }]}>NEVER AI is unlocked during beta so grounded recall can be tested before App Store billing is enabled.</Text>
           </View>
         ) : !billingConfigured ? (
-          <View style={[styles.notice, { backgroundColor: p.fillSoft }]}>
+          <View style={[styles.notice, { borderRadius: p.radius.button, backgroundColor: p.fillSoft, borderColor: p.warning }]}>
             <OneIcon name={icons.more} size={15} color={p.warning} />
             <Text style={[styles.noticeText, { color: p.secondary }]}>{__DEV__ ? 'Purchases are unavailable. RevenueCat is not configured in this development build.' : 'Purchases are temporarily unavailable. Please try again later.'}</Text>
           </View>
@@ -106,7 +106,7 @@ export default function UpgradeScreen() {
         ) : null}
 
         {!hardPaywall ? (
-          <Pressable accessibilityRole="button" onPress={() => goBackOrHome()} style={({ pressed }) => [styles.backButton, { backgroundColor: p.fill, opacity: pressed ? 0.65 : 1 }]}>
+          <Pressable accessibilityRole="button" onPress={() => goBackOrHome()} style={({ pressed }) => [styles.backButton, { borderRadius: p.radius.button, backgroundColor: p.fillSoft, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}>
             <Text style={[styles.backButtonText, { color: p.label }]}>Back to NEVER</Text>
           </Pressable>
         ) : null}
@@ -147,8 +147,8 @@ export default function UpgradeScreen() {
         <V5Group style={styles.planCard}>
           <View style={styles.planTop}>
             <View style={styles.planNameRow}>
-              <View style={[styles.planIcon, { backgroundColor: featured ? p.graphite : p.fillSoft }]}>
-                <OneIcon name={featured ? icons.ask : icons.saved} size={17} color={featured ? (p.onAccent) : p.chrome} />
+              <View style={[styles.planIcon, { borderRadius: p.radius.icon, backgroundColor: featured ? p.graphite : p.fillSoft, borderColor: featured ? p.graphite : p.border }]}>
+                <OneIcon name={featured ? icons.ask : icons.saved} size={17} color={featured ? p.onAccent : p.chrome} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.planName, { color: p.label }]}>{name}</Text>
@@ -167,7 +167,7 @@ export default function UpgradeScreen() {
           <View style={[styles.featureList, { borderTopColor: p.separator }]}>
             {features.map((feature) => (
               <View key={feature} style={styles.featureRow}>
-                <View style={[styles.checkCircle, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.check} size={10.5} color={p.chrome} /></View>
+                <View style={[styles.checkCircle, { borderRadius: p.radius.chip, backgroundColor: p.fillSoft, borderColor: p.border }]}><OneIcon name={icons.check} size={10.5} color={p.chrome} /></View>
                 <Text style={[styles.featureText, { color: p.secondary }]}>{feature}</Text>
               </View>
             ))}
@@ -188,13 +188,15 @@ export default function UpgradeScreen() {
               style={({ pressed }) => [
                 styles.purchaseButton,
                 {
-                  backgroundColor: purchaseReady ? p.graphite : p.fill,
+                  borderRadius: p.radius.button,
+                  backgroundColor: purchaseReady ? p.graphite : p.fillSoft,
+                  borderColor: purchaseReady ? p.graphite : p.border,
                   opacity: !canPurchase ? 0.52 : pressed ? 0.72 : 1
                 }
               ]}
             >
               {isThisPlanPurchasing ? <ActivityIndicator size="small" color={p.onAccent} /> : null}
-              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? (p.onAccent) : p.tertiary }]}>
+              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? p.onAccent : p.tertiary }]}>
                 {purchaseReady
                   ? purchaseLabel(planKey, plan)
                   : !billingConfigured && isBetaAccess
@@ -238,7 +240,7 @@ const styles = StyleSheet.create({
   planCard: { padding: 15 },
   planTop: { gap: 0 },
   planNameRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
-  planIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  planIcon: { width: 40, height: 40, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   planName: { fontSize: 18, lineHeight: 22, fontWeight: '700', letterSpacing: -0.25 },
   descriptor: { marginTop: 2, maxWidth: 420, ...neverType.caption },
   currentText: { fontSize: 9, lineHeight: 12, fontWeight: '700', letterSpacing: 0.6 },
@@ -248,15 +250,15 @@ const styles = StyleSheet.create({
   offer: { marginTop: 4, ...neverType.caption },
   featureList: { marginTop: 15, paddingTop: 13, borderTopWidth: StyleSheet.hairlineWidth, gap: 9 },
   featureRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  checkCircle: { width: 22, height: 22, borderRadius: 7, alignItems: 'center', justifyContent: 'center' },
+  checkCircle: { width: 22, height: 22, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   featureText: { flex: 1, ...neverType.caption },
-  purchaseButton: { marginTop: 16, minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  purchaseButton: { marginTop: 16, minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
   purchaseButtonText: { flexShrink: 1, textAlign: 'center', fontSize: 14, lineHeight: 18, fontWeight: '600' },
-  notice: { minHeight: 58, borderRadius: 14, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  notice: { minHeight: 58, borderWidth: StyleSheet.hairlineWidth, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
   noticeText: { flex: 1, ...neverType.caption },
   restore: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
   restoreText: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
-  backButton: { minHeight: 44, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  backButton: { minHeight: 44, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   backButtonText: { fontSize: 13.5, lineHeight: 17, fontWeight: '600' },
   legal: { textAlign: 'center', ...neverType.caption },
   legalLinks: { minHeight: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
