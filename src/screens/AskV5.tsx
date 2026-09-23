@@ -4,6 +4,7 @@ import { NeverNotice } from '@/src/ui/NeverNotice';
 import { MemoryRow } from '@/src/ui/MemoryRow';
 import { useReducedMotion } from '@/src/ui/material';
 import { NeverInput } from '@/src/ui/NeverInput';
+import { neverType } from '@/src/theme/tokens';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
@@ -185,7 +186,7 @@ export default function AskV5() {
                       <Text style={[styles.trustBody, { color: p.secondary }]}>If your saved evidence is not enough, NEVER should say so instead of filling the gap.</Text>
                     </View>
                   </View>
-                  <View style={[styles.trustMetrics, { borderTopColor: p.separator }]}>
+                  <View style={[styles.trustMetrics, { borderTopColor: p.separator }]}> 
                     <NeverMetric value={`${items.length}`} label="memories" />
                     <NeverMetric value="Private" label="context" />
                     <NeverMetric value="Grounded" label="answers" />
@@ -350,7 +351,7 @@ const styles = StyleSheet.create({
   emptyContent: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 26, gap: 24 },
   chatContent: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 26, gap: 18 },
   heroCopy: { gap: 5 },
-  heroTitle: { fontSize: 42, lineHeight: 46, fontFamily: Platform.select({ ios: 'Georgia', android: 'serif', web: 'Georgia, serif' }), fontWeight: '400', letterSpacing: -1.25 },
+  heroTitle: { fontSize: 42, lineHeight: 46, fontFamily: neverType.hero.fontFamily, fontWeight: '400', letterSpacing: -1.25 },
   heroSubtitle: { maxWidth: 470, fontSize: 14.5, lineHeight: 20 },
   trustStage: { padding: 17 },
   trustTop: { minHeight: 104, flexDirection: 'row', alignItems: 'center', gap: 13 },
