@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - dev/foundation
-      - design/never-material-worlds
+      - 'design/**'
   pull_request:
   workflow_dispatch:
 
