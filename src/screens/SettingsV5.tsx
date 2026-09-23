@@ -131,7 +131,7 @@ export default function SettingsV5() {
               onPress={() => router.push('/settings/privacy')}
               style={({ pressed }) => [styles.profileTop, { opacity: pressed ? 0.66 : 1 }]}
             >
-              <View style={[styles.avatar, { backgroundColor: p.graphite }]}>
+              <View style={[styles.avatar, { backgroundColor: p.graphite }]}> 
                 {initials ? <Text style={[styles.avatarText, { color: p.onAccent }]}>{initials}</Text> : <OneIcon name={icons.person} size={24} color={p.onAccent} />}
               </View>
               <View style={styles.profileCopy}>
@@ -141,7 +141,7 @@ export default function SettingsV5() {
               </View>
               <View style={[styles.profileArrow, { backgroundColor: p.fillSoft }]}><V5Chevron /></View>
             </Pressable>
-            <View style={[styles.profileMetrics, { borderTopColor: p.separator }]}>
+            <View style={[styles.profileMetrics, { borderTopColor: p.separator }]}> 
               <NeverMetric value={appearanceLabel(preference)} label="appearance" style={styles.profileMetric} />
               <NeverMetric value={syncLabel} label="cloud" style={styles.profileMetric} />
               <NeverMetric value={hasAi ? 'On' : 'Core'} label="AI" style={styles.profileMetric} />
@@ -168,8 +168,8 @@ export default function SettingsV5() {
             <Text style={[styles.sectionMeta, { color: p.tertiary }]}>{isBetaAccess ? 'BETA' : 'NEVER'}</Text>
           </View>
           <NeverHeroSurface compact>
-            <Pressable accessibilityRole="button" onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.membershipRow, { opacity: pressed ? 0.65 : 1 }]}>
-              <View style={[styles.membershipIcon, { backgroundColor: p.graphite }]}>
+            <Pressable accessibilityRole="button" onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.membershipRow, { opacity: pressed ? 0.65 : 1 }]}> 
+              <View style={[styles.membershipIcon, { backgroundColor: p.graphite }]}> 
                 <OneIcon name={icons.crown} size={18} color={p.onAccent} />
               </View>
               <View style={styles.membershipCopy}>
@@ -215,7 +215,7 @@ export default function SettingsV5() {
               onPress={confirmDeleteAccount}
               style={({ pressed }) => [styles.dangerRow, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: deletingAccount ? 0.58 : 1 }]}
             >
-              <View style={[styles.rowIcon, { backgroundColor: p.danger + '18' }]}>
+              <View style={[styles.rowIcon, { backgroundColor: p.danger + '18' }]}> 
                 <OneIcon name={icons.delete} size={15} color={p.danger} />
               </View>
               <View style={styles.rowCopy}>
@@ -231,7 +231,6 @@ export default function SettingsV5() {
       </ScrollView>
     </NeverScreen>
   );
-
 }
 
 function rowTint(tone: RowTone, p: ReturnType<typeof useNeverV5Palette>) {
@@ -280,7 +279,7 @@ function PreferenceTile({
   const body = (
     <>
       <View style={styles.preferenceTop}>
-        <View style={[styles.preferenceIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18' }]}>
+        <View style={[styles.preferenceIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18', borderColor: tone === 'neutral' ? p.border : tint + '33' }]}> 
           <OneIcon name={icon} size={17} color={tint} />
         </View>
         {onPress ? <V5Chevron /> : null}
@@ -289,9 +288,9 @@ function PreferenceTile({
       <Text style={[styles.preferenceValue, { color: p.secondary }]} numberOfLines={2}>{value}</Text>
     </>
   );
-  if (!onPress) return <View style={[styles.preferenceTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border }]}>{body}</View>;
+  if (!onPress) return <View style={[styles.preferenceTile, p.cardStyle]}>{body}</View>;
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.preferenceTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.preferenceTile, p.cardStyle, { opacity: pressed ? 0.65 : 1 }]}> 
       {body}
     </Pressable>
   );
@@ -326,10 +325,10 @@ function SettingsRow({
   const tint = rowTint(tone, p);
   const content = (
     <>
-      <View style={[styles.rowIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18' }]}>
+      <View style={[styles.rowIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18', borderColor: tone === 'neutral' ? p.border : tint + '33' }]}> 
         <OneIcon name={icon} size={15} color={tint} />
       </View>
-      <View style={[styles.rowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+      <View style={[styles.rowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}> 
         <View style={styles.rowCopy}>
           <Text style={[styles.rowLabel, { color: p.label }]}>{label}</Text>
           <Text style={[styles.rowValue, { color: p.secondary }]} numberOfLines={2}>{value}</Text>
@@ -341,7 +340,7 @@ function SettingsRow({
 
   if (!onPress) return <View style={styles.row}>{content}</View>;
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.row, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.row, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}> 
       {content}
     </Pressable>
   );
@@ -368,9 +367,9 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.2 },
   sectionMeta: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.8 },
   preferenceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  preferenceTile: { flexBasis: '47%', flexGrow: 1, minWidth: 130, minHeight: 128, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
+  preferenceTile: { flexBasis: '47%', flexGrow: 1, minWidth: 130, minHeight: 128, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
   preferenceTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  preferenceIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  preferenceIcon: { width: 38, height: 38, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   preferenceLabel: { marginTop: 16, fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   preferenceValue: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
   membershipRow: { minHeight: 102, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 13 },
@@ -382,7 +381,7 @@ const styles = StyleSheet.create({
   manageText: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
   groupTitle: { paddingHorizontal: 4, fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
   row: { minHeight: 58, paddingLeft: 11, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  rowIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  rowIcon: { width: 34, height: 34, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   rowContent: { flex: 1, minHeight: 58, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
   rowCopy: { flex: 1, minWidth: 0 },
   rowLabel: { fontSize: 15, lineHeight: 18, fontWeight: '500' },
