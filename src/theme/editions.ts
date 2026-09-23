@@ -121,7 +121,7 @@ export const themes: Record<ThemeId, NeverTheme> = {
   archive: edition('archive', 'Archive', 'Structured. Focused. Efficient.', 'light', {
     ...lightTheme,
     background: '#D9E0DD', surface: '#EEF2F0', surfaceElevated: '#F8FAF8', fill: '#CFD9D3', fillStrong: '#B7C5BC',
-    text: '#18231D', textSecondary: '#495B50', textTertiary: '#56685D', border: '#AEBDB4', accent: '#244435', accentSoft: '#CDDCD3',
+    text: '#18231D', textSecondary: '#495B50', textTertiary: '#52645A', border: '#AEBDB4', accent: '#244435', accentSoft: '#CDDCD3',
     onAccent: '#F8FCF9', chrome: '#526E60', chromeSoft: '#D8E2DC', platinum: '#778980', platinumSoft: '#E5EAE7',
     glass: '#EFF3F1', glassStrong: '#EFF3F1', glassBorder: '#AEBDB4', reflection: '#FFFFFF00', shadow: '#2F4037'
   }, {
