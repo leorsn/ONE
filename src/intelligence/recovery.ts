@@ -6,7 +6,7 @@ export type IntelligenceRecoveryResult = { items: OneItem[]; recoveredItemIds: s
 /** Retry only deterministic/migration-safe intelligence failures. External AI retries remain explicit. */
 export function recoverIntelligenceItems(items: OneItem[], options: { limit?: number; now?: Date } = {}): IntelligenceRecoveryResult {
   const limit = Math.max(1, Math.min(options.limit ?? 20, 100)); const now = options.now ?? new Date(); const recoveredItemIds: string[] = []; const skippedItemIds: string[] = [];
-  const next = items.map((item) => {
+  const next: OneItem[] = items.map((item): OneItem => {
     if (!planIntelligenceMigration(item).needsMigration) return item;
     if (recoveredItemIds.length >= limit) { skippedItemIds.push(item.id); return item; }
     try { const recovered = migrateItemIntelligence(item, now); recoveredItemIds.push(item.id); return recovered; }
