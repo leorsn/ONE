@@ -184,7 +184,7 @@ function LibraryTile({ label, count, icon, onPress }: { label: string; count: nu
   return (
     <Pressable accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.libraryTile, p.cardStyle, { opacity: pressed ? 0.66 : 1 }]}
+      style={({ pressed }) => [styles.libraryTile, p.cardStyle, pressed ? { backgroundColor: p.fillSoft, borderColor: p.chrome } : null]}
     >
       <View style={styles.libraryTileTop}>
         <View style={[styles.libraryTileIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={18} color={p.chrome} /></View>
@@ -230,9 +230,8 @@ function DocumentsView({ groups, summary, selectedFilter, setSelectedFilter }: {
               onPress={async () => { void Haptics.selectionAsync().catch(() => undefined); setSelectedFilter(entry.value); }}
               style={({ pressed }) => [styles.documentFilter, {
                 borderRadius: p.radius.chip,
-                backgroundColor: active ? p.graphite : p.fillSoft,
-                borderColor: active ? p.graphite : p.border,
-                opacity: pressed ? 0.64 : 1
+                backgroundColor: active ? p.graphite : pressed ? p.fill : p.fillSoft,
+                borderColor: pressed ? p.chrome : active ? p.graphite : p.border
               }]}
             >
               <Text style={[styles.documentFilterText, { color: active ? p.onAccent : p.secondary, fontWeight: active ? '600' : '500' }]}>{entry.label}</Text>
