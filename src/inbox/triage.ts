@@ -61,7 +61,7 @@ export function proposedActionsForItem(item: OneItem): ProposedInboxAction[] {
     add({
       id: 'create_reminder',
       label: 'Add reminder',
-      reason: 'Use the confirmed event date for a ONE reminder.',
+      reason: 'Use the confirmed event date for a NEVER reminder.',
       confidence,
       primary: false
     });
@@ -102,7 +102,7 @@ export function proposedActionsForItem(item: OneItem): ProposedInboxAction[] {
     add({
       id: 'save_note',
       label: item.type === 'idea' ? 'Save idea' : 'Save',
-      reason: 'Keep this as a durable ONE memory.',
+      reason: 'Keep this as a durable NEVER memory.',
       confidence,
       primary: true
     });
@@ -113,7 +113,7 @@ export function proposedActionsForItem(item: OneItem): ProposedInboxAction[] {
       id: 'save_reference',
       label: 'Save reference',
       reason: confidence === 'low'
-        ? 'ONE is not confident enough to create a calendar item or reminder automatically.'
+        ? 'NEVER is not confident enough to create a calendar item or reminder automatically.'
         : 'Keep this capture without adding unsupported assumptions.',
       confidence,
       primary: false
@@ -263,36 +263,23 @@ export function findLikelyDuplicate(item: OneItem, items: OneItem[], maxAgeMs = 
     .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())[0];
 }
 
-export function triagePriority(item: OneItem) {
-  const state = triageStateForItem(item);
-  if (state === 'needs_review') return 0;
-  if (state === 'actionable') return 1;
-  if (state === 'new') return 2;
-  if (state === 'processed') return 3;
-  return 4;
-}
-
 function isActionableByEvidence(item: OneItem) {
-  if (item.understandingConfidence === 'low') return false;
-  if (item.kind === 'event' || item.kind === 'reminder') return Boolean(item.date);
-  if (item.type === 'task' && item.date) return true;
-  if (item.kind === 'receipt' || item.kind === 'document') return true;
-  return false;
+  if (item.reviewStatus === 'needs_review' || item.understandingConfidence === 'low') return false;
+  const eventLike = item.kind === 'event' || item.type === 'appointment' || item.type === 'event';
+  const reminderLike = item.kind === 'reminder' || item.type === 'reminder' || item.type === 'task';
+  return Boolean(item.date && (eventLike || reminderLike));
 }
 
-function normalize(value: string | number | undefined | null) {
+function formatAmount(amount: number, currency = 'EUR') {
+  try { return new Intl.NumberFormat('de-DE', { style: 'currency', currency }).format(amount); }
+  catch { return `${amount.toFixed(2)} ${currency}`; }
+}
+
+function normalize(value: unknown) {
   return String(value ?? '')
     .trim()
     .toLowerCase()
     .normalize('NFKD')
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/\s+/g, ' ');
-}
-
-function formatAmount(amount: number, currency = 'EUR') {
-  try {
-    return new Intl.NumberFormat('en', { style: 'currency', currency }).format(amount);
-  } catch {
-    return `${amount.toFixed(2)} ${currency}`;
-  }
 }
