@@ -15,7 +15,7 @@ export function useNeverV5Palette() {
   const t = useTheme();
   return {
     dark, canvas: t.background, surface: t.surface, elevated: t.surfaceElevated,
-    fill: t.fillStrong, fillSoft: t.fill, label: t.text, secondary: t.textSecondary,
+    fill: t.fillStrong, fillSoft: t.accentSoft, label: t.text, secondary: t.textSecondary,
     tertiary: t.textTertiary, separator: t.border, border: t.border, graphite: t.accent,
     chrome: t.chrome, chromeSoft: t.chromeSoft, warning: t.warning,
     success: t.success, danger: t.danger, glass: t.glassStrong,
@@ -84,8 +84,14 @@ export function V5Group({ children, style }: { children: ReactNode; style?: obje
 export function V5Glyph({ icon, filled = false, size = 36 }: { icon: IconName; filled?: boolean; size?: number }) {
   const p = useNeverV5Palette();
   return (
-    <View style={[styles.glyph, { width: size, height: size, borderRadius: p.radius.icon, backgroundColor: filled ? p.graphite : p.fillSoft }]}>
-      <OneIcon name={icon} size={Math.round(size * 0.44)} color={filled ? (p.onAccent) : p.chrome} />
+    <View style={[styles.glyph, {
+      width: size,
+      height: size,
+      borderRadius: p.radius.icon,
+      backgroundColor: filled ? p.graphite : p.fillSoft,
+      borderColor: filled ? p.graphite : p.border
+    }]}>
+      <OneIcon name={icon} size={Math.round(size * 0.44)} color={filled ? p.onAccent : p.chrome} />
     </View>
   );
 }
@@ -118,7 +124,7 @@ export function V5Row({
   const body = (
     <>
       {icon ? <V5Glyph icon={icon} size={36} /> : null}
-      <View style={[styles.rowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
+      <View style={[styles.rowContent, !last && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}> 
         <View style={styles.rowText}>
           <View style={styles.rowTitleLine}>
             <Text style={[styles.rowTitle, { color: destructive ? p.danger : p.label }]} numberOfLines={2}>{title}</Text>
@@ -133,7 +139,7 @@ export function V5Row({
 
   if (!onPress) return <View style={[styles.row, { minHeight: p.rowHeight }]}>{body}</View>;
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.row, { minHeight: p.rowHeight, backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.row, { minHeight: p.rowHeight, backgroundColor: pressed ? p.fillSoft : 'transparent' }]}> 
       {body}
     </Pressable>
   );
@@ -156,7 +162,7 @@ export function V5SearchField({
   const [focused, setFocused] = useState(false);
   return (
     <NeverMaterial role="input" focused={focused} style={styles.searchField}>
-      <OneIcon name={ask ? icons.ask : icons.search} size={16} color={p.secondary} />
+      <OneIcon name={ask ? icons.ask : icons.search} size={16} color={p.chrome} />
       <NeverInput
         accessibilityLabel={placeholder}
         onFocus={() => setFocused(true)}
@@ -174,8 +180,8 @@ export function V5SearchField({
       />
       {value ? (
         <Pressable accessibilityRole="button" accessibilityLabel="Clear" onPress={() => onChangeText('')} style={styles.clearButton} hitSlop={8}>
-          <View style={[styles.clearCircle, { backgroundColor: p.tertiary }]}>
-            <OneIcon name={icons.close} size={9} color={p.canvas} />
+          <View style={[styles.clearCircle, { backgroundColor: p.graphite }]}> 
+            <OneIcon name={icons.close} size={9} color={p.onAccent} />
           </View>
         </Pressable>
       ) : null}
@@ -205,7 +211,11 @@ export function V5Segmented({
             onPress={() => { selectionFeedback(); onSelect(option); }}
             style={({ pressed }) => [
               styles.segment,
-              { backgroundColor: active ? p.graphite : p.fillSoft, borderRadius: p.radius.chip },
+              {
+                backgroundColor: active ? p.graphite : p.fillSoft,
+                borderColor: active ? p.graphite : p.border,
+                borderRadius: p.radius.chip
+              },
               { opacity: pressed ? 0.65 : 1 }
             ]}
           >
@@ -220,8 +230,20 @@ export function V5Segmented({
 export function V5IconButton({ icon, onPress, accessibilityLabel, disabled = false }: { icon: IconName; onPress: () => void; accessibilityLabel: string; disabled?: boolean }) {
   const p = useNeverV5Palette();
   return (
-    <NeverPressable disabled={disabled} accessibilityState={{ disabled }} accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={({ pressed }) => [styles.iconButton, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, opacity: disabled ? 0.4 : pressed ? 0.6 : 1 }]}>
-      <OneIcon name={icon} size={20} color={p.label} />
+    <NeverPressable
+      disabled={disabled}
+      accessibilityState={{ disabled }}
+      accessibilityRole="button"
+      accessibilityLabel={accessibilityLabel}
+      onPress={onPress}
+      style={({ pressed }) => [styles.iconButton, {
+        borderRadius: p.radius.icon,
+        backgroundColor: p.fillSoft,
+        borderColor: p.border,
+        opacity: disabled ? 0.4 : pressed ? 0.6 : 1
+      }]}
+    >
+      <OneIcon name={icon} size={20} color={p.chrome} />
     </NeverPressable>
   );
 }
@@ -241,7 +263,7 @@ const styles = StyleSheet.create({
   sectionRight: { flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionMeta: { fontSize: 12, lineHeight: 15, fontWeight: '500' },
   group: { borderRadius: neverRadius.lg },
-  glyph: { alignItems: 'center', justifyContent: 'center', marginLeft: 13 },
+  glyph: { alignItems: 'center', justifyContent: 'center', marginLeft: 13, borderWidth: StyleSheet.hairlineWidth },
   row: { minHeight: 58, flexDirection: 'row', alignItems: 'center' },
   rowContent: { flex: 1, minHeight: 58, marginLeft: 11, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
   rowText: { flex: 1, minWidth: 0, paddingVertical: 9 },
@@ -254,7 +276,7 @@ const styles = StyleSheet.create({
   clearButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   clearCircle: { width: 17, height: 17, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   segmented: { minHeight: neverControl.minimum, flexDirection: 'row', alignItems: 'center', gap: neverSpacing.sm },
-  segment: { minHeight: neverControl.minimum, paddingHorizontal: 17, borderRadius: neverRadius.pill, alignItems: 'center', justifyContent: 'center' },
+  segment: { minHeight: neverControl.minimum, paddingHorizontal: 17, borderRadius: neverRadius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   segmentText: { fontSize: 12, lineHeight: 14 },
-  iconButton: { width: neverControl.minimum, height: neverControl.minimum, borderRadius: neverRadius.pill, alignItems: 'center', justifyContent: 'center' }
+  iconButton: { width: neverControl.minimum, height: neverControl.minimum, borderRadius: neverRadius.pill, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' }
 });
