@@ -5,7 +5,7 @@ export const themeIds = ['monolith', 'aurora', 'archive', 'orbit', 'tactile', 'p
 export type ThemeId = typeof themeIds[number];
 export type ThemePreference = ThemeId | 'system';
 export type MaterialRole = 'card' | 'navigation' | 'input' | 'modal';
-export type MaterialToken = { color: string; border: string; radius: number; glass: boolean; shadow: ViewStyle };
+export type MaterialToken = { color: string; tint: string; border: string; radius: number; glass: boolean; shadow: ViewStyle };
 export type NeverTheme = OneTheme & {
   id: ThemeId; name: string; descriptor: string; mode: 'light' | 'dark';
   colors: OneTheme;
@@ -19,7 +19,7 @@ export type NeverTheme = OneTheme & {
 function edition(id: ThemeId, name: string, descriptor: string, mode: 'light' | 'dark', colors: OneTheme,
   config: { radius: number; glass: boolean; depth: number; blurRadius: number; offset: number; light: string; shade: string; heading?: TextStyle }): NeverTheme {
   const shadow: ViewStyle = { shadowColor: colors.shadow, shadowOpacity: config.depth, shadowRadius: config.blurRadius, shadowOffset: { width: 0, height: config.offset }, elevation: config.depth ? 2 : 0 };
-  const material = (color: string, radius: number, glass: boolean): MaterialToken => ({ color, border: glass ? colors.glassBorder : colors.border, radius, glass, shadow });
+  const material = (color: string, radius: number, glass: boolean): MaterialToken => ({ color, tint: colors.chrome + '18', border: glass ? colors.glassBorder : colors.border, radius, glass, shadow });
   return {
     ...colors, id, name, descriptor, mode, colors,
     materials: {
@@ -80,4 +80,21 @@ export function appearanceLabel(value: ThemePreference) { return value === 'syst
 export function materialStyle(theme: NeverTheme, role: MaterialRole): ViewStyle {
   const material = theme.materials[role];
   return { backgroundColor: material.color, borderColor: material.border, borderWidth: 0.5, borderRadius: material.radius, ...material.shadow };
+}
+
+/** Shared by real glass surfaces and plain native text fields. */
+export function resolveMaterialAppearance(theme: NeverTheme, role: MaterialRole, options: {
+  reduceTransparency: boolean; nativeGlass?: boolean; focused?: boolean;
+}): { style: ViewStyle; useGlass: boolean; tint: string } {
+  const material = theme.materials[role];
+  const useGlass = Boolean(material.glass && !options.reduceTransparency && options.nativeGlass);
+  const opaque = role === 'input' || role === 'modal' ? theme.surfaceElevated : theme.surface;
+  return {
+    useGlass, tint: material.tint,
+    style: {
+      ...materialStyle(theme, role),
+      backgroundColor: useGlass ? 'transparent' : options.reduceTransparency && material.glass ? opaque : material.color,
+      borderColor: options.focused ? theme.chrome : material.border
+    }
+  };
 }

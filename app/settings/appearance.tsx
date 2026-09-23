@@ -74,7 +74,7 @@ export default function AppearanceScreen() {
               accessibilityHint="Applies immediately and saves on this device"
               disabled={changing} accessibilityState={{ checked: active, disabled: changing }}
               onPress={() => void select(value)}
-              style={({ pressed }) => [styles.themeOption, singleColumn && { flexBasis: '100%' }, { backgroundColor: p.surface, borderColor: active ? p.graphite : p.border, borderWidth: active ? 2 : 0.5, opacity: pressed ? 0.75 : 1, borderRadius: p.radius.card }]}>
+              style={({ pressed }) => [styles.themeOption, singleColumn && { flexBasis: '100%' }, { backgroundColor: p.surface, borderColor: active ? p.graphite : p.border, borderWidth: 1.5, opacity: pressed ? 0.75 : 1, borderRadius: p.radius.card }]}>
               <View style={styles.previewClip}><ThemePreview preference={value} /></View>
               <View style={styles.themeCopy}>
                 <View style={styles.themeNameRow}><Text style={[styles.rowTitle, { color: p.label, flex: 1 }]}>{name}</Text><SelectionMark active={active} /></View>

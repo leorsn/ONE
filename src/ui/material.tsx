@@ -1,8 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, Animated, Platform, Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import { GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable } from 'expo-glass-effect';
 import * as Haptics from 'expo-haptics';
-import { materialStyle, type MaterialRole } from '@/src/theme/editions';
+import { resolveMaterialAppearance, type MaterialRole } from '@/src/theme/editions';
+import { useThemeContext } from '@/src/context/ThemeContext';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 import { neverMotion, neverRadius } from '@/src/theme/tokens';
 
@@ -16,14 +17,7 @@ export function selectionFeedback() {
 }
 
 export function useReducedMotion() {
-  const [reduced, setReduced] = useState(true);
-  useEffect(() => {
-    let alive = true;
-    void AccessibilityInfo.isReduceMotionEnabled().then((value) => { if (alive) setReduced(value); }).catch(() => undefined);
-    const listener = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduced);
-    return () => { alive = false; listener.remove(); };
-  }, []);
-  return reduced;
+  return useThemeContext().reduceMotion;
 }
 
 // Glass is reserved for controls floating over content. Lists use quiet opaque surfaces.
@@ -32,13 +26,10 @@ export function NeverMaterial({ children, style, glass = false, role, focused = 
   const { resolvedMode, reduceTransparency: reduced } = useThemePreference();
   const materialRole = role ?? (glass ? 'input' : 'card');
   const material = theme.materials[materialRole];
-  const nativeGlass = material.glass && !reduced && nativeGlassAvailable();
+  const appearance = resolveMaterialAppearance(theme, materialRole, { reduceTransparency: reduced, nativeGlass: nativeGlassAvailable(), focused });
   return (
-    <View style={[styles.surface, style, materialStyle(theme, materialRole), {
-      backgroundColor: nativeGlass ? 'transparent' : reduced && material.glass ? theme.surface : material.color,
-      borderColor: focused ? theme.chrome : material.border
-    }]}>
-      {nativeGlass ? <GlassView pointerEvents="none" colorScheme={resolvedMode} glassEffectStyle="regular" style={[StyleSheet.absoluteFill, { borderRadius: material.radius, overflow: 'hidden' }]} /> : null}
+    <View style={[styles.surface, style, appearance.style]}>
+      {appearance.useGlass ? <GlassView pointerEvents="none" colorScheme={resolvedMode} tintColor={appearance.tint} glassEffectStyle="regular" style={[StyleSheet.absoluteFill, { borderRadius: material.radius, overflow: 'hidden' }]} /> : null}
       {theme.effects.texture ? <View pointerEvents="none" style={{ position: 'absolute', top: 1, left: 2, right: 2, bottom: 2, borderRadius: material.radius - 1, borderTopWidth: 1, borderBottomWidth: 1, borderTopColor: theme.glassBorder, borderBottomColor: theme.border }} /> : null}
       {children}
     </View>
@@ -48,6 +39,10 @@ export function NeverMaterial({ children, style, glass = false, role, focused = 
 export function NeverPressable({ children, style, onPress, ...props }: PressableProps) {
   const [scale] = useState(() => new Animated.Value(1));
   const reduced = useReducedMotion();
+  useEffect(() => {
+    if (reduced) { scale.stopAnimation(); scale.setValue(1); }
+    return () => scale.stopAnimation();
+  }, [reduced, scale]);
   function animate(toValue: number) {
     if (reduced) { scale.setValue(1); return; }
     Animated.spring(scale, { toValue, ...neverMotion.spring, useNativeDriver: true }).start();

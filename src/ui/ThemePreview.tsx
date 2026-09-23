@@ -28,13 +28,13 @@ function Miniature({ theme: t, half = false }: { theme: NeverTheme; half?: boole
   </View>;
 }
 const styles = StyleSheet.create({
-  preview: { height: 210, padding: 14, gap: 9, overflow: 'hidden' },
+  preview: { height: 244, padding: 14, gap: 9, overflow: 'hidden' },
   brand: { fontSize: 9, fontWeight: '600' }, greeting: { fontSize: 18, lineHeight: 21, fontFamily: editorialFontFamily, marginTop: 4 },
   capture: { minHeight: 29, borderWidth: 0.5, paddingHorizontal: 8, flexDirection: 'row', alignItems: 'center', gap: 8 },
   line: { height: 2, width: '45%', opacity: 0.55, borderRadius: 2 },
   tiles: { flexDirection: 'row', gap: 6 }, tile: { flex: 1, height: 39, padding: 8, gap: 7, borderWidth: 0.5 },
   list: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingBottom: 5, borderBottomWidth: 0.5 }, thumbnail: { width: 18, height: 18, borderRadius: 3 },
   dock: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', height: 22, borderWidth: 0.5, marginTop: 'auto' },
-  system: { flexDirection: 'row', height: 210, overflow: 'hidden' },
+  system: { flexDirection: 'row', height: 244, overflow: 'hidden' },
   systemLabel: { position: 'absolute', alignSelf: 'center', left: '20%', right: '20%', bottom: 44, alignItems: 'center', padding: 6, borderRadius: 12, backgroundColor: themes.platinum.surface }
 });

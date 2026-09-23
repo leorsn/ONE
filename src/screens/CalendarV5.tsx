@@ -74,19 +74,19 @@ export default function CalendarV5() {
               <Text style={[styles.yearText, { color: p.tertiary }]}>{selected.getFullYear()}</Text>
             </View>
             <View style={styles.dateActions}>
-              <NeverMetric value={`${selectedItems.length}`} label="today" />
-              <Pressable accessibilityRole="button" onPress={jumpToday} style={({ pressed }) => [styles.todayButton, { backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
+              <NeverMetric value={`${selectedItems.length}`} label={selectedDate === today ? 'today' : 'on date'} />
+              <Pressable accessibilityRole="button" onPress={jumpToday} style={({ pressed }) => [styles.todayButton, { borderRadius: p.radius.chip, backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
                 <Text style={[styles.todayText, { color: p.chrome }]}>Now</Text>
               </Pressable>
             </View>
           </View>
 
           <View style={styles.monthControls}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.fillSoft, opacity: pressed ? 0.5 : 1 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, opacity: pressed ? 0.5 : 1 }]}>
               <OneIcon name={icons.chevronLeft} size={13.5} color={p.chrome} />
             </Pressable>
             <Text style={[styles.monthControlLabel, { color: p.secondary }]}>{monthName} {selected.getFullYear()}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.fillSoft, opacity: pressed ? 0.5 : 1 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, opacity: pressed ? 0.5 : 1 }]}>
               <OneIcon name={icons.chevron} size={13.5} color={p.chrome} />
             </Pressable>
           </View>
@@ -102,7 +102,7 @@ export default function CalendarV5() {
                   style={({ pressed }) => [styles.day, { opacity: pressed ? 0.55 : 1 }]}
                 >
                   <Text style={[styles.weekday, { color: active ? p.label : p.tertiary }]}>{day.weekday}</Text>
-                  <View style={[styles.dayNumberWrap, { backgroundColor: active ? p.graphite : p.fillSoft, borderColor: active ? p.graphite : p.glassBorder }]}>
+                  <View style={[styles.dayNumberWrap, { borderRadius: p.radius.chip, backgroundColor: active ? p.graphite : p.fillSoft, borderColor: active ? p.graphite : p.glassBorder }]}>
                     <Text style={[styles.dayNumberSmall, { color: active ? p.onAccent : p.label }]}>{day.number}</Text>
                   </View>
                   <View style={[styles.dot, { backgroundColor: hasItems ? p.chrome : 'transparent' }]} />
@@ -236,7 +236,7 @@ function EmptyAgenda({ title, body }: { title: string; body: string }) {
   const p = useNeverV5Palette();
   return (
     <View style={styles.emptyRow}>
-      <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.calendar} size={16} color={p.chrome} /></View>
+      <View style={[styles.emptyIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icons.calendar} size={16} color={p.chrome} /></View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.emptyTitle, { color: p.label }]}>{title}</Text>
         <Text style={[styles.emptyBody, { color: p.secondary }]}>{body}</Text>
@@ -252,11 +252,11 @@ const styles = StyleSheet.create({
   heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
   heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
   calendarStage: { padding: 16, gap: 14 },
-  dateHero: { minHeight: 104, flexDirection: 'row', alignItems: 'center', gap: 14 },
+  dateHero: { minHeight: 104, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 14 },
   dateNumberBlock: { minWidth: 88 },
   dateNumber: { fontSize: 56, lineHeight: 60, fontWeight: '300', letterSpacing: -2.5 },
   dateWeekday: { marginTop: -2, fontSize: 12, lineHeight: 16, fontWeight: '600' },
-  dateMeta: { flex: 1, minWidth: 0 },
+  dateMeta: { flex: 1, minWidth: 100 },
   monthTitle: { marginTop: 4, fontSize: 21, lineHeight: 25, fontWeight: '600', letterSpacing: -0.45 },
   yearText: { marginTop: 1, fontSize: 11.5, lineHeight: 15 },
   dateActions: { alignItems: 'flex-end', gap: 8 },
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   todayText: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
   monthControls: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   monthArrow: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  monthControlLabel: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
+  monthControlLabel: { flex: 1, textAlign: 'center', paddingHorizontal: 6, fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
   dayStrip: { flexGrow: 1, flexDirection: 'row', justifyContent: 'space-between', gap: 4 },
   day: { minWidth: 44, alignItems: 'center' },
   weekday: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.25 },

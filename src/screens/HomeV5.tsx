@@ -140,7 +140,7 @@ export default function HomeV5() {
               onPress={() => focusCapture()}
               accessibilityRole="button"
               accessibilityLabel="Start a capture"
-              style={[styles.capturePlus, { backgroundColor: p.graphite }]}
+              style={[styles.capturePlus, { borderRadius: p.radius.icon, backgroundColor: p.graphite }]}
             >
               <OneIcon name={icons.plus} size={20} color={p.onAccent} />
             </Pressable>
@@ -185,7 +185,7 @@ export default function HomeV5() {
               {!structuredReview ? (
                 <>
                   <View style={styles.draftRow}>
-                    <View style={[styles.draftIcon, { backgroundColor: p.fillSoft }]}>
+                    <View style={[styles.draftIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
                       <OneIcon name={iconForDraft(draft)} size={16} color={p.chrome} />
                     </View>
                     <View style={{ flex: 1 }}>
@@ -212,7 +212,7 @@ export default function HomeV5() {
             onPress={() => router.push('/ask')}
             style={({ pressed }) => [styles.askRow, { opacity: pressed ? 0.66 : 1 }]}
           >
-            <View style={[styles.askIcon, { backgroundColor: p.graphite }]}>
+            <View style={[styles.askIcon, { borderRadius: p.radius.icon, backgroundColor: p.graphite }]}>
               <OneIcon name={icons.ask} size={17} color={p.onAccent} />
             </View>
             <View style={styles.askCopy}>
@@ -321,7 +321,7 @@ function QuickAction({ label, icon, onPress }: { label: string; icon: (typeof ic
       onPress={() => { selectionFeedback(); onPress(); }}
       style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.58 : 1 }]}
     >
-      <View style={[styles.actionIcon, { backgroundColor: p.fillSoft, borderColor: p.glassBorder }]}>
+      <View style={[styles.actionIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.glassBorder }]}>
         <OneIcon name={icon} size={19} color={p.chrome} />
       </View>
       <Text style={[styles.quickActionLabel, { color: p.secondary }]}>{label}</Text>
@@ -361,7 +361,7 @@ function RecentCard({ item }: { item: OneItem }) {
       style={({ pressed }) => [styles.recentCard, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
     >
       <View style={styles.recentCardTop}>
-        <View style={[styles.recentIcon, { backgroundColor: p.fillSoft }]}>
+        <View style={[styles.recentIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
           <OneIcon name={iconForType(item.type)} size={18} color={p.chrome} />
         </View>
         <Text style={[styles.recentDate, { color: p.tertiary }]}>{shortDate(item.updatedAt)}</Text>
@@ -392,9 +392,9 @@ const styles = StyleSheet.create({
   heroTitle: { fontSize: 42, lineHeight: 45, fontFamily: neverType.hero.fontFamily, fontWeight: '400', letterSpacing: -1.35 },
   heroSubtitle: { maxWidth: 390, fontSize: 14.5, lineHeight: 20 },
   captureStage: { padding: 18, gap: 15 },
-  captureStageHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 14 },
+  captureStageHeader: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: 14 },
   captureStageTitle: { marginTop: 4, fontSize: 21, lineHeight: 25, fontWeight: '600', letterSpacing: -0.45 },
-  captureMetrics: { flexDirection: 'row', gap: 15 },
+  captureMetrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 15 },
   captureComposer: {
     minHeight: 66,
     paddingHorizontal: 9,

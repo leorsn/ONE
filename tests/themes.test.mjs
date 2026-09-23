@@ -75,3 +75,33 @@ test('queued writes preserve selection order and recover after failure', async (
   release(); await rejection; await second;
   assert.deepEqual(writes, ['orbit', 'archive']);
 });
+
+test('Reduce Transparency makes every glass role opaque, including form fields', async () => {
+  const { resolveMaterialAppearance } = await import('../src/theme/editions.ts');
+  for (const theme of Object.values(themes)) for (const role of ['card', 'input', 'navigation', 'modal']) {
+    const result = resolveMaterialAppearance(theme, role, { reduceTransparency: true, nativeGlass: true });
+    assert.equal(result.useGlass, false);
+    assert.match(result.style.backgroundColor, /^#[0-9a-f]{6}$/i);
+    assert.ok(contrast(theme.text, result.style.backgroundColor) >= 4.5);
+  }
+});
+test('native glass stays disabled for paper/archive and unavailable platforms', async () => {
+  const { resolveMaterialAppearance } = await import('../src/theme/editions.ts');
+  for (const theme of Object.values(themes)) {
+    const fallback = resolveMaterialAppearance(theme, 'input', { reduceTransparency: false, nativeGlass: false });
+    assert.equal(fallback.useGlass, false);
+    const native = resolveMaterialAppearance(theme, 'navigation', { reduceTransparency: false, nativeGlass: true });
+    assert.equal(native.useGlass, !['archive', 'tactile'].includes(theme.id));
+  }
+  const orbit = resolveMaterialAppearance(themes.orbit, 'input', { reduceTransparency: false, nativeGlass: true });
+  const monolith = resolveMaterialAppearance(themes.monolith, 'input', { reduceTransparency: false, nativeGlass: true });
+  assert.notEqual(orbit.tint, monolith.tint);
+});
+test('input focus retains edition geometry and changes its visible boundary', async () => {
+  const { resolveMaterialAppearance } = await import('../src/theme/editions.ts');
+  for (const theme of Object.values(themes)) {
+    const result = resolveMaterialAppearance(theme, 'input', { reduceTransparency: false, focused: true });
+    assert.equal(result.style.borderColor, theme.chrome);
+    assert.equal(result.style.borderRadius, theme.materials.input.radius);
+  }
+});

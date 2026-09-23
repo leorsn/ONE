@@ -7,7 +7,7 @@ import { createThemeWriter, loadThemePreference } from '@/src/theme/preference';
 export type { ThemePreference } from '@/src/theme/editions';
 
 type ThemeContextValue = {
-  theme: NeverTheme; reduceTransparency: boolean; preference: ThemePreference; resolvedMode: 'light' | 'dark'; loaded: boolean;
+  theme: NeverTheme; reduceMotion: boolean; reduceTransparency: boolean; preference: ThemePreference; resolvedMode: 'light' | 'dark'; loaded: boolean;
   setPreference: (preference: ThemePreference) => Promise<void>;
 };
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -19,6 +19,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemMode = useColorScheme() === 'dark' ? 'dark' : 'light';
   const [preference, setPreferenceState] = useState<ThemePreference>('platinum');
   const [loaded, setLoaded] = useState(false);
+  const [reduceMotion, setReduceMotion] = useState(true);
+  useEffect(() => {
+    let active = true;
+    void AccessibilityInfo.isReduceMotionEnabled().then((value) => { if (active) setReduceMotion(value); }).catch(() => undefined);
+    const listener = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+    return () => { active = false; listener.remove(); };
+  }, []);
   const [reduceTransparency, setReduceTransparency] = useState(Platform.OS === 'ios');
   useEffect(() => {
     if (Platform.OS !== 'ios') return;
@@ -56,7 +63,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     void SystemUI.setBackgroundColorAsync(theme.background).catch(() => undefined);
   }, [loaded, preference, theme.mode, theme.background]);
   useEffect(() => { lastTheme = theme; }, [theme]);
-  const value = useMemo(() => ({ theme, reduceTransparency, preference, resolvedMode: theme.mode, loaded, setPreference }), [theme, reduceTransparency, preference, loaded, setPreference]);
+  const value = useMemo(() => ({ theme, reduceMotion, reduceTransparency, preference, resolvedMode: theme.mode, loaded, setPreference }), [theme, reduceMotion, reduceTransparency, preference, loaded, setPreference]);
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
 }
 export function useOptionalThemeContext() { return useContext(ThemeContext); }

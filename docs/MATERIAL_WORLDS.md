@@ -49,7 +49,7 @@ There is no separate Connected Apps route in this repository. Existing settings 
 
 ## Validation and limits
 
-- TypeScript, ESLint and all 160 Node tests pass (147 existing plus 13 theme tests), with none disabled or skipped.
+- TypeScript, ESLint and all 170 Node tests pass (147 existing plus 23 theme/material/render checks), with none disabled or skipped.
 - Tests cover all selections, System mapping, legacy/invalid defaults, complete semantic tokens, contrast ≥4.5:1 for primary/secondary/tertiary text on principal opaque surfaces and action labels, actual storage round trips, read failure, and ordered writes recovering after failure.
 - Navigation audit: 54 literal targets / 26 route paths; native configuration gate passes.
 - Web export and iOS Hermes export pass. The latter is a JavaScript build, not an Xcode/native build.
@@ -141,3 +141,21 @@ On device open Settings → Appearance and test all six editions on Home, Search
 - `src/ui/neverVisual.tsx`
 - `src/ui/primitives.tsx`
 - `tests/themes.test.mjs`
+
+## Follow-up polish — 2026-09-23
+
+- Search discovery/result/prompt tiles now use edition card geometry; Home quick actions and calendar controls use the same icon/selection shapes.
+- Capture metrics and calendar date headers can wrap on narrow devices and at larger text sizes. Month navigation text can shrink/wrap between its fixed 44-point buttons. Selected-date counts no longer say “today” when another date is selected.
+- Preview swatches reserve sufficient height for two-line headings, and selection outlines keep constant width to avoid layout movement.
+- A single provider subscription now handles Reduce Motion for navigation, onboarding, Ask and press animations. Enabling it cancels an active press spring immediately.
+- `resolveMaterialAppearance` centralizes focus, opaque accessibility fallback and native glass tint. Form fields respect Reduce Transparency as well as standalone material surfaces. Monolith and Orbit glass use distinct subtle tint tokens.
+- Added production-component render smoke checks using React's web server renderer, with native-only capabilities explicitly stubbed. These assert all six previews/materials/fields and the System preview render, but do not establish native behavior, browser layout measurements or draft retention across a live switch.
+- Verification: 170 tests pass; TypeScript, lint, navigation and native configuration checks pass. Web/iOS JavaScript exports pass. Existing native build/icon and physical-device limitations remain.
+
+For a first appearance test using an **already installed compatible NEVER development client**, after checking out this branch and running `npm ci`:
+
+```sh
+npx expo start --dev-client --clear
+```
+
+Open the development server in the installed NEVER client on the iPhone. Both devices should be on the same network. This loads the JavaScript update; it does not validate a fresh native build or replace the full device acceptance checklist.
