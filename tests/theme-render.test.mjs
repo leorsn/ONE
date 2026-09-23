@@ -39,18 +39,24 @@ function loadComponents(theme, reduced) {
   return {
     ...load(path.join(root, 'src/ui/ThemePreview.tsx')),
     ...load(path.join(root, 'src/ui/material.tsx')),
-    ...load(path.join(root, 'src/ui/NeverInput.tsx'))
+    ...load(path.join(root, 'src/ui/NeverInput.tsx')),
+    ...load(path.join(root, 'src/ui/NeverNotice.tsx'))
   };
 }
-for (const theme of Object.values(themes)) test(`${theme.id} production preview, material and field render in both transparency modes`, () => {
+for (const theme of Object.values(themes)) test(`${theme.id} production preview, materials, notice and field render in both transparency modes`, () => {
   for (const reduced of [false, true]) {
-    const { ThemePreview, NeverMaterial, NeverInput } = loadComponents(theme, reduced);
+    const { ThemePreview, NeverMaterial, NeverInput, NeverNotice } = loadComponents(theme, reduced);
     const markup = renderToStaticMarkup(React.createElement(React.Fragment, null,
       React.createElement(ThemePreview, { preference: theme.id }),
-      React.createElement(NeverMaterial, { role: 'input' }, React.createElement(NeverInput, { accessibilityLabel: 'Capture', value: 'Unsent draft', onChangeText() {}, style: { backgroundColor: theme.fill } }))
+      React.createElement(NeverMaterial, { role: 'card' }, React.createElement('span', null, 'Material card')),
+      React.createElement(NeverMaterial, { role: 'input' }, React.createElement(NeverInput, { accessibilityLabel: 'Capture', value: 'Unsent draft', onChangeText() {}, style: { backgroundColor: theme.fill } })),
+      React.createElement(NeverNotice, { title: 'Status check', body: 'Shared material notice' })
     ));
     assert.match(markup, /NEVER/);
+    assert.match(markup, /Material card/);
     assert.match(markup, /Unsent draft/);
+    assert.match(markup, /Status check/);
+    assert.match(markup, /Shared material notice/);
     assert.match(markup, /aria-label="Capture"/);
     assert.doesNotMatch(markup, /NaN/);
   }
