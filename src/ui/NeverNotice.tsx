@@ -11,18 +11,20 @@ export function NeverNotice({ title, body, tone = 'neutral', action, onAction }:
   const color = tone === 'error' ? t.danger : tone === 'success' ? t.success : t.chrome;
   const iconFill = tone === 'error' ? t.dangerSoft : tone === 'success' ? t.successSoft : t.accentSoft;
   const iconBorder = tone === 'error' ? t.danger : tone === 'success' ? t.success : t.border;
-  return <NeverMaterial style={styles.notice}>
-    <View style={styles.heading}>
-      <View style={[styles.iconWell, { borderRadius: t.radius.icon, backgroundColor: iconFill, borderColor: iconBorder }]}> 
-        {tone === 'busy' ? <ActivityIndicator color={color} /> : <OneIcon name={tone === 'success' ? icons.check : icons.info} color={color} size={18} />}
+  return <View accessibilityLiveRegion="polite">
+    <NeverMaterial style={styles.notice}>
+      <View style={styles.heading}>
+        <View style={[styles.iconWell, { borderRadius: t.radius.icon, backgroundColor: iconFill, borderColor: iconBorder }]}> 
+          {tone === 'busy' ? <ActivityIndicator color={color} /> : <OneIcon name={tone === 'success' ? icons.check : icons.info} color={color} size={18} />}
+        </View>
+        <View style={styles.copy}>
+          <Text accessibilityRole={tone === 'error' ? 'alert' : undefined} style={[styles.title, { color: t.text }]}>{title}</Text>
+          {body ? <Text style={[styles.body, { color: t.textSecondary }]}>{body}</Text> : null}
+        </View>
       </View>
-      <View style={styles.copy}>
-        <Text accessibilityRole={tone === 'error' ? 'alert' : undefined} style={[styles.title, { color: t.text }]}>{title}</Text>
-        {body ? <Text style={[styles.body, { color: t.textSecondary }]}>{body}</Text> : null}
-      </View>
-    </View>
-    {action && onAction ? <Pressable accessibilityRole="button" onPress={onAction} style={({ pressed }) => [styles.action, { opacity: pressed ? 0.6 : 1 }]}><Text style={[styles.actionText, { color }]}>{action}</Text></Pressable> : null}
-  </NeverMaterial>;
+      {action && onAction ? <Pressable accessibilityRole="button" onPress={onAction} style={({ pressed }) => [styles.action, { opacity: pressed ? 0.6 : 1 }]}><Text style={[styles.actionText, { color }]}>{action}</Text></Pressable> : null}
+    </NeverMaterial>
+  </View>;
 }
 const styles = StyleSheet.create({
   notice: { padding: 16 },
