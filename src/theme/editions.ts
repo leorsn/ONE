@@ -89,7 +89,7 @@ function edition(id: ThemeId, name: string, descriptor: string, mode: 'light' | 
 export const themes: Record<ThemeId, NeverTheme> = {
   platinum: edition('platinum', 'Platinum', 'Clean. Refined. Universal.', 'light', {
     ...lightTheme,
-    background: '#ECEDEB', surface: '#F7F7F4EE', surfaceElevated: '#FCFCFA', fill: '#E7E9E8', fillStrong: '#D5DADC',
+    background: '#ECEDEB', surface: '#F7F7F4', surfaceElevated: '#FCFCFA', fill: '#E7E9E8', fillStrong: '#D5DADC',
     text: '#171B1E', textSecondary: '#5A646B', textTertiary: '#768087', border: '#C9CFD1', accent: '#303A40', accentSoft: '#E3E7E8',
     onAccent: '#FFFFFF', chrome: '#65727A', chromeSoft: '#E8ECEC', platinum: '#8C979D', platinumSoft: '#EEF0F0',
     glass: '#F8F8F4D6', glassStrong: '#F6F7F4E8', glassBorder: '#FFFFFFD9', reflection: '#FFFFFFC9', shadow: '#667078'
@@ -100,7 +100,7 @@ export const themes: Record<ThemeId, NeverTheme> = {
 
   monolith: edition('monolith', 'Monolith', 'Bold. Minimal. Timeless.', 'dark', {
     ...darkTheme,
-    background: '#070809', surface: '#151719EE', surfaceElevated: '#202326', fill: '#24272A', fillStrong: '#34383C',
+    background: '#070809', surface: '#151719', surfaceElevated: '#202326', fill: '#24272A', fillStrong: '#34383C',
     text: '#F4F5F5', textSecondary: '#B2B7BB', textTertiary: '#8F969C', border: '#34383C', accent: '#E6EAEC', accentSoft: '#24282B',
     onAccent: '#111315', chrome: '#C8CED2', chromeSoft: '#2B3034', glass: '#191C1FDE', glassStrong: '#191C1FF2', glassBorder: '#F0F3F52B', reflection: '#FFFFFF1F', shadow: '#000000'
   }, {
@@ -110,7 +110,7 @@ export const themes: Record<ThemeId, NeverTheme> = {
 
   aurora: edition('aurora', 'Aurora', 'Fluid. Modern. Alive.', 'light', {
     ...lightTheme,
-    background: '#DCE8F6', surface: '#EEF5FCEB', surfaceElevated: '#FAFCFF', fill: '#D9E5F4', fillStrong: '#C1D3E8',
+    background: '#DCE8F6', surface: '#EEF5FC', surfaceElevated: '#FAFCFF', fill: '#D9E5F4', fillStrong: '#C1D3E8',
     text: '#182944', textSecondary: '#506783', textTertiary: '#6A7E97', border: '#C2D2E6', accent: '#36577D', accentSoft: '#D7E6F7',
     onAccent: '#FFFFFF', chrome: '#55779C', chromeSoft: '#D9E7F5', glass: '#F5FAFFD1', glassStrong: '#F3F8FFE8', glassBorder: '#FFFFFFF0', reflection: '#FFFFFFE5', shadow: '#5B78A0'
   }, {
@@ -131,7 +131,7 @@ export const themes: Record<ThemeId, NeverTheme> = {
 
   orbit: edition('orbit', 'Orbit', 'Dynamic. Visual. Intuitive.', 'dark', {
     ...darkTheme,
-    background: '#050C14', surface: '#101D2AEF', surfaceElevated: '#192B3D', fill: '#1D3247', fillStrong: '#294A68',
+    background: '#050C14', surface: '#101D2A', surfaceElevated: '#192B3D', fill: '#1D3247', fillStrong: '#294A68',
     text: '#F2F7FC', textSecondary: '#B3C9DF', textTertiary: '#8EABC6', border: '#31506D', accent: '#BFDDFC', accentSoft: '#1F3D57',
     onAccent: '#0B2237', chrome: '#88BAE8', chromeSoft: '#203B53', glass: '#11273BDD', glassStrong: '#11273BF2', glassBorder: '#A8D5FF42', reflection: '#D4EBFF52', shadow: '#02060B'
   }, {
@@ -141,7 +141,7 @@ export const themes: Record<ThemeId, NeverTheme> = {
 
   tactile: edition('tactile', 'Tactile', 'Warm. Real. Personal.', 'light', {
     ...lightTheme,
-    background: '#E8DDCB', surface: '#F2E9DCEE', surfaceElevated: '#FBF4E9', fill: '#DFD1BC', fillStrong: '#C8B79C',
+    background: '#E8DDCB', surface: '#F2E9DC', surfaceElevated: '#FBF4E9', fill: '#DFD1BC', fillStrong: '#C8B79C',
     text: '#342A22', textSecondary: '#665847', textTertiary: '#7A6955', border: '#C7B69D', accent: '#675541', accentSoft: '#E2D5C3',
     onAccent: '#FFF9F0', chrome: '#816C54', chromeSoft: '#E2D7C7', platinum: '#9D896F', platinumSoft: '#EEE4D6',
     glass: '#F1E7D8', glassStrong: '#F1E7D8', glassBorder: '#FFF8EC', reflection: '#FFF8EA73', shadow: '#5E4B37'
