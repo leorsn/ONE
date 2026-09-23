@@ -19,18 +19,32 @@ function Miniature({ theme: t, half = false }: { theme: NeverTheme; half?: boole
     <ThemeBackdrop theme={t} preview />
     <Text allowFontScaling={false} style={[styles.brand, { color: t.text, letterSpacing: half ? 1 : 3 }]}>NEVER</Text>
     <Text allowFontScaling={false} numberOfLines={2} style={[styles.greeting, { color: t.text, ...t.typography.heading }]}>Capture today.</Text>
-    <View style={[styles.capture, { backgroundColor: t.materials.input.color, borderColor: t.materials.input.border, borderRadius: t.radius.card / 2, ...t.materials.input.shadow }]}>
+    <View style={[styles.capture, {
+      backgroundColor: t.materials.input.color,
+      borderColor: t.materials.input.border,
+      borderRadius: Math.max(5, t.materials.input.radius / 2),
+      ...t.materials.input.shadow
+    }]}>
       <View style={[styles.captureButton, { borderRadius: Math.min(9, t.radius.icon), backgroundColor: t.accent }]}>
         <Text allowFontScaling={false} style={{ color: t.onAccent, fontSize: 14, lineHeight: 16 }}>+</Text>
       </View>
       {!half ? <View style={[styles.line, { backgroundColor: t.textSecondary, width: '58%' }]} /> : null}
     </View>
-    <View style={styles.tiles}>{[0, 1].map((key) => <View key={key} style={[styles.tile, { borderRadius: t.radius.card / 2, backgroundColor: t.materials.card.color, borderColor: t.materials.card.border, ...t.materials.card.shadow }]}>
+    <View style={styles.tiles}>{[0, 1].map((key) => <View key={key} style={[styles.tile, {
+      borderRadius: Math.max(4, t.materials.card.radius / 2),
+      backgroundColor: t.materials.card.color,
+      borderColor: t.materials.card.border,
+      ...t.materials.card.shadow
+    }]}>
       <View style={[styles.tileGlyph, { borderRadius: t.radius.icon === 999 ? 9 : 3, backgroundColor: t.accentSoft, borderColor: t.border }]} />
       <View style={[styles.line, { backgroundColor: t.textSecondary, width: '60%' }]} />
     </View>)}</View>
     <View style={[styles.list, { borderColor: t.border }]}><View style={[styles.thumbnail, { backgroundColor: t.fillStrong }]} /><View style={[styles.line, { backgroundColor: t.textSecondary }]} /></View>
-    <View style={[styles.dock, { backgroundColor: t.materials.navigation.color, borderColor: t.materials.navigation.border, borderRadius: t.radius.card / 2 }]}>
+    <View style={[styles.dock, {
+      backgroundColor: t.materials.navigation.color,
+      borderColor: t.materials.navigation.border,
+      borderRadius: Math.max(5, t.materials.navigation.radius / 2)
+    }]}>
       {[0, 1, 2, 3].map((key) => <View key={key} style={[styles.dockDot, { borderRadius: t.radius.icon === 999 ? 6 : 2, backgroundColor: key === 0 ? t.accent : t.textTertiary }]} />)}
     </View>
   </View>;
@@ -51,5 +65,9 @@ const styles = StyleSheet.create({
   dock: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', height: 22, borderWidth: 0.5, marginTop: 'auto' },
   dockDot: { width: 6, height: 6 },
   system: { flexDirection: 'row', height: 244, overflow: 'hidden' },
-  systemLabel: { position: 'absolute', alignSelf: 'center', left: '20%', right: '20%', bottom: 44, alignItems: 'center', padding: 6, borderRadius: 12, backgroundColor: themes.platinum.surface }
+  systemLabel: {
+    position: 'absolute', alignSelf: 'center', left: '20%', right: '20%', bottom: 44,
+    alignItems: 'center', padding: 6, borderRadius: 12,
+    backgroundColor: themes.platinum.materials.card.color
+  }
 });
