@@ -59,14 +59,15 @@ export function NeverCommandBar({
       style={({ pressed }) => [
         styles.commandBar,
         {
-          backgroundColor: theme.surface,
-          borderColor: theme.border,
+          backgroundColor: theme.materials.card.color,
+          borderColor: theme.materials.card.border,
+          borderRadius: theme.radius.card,
           opacity: pressed ? 0.62 : 1
         }
       ]}
     >
-      <View style={[styles.commandGlyph, { backgroundColor: theme.accentSoft, borderRadius: theme.radius.icon }]}>
-        <OneIcon name={icons.ask} size={15} color={theme.accent} />
+      <View style={[styles.commandGlyph, { backgroundColor: theme.accentSoft, borderColor: theme.border, borderRadius: theme.radius.icon }]}>
+        <OneIcon name={icons.ask} size={15} color={theme.chrome} />
       </View>
       <View style={styles.commandCopy}>
         <Text style={[styles.commandLabel, { color: theme.text }]}>{label}</Text>
@@ -108,7 +109,7 @@ export function NeverChromeButton({
         compact && styles.primaryButtonCompact,
         {
           backgroundColor: theme.accent,
-          borderColor: theme.accent,
+          borderColor: theme.mode === 'dark' ? theme.glassBorder : theme.accent,
           borderRadius: theme.radius.button,
           opacity: disabled || busy ? 0.32 : pressed ? 0.72 : 1
         }
@@ -144,7 +145,7 @@ export function NeverIconButton({
         styles.iconButton,
         {
           borderRadius: theme.radius.icon,
-          backgroundColor: filled ? theme.accent : theme.fill,
+          backgroundColor: filled ? theme.accent : theme.accentSoft,
           borderColor: filled ? theme.accent : theme.border,
           opacity: pressed ? 0.58 : 1
         }
@@ -196,7 +197,6 @@ const styles = StyleSheet.create({
   },
   commandBar: {
     minHeight: 68,
-    borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 14,
     flexDirection: 'row',
@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   commandGlyph: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -242,7 +242,6 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
     borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center'
