@@ -130,7 +130,7 @@ export default function SettingsV5() {
           <NeverHeroSurface style={styles.profileStage}>
             <Pressable accessibilityRole="button"
               onPress={() => router.push('/settings/privacy')}
-              style={({ pressed }) => [styles.profileTop, { opacity: pressed ? 0.66 : 1 }]}
+              style={({ pressed }) => [styles.profileTop, pressed ? { backgroundColor: p.fillSoft, borderRadius: p.radius.card } : null]}
             >
               <View style={[styles.avatar, { borderRadius: p.radius.icon, backgroundColor: p.graphite, borderColor: p.graphite }]}> 
                 {initials ? <Text style={[styles.avatarText, { color: p.onAccent }]}>{initials}</Text> : <OneIcon name={icons.person} size={24} color={p.onAccent} />}
@@ -169,7 +169,7 @@ export default function SettingsV5() {
             <Text style={[styles.sectionMeta, { color: p.tertiary }]}>{isBetaAccess ? 'BETA' : 'NEVER'}</Text>
           </View>
           <NeverHeroSurface compact>
-            <Pressable accessibilityRole="button" onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.membershipRow, { opacity: pressed ? 0.65 : 1 }]}> 
+            <Pressable accessibilityRole="button" onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.membershipRow, pressed ? { backgroundColor: p.fillSoft } : null]}> 
               <View style={[styles.membershipIcon, { borderRadius: p.radius.icon, backgroundColor: p.graphite, borderColor: p.graphite }]}> 
                 <OneIcon name={icons.crown} size={18} color={p.onAccent} />
               </View>
@@ -291,7 +291,11 @@ function PreferenceTile({
   );
   if (!onPress) return <View style={[styles.preferenceTile, p.cardStyle]}>{body}</View>;
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.preferenceTile, p.cardStyle, { opacity: pressed ? 0.65 : 1 }]}> 
+    <Pressable
+      accessibilityRole="button"
+      onPress={onPress}
+      style={({ pressed }) => [styles.preferenceTile, p.cardStyle, pressed ? { backgroundColor: p.fillSoft, borderColor: p.chrome } : null]}
+    > 
       {body}
     </Pressable>
   );
