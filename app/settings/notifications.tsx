@@ -90,7 +90,11 @@ export default function NotificationSettingsScreen() {
             ) : permission === 'granted' ? (
               <View style={styles.statusWrap}><View style={[styles.statusDot, { backgroundColor: p.success }]} /><Text style={[styles.statusText, { color: p.secondary }]}>On</Text></View>
             ) : permission !== 'unsupported' ? (
-              <Pressable accessibilityRole="button" onPress={() => void handlePermissionAction()} style={({ pressed }) => [styles.enableButton, { borderRadius: p.radius.button, backgroundColor: p.fillSoft, borderColor: p.border, opacity: pressed ? 0.62 : 1 }]}>
+              <Pressable accessibilityRole="button" onPress={() => void handlePermissionAction()} style={({ pressed }) => [styles.enableButton, {
+                borderRadius: p.radius.button,
+                backgroundColor: pressed ? p.fill : p.fillSoft,
+                borderColor: pressed ? p.chrome : p.border
+              }]}>
                 <Text style={[styles.enableText, { color: p.label }]}>{permission === 'denied' ? 'Settings' : 'Enable'}</Text>
               </Pressable>
             ) : null}
@@ -99,21 +103,35 @@ export default function NotificationSettingsScreen() {
 
         {saving ? <NeverNotice tone="busy" title="Saving reminder timing…" /> : null}
         <NeverSettingsSection title="Default Timing">
-          {leadOptions.map((option, index) => {
-            const active = leadMinutes === option.value;
-            return (
-              <Pressable key={option.value} accessibilityRole="radio" disabled={saving || !preferencesReady} accessibilityState={{ checked: active, disabled: saving || !preferencesReady, busy: saving }} onPress={() => void chooseLead(option.value)} style={({ pressed }) => [styles.optionRow, index < leadOptions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
-                <View style={[styles.rowIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><OneIcon name={icons.clock} size={15} color={p.chrome} /></View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.optionLabel, { color: p.label }]}>{option.label}</Text>
-                  <Text style={[styles.optionDetail, { color: p.secondary }]}>{option.detail}</Text>
-                </View>
-                <View style={[styles.radio, { borderColor: active ? p.graphite : p.tertiary, backgroundColor: active ? p.graphite : 'transparent' }]}>
-                  {active ? <View style={[styles.radioInner, { backgroundColor: p.onAccent }]} /> : null}
-                </View>
-              </Pressable>
-            );
-          })}
+          <View accessibilityRole="radiogroup" accessibilityLabel="Default reminder timing">
+            {leadOptions.map((option, index) => {
+              const active = leadMinutes === option.value;
+              const disabled = saving || !preferencesReady;
+              return (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="radio"
+                  disabled={disabled}
+                  accessibilityState={{ checked: active, disabled, busy: saving }}
+                  onPress={() => void chooseLead(option.value)}
+                  style={({ pressed }) => [
+                    styles.optionRow,
+                    index < leadOptions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth },
+                    { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: disabled ? 0.55 : 1 }
+                  ]}
+                >
+                  <View style={[styles.rowIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><OneIcon name={icons.clock} size={15} color={p.chrome} /></View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.optionLabel, { color: p.label }]}>{option.label}</Text>
+                    <Text style={[styles.optionDetail, { color: p.secondary }]}>{option.detail}</Text>
+                  </View>
+                  <View style={[styles.radio, { borderColor: active ? p.graphite : p.tertiary, backgroundColor: active ? p.graphite : 'transparent' }]}>
+                    {active ? <View style={[styles.radioInner, { backgroundColor: p.onAccent }]} /> : null}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
         </NeverSettingsSection>
 
         <View style={styles.note}><OneIcon name={icons.bell} size={12.5} color={p.chrome} /><Text style={[styles.noteText, { color: p.tertiary }]}>This timing is applied when a reminder is newly scheduled or edited. Individual items can still use their own reminder details.</Text></View>
