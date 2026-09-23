@@ -120,13 +120,13 @@ export const themes: Record<ThemeId, NeverTheme> = {
 
   archive: edition('archive', 'Archive', 'Structured. Focused. Efficient.', 'light', {
     ...lightTheme,
-    background: '#E3E7E1', surface: '#F1F4EF', surfaceElevated: '#F8FAF6', fill: '#DCE3DA', fillStrong: '#C5D0C3',
-    text: '#1E2721', textSecondary: '#526157', textTertiary: '#5A685F', border: '#BFCBC1', accent: '#30483A', accentSoft: '#D6E1D8',
-    onAccent: '#F9FCF8', chrome: '#60776A', chromeSoft: '#DCE5DE', platinum: '#829188', platinumSoft: '#E8EDE9',
-    glass: '#EFF3EE', glassStrong: '#EFF3EE', glassBorder: '#BFCBC1', reflection: '#FFFFFF00', shadow: '#35443A'
+    background: '#D9E0DD', surface: '#EEF2F0', surfaceElevated: '#F8FAF8', fill: '#CFD9D3', fillStrong: '#B7C5BC',
+    text: '#18231D', textSecondary: '#495B50', textTertiary: '#56685D', border: '#AEBDB4', accent: '#244435', accentSoft: '#CDDCD3',
+    onAccent: '#F8FCF9', chrome: '#526E60', chromeSoft: '#D8E2DC', platinum: '#778980', platinumSoft: '#E5EAE7',
+    glass: '#EFF3F1', glassStrong: '#EFF3F1', glassBorder: '#AEBDB4', reflection: '#FFFFFF00', shadow: '#2F4037'
   }, {
-    radius: 8, glass: false, depth: 0, blurRadius: 0, offset: 0, light: '#FFFFFF00', shade: '#30483A0A', heading: { letterSpacing: -0.55 },
-    material: { card: '#F3F5F1F5', input: '#E7ECE6', navigation: '#EDF1ECF7', modal: '#F8FAF6' }
+    radius: 8, glass: false, depth: 0, blurRadius: 0, offset: 0, light: '#FFFFFF00', shade: '#2444350A', heading: { letterSpacing: -0.55 },
+    material: { card: '#F0F3F1F7', input: '#DEE6E1', navigation: '#E6ECE8F8', modal: '#F8FAF8' }
   }),
 
   orbit: edition('orbit', 'Orbit', 'Dynamic. Visual. Intuitive.', 'dark', {
