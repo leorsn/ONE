@@ -1,7 +1,7 @@
 import { NeverNotice } from '@/src/ui/NeverNotice';
 import { goBackOrHome } from '@/src/ui/navigation';
 import { NeverSettingsSection, NeverNavigation } from '@/src/ui/utility';
-import { themeIds, themes, appearanceLabel } from '@/src/theme/editions';
+import { themeIds, themes, appearanceLabel, resolveMaterialAppearance } from '@/src/theme/editions';
 import { ThemePreview } from '@/src/ui/ThemePreview';
 import { neverType } from '@/src/theme/tokens';
 import { useRef, useState } from 'react';
@@ -23,7 +23,7 @@ export default function AppearanceScreen() {
   const p = useNeverV5Palette();
   const { fontScale, width } = useWindowDimensions();
   const singleColumn = fontScale > 1.3 || width < 340;
-  const { preference, setPreference } = useThemePreference();
+  const { preference, setPreference, reduceTransparency } = useThemePreference();
   const [appIcon, setAppIcon] = useState<NeverAppIconName>(() => getNeverAppIcon());
   const [iconError, setIconError] = useState<string | null>(null);
   const canSwitchAppIcon = supportsNeverAppIcons();
@@ -70,8 +70,9 @@ export default function AppearanceScreen() {
             const name = appearanceLabel(value);
             const optionTheme = value === 'system' ? null : themes[value];
             const descriptor = value === 'system' ? 'Adapts automatically.' : optionTheme!.descriptor;
-            const optionSurface = optionTheme?.materials.card.color ?? p.surface;
-            const optionBorder = active ? (optionTheme?.accent ?? p.graphite) : (optionTheme?.materials.card.border ?? p.border);
+            const optionAppearance = optionTheme ? resolveMaterialAppearance(optionTheme, 'card', { reduceTransparency }) : null;
+            const optionSurface = optionAppearance?.style.backgroundColor ?? p.surface;
+            const optionBorder = active ? (optionTheme?.accent ?? p.graphite) : (optionAppearance?.style.borderColor ?? p.border);
             const optionText = optionTheme?.text ?? p.label;
             const optionSecondary = optionTheme?.textSecondary ?? p.secondary;
             const optionTertiary = optionTheme?.textTertiary ?? p.tertiary;
