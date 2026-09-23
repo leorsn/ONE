@@ -69,6 +69,14 @@ for (const theme of Object.values(themes)) test(`${theme.id} production preview,
     assert.doesNotMatch(markup, /NaN/);
   }
 });
+test('explicit Material World geometry overrides the shared material default', () => {
+  const { NeverMaterial } = loadComponents(themes.archive, false);
+  const markup = renderToStaticMarkup(
+    React.createElement(NeverMaterial, { role: 'card', style: { borderRadius: 3 } }, React.createElement('span', null, 'Custom geometry'))
+  );
+  assert.match(markup, /Custom geometry/);
+  assert.match(markup, /border-radius:3px/);
+});
 test('System preview renders both material editions together', () => {
   const { ThemePreview } = loadComponents(themes.platinum, false);
   const markup = renderToStaticMarkup(React.createElement(ThemePreview, { preference: 'system' }));
