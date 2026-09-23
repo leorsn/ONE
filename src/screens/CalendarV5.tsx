@@ -6,6 +6,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { NeverScreen } from '@/src/ui/NeverScreen';
+import { neverType } from '@/src/theme/tokens';
 import { useItems } from '@/src/context/ItemsContext';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
@@ -272,7 +273,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 26, paddingBottom: 126, gap: 26 },
   heroCopy: { gap: 5 },
-  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
+  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: neverType.hero.fontFamily, fontWeight: '400', letterSpacing: -1.35 },
   heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
   calendarStage: { padding: 16, gap: 14 },
   dateHero: { minHeight: 104, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 14 },
