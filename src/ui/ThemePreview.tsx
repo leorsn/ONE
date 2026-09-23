@@ -1,31 +1,38 @@
 import { memo } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { themes, type NeverTheme, type ThemePreference } from '@/src/theme/editions';
+import { resolveMaterialAppearance, themes, type NeverTheme, type ThemePreference } from '@/src/theme/editions';
+import { useThemePreference } from '@/src/theme/useTheme';
 import { ThemeBackdrop } from './ThemeBackdrop';
 import { editorialFontFamily } from '@/src/theme/typography';
 
 /** A lightweight live material swatch, drawn from the same registry as the app. */
 export const ThemePreview = memo(function ThemePreview({ preference }: { preference: ThemePreference }) {
+  const { reduceTransparency } = useThemePreference();
+  const systemCard = resolveMaterialAppearance(themes.platinum, 'card', { reduceTransparency });
+
   if (preference === 'system') return <View style={styles.system}>
-    <Miniature theme={themes.platinum} half />
-    <Miniature theme={themes.monolith} half />
-    <View style={styles.systemLabel}><Text allowFontScaling={false} style={{ color: themes.platinum.text, fontSize: 11, fontWeight: '600' }}>Light / Dark</Text></View>
+    <Miniature theme={themes.platinum} reduceTransparency={reduceTransparency} half />
+    <Miniature theme={themes.monolith} reduceTransparency={reduceTransparency} half />
+    <View style={[styles.systemLabel, { backgroundColor: systemCard.style.backgroundColor }]}><Text allowFontScaling={false} style={{ color: themes.platinum.text, fontSize: 11, fontWeight: '600' }}>Light / Dark</Text></View>
   </View>;
-  return <Miniature theme={themes[preference]} />;
+  return <Miniature theme={themes[preference]} reduceTransparency={reduceTransparency} />;
 });
 
-function Miniature({ theme: t, half = false }: { theme: NeverTheme; half?: boolean }) {
+function Miniature({ theme: t, reduceTransparency, half = false }: { theme: NeverTheme; reduceTransparency: boolean; half?: boolean }) {
   const miniatureIconRadius = Math.min(6, Math.max(2, t.radius.icon / 2));
   const miniatureChipRadius = Math.min(3, Math.max(1, t.radius.chip / 4));
   const miniatureThumbRadius = Math.min(5, Math.max(2, t.radius.icon / 3));
+  const inputAppearance = resolveMaterialAppearance(t, 'input', { reduceTransparency });
+  const cardAppearance = resolveMaterialAppearance(t, 'card', { reduceTransparency });
+  const navigationAppearance = resolveMaterialAppearance(t, 'navigation', { reduceTransparency });
 
   return <View accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.preview, half && { flex: 1 }, { backgroundColor: t.background }]}>
     <ThemeBackdrop theme={t} preview />
     <Text allowFontScaling={false} style={[styles.brand, { color: t.text, letterSpacing: half ? 1 : 3 }]}>NEVER</Text>
     <Text allowFontScaling={false} numberOfLines={2} style={[styles.greeting, { color: t.text, ...t.typography.heading }]}>Capture today.</Text>
     <View style={[styles.capture, {
-      backgroundColor: t.materials.input.color,
-      borderColor: t.materials.input.border,
+      backgroundColor: inputAppearance.style.backgroundColor,
+      borderColor: inputAppearance.style.borderColor,
       borderRadius: Math.max(5, t.materials.input.radius / 2),
       ...t.materials.input.shadow
     }]}>
@@ -36,8 +43,8 @@ function Miniature({ theme: t, half = false }: { theme: NeverTheme; half?: boole
     </View>
     <View style={styles.tiles}>{[0, 1].map((key) => <View key={key} style={[styles.tile, {
       borderRadius: Math.max(4, t.materials.card.radius / 2),
-      backgroundColor: t.materials.card.color,
-      borderColor: t.materials.card.border,
+      backgroundColor: cardAppearance.style.backgroundColor,
+      borderColor: cardAppearance.style.borderColor,
       ...t.materials.card.shadow
     }]}>
       <View style={[styles.tileGlyph, { borderRadius: miniatureIconRadius, backgroundColor: t.accentSoft, borderColor: t.border }]} />
@@ -45,8 +52,8 @@ function Miniature({ theme: t, half = false }: { theme: NeverTheme; half?: boole
     </View>)}</View>
     <View style={[styles.list, { borderColor: t.border }]}><View style={[styles.thumbnail, { borderRadius: miniatureThumbRadius, backgroundColor: t.fillStrong }]} /><View style={[styles.line, { backgroundColor: t.textSecondary }]} /></View>
     <View style={[styles.dock, {
-      backgroundColor: t.materials.navigation.color,
-      borderColor: t.materials.navigation.border,
+      backgroundColor: navigationAppearance.style.backgroundColor,
+      borderColor: navigationAppearance.style.borderColor,
       borderRadius: Math.max(5, t.materials.navigation.radius / 2)
     }]}>
       {[0, 1, 2, 3].map((key) => <View key={key} style={[styles.dockDot, { borderRadius: miniatureChipRadius, backgroundColor: key === 0 ? t.accent : t.textTertiary }]} />)}
@@ -71,7 +78,6 @@ const styles = StyleSheet.create({
   system: { flexDirection: 'row', height: 244, overflow: 'hidden' },
   systemLabel: {
     position: 'absolute', alignSelf: 'center', left: '20%', right: '20%', bottom: 44,
-    alignItems: 'center', padding: 6, borderRadius: 12,
-    backgroundColor: themes.platinum.materials.card.color
+    alignItems: 'center', padding: 6, borderRadius: 12
   }
 });
