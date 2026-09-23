@@ -34,22 +34,21 @@ export function NeverMaterial({ children, style, glass = false, role, focused = 
     <View style={[styles.surface, appearance.style, style]}>
       {appearance.useGlass ? (
         <GlassView
-          pointerEvents="none"
           colorScheme={resolvedMode}
           tintColor={appearance.tint}
           glassEffectStyle="regular"
-          style={[StyleSheet.absoluteFill, { borderRadius: effectiveRadius, overflow: 'hidden' }]}
+          style={[StyleSheet.absoluteFill, { pointerEvents: 'none', borderRadius: effectiveRadius, overflow: 'hidden' }]}
         />
       ) : null}
       {appearance.useGlass && theme.effects.reflection ? (
         <View
-          pointerEvents="none"
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
           style={[
             StyleSheet.absoluteFill,
             styles.glassEdge,
             {
+              pointerEvents: 'none',
               borderRadius: effectiveRadius,
               borderTopColor: theme.reflection,
               borderLeftColor: theme.reflection
@@ -59,10 +58,10 @@ export function NeverMaterial({ children, style, glass = false, role, focused = 
       ) : null}
       {theme.effects.texture ? (
         <View
-          pointerEvents="none"
           accessibilityElementsHidden
           importantForAccessibility="no-hide-descendants"
           style={{
+            pointerEvents: 'none',
             position: 'absolute',
             top: 1,
             left: 2,
