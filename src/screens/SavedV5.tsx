@@ -15,7 +15,7 @@ import {
 import { OneIcon, icons } from '@/src/ui/icons';
 import { MemoryRow } from '@/src/ui/MemoryRow';
 import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
-import { neverSpacing } from '@/src/theme/tokens';
+import { neverSpacing, neverType } from '@/src/theme/tokens';
 import {
   V5Group,
   V5SearchField,
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 126, gap: 26 },
   heroCopy: { gap: 5 },
-  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
+  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: neverType.hero.fontFamily, fontWeight: '400', letterSpacing: -1.35 },
   heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
   libraryStage: { padding: 17, gap: 14 },
   libraryTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
