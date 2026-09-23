@@ -92,7 +92,7 @@ export default function OnboardingScreen() {
           ))}
         </View>
 
-        <Pressable accessibilityRole="button" onPress={next} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
+        <Pressable accessibilityRole="button" onPress={next} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, borderColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
           <Text style={[styles.primaryText, { color: p.onAccent }]}>{index === slides.length - 1 ? 'Continue to NEVER' : 'Continue'}</Text>
           <OneIcon name={index === slides.length - 1 ? icons.check : icons.chevron} size={13.5} color={p.onAccent} />
         </Pressable>
@@ -101,7 +101,6 @@ export default function OnboardingScreen() {
       </View>
     </NeverScreen>
   );
-
 }
 
 function ProductVignette({ slide }: { slide: Slide }) {
@@ -115,11 +114,11 @@ function ProductVignette({ slide }: { slide: Slide }) {
 
       {slide.eyebrow === 'CAPTURE' ? (
         <View style={styles.vignetteBody}>
-          <View style={[styles.captureField, { backgroundColor: p.fillSoft }]}>
-            <View style={[styles.smallIcon, { backgroundColor: p.surface }]}><OneIcon name={icons.plus} size={14.5} color={p.chrome} /></View>
+          <View style={[styles.captureField, p.inputStyle]}>
+            <View style={[styles.smallIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><OneIcon name={icons.plus} size={14.5} color={p.chrome} /></View>
             <Text style={[styles.captureText, { color: p.label }]}>Dinner Friday at 8 in London</Text>
           </View>
-          <View style={[styles.resultCard, { backgroundColor: p.fillSoft }]}>
+          <View style={[styles.resultCard, { borderRadius: p.radius.card, backgroundColor: p.fillSoft, borderColor: p.border }]}>
             <View style={styles.resultTop}><OneIcon name={icons.check} size={13.5} color={p.success} /><Text style={[styles.resultEyebrow, { color: p.tertiary }]}>ORGANIZED</Text></View>
             <Text style={[styles.resultTitle, { color: p.label }]}>Dinner in London</Text>
             <View style={styles.detailRow}><Detail icon={icons.calendar} text="Friday" /><Detail icon={icons.reminder} text="20:00" /></View>
@@ -129,15 +128,15 @@ function ProductVignette({ slide }: { slide: Slide }) {
 
       {slide.eyebrow === 'SHARE' ? (
         <View style={styles.vignetteBody}>
-          <View style={[styles.sharedCard, { backgroundColor: p.fillSoft }]}>
-            <View style={[styles.sharedPreview, { backgroundColor: p.fill }]}><OneIcon name={icons.screenshot} size={22} color={p.chrome} /></View>
+          <View style={[styles.sharedCard, { borderRadius: p.radius.card, backgroundColor: p.fillSoft, borderColor: p.border }]}>
+            <View style={[styles.sharedPreview, { borderRadius: p.radius.icon, backgroundColor: p.fill, borderColor: p.border }]}><OneIcon name={icons.screenshot} size={22} color={p.chrome} /></View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.sharedLabel, { color: p.tertiary }]}>SHARED TO NEVER</Text>
               <Text style={[styles.sharedTitle, { color: p.label }]}>Flight confirmation</Text>
               <Text style={[styles.sharedMeta, { color: p.secondary }]}>Screenshot · Travel</Text>
             </View>
           </View>
-          <View style={[styles.contextLine, { backgroundColor: p.fillSoft }]}>
+          <View style={[styles.contextLine, { borderRadius: p.radius.button, backgroundColor: p.fillSoft, borderColor: p.border }]}>
             <OneIcon name={icons.travel} size={14.5} color={p.chrome} />
             <View style={{ flex: 1 }}><Text style={[styles.contextTitle, { color: p.label }]}>London → Hamburg</Text><Text style={[styles.contextMeta, { color: p.secondary }]}>23 Sep · 18:45 · BA</Text></View>
           </View>
@@ -146,8 +145,8 @@ function ProductVignette({ slide }: { slide: Slide }) {
 
       {slide.eyebrow === 'RECALL' ? (
         <View style={styles.vignetteBody}>
-          <View style={[styles.question, { backgroundColor: p.graphite }]}><Text style={[styles.questionText, { color: p.onAccent }]}>When is my London dinner?</Text></View>
-          <View style={[styles.answer, { backgroundColor: p.fillSoft }]}>
+          <View style={[styles.question, { borderRadius: p.radius.button, borderBottomRightRadius: Math.max(5, Math.round(p.radius.button * 0.35)), backgroundColor: p.graphite }]}><Text style={[styles.questionText, { color: p.onAccent }]}>When is my London dinner?</Text></View>
+          <View style={[styles.answer, { borderRadius: p.radius.card, backgroundColor: p.fillSoft, borderColor: p.border }]}>
             <View style={styles.answerHeader}><Text style={[styles.answerBrand, { color: p.chrome }]}>NEVER</Text><Text style={[styles.answerGrounded, { color: p.tertiary }]}>GROUNDED</Text></View>
             <Text style={[styles.answerText, { color: p.label }]}>Friday at 8:00 PM.</Text>
             <View style={[styles.sourceMini, { borderTopColor: p.separator }]}><OneIcon name={icons.document} size={12.5} color={p.chrome} /><Text style={[styles.sourceText, { color: p.secondary }]}>Dinner reservation · 1 source</Text></View>
@@ -176,27 +175,27 @@ const styles = StyleSheet.create({
   visualWordmark: { fontSize: 9.5, fontWeight: '700', letterSpacing: 2.7 },
   visualMeta: { fontSize: 7.5, fontWeight: '700', letterSpacing: 1.2 },
   vignetteBody: { flex: 1, justifyContent: 'center', gap: 10, paddingHorizontal: 1 },
-  captureField: { minHeight: 50, borderRadius: 14, paddingHorizontal: 9, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  smallIcon: { width: 30, height: 30, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  captureField: { minHeight: 50, paddingHorizontal: 9, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  smallIcon: { width: 30, height: 30, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   captureText: { flex: 1, fontSize: 12, lineHeight: 16, fontWeight: '500' },
-  resultCard: { borderRadius: 14, padding: 13 },
+  resultCard: { borderWidth: StyleSheet.hairlineWidth, padding: 13 },
   resultTop: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   resultEyebrow: { fontSize: 7.5, fontWeight: '700', letterSpacing: 1 },
   resultTitle: { marginTop: 8, fontSize: 15, lineHeight: 19, fontWeight: '600' },
   detailRow: { marginTop: 10, flexDirection: 'row', gap: 13 },
   detail: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   detailText: { fontSize: 10, lineHeight: 13 },
-  sharedCard: { minHeight: 78, borderRadius: 14, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  sharedPreview: { width: 54, height: 54, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  sharedCard: { minHeight: 78, borderWidth: StyleSheet.hairlineWidth, padding: 10, flexDirection: 'row', alignItems: 'center', gap: 10 },
+  sharedPreview: { width: 54, height: 54, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   sharedLabel: { fontSize: 7.5, fontWeight: '700', letterSpacing: 0.9 },
   sharedTitle: { marginTop: 4, fontSize: 13.5, lineHeight: 17, fontWeight: '600' },
   sharedMeta: { marginTop: 2, fontSize: 10, lineHeight: 13 },
-  contextLine: { minHeight: 58, borderRadius: 13, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
+  contextLine: { minHeight: 58, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
   contextTitle: { fontSize: 12, lineHeight: 15, fontWeight: '600' },
   contextMeta: { marginTop: 2, fontSize: 10, lineHeight: 13 },
-  question: { alignSelf: 'flex-end', maxWidth: '82%', borderRadius: 15, borderBottomRightRadius: 5, paddingHorizontal: 12, paddingVertical: 9 },
+  question: { alignSelf: 'flex-end', maxWidth: '82%', paddingHorizontal: 12, paddingVertical: 9 },
   questionText: { fontSize: 11.5, lineHeight: 16 },
-  answer: { borderRadius: 14, padding: 13 },
+  answer: { borderWidth: StyleSheet.hairlineWidth, padding: 13 },
   answerHeader: { flexDirection: 'row', alignItems: 'center' },
   answerBrand: { fontSize: 8, fontWeight: '700', letterSpacing: 1.1 },
   answerGrounded: { marginLeft: 'auto', fontSize: 7, fontWeight: '700', letterSpacing: 0.75 },
@@ -210,7 +209,7 @@ const styles = StyleSheet.create({
   bottom: { width: '100%', maxWidth: 500, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 8, gap: 12 },
   dots: { height: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
   dot: { height: 6, borderRadius: 3 },
-  primaryButton: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  primaryButton: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
   primaryText: { flexShrink: 1, textAlign: 'center', fontSize: 16, lineHeight: 22, fontWeight: '600' },
   privacy: { textAlign: 'center', ...neverType.caption }
 });
