@@ -1,5 +1,5 @@
-import type { OneItem } from '@/src/types/item';
-import { processItemIntelligence } from './pipeline';
+import type { OneItem } from '../types/item';
+import { processItemIntelligence } from './pipeline.ts';
 
 export const NEVER_INTELLIGENCE_VERSION = '1.0.0';
 const DEFAULT_MIGRATION_BATCH_SIZE = 50;
