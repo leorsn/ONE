@@ -8,7 +8,7 @@ import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { themes } from '../src/theme/editions.ts';
 
-const require = createRequire(import.meta.dirname, '..');
+const require = createRequire(import.meta.url);
 const root = path.resolve(import.meta.dirname, '..');
 const nativeWeb = require('react-native-web');
 
