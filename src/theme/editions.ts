@@ -90,7 +90,7 @@ export const themes: Record<ThemeId, NeverTheme> = {
   platinum: edition('platinum', 'Platinum', 'Clean. Refined. Universal.', 'light', {
     ...lightTheme,
     background: '#ECEDEB', surface: '#F7F7F4', surfaceElevated: '#FCFCFA', fill: '#E7E9E8', fillStrong: '#D5DADC',
-    text: '#171B1E', textSecondary: '#5A646B', textTertiary: '#768087', border: '#C9CFD1', accent: '#303A40', accentSoft: '#E3E7E8',
+    text: '#171B1E', textSecondary: '#5A646B', textTertiary: '#626C73', border: '#C9CFD1', accent: '#303A40', accentSoft: '#E3E7E8',
     onAccent: '#FFFFFF', chrome: '#65727A', chromeSoft: '#E8ECEC', platinum: '#8C979D', platinumSoft: '#EEF0F0',
     glass: '#F8F8F4D6', glassStrong: '#F6F7F4E8', glassBorder: '#FFFFFFD9', reflection: '#FFFFFFC9', shadow: '#667078'
   }, {
@@ -111,7 +111,7 @@ export const themes: Record<ThemeId, NeverTheme> = {
   aurora: edition('aurora', 'Aurora', 'Fluid. Modern. Alive.', 'light', {
     ...lightTheme,
     background: '#DCE8F6', surface: '#EEF5FC', surfaceElevated: '#FAFCFF', fill: '#D9E5F4', fillStrong: '#C1D3E8',
-    text: '#182944', textSecondary: '#506783', textTertiary: '#6A7E97', border: '#C2D2E6', accent: '#36577D', accentSoft: '#D7E6F7',
+    text: '#182944', textSecondary: '#506783', textTertiary: '#53677F', border: '#C2D2E6', accent: '#36577D', accentSoft: '#D7E6F7',
     onAccent: '#FFFFFF', chrome: '#55779C', chromeSoft: '#D9E7F5', glass: '#F5FAFFD1', glassStrong: '#F3F8FFE8', glassBorder: '#FFFFFFF0', reflection: '#FFFFFFE5', shadow: '#5B78A0'
   }, {
     radius: 26, glass: true, depth: 0.12, blurRadius: 24, offset: 7, light: '#FFFFFFB5', shade: '#8FADD23D', heading: { letterSpacing: -0.65 },
@@ -121,7 +121,7 @@ export const themes: Record<ThemeId, NeverTheme> = {
   archive: edition('archive', 'Archive', 'Structured. Focused. Efficient.', 'light', {
     ...lightTheme,
     background: '#E3E7E1', surface: '#F1F4EF', surfaceElevated: '#F8FAF6', fill: '#DCE3DA', fillStrong: '#C5D0C3',
-    text: '#1E2721', textSecondary: '#526157', textTertiary: '#6A796F', border: '#BFCBC1', accent: '#30483A', accentSoft: '#D6E1D8',
+    text: '#1E2721', textSecondary: '#526157', textTertiary: '#5A685F', border: '#BFCBC1', accent: '#30483A', accentSoft: '#D6E1D8',
     onAccent: '#F9FCF8', chrome: '#60776A', chromeSoft: '#DCE5DE', platinum: '#829188', platinumSoft: '#E8EDE9',
     glass: '#EFF3EE', glassStrong: '#EFF3EE', glassBorder: '#BFCBC1', reflection: '#FFFFFF00', shadow: '#35443A'
   }, {
@@ -142,7 +142,7 @@ export const themes: Record<ThemeId, NeverTheme> = {
   tactile: edition('tactile', 'Tactile', 'Warm. Real. Personal.', 'light', {
     ...lightTheme,
     background: '#E8DDCB', surface: '#F2E9DC', surfaceElevated: '#FBF4E9', fill: '#DFD1BC', fillStrong: '#C8B79C',
-    text: '#342A22', textSecondary: '#665847', textTertiary: '#7A6955', border: '#C7B69D', accent: '#675541', accentSoft: '#E2D5C3',
+    text: '#342A22', textSecondary: '#665847', textTertiary: '#6C5C4B', border: '#C7B69D', accent: '#675541', accentSoft: '#E2D5C3',
     onAccent: '#FFF9F0', chrome: '#816C54', chromeSoft: '#E2D7C7', platinum: '#9D896F', platinumSoft: '#EEE4D6',
     glass: '#F1E7D8', glassStrong: '#F1E7D8', glassBorder: '#FFF8EC', reflection: '#FFF8EA73', shadow: '#5E4B37'
   }, {
