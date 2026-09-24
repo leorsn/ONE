@@ -13,467 +13,65 @@ import { retrieveLocalOneItems, retrieveOneItems } from '@/src/search/retrieve';
 import { searchSemantically } from '@/src/search/semantic';
 import { matchesMemoryCategory } from '@/src/ui/memoryPresentation';
 import { MemoryRow } from '@/src/ui/MemoryRow';
-import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
-import { neverSpacing, neverType } from '@/src/theme/tokens';
 import { NeverChromeButton } from '@/src/ui/never';
-import { iconForType } from '@/src/ui/OneItemRow';
 import { OneIcon, icons } from '@/src/ui/icons';
-import {
-  V5Chevron,
-  V5Group,
-  V5SearchField,
-  V5SectionHeader,
-  V5Segmented,
-  V5Row,
-  useNeverV5Palette
-} from '@/src/ui/appleV5';
+import { V5Chevron, V5SearchField, V5Segmented, useNeverV5Palette } from '@/src/ui/appleV5';
+import { Pass3Divider, Pass3Section, Pass3TextAction } from '@/src/ui/pass3/Pass3Section';
+import { Pass3ScreenIntro } from '@/src/ui/pass3/Pass3ScreenIntro';
 import type { OneItem } from '@/src/types/item';
 
-type SearchMode = 'quick' | 'ask';
-type AskAnswer = { title: string; body: string; sourceIds: string[]; meta?: string; mode?: 'ai' | 'deterministic' };
-type SearchCategory = 'All' | 'Documents' | 'Links' | 'Ideas';
+type SearchMode='quick'|'ask';
+type AskAnswer={title:string;body:string;sourceIds:string[];meta?:string;mode?:'ai'|'deterministic'};
+type SearchCategory='All'|'Documents'|'Links'|'Ideas';
+const categories:SearchCategory[]=['All','Documents','Links','Ideas'];
 
-const categories: SearchCategory[] = ['All', 'Documents', 'Links', 'Ideas'];
+export default function SearchV5(){const{q}=useLocalSearchParams<{q?:string}>();const initialQuery=typeof q==='string'?q:'';return <SearchContent key={initialQuery} initialQuery={initialQuery}/>}
 
-export default function SearchV5() {
-  const { q } = useLocalSearchParams<{ q?: string }>();
-  const initialQuery = typeof q === 'string' ? q : '';
-  return <SearchContent key={initialQuery} initialQuery={initialQuery} />;
+function SearchContent({initialQuery}:{initialQuery:string}){
+ const p=useNeverV5Palette();const{session}=useAuth();const{items}=useItems();const{hasAi}=usePlan();
+ const[mode,setMode]=useState<SearchMode>('quick');const[query,setQuery]=useState(initialQuery);const[category,setCategory]=useState<SearchCategory>('All');const[recentSearches,setRecentSearches]=useState<string[]>([]);const requestVersion=useRef(0);const askingRef=useRef(false);const[asking,setAsking]=useState(false);const[answer,setAnswer]=useState<AskAnswer|null>(null);const[askError,setAskError]=useState<string|null>(null);
+ useEffect(()=>()=>{requestVersion.current+=1},[]);
+ const results=useMemo(()=>retrieveLocalOneItems(query,items.filter((item)=>matchesMemoryCategory(item,category)),{limit:18,recentWhenEmpty:true}),[query,items,category]);
+ const counts=useMemo(()=>({Documents:items.filter((i)=>matchesMemoryCategory(i,'Documents')).length,Links:items.filter((i)=>matchesMemoryCategory(i,'Links')).length,Ideas:items.filter((i)=>matchesMemoryCategory(i,'Ideas')).length}),[items]);
+ const itemById=useMemo(()=>new Map(items.map((item)=>[item.id,item])),[items]);
+ function rememberSearch(value=query){const clean=value.trim();if(clean)setRecentSearches((current)=>[clean,...current.filter((e)=>e!==clean)].slice(0,5))}
+ async function askNeverFor(value:string){const clean=value.trim();if(!clean||askingRef.current)return;if(!hasAi){router.push('/upgrade');return}void Haptics.selectionAsync().catch(()=>undefined);askingRef.current=true;const version=++requestVersion.current;rememberSearch(clean);setAsking(true);setAskError(null);try{const retrieval=await retrieveOneItems(clean,items,{limit:12,semanticSearch:session?.user.id?searchSemantically:undefined});const response=await answerFromRetrievedItems({query:clean,retrieval:retrieval.results,allItems:items,allowAI:Boolean(session?.user.id)});if(version!==requestVersion.current)return;setAnswer({title:response.title,body:response.body,sourceIds:response.sourceIds,meta:[response.meta,retrieval.semanticError?'Semantic search unavailable':undefined].filter(Boolean).join(' · '),mode:response.mode})}catch{if(version===requestVersion.current)setAskError('NEVER could not answer that right now. Your saved memories are unchanged.')}finally{if(version===requestVersion.current){askingRef.current=false;setAsking(false)}}}
+ function askNever(){return askNeverFor(query)}
+ async function setSearchMode(next:SearchMode){if(next===mode)return;void Haptics.selectionAsync().catch(()=>undefined);requestVersion.current+=1;askingRef.current=false;setAsking(false);setAskError(null);setAnswer(null);setMode(next)}
+ function updateQuery(value:string){requestVersion.current+=1;askingRef.current=false;setAsking(false);setQuery(value);setAnswer(null);setAskError(null)}
+ const discovery=mode==='quick'&&!query.trim()&&category==='All';
+ return <NeverScreen style={[styles.safe,{backgroundColor:p.canvas}]} edges={['top','left','right']}><ScrollView contentContainerStyle={[styles.content,p.pageStyle]} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
+  <Pass3ScreenIntro eyebrow={mode==='ask'?'Grounded recall':'Recall'} title={mode==='ask'?'Ask NEVER':'Search'} body={mode==='ask'?'Ask a question. NEVER answers from what you saved.':'Find what you saved by meaning, detail or context.'}/>
+  <View style={styles.commandArea}>
+   <View style={[styles.modeSwitch,{backgroundColor:p.fillSoft,borderColor:p.glassBorder,borderRadius:p.radius.chip}]}><ModeButton label="Search" active={mode==='quick'} onPress={()=>void setSearchMode('quick')}/><ModeButton label="Ask" active={mode==='ask'} onPress={()=>void setSearchMode('ask')}/></View>
+   <V5SearchField value={query} onChangeText={updateQuery} placeholder={mode==='ask'?'Ask about your memory…':'Search your memory…'} ask={mode==='ask'} onSubmit={mode==='ask'?askNever:()=>rememberSearch()}/>
+   {mode==='quick'?<V5Segmented options={categories} selected={category} onSelect={(value)=>setCategory(value as SearchCategory)}/>:<View style={styles.promise}><OneIcon name={icons.shield} size={14} color={p.chrome}/><Text style={[styles.promiseText,{color:p.secondary}]}>Grounded in your saved evidence first.</Text></View>}
+  </View>
+  {mode==='quick'?<>
+   {discovery?<>
+    <Pass3Section title="Explore memory" meta={`${items.length} memories`}><View style={[styles.exploreStrip,{borderTopColor:p.separator,borderBottomColor:p.separator}]}><Explore label="Documents" count={counts.Documents} icon={icons.document} onPress={()=>setCategory('Documents')}/><Explore label="Links" count={counts.Links} icon={icons.link} onPress={()=>setCategory('Links')}/><Explore label="Ideas" count={counts.Ideas} icon={icons.idea} onPress={()=>setCategory('Ideas')}/></View></Pass3Section>
+    {recentSearches.length?<Pass3Section title="Recent searches" action={<Pass3TextAction label="Clear" onPress={()=>setRecentSearches([])}/>}><View style={[styles.rows,{borderTopColor:p.separator,borderBottomColor:p.separator}]}>{recentSearches.map((entry,index)=><View key={entry}><Pressable accessibilityRole="button" onPress={()=>updateQuery(entry)} style={({pressed})=>[styles.recentRow,{opacity:pressed?.55:1}]}><OneIcon name={icons.clock} size={15} color={p.chrome}/><Text style={[styles.recentText,{color:p.label}]}>{entry}</Text><V5Chevron/></Pressable>{index<recentSearches.length-1?<Pass3Divider/>:null}</View>)}</View></Pass3Section>:null}
+    <Pass3Section title="Recently captured" meta={`${results.length}`}><ResultRows results={results.slice(0,6)} query={query} category={category} onOpen={rememberSearch}/></Pass3Section>
+   </>:<Pass3Section title={query.trim()?'Results':category} meta={`${results.length}`}><ResultRows results={results} query={query} category={category} onOpen={rememberSearch}/></Pass3Section>}
+   {query.trim()?<Pressable accessibilityRole="button" onPress={()=>void setSearchMode('ask')} style={({pressed})=>[styles.askBridge,{borderTopColor:p.separator,borderBottomColor:p.separator,opacity:pressed?.6:1}]}><View style={[styles.askMark,{backgroundColor:p.graphite,borderRadius:p.radius.icon}]}><OneIcon name={icons.ask} size={14} color={p.onAccent}/></View><View style={{flex:1}}><Text style={[styles.askBridgeTitle,{color:p.label}]}>Ask NEVER about “{query.trim()}”</Text><Text style={[styles.askBridgeBody,{color:p.secondary}]}>Turn matching memories into an answer</Text></View><V5Chevron/></Pressable>:null}
+  </>:<View style={styles.askSection}>
+   <NeverChromeButton label={asking?'Searching your memory…':'Ask NEVER'} icon={icons.ask} onPress={askNever} disabled={asking||!query.trim()}/>
+   {!answer&&!asking&&!askError?<Pass3Section title="Try asking"><View style={[styles.prompts,{borderTopColor:p.separator,borderBottomColor:p.separator}]}>{['What did I save today?','Find the link I saved','What was that appointment?','Show my recent ideas'].map((text,index)=><View key={text}><PromptRow text={text} onSelect={(value)=>{updateQuery(value);void askNeverFor(value)}}/>{index<3?<Pass3Divider/>:null}</View>)}</View></Pass3Section>:null}
+   {asking?<View style={[styles.loading,{borderTopColor:p.separator,borderBottomColor:p.separator}]}><ActivityIndicator size="small" color={p.chrome}/><Text style={[styles.loadingText,{color:p.secondary}]}>Looking through your memory…</Text></View>:null}
+   {askError?<NeverNotice tone="error" title="Could not retrieve an answer" body={askError} action="Try again" onAction={()=>void askNever()}/>:null}
+   {answer?<AnswerPanel answer={answer} itemById={itemById}/>:null}
+  </View>}
+ </ScrollView></NeverScreen>
 }
 
-function SearchContent({ initialQuery }: { initialQuery: string }) {
-  const p = useNeverV5Palette();
-  const { session } = useAuth();
-  const { items } = useItems();
-  const { hasAi } = usePlan();
-  const [mode, setMode] = useState<SearchMode>('quick');
-  const [query, setQuery] = useState(initialQuery);
-  const [category, setCategory] = useState<SearchCategory>('All');
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
-  const requestVersion = useRef(0);
-  const askingRef = useRef(false);
-  const [asking, setAsking] = useState(false);
-  const [answer, setAnswer] = useState<AskAnswer | null>(null);
-  const [askError, setAskError] = useState<string | null>(null);
+function ResultRows({results,query,category,onOpen}:{results:ReturnType<typeof retrieveLocalOneItems>;query:string;category:SearchCategory;onOpen:()=>void}){const p=useNeverV5Palette();if(!results.length)return <EmptyResults query={query} category={category}/>;return <View style={[styles.rows,{borderTopColor:p.separator,borderBottomColor:p.separator}]}>{results.map(({item,reasons},index)=><View key={item.id}><MemoryRow item={item} reason={query.trim()?reasonLabel(reasons):undefined} onPress={()=>{onOpen();router.push({pathname:'/item/[id]',params:{id:item.id}})}} last={true}/>{index<results.length-1?<Pass3Divider/>:null}</View>)}</View>}
+function Explore({label,count,icon,onPress}:{label:string;count:number;icon:(typeof icons)[keyof typeof icons];onPress:()=>void}){const p=useNeverV5Palette();return <Pressable accessibilityRole="button" onPress={onPress} style={({pressed})=>[styles.exploreItem,{opacity:pressed?.55:1}]}><OneIcon name={icon} size={17} color={p.chrome}/><Text style={[styles.exploreCount,{color:p.label}]}>{count}</Text><Text style={[styles.exploreLabel,{color:p.secondary}]}>{label}</Text></Pressable>}
+function PromptRow({text,onSelect}:{text:string;onSelect:(text:string)=>void}){const p=useNeverV5Palette();return <Pressable accessibilityRole="button" onPress={()=>onSelect(text)} style={({pressed})=>[styles.promptRow,{opacity:pressed?.55:1}]}><OneIcon name={icons.ask} size={14} color={p.chrome}/><Text style={[styles.promptText,{color:p.label}]}>{text}</Text><V5Chevron/></Pressable>}
+function ModeButton({label,active,onPress}:{label:string;active:boolean;onPress:()=>void}){const p=useNeverV5Palette();return <Pressable accessibilityRole="button" accessibilityState={{selected:active}} onPress={onPress} style={({pressed})=>[styles.modeButton,{borderRadius:p.radius.chip,backgroundColor:active?p.graphite:'transparent',opacity:pressed?.62:1}]}><Text style={{color:active?p.onAccent:p.secondary,fontSize:12,fontWeight:active?'600':'500'}}>{label}</Text></Pressable>}
+function reasonLabel(reasons?:string[]){if(!reasons?.length)return undefined;if(reasons.some((r)=>r.includes('exact')))return'Exact';if(reasons.some((r)=>r.includes('title')))return'Title';return'Relevant'}
+function extractHttpUrls(value:string){return Array.from(new Set((value.match(/https?:\/\/[^\s)\]}>,]+/gi)||[]).map((url)=>url.replace(/[.,;:!?]+$/,'')))}
+function withoutStandaloneUrlLines(value:string){return value.split('\n').filter((line)=>!/^\s*https?:\/\/\S+\s*$/.test(line)).join('\n').trim()}
+function EmptyResults({query,category}:{query:string;category:SearchCategory}){const p=useNeverV5Palette();return <View style={styles.empty}><OneIcon name={icons.search} size={19} color={p.chrome}/><Text style={[styles.emptyTitle,{color:p.label}]}>{query.trim()||category!=='All'?'No matching memories':'Your memory is ready'}</Text><Text style={[styles.emptyBody,{color:p.secondary}]}>{query.trim()?'Try a name, phrase or another category.':'Capture a note, document or link to find it here.'}</Text></View>}
+function AnswerPanel({answer:current,itemById}:{answer:AskAnswer;itemById:Map<string,OneItem>}){const p=useNeverV5Palette();const urls=extractHttpUrls(current.body);const body=withoutStandaloneUrlLines(current.body);const sources=current.sourceIds.map((id)=>itemById.get(id)).filter((item):item is OneItem=>Boolean(item)).slice(0,5);return <View style={styles.answerStack}><View style={[styles.answer,{borderTopColor:p.separator,borderBottomColor:p.separator}]}><View style={styles.answerHeader}><View style={[styles.askMark,{backgroundColor:p.graphite,borderRadius:p.radius.icon}]}><OneIcon name={icons.ask} size={13} color={p.onAccent}/></View><Text style={[styles.answerMode,{color:p.tertiary}]}>{current.mode==='ai'?'SYNTHESIZED':'GROUNDED'}</Text></View><Text style={[styles.answerTitle,{color:p.label}]}>{current.title}</Text>{body?<Text selectable style={[styles.answerText,{color:p.secondary}]}>{body}</Text>:null}{current.meta?<Text style={[styles.answerMeta,{color:p.tertiary}]}>{current.meta}</Text>:null}{urls.map((url)=><Pressable accessibilityRole="button" key={url} onPress={async()=>{void Haptics.selectionAsync().catch(()=>undefined);await openMemoryLink(url)}} style={({pressed})=>[styles.answerLink,{borderTopColor:p.separator,backgroundColor:pressed?p.fillSoft:'transparent'}]}><OneIcon name={icons.link} size={14} color={p.chrome}/><Text style={[styles.answerLinkText,{color:p.label}]} numberOfLines={1}>{url}</Text><V5Chevron/></Pressable>)}</View>{sources.length?<Pass3Section title="Sources" meta={`${sources.length}`}><View style={[styles.rows,{borderTopColor:p.separator,borderBottomColor:p.separator}]}>{sources.map((item,index)=><View key={item.id}><MemoryRow item={item} last={true} onPress={()=>router.push({pathname:'/item/[id]',params:{id:item.id}})}/>{index<sources.length-1?<Pass3Divider/>:null}</View>)}</View></Pass3Section>:null}</View>}
 
-  useEffect(() => () => { requestVersion.current += 1; }, []);
-
-  const results = useMemo(() => {
-    const filtered = items.filter((item) => matchesMemoryCategory(item, category));
-    return retrieveLocalOneItems(query, filtered, { limit: 18, recentWhenEmpty: true });
-  }, [query, items, category]);
-
-  const counts = useMemo(() => ({
-    Documents: items.filter((item) => matchesMemoryCategory(item, 'Documents')).length,
-    Links: items.filter((item) => matchesMemoryCategory(item, 'Links')).length,
-    Ideas: items.filter((item) => matchesMemoryCategory(item, 'Ideas')).length
-  }), [items]);
-
-  function rememberSearch(value = query) {
-    const clean = value.trim();
-    if (clean) setRecentSearches((current) => [clean, ...current.filter((entry) => entry !== clean)].slice(0, 5));
-  }
-
-  const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
-
-  async function askNeverFor(value: string) {
-    const clean = value.trim();
-    if (!clean || askingRef.current) return;
-    if (!hasAi) { router.push('/upgrade'); return; }
-    void Haptics.selectionAsync().catch(() => undefined);
-    askingRef.current = true;
-    const version = ++requestVersion.current;
-    rememberSearch(clean);
-    setAsking(true);
-    setAskError(null);
-    try {
-      const retrieval = await retrieveOneItems(clean, items, {
-        limit: 12,
-        semanticSearch: session?.user.id ? searchSemantically : undefined
-      });
-      const response = await answerFromRetrievedItems({
-        query: clean,
-        retrieval: retrieval.results,
-        allItems: items,
-        allowAI: Boolean(session?.user.id)
-      });
-      if (version !== requestVersion.current) return;
-      setAnswer({
-        title: response.title,
-        body: response.body,
-        sourceIds: response.sourceIds,
-        meta: [response.meta, retrieval.semanticError ? 'Semantic search unavailable' : undefined].filter(Boolean).join(' · '),
-        mode: response.mode
-      });
-    } catch {
-      if (version === requestVersion.current) setAskError('NEVER could not answer that right now. Your saved memories are unchanged.');
-    } finally {
-      if (version === requestVersion.current) { askingRef.current = false; setAsking(false); }
-    }
-  }
-
-  function askNever() {
-    return askNeverFor(query);
-  }
-
-  async function setSearchMode(next: SearchMode) {
-    if (next === mode) return;
-    void Haptics.selectionAsync().catch(() => undefined);
-    requestVersion.current += 1;
-    askingRef.current = false;
-    setAsking(false);
-    setAskError(null);
-    setAnswer(null);
-    setMode(next);
-  }
-
-  function updateQuery(value: string) {
-    requestVersion.current += 1;
-    askingRef.current = false;
-    setAsking(false);
-    setQuery(value);
-    setAnswer(null);
-    setAskError(null);
-  }
-
-  const discovery = mode === 'quick' && !query.trim() && category === 'All';
-
-  return (
-    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
-      <ScrollView
-        contentContainerStyle={[styles.content, p.pageStyle]}
-        keyboardShouldPersistTaps="handled"
-        automaticallyAdjustKeyboardInsets
-        keyboardDismissMode="interactive"
-        showsVerticalScrollIndicator={false}
-      >
-        <View style={styles.heroCopy}>
-          <NeverEyebrow>{mode === 'ask' ? 'Grounded recall' : 'Memory index'}</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>
-            {mode === 'ask' ? 'Ask NEVER.' : 'Search.'}
-          </Text>
-          <Text style={[styles.heroSubtitle, { color: p.secondary }]}>
-            {mode === 'ask' ? 'Ask a question. NEVER answers from what you saved.' : 'Find anything you captured, even when you only remember part of it.'}
-          </Text>
-        </View>
-
-        <NeverHeroSurface style={styles.searchStage}>
-          <View style={styles.modeRow}>
-            <View style={[styles.modeSwitch, { borderRadius: p.radius.chip, backgroundColor: p.fillSoft, borderColor: p.glassBorder }]}>
-              <ModeButton label="Search" active={mode === 'quick'} onPress={() => void setSearchMode('quick')} />
-              <ModeButton label="Ask" active={mode === 'ask'} onPress={() => void setSearchMode('ask')} />
-            </View>
-            <NeverMetric value={`${items.length}`} label="memories" />
-          </View>
-
-          <V5SearchField
-            value={query}
-            onChangeText={updateQuery}
-            placeholder={mode === 'ask' ? 'Ask about your memory…' : 'Search your memory…'}
-            ask={mode === 'ask'}
-            onSubmit={mode === 'ask' ? askNever : () => rememberSearch()}
-          />
-
-          {mode === 'quick' ? (
-            <V5Segmented
-              options={categories}
-              selected={category}
-              onSelect={(value) => setCategory(value as SearchCategory)}
-            />
-          ) : (
-            <View style={styles.askPromise}>
-              <View style={[styles.askPromiseIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
-                <OneIcon name={icons.shield} size={15} color={p.chrome} />
-              </View>
-              <Text style={[styles.askPromiseText, { color: p.secondary }]}>Grounded in your saved evidence first.</Text>
-            </View>
-          )}
-        </NeverHeroSurface>
-
-        {mode === 'quick' ? (
-          <>
-            {discovery ? (
-              <>
-                <View style={styles.section}>
-                  <V5SectionHeader title="Explore memory" />
-                  <View style={styles.categoryGrid}>
-                    <CategoryTile icon={icons.document} label="Documents" count={counts.Documents} copy="Scans & files" onPress={() => setCategory('Documents')} />
-                    <CategoryTile icon={icons.link} label="Links" count={counts.Links} copy="Places to return" onPress={() => setCategory('Links')} />
-                    <CategoryTile icon={icons.idea} label="Ideas" count={counts.Ideas} copy="Notes & thoughts" onPress={() => setCategory('Ideas')} />
-                  </View>
-                </View>
-
-                {recentSearches.length ? (
-                  <View style={styles.section}>
-                    <V5SectionHeader title="Recent searches" action={<Pressable accessibilityRole="button" onPress={() => setRecentSearches([])} hitSlop={12}><Text style={{ color: p.chrome }}>Clear</Text></Pressable>} />
-                    <V5Group>{recentSearches.map((entry, index) => <V5Row key={entry} icon={icons.clock} title={entry} onPress={() => updateQuery(entry)} last={index === recentSearches.length - 1} />)}</V5Group>
-                  </View>
-                ) : null}
-
-                <View style={styles.section}>
-                  <V5SectionHeader title="Recently captured" meta={`${results.length}`} />
-                  {results.length ? (
-                    <View style={styles.memoryGrid}>
-                      {results.slice(0, 6).map(({ item }) => <MemoryTile key={item.id} item={item} />)}
-                    </View>
-                  ) : (
-                    <V5Group><EmptyResults query={query} category={category} /></V5Group>
-                  )}
-                </View>
-              </>
-            ) : (
-              <View style={styles.section}>
-                <V5SectionHeader
-                  title={query.trim() ? 'Results' : category}
-                  meta={`${results.length}`}
-                />
-                <V5Group>
-                  {results.length ? results.map(({ item, reasons }, index) => (
-                    <MemoryRow
-                      key={item.id}
-                      item={item}
-                      reason={query.trim() ? reasonLabel(reasons) : undefined}
-                      onPress={() => { rememberSearch(); router.push({ pathname: '/item/[id]', params: { id: item.id } }); }}
-                      last={index === results.length - 1}
-                    />
-                  )) : <EmptyResults query={query} category={category} />}
-                </V5Group>
-              </View>
-            )}
-
-            {query.trim() ? (
-              <NeverHeroSurface compact style={styles.askBridgeSurface}>
-                <Pressable accessibilityRole="button"
-                  onPress={() => void setSearchMode('ask')}
-                  style={({ pressed }) => [styles.askBridge, { opacity: pressed ? 0.65 : 1 }]}
-                >
-                  <View style={[styles.askBridgeIcon, { borderRadius: p.radius.icon, backgroundColor: p.graphite }]}>
-                    <OneIcon name={icons.ask} size={14} color={p.onAccent} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[styles.askBridgeTitle, { color: p.label }]}>Ask NEVER about “{query.trim()}”</Text>
-                    <Text style={[styles.askBridgeSubtitle, { color: p.secondary }]}>Turn matching memories into an answer</Text>
-                  </View>
-                  <V5Chevron />
-                </Pressable>
-              </NeverHeroSurface>
-            ) : null}
-          </>
-        ) : (
-          <View style={styles.askSection}>
-            <NeverChromeButton label={asking ? 'Searching your memory…' : 'Ask NEVER'} icon={icons.ask} onPress={askNever} disabled={asking || !query.trim()} />
-
-            {!answer && !asking && !askError ? (
-              <View style={styles.promptGrid}>
-                <PromptTile onSelect={(text) => { updateQuery(text); void askNeverFor(text); }} text="What did I save today?" icon={icons.clock} />
-                <PromptTile onSelect={(text) => { updateQuery(text); void askNeverFor(text); }} text="Find the link I saved" icon={icons.link} />
-                <PromptTile onSelect={(text) => { updateQuery(text); void askNeverFor(text); }} text="What was that appointment?" icon={icons.calendar} />
-                <PromptTile onSelect={(text) => { updateQuery(text); void askNeverFor(text); }} text="Show my recent ideas" icon={icons.idea} />
-              </View>
-            ) : null}
-
-            {asking ? (
-              <V5Group>
-                <View style={styles.loadingRow}>
-                  <ActivityIndicator size="small" color={p.chrome} />
-                  <Text style={[styles.loadingText, { color: p.secondary }]}>Looking through your memory…</Text>
-                </View>
-              </V5Group>
-            ) : null}
-
-            {askError ? (
-              <NeverNotice tone="error" title="Could not retrieve an answer" body={askError} action="Try again" onAction={() => void askNever()} />
-            ) : null}
-
-            {answer ? <AnswerPanel answer={answer} itemById={itemById} /> : null}
-          </View>
-        )}
-      </ScrollView>
-    </NeverScreen>
-  );
-
-}
-
-function reasonLabel(reasons?: string[]) {
-  if (!reasons?.length) return undefined;
-  if (reasons.some((reason) => reason.includes('exact'))) return 'Exact';
-  if (reasons.some((reason) => reason.includes('title'))) return 'Title';
-  return 'Relevant';
-}
-function extractHttpUrls(value: string) { return Array.from(new Set((value.match(/https?:\/\/[^\s)\]}>,]+/gi) || []).map((url) => url.replace(/[.,;:!?]+$/, '')))); }
-function withoutStandaloneUrlLines(value: string) { return value.split('\n').filter((line) => !/^\s*https?:\/\/\S+\s*$/.test(line)).join('\n').trim(); }
-
-function ModeButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  const p = useNeverV5Palette();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={({ pressed }) => [styles.modeButton, { borderRadius: p.radius.chip, backgroundColor: active ? p.graphite : 'transparent', opacity: pressed ? 0.62 : 1 }]}
-    >
-      <Text style={[styles.modeButtonText, { color: active ? p.onAccent : p.secondary, fontWeight: active ? '600' : '500' }]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function CategoryTile({ icon, label, count, copy, onPress }: { icon: (typeof icons)[keyof typeof icons]; label: SearchCategory; count: number; copy: string; onPress: () => void }) {
-  const p = useNeverV5Palette();
-  return (
-    <Pressable accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [styles.categoryTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
-    >
-      <View style={styles.categoryTop}>
-        <View style={[styles.categoryIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={18} color={p.chrome} /></View>
-        <Text style={[styles.categoryCount, { color: p.tertiary }]}>{count}</Text>
-      </View>
-      <Text style={[styles.categoryTitle, { color: p.label }]}>{label}</Text>
-      <Text style={[styles.categoryCopy, { color: p.secondary }]} numberOfLines={2}>{copy}</Text>
-    </Pressable>
-  );
-}
-
-function MemoryTile({ item }: { item: OneItem }) {
-  const p = useNeverV5Palette();
-  return (
-    <Pressable accessibilityRole="button"
-      onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-      style={({ pressed }) => [styles.memoryTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
-    >
-      <View style={styles.memoryTileTop}>
-        <View style={[styles.memoryTileIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
-          <OneIcon name={iconForType(item.type)} size={17} color={p.chrome} />
-        </View>
-        <V5Chevron />
-      </View>
-      <Text style={[styles.memoryTileTitle, { color: p.label }]} numberOfLines={2}>{item.title}</Text>
-      <Text style={[styles.memoryTileMeta, { color: p.secondary }]} numberOfLines={1}>{item.category || item.type}</Text>
-    </Pressable>
-  );
-}
-
-function EmptyResults({ query, category }: { query: string; category: SearchCategory }) {
-  const p = useNeverV5Palette();
-  return (
-    <View style={styles.emptyState}>
-      <View style={[styles.emptyIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
-        <OneIcon name={icons.search} size={18} color={p.chrome} />
-      </View>
-      <Text style={[styles.emptyTitle, { color: p.label }]}>{query.trim() || category !== 'All' ? 'No matching memories' : 'Your memory is ready'}</Text>
-      <Text style={[styles.emptyBody, { color: p.secondary }]}>{query.trim() ? 'Try a name, a phrase or another category.' : 'Capture a note, document or link to find it here.'}</Text>
-    </View>
-  );
-}
-
-function PromptTile({ text, icon, onSelect }: { text: string; icon: (typeof icons)[keyof typeof icons]; onSelect: (text: string) => void }) {
-  const p = useNeverV5Palette();
-  return (
-    <Pressable accessibilityRole="button"
-      onPress={() => onSelect(text)}
-      style={({ pressed }) => [styles.promptTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
-    >
-      <View style={[styles.promptIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={15} color={p.chrome} /></View>
-      <Text style={[styles.promptText, { color: p.label }]}>{text}</Text>
-    </Pressable>
-  );
-}
-
-function AnswerPanel({ answer: current, itemById }: { answer: AskAnswer; itemById: Map<string, OneItem> }) {
-  const p = useNeverV5Palette();
-  const urls = extractHttpUrls(current.body);
-  const body = withoutStandaloneUrlLines(current.body);
-  const sources = current.sourceIds.map((id) => itemById.get(id)).filter((item): item is OneItem => Boolean(item)).slice(0, 5);
-  return (
-    <View style={styles.answerStack}>
-      <NeverHeroSurface compact>
-        <View style={styles.answerBodyWrap}>
-          <View style={styles.answerHeader}>
-            <View style={[styles.answerMark, { backgroundColor: p.graphite }]}>
-              <OneIcon name={icons.ask} size={13} color={p.onAccent} />
-            </View>
-            <Text style={[styles.answerMode, { color: p.tertiary }]}>{current.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text>
-          </View>
-          <Text style={[styles.answerTitle, { color: p.label }]}>{current.title}</Text>
-          {body ? <Text selectable style={[styles.answerText, { color: p.secondary }]}>{body}</Text> : null}
-          {current.meta ? <Text style={[styles.answerMeta, { color: p.tertiary }]}>{current.meta}</Text> : null}
-        </View>
-        {urls.map((url) => (
-          <Pressable accessibilityRole="button"
-            key={url}
-            onPress={async () => { void Haptics.selectionAsync().catch(() => undefined); await openMemoryLink(url); }}
-            style={({ pressed }) => [styles.answerLink, { borderTopColor: p.separator, backgroundColor: pressed ? p.fillSoft : 'transparent' }]}
-          >
-            <OneIcon name={icons.link} size={14} color={p.chrome} />
-            <Text style={[styles.answerLinkText, { color: p.label }]} numberOfLines={1}>{url}</Text>
-            <V5Chevron />
-          </Pressable>
-        ))}
-      </NeverHeroSurface>
-
-      {sources.length ? (
-        <View style={styles.section}>
-          <V5SectionHeader title="Sources" meta={`${sources.length}`} />
-          <V5Group>
-            {sources.map((item, index) => <MemoryRow key={item.id} item={item} last={index === sources.length - 1} onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })} />)}
-          </V5Group>
-        </View>
-      ) : null}
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  safe: { flex: 1 },
-  content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 126, gap: 26 },
-  heroCopy: { gap: 5 },
-  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: neverType.hero.fontFamily, fontWeight: '400', letterSpacing: -1.35 },
-  heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
-  searchStage: { padding: 17, gap: 14 },
-  modeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  modeSwitch: { padding: 3, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center' },
-  modeButton: { minWidth: 68, minHeight: 44, paddingHorizontal: 13, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  modeButtonText: { fontSize: 11.5, lineHeight: 15 },
-  askPromise: { minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  askPromiseIcon: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  askPromiseText: { flex: 1, fontSize: 11.5, lineHeight: 16 },
-  section: { gap: neverSpacing.md },
-  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  categoryTile: { flex: 1, minWidth: 100, minHeight: 142, borderRadius: 21, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
-  categoryTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  categoryIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  categoryCount: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
-  categoryTitle: { marginTop: 16, fontSize: 14, lineHeight: 18, fontWeight: '600', letterSpacing: -0.15 },
-  categoryCopy: { marginTop: 2, fontSize: 10.5, lineHeight: 14 },
-  memoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  memoryTile: { flexBasis: '47%', flexGrow: 1, minWidth: 130, minHeight: 132, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
-  memoryTileTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  memoryTileIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  memoryTileTitle: { marginTop: 13, fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.16 },
-  memoryTileMeta: { marginTop: 4, fontSize: 10.5, lineHeight: 14, textTransform: 'capitalize' },
-  emptyState: { minHeight: 156, padding: 22, alignItems: 'center', justifyContent: 'center' },
-  emptyIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  emptyTitle: { marginTop: 10, fontSize: 16.5, lineHeight: 20, fontWeight: '600' },
-  emptyBody: { marginTop: 4, maxWidth: 250, fontSize: 12.5, lineHeight: 17, textAlign: 'center' },
-  askBridgeSurface: { minHeight: 70 },
-  askBridge: { minHeight: 70, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  askBridgeIcon: { width: 40, height: 40, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
-  askBridgeTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
-  askBridgeSubtitle: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
-  askSection: { gap: 12 },
-  promptGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  promptTile: { flexBasis: '47%', flexGrow: 1, minWidth: 130, minHeight: 104, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, padding: 13, justifyContent: 'space-between' },
-  promptIcon: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  promptText: { marginTop: 12, fontSize: 13, lineHeight: 17, fontWeight: '600' },
-  loadingRow: { minHeight: 62, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  loadingText: { fontSize: 13.5, lineHeight: 17 },
-  answerStack: { gap: 14 },
-  answerBodyWrap: { padding: 16 },
-  answerHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  answerMark: { width: 32, height: 32, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  answerMode: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.65 },
-  answerTitle: { marginTop: 13, fontSize: 20, lineHeight: 24, fontWeight: '700', letterSpacing: -0.35 },
-  answerText: { marginTop: 7, fontSize: 14.5, lineHeight: 20 },
-  answerMeta: { marginTop: 10, fontSize: 10.5, lineHeight: 14 },
-  answerLink: { minHeight: 48, paddingHorizontal: 15, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  answerLinkText: { flex: 1, fontSize: 12.5, lineHeight: 16 },});
+const styles=StyleSheet.create({safe:{flex:1},content:{width:'100%',maxWidth:720,alignSelf:'center',paddingHorizontal:20,paddingTop:18,paddingBottom:126},commandArea:{gap:10},modeSwitch:{alignSelf:'flex-start',padding:3,borderWidth:StyleSheet.hairlineWidth,flexDirection:'row'},modeButton:{minWidth:72,minHeight:44,paddingHorizontal:14,alignItems:'center',justifyContent:'center'},promise:{minHeight:44,flexDirection:'row',alignItems:'center',gap:9,paddingHorizontal:4},promiseText:{fontSize:12,lineHeight:16},exploreStrip:{flexDirection:'row',borderTopWidth:StyleSheet.hairlineWidth,borderBottomWidth:StyleSheet.hairlineWidth},exploreItem:{flex:1,minHeight:82,alignItems:'center',justifyContent:'center',gap:3},exploreCount:{fontSize:18,lineHeight:21,fontWeight:'650'},exploreLabel:{fontSize:10.5,lineHeight:14},rows:{borderTopWidth:StyleSheet.hairlineWidth,borderBottomWidth:StyleSheet.hairlineWidth},recentRow:{minHeight:52,paddingHorizontal:8,flexDirection:'row',alignItems:'center',gap:10},recentText:{flex:1,fontSize:14,lineHeight:18},askBridge:{marginTop:26,minHeight:72,borderTopWidth:StyleSheet.hairlineWidth,borderBottomWidth:StyleSheet.hairlineWidth,flexDirection:'row',alignItems:'center',gap:11,paddingHorizontal:8},askMark:{width:36,height:36,alignItems:'center',justifyContent:'center'},askBridgeTitle:{fontSize:14.5,lineHeight:18,fontWeight:'600'},askBridgeBody:{fontSize:11.5,lineHeight:15,marginTop:2},askSection:{gap:14,marginTop:24},prompts:{borderTopWidth:StyleSheet.hairlineWidth,borderBottomWidth:StyleSheet.hairlineWidth},promptRow:{minHeight:58,paddingHorizontal:8,flexDirection:'row',alignItems:'center',gap:10},promptText:{flex:1,fontSize:13.5,lineHeight:18,fontWeight:'550'},loading:{minHeight:62,borderTopWidth:StyleSheet.hairlineWidth,borderBottomWidth:StyleSheet.hairlineWidth,paddingHorizontal:8,flexDirection:'row',alignItems:'center',gap:10},loadingText:{fontSize:13.5,lineHeight:17},empty:{minHeight:150,alignItems:'center',justifyContent:'center',paddingHorizontal:24},emptyTitle:{fontSize:16,lineHeight:20,fontWeight:'600',marginTop:10},emptyBody:{fontSize:12.5,lineHeight:18,textAlign:'center',marginTop:4,maxWidth:260},answerStack:{gap:4},answer:{borderTopWidth:StyleSheet.hairlineWidth,borderBottomWidth:StyleSheet.hairlineWidth,paddingTop:16},answerHeader:{paddingHorizontal:8,flexDirection:'row',alignItems:'center',justifyContent:'space-between'},answerMode:{fontSize:9.5,lineHeight:12,fontWeight:'700',letterSpacing:.65},answerTitle:{paddingHorizontal:8,marginTop:13,fontSize:22,lineHeight:27,fontWeight:'650',letterSpacing:-.4},answerText:{paddingHorizontal:8,marginTop:8,fontSize:14.5,lineHeight:21},answerMeta:{paddingHorizontal:8,marginTop:10,marginBottom:14,fontSize:10.5,lineHeight:14},answerLink:{minHeight:48,paddingHorizontal:8,borderTopWidth:StyleSheet.hairlineWidth,flexDirection:'row',alignItems:'center',gap:9},answerLinkText:{flex:1,fontSize:12.5,lineHeight:16}});
