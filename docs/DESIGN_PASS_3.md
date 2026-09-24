@@ -4,31 +4,30 @@
 
 Pass 3 evolves NEVER from a collection of glass cards into a personal information space. It preserves the existing Material World architecture, capture/recall behavior, accessibility contracts, and native integrations while tightening hierarchy, material restraint, and screen identity.
 
+## Canonical designs
+
+NEVER has exactly six user-facing design families. Pass 3 improves these six and must not introduce additional themes:
+
+- **Basic** — classic minimal, system-aware black/white
+- **Monolith** — graphite, architecture, dark metal and restrained chrome
+- **Aurora** — flowing pearl, liquid light and subtle iridescence
+- **Archive** — mineral stone, editorial structure and archival depth
+- **Orbit** — deep space, orbital light and cool metallic accents
+- **Tactile** — warm earth, organic material and softly physical surfaces
+
+Names such as `Deep Space`, `Warm Earth`, `Stone Archive`, `Graphite Minimal`, `Classic White`, `Classic Black`, `Fog Depth` or `Light Flow` are internal asset/presentation variants only. They belong to one of the six designs and are never exposed as additional design choices.
+
 ## Principles
 
 1. **World first, material second.** Background worlds provide atmosphere. Glass/material is reserved for interactive or semantically grouped surfaces.
 2. **Content over containers.** Saved memories, events, results, and actions should read as information first and cards second.
-3. **One system, multiple worlds.** Geometry, contrast, chrome, and atmospheric treatment may vary by world, but navigation and interaction semantics remain stable.
+3. **Six designs, one interaction system.** Geometry, contrast, chrome, atmosphere and density may vary by design, but navigation and interaction semantics remain stable.
 4. **No fake raster UI.** Background/texture assets may be rasterized; controls, typography, lists, calendar, search, and navigation remain native React Native UI.
 5. **Accessibility remains structural.** Reduce Transparency, Reduce Motion, Dynamic Type, minimum targets, contrast, and semantic roles remain first-class.
 
-## World registry
+## Internal spatial assets
 
-The visual system must support the existing worlds plus Pass 3 presentation aliases:
-
-- Platinum / Home — platinum mountain / neutral silver
-- Aurora / Ask — liquid chrome / icy pearl
-- Archive / Saved — mineral stone / cool graphite
-- Orbit / Calendar — light-flow / deep-space variants
-- Tactile / Nature — warm earth / sand
-- Monolith / Settings — graphite minimal / classic black
-- Clean — classic white
-- Night — deep space
-- City — urban reflections
-- Abstract — ethereal light
-- System — maps to the appropriate accessible light/dark world
-
-The aliases are presentation choices, not a second theme engine.
+The visual system may use internal screen/asset variants such as platinum mountain, liquid chrome, mineral stone, light flow, fog depth, graphite, classic black/white, deep space, warm earth and ethereal light. These are resolved through the selected canonical design rather than through a second theme selector.
 
 ## Shared composition
 
@@ -84,7 +83,7 @@ Saved content behaves like a premium native library.
 - Search and filters remain compact.
 - Rows dominate; repeated large cards do not.
 - Metadata hierarchy is explicit.
-- Archive uses cooler mineral/graphite structure and must remain visibly distinct from warm Tactile/Nature.
+- Archive design uses mineral/editorial structure and remains distinct from warm Tactile.
 - Selection and bulk actions use native semantic affordances.
 
 ## Calendar V6
@@ -92,9 +91,9 @@ Saved content behaves like a premium native library.
 Calendar prioritizes information density and actionability.
 
 - Month/week navigation is compact.
-- Selected dates use world accent rather than generic blue.
+- Selected dates use the active design accent rather than generic blue.
 - Agenda items use separators and restrained material grouping.
-- Event creation/editing remains native and readable under all worlds.
+- Event creation/editing remains native and readable under all six designs.
 
 ## Search V6
 
@@ -106,12 +105,12 @@ Search should feel immediate.
 
 ## Settings V6
 
-Settings uses the quietest visual world.
+Settings uses the selected canonical design and provides the six-design selector.
 
 - Prefer native grouped-list rhythm.
-- Material World previews remain visual but compact.
+- Design previews remain visual but compact.
 - Account, privacy, notifications, appearance, membership, and support remain clearly separated.
-- Classic Black and Classic White are explicit visual options/aliases where compatible with the existing appearance model.
+- Basic may resolve to classic white or black based on appearance/system mode; these are not separate themes.
 
 ## Capture
 
@@ -127,31 +126,7 @@ Ask NEVER remains accessible as a primary command surface and intelligence layer
 
 ## Asset contract
 
-Expected optional raster assets:
-
-```
-assets/worlds/
-  home-platinum.*
-  ask-liquid-chrome.*
-  saved-stone-archive.*
-  calendar-light-flow.*
-  search-fog-depth.*
-  settings-graphite.*
-  classic-black.*
-  classic-white.*
-  night-deep-space.*
-  nature-warm-earth.*
-  city-reflections.*
-  abstract-ethereal.*
-
-assets/materials/
-  platinum-noise.*
-  chrome-reflection.*
-  atmosphere-soft.*
-  grain-subtle.*
-```
-
-Missing optional imagery must gracefully fall back to the existing token/gradient world. No required route may fail because an image is absent.
+Raster assets are optional implementation details inside the six canonical designs. Missing imagery must gracefully fall back to existing design tokens/gradients. No required route may fail because an image is absent.
 
 ## Motion
 
@@ -159,9 +134,10 @@ Entry choreography is restrained: approximately 4–10 px translation plus opaci
 
 ## Acceptance gates
 
+- Exactly six user-facing designs: Basic, Monolith, Aurora, Archive, Orbit, Tactile.
 - No regression to capture, OCR, share import, search, recall, calendar, auth, sync, billing, or notifications.
 - Existing theme tests remain green.
-- Add coverage for world aliases/fallbacks and Pass 3 composition primitives.
+- Add coverage for design resolution/fallbacks and Pass 3 composition primitives.
 - 44pt minimum targets retained.
 - Reduce Transparency produces opaque semantic surfaces.
 - Reduce Motion removes nonessential entry choreography.
