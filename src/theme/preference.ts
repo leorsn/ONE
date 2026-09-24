@@ -4,7 +4,7 @@ export const THEME_STORAGE_KEY = '@one/theme/v1';
 type PreferenceStore = { getItem: (key: string) => Promise<string | null>; setItem: (key: string, value: string) => Promise<void> };
 export async function loadThemePreference(store: PreferenceStore): Promise<ThemePreference> {
   try { return parseThemePreference(await store.getItem(THEME_STORAGE_KEY)); }
-  catch { return 'platinum'; }
+  catch { return 'basic'; }
 }
 // Serialize disk writes: rapid selections cannot persist in the wrong order.
 export function createThemeWriter(store: PreferenceStore) {
