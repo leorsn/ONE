@@ -12,12 +12,12 @@ type ThemeContextValue = {
 };
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 // A provider-level error boundary can still use the last resolved appearance.
-let lastTheme = resolveTheme('platinum', 'light');
+let lastTheme = resolveTheme('basic', 'light');
 export function getLastResolvedTheme() { return lastTheme; }
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const systemMode = useColorScheme() === 'dark' ? 'dark' : 'light';
-  const [preference, setPreferenceState] = useState<ThemePreference>('platinum');
+  const [preference, setPreferenceState] = useState<ThemePreference>('basic');
   const [loaded, setLoaded] = useState(false);
   const [reduceMotion, setReduceMotion] = useState(true);
   useEffect(() => {
@@ -36,7 +36,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, []);
   const [write] = useState(() => createThemeWriter(AsyncStorage));
   const revision = useRef(0);
-  const committed = useRef<ThemePreference>('platinum');
+  const committed = useRef<ThemePreference>('basic');
   useEffect(() => {
     let mounted = true;
     const initialRevision = revision.current;
