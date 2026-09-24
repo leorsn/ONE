@@ -1,43 +1,110 @@
 import type { NeverSpatialWorldId } from './worldManifest';
 
+/** Canonical NEVER designs. Pass 3 improves these six; it does not create new themes. */
 export type NeverPass3DesignId =
-  | 'platinum'
+  | 'basic'
+  | 'monolith'
+  | 'aurora'
   | 'archive'
-  | 'classicBlack'
-  | 'classicWhite'
-  | 'night'
-  | 'nature'
-  | 'city'
-  | 'abstract';
+  | 'orbit'
+  | 'tactile';
 
 export type NeverPass3DesignProfile = {
   id: NeverPass3DesignId;
   label: string;
+  description: string;
   home: NeverSpatialWorldId;
   saved: NeverSpatialWorldId;
   search: NeverSpatialWorldId;
   calendar: NeverSpatialWorldId;
   settings: NeverSpatialWorldId;
-  chrome: 'silver' | 'graphite' | 'white' | 'warm' | 'reflective';
+  chrome: 'silver' | 'graphite' | 'neutral' | 'warm';
   density: 'airy' | 'balanced' | 'compact';
 };
 
 /**
- * App-wide design families. A selected family changes the whole visual language;
- * screens still keep their functional identity. This prevents Pass 3 from hardcoding
- * one background per route and preserves NEVER's multiple-design promise.
+ * Pass 3 keeps the original six NEVER design families intact.
+ * Spatial-world IDs are internal presentation assets/variants, never additional
+ * user-facing themes. For example Deep Space belongs to Orbit and Warm Earth to Tactile.
  */
 export const NEVER_PASS3_DESIGNS: Record<NeverPass3DesignId, NeverPass3DesignProfile> = {
-  platinum: { id: 'platinum', label: 'Platinum', home: 'home', saved: 'saved', search: 'search', calendar: 'calendar', settings: 'settings', chrome: 'silver', density: 'airy' },
-  archive: { id: 'archive', label: 'Archive', home: 'saved', saved: 'saved', search: 'settings', calendar: 'night', settings: 'settings', chrome: 'graphite', density: 'compact' },
-  classicBlack: { id: 'classicBlack', label: 'Classic Black', home: 'classicBlack', saved: 'classicBlack', search: 'classicBlack', calendar: 'classicBlack', settings: 'classicBlack', chrome: 'white', density: 'balanced' },
-  classicWhite: { id: 'classicWhite', label: 'Classic White', home: 'classicWhite', saved: 'classicWhite', search: 'classicWhite', calendar: 'classicWhite', settings: 'classicWhite', chrome: 'graphite', density: 'balanced' },
-  night: { id: 'night', label: 'Night', home: 'night', saved: 'night', search: 'night', calendar: 'night', settings: 'classicBlack', chrome: 'silver', density: 'balanced' },
-  nature: { id: 'nature', label: 'Nature', home: 'nature', saved: 'nature', search: 'nature', calendar: 'nature', settings: 'nature', chrome: 'warm', density: 'airy' },
-  city: { id: 'city', label: 'City', home: 'city', saved: 'city', search: 'city', calendar: 'city', settings: 'settings', chrome: 'reflective', density: 'compact' },
-  abstract: { id: 'abstract', label: 'Abstract', home: 'abstract', saved: 'abstract', search: 'abstract', calendar: 'abstract', settings: 'abstract', chrome: 'silver', density: 'airy' },
+  basic: {
+    id: 'basic',
+    label: 'Basic',
+    description: 'Classic minimal NEVER in system-aware black and white.',
+    home: 'classicWhite',
+    saved: 'classicWhite',
+    search: 'classicWhite',
+    calendar: 'classicWhite',
+    settings: 'classicWhite',
+    chrome: 'neutral',
+    density: 'balanced',
+  },
+  monolith: {
+    id: 'monolith',
+    label: 'Monolith',
+    description: 'Architectural graphite, dark metal and restrained chrome.',
+    home: 'settings',
+    saved: 'settings',
+    search: 'settings',
+    calendar: 'settings',
+    settings: 'settings',
+    chrome: 'graphite',
+    density: 'compact',
+  },
+  aurora: {
+    id: 'aurora',
+    label: 'Aurora',
+    description: 'Bright flowing pearl, liquid light and subtle iridescence.',
+    home: 'home',
+    saved: 'abstract',
+    search: 'search',
+    calendar: 'calendar',
+    settings: 'abstract',
+    chrome: 'silver',
+    density: 'airy',
+  },
+  archive: {
+    id: 'archive',
+    label: 'Archive',
+    description: 'Mineral stone, editorial structure and cool archival depth.',
+    home: 'saved',
+    saved: 'saved',
+    search: 'search',
+    calendar: 'saved',
+    settings: 'settings',
+    chrome: 'graphite',
+    density: 'compact',
+  },
+  orbit: {
+    id: 'orbit',
+    label: 'Orbit',
+    description: 'Deep-space darkness, orbital light and cool metallic accents.',
+    home: 'night',
+    saved: 'night',
+    search: 'night',
+    calendar: 'night',
+    settings: 'classicBlack',
+    chrome: 'silver',
+    density: 'balanced',
+  },
+  tactile: {
+    id: 'tactile',
+    label: 'Tactile',
+    description: 'Warm earth, natural material and softly physical surfaces.',
+    home: 'nature',
+    saved: 'nature',
+    search: 'nature',
+    calendar: 'nature',
+    settings: 'nature',
+    chrome: 'warm',
+    density: 'airy',
+  },
 };
 
-export function resolvePass3World(design: NeverPass3DesignId, screen: 'home' | 'saved' | 'search' | 'calendar' | 'settings'): NeverSpatialWorldId {
+export function resolvePass3World(
+  design: NeverPass3DesignId,
+  screen: 'home' | 'saved' | 'search' | 'calendar' | 'settings',
+): NeverSpatialWorldId {
   return NEVER_PASS3_DESIGNS[design][screen];
 }
