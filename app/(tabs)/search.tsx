@@ -1,1 +1,1 @@
-export { default } from '@/src/screens/SearchV5';
+export { default } from '@/src/screens/SearchPass3';
