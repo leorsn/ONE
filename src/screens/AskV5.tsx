@@ -8,7 +8,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { usePlan } from '@/src/context/PlanContext';
@@ -16,7 +16,7 @@ import { answerFromRetrievedItems } from '@/src/recall/service';
 import { retrieveOneItems } from '@/src/search/retrieve';
 import { searchSemantically } from '@/src/search/semantic';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
+import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import {
   V5Chevron,
   V5Group,
@@ -115,8 +115,7 @@ export default function AskV5() {
 
   if (!hasAi) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-        <NeverBackdrop />
+      <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
         <ScrollView contentContainerStyle={styles.lockedPage} showsVerticalScrollIndicator={false}>
           <View style={styles.lockedTop}>
             <V5Wordmark />
@@ -124,7 +123,7 @@ export default function AskV5() {
           </View>
           <View style={styles.lockedHeroCopy}>
             <NeverEyebrow>Grounded recall</NeverEyebrow>
-            <Text style={[styles.heroTitle, { color: p.label }]}>Ask NEVER.</Text>
+            <Text style={[styles.heroTitle, p.heading, { color: p.label }]}>Ask NEVER.</Text>
             <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Turn your saved memory into direct, evidence-backed answers.</Text>
           </View>
           <NeverHeroSurface style={styles.lockedStage}>
@@ -134,18 +133,17 @@ export default function AskV5() {
             <NeverEyebrow>NEVER AI</NeverEyebrow>
             <Text style={[styles.lockedTitle, { color: p.label }]}>Your memory, conversational.</Text>
             <Text style={[styles.lockedText, { color: p.secondary }]}>Ask questions about saved documents, links, dates and ideas. NEVER searches your own evidence first.</Text>
-            <Pressable accessibilityRole="button" onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: pressed ? 0.7 : 1 }]}>
+            <Pressable accessibilityRole="button" onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: pressed ? 0.7 : 1 }]}>
               <Text style={[styles.primaryButtonText, { color: p.onAccent }]}>View NEVER AI</Text>
             </Pressable>
           </NeverHeroSurface>
         </ScrollView>
-      </SafeAreaView>
+      </NeverScreen>
     );
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-      <NeverBackdrop />
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={4}>
         <View style={styles.shell}>
           <View style={[styles.nav, { borderBottomColor: p.separator }]}>
@@ -172,7 +170,7 @@ export default function AskV5() {
               <>
                 <View style={styles.heroCopy}>
                   <NeverEyebrow>Grounded recall</NeverEyebrow>
-                  <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>Ask your memory.</Text>
+                  <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>Ask your memory.</Text>
                   <Text style={[styles.heroSubtitle, { color: p.secondary }]}>NEVER searches what you saved first, then answers from the evidence it can actually find.</Text>
                 </View>
 
@@ -201,7 +199,7 @@ export default function AskV5() {
                       <Pressable accessibilityRole="button"
                         key={example.text}
                         onPress={() => submitQuestion(example.text)}
-                        style={({ pressed }) => [styles.suggestionTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}
+                        style={({ pressed }) => [styles.suggestionTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}
                       >
                         <View style={styles.suggestionTileTop}>
                           <View style={[styles.suggestionIcon, { backgroundColor: p.fillSoft }]}>
@@ -259,7 +257,7 @@ export default function AskV5() {
           </View>
         </View>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 

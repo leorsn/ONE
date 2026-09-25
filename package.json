@@ -19,7 +19,9 @@
     "test": "node --experimental-strip-types --test tests/*.test.mjs",
     "typecheck": "tsc --noEmit",
     "quality": "npm run typecheck && npm run lint && npm run routes:check && npm test && npm run release:script-check && npx expo install --check && npx expo-doctor@latest && npm run native:release-check && npm run native:config && npm run web:export",
-    "routes:check": "node scripts/verify-routes.mjs"
+    "routes:check": "node scripts/verify-routes.mjs",
+    "ios:device:test": "NEVER_LOCAL_DEVICE_TEST=1 expo run:ios --device",
+    "ios:device:test:clean": "NEVER_LOCAL_DEVICE_TEST=1 expo prebuild --clean --platform ios && NEVER_LOCAL_DEVICE_TEST=1 expo run:ios --device"
   },
   "dependencies": {
     "@expo/ui": "~57.0.19",

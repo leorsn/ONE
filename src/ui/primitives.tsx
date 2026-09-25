@@ -54,7 +54,7 @@ export function PageHeader({ title, subtitle, eyebrow = 'NEVER', action }: { tit
     <View style={styles.pageHeader}>
       <View style={{ flex: 1, minWidth: 0 }}>
         {eyebrow ? <Text style={[styles.eyebrow, { color: theme.textSecondary }]}>{eyebrow}</Text> : null}
-        <Text style={[styles.pageTitle, { color: theme.text }]}>{title}</Text>
+        <Text style={[styles.pageTitle, theme.typography.heading, { color: theme.text }]}>{title}</Text>
         {subtitle ? <Text style={[styles.pageSubtitle, { color: theme.textSecondary }]}>{subtitle}</Text> : null}
       </View>
       {action}
@@ -95,7 +95,7 @@ export function IconTile({ icon, tone = 'accent', size = 38 }: { icon: IconName;
   } as const;
   const [background, color] = palette[tone];
   return (
-    <View style={[styles.iconTile, { width: size, height: size, borderRadius: Math.round(size * 0.29), backgroundColor: background }]}>
+    <View style={[styles.iconTile, { width: size, height: size, borderRadius: theme.radius.icon, backgroundColor: background }]}>
       <OneIcon name={icon} size={Math.round(size * 0.42)} color={color} />
     </View>
   );

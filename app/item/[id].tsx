@@ -8,7 +8,7 @@ import CommunityDateTimePicker from '@expo/ui/community/datetime-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import * as Sharing from 'expo-sharing';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useItems } from '@/src/context/ItemsContext';
 import type { OneItem } from '@/src/types/item';
 import { neverType, neverSpacing } from '@/src/theme/tokens';
@@ -30,14 +30,14 @@ export default function ItemDetailScreen() {
 
   if (!item) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]}>
+      <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]}>
         <View style={styles.missing}>
           <View style={[styles.missingIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.note} size={19} color={p.chrome} /></View>
           <Text style={[styles.missingTitle, { color: p.label }]}>Memory not found</Text>
           <Text style={[styles.missingBody, { color: p.secondary }]}>This memory may have been removed.</Text>
           <Pressable accessibilityRole="button" onPress={() => goBackOrHome()}><Text style={[styles.missingBack, { color: p.chrome }]}>Go Back</Text></Pressable>
         </View>
-      </SafeAreaView>
+      </NeverScreen>
     );
   }
 
@@ -144,8 +144,8 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
           <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => goBackOrHome()} />
           <Text style={[styles.navTitle, { color: p.label }]}>Memory</Text>
@@ -165,7 +165,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
         <NeverInput
           value={title}
           onChangeText={setTitle}
-          style={[styles.titleInput, { color: p.label }]}
+          style={[styles.titleInput, p.heading, { color: p.label }]}
           placeholder="Title"
           placeholderTextColor={p.tertiary}
           accessibilityLabel="Item title"
@@ -179,7 +179,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
               accessibilityRole="button"
               accessibilityLabel={sourceIsImage ? (sourceExpanded ? 'Close original image' : 'Open original image') : 'Open original file'}
               onPress={() => void openOriginal()}
-              style={({ pressed }) => [styles.sourceCard, { backgroundColor: p.surface, opacity: pressed ? 0.74 : 1 }]}
+              style={({ pressed }) => [styles.sourceCard, p.cardStyle, { backgroundColor: p.surface, opacity: pressed ? 0.74 : 1 }]}
             >
               {sourceIsImage ? (
                 <Image source={{ uri: sourceUri }} style={[styles.sourceImage, sourceExpanded && styles.sourceImageExpanded, { backgroundColor: p.fill }]} resizeMode="contain" />
@@ -269,7 +269,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
         ) : null}
 
         {currentItem.url && !savedLinks.length ? (
-          <Pressable accessibilityRole="button" onPress={() => openMemoryLink(currentItem.url!)} style={({ pressed }) => [styles.linkCard, { backgroundColor: p.surface, opacity: pressed ? 0.62 : 1 }]}>
+          <Pressable accessibilityRole="button" onPress={() => openMemoryLink(currentItem.url!)} style={({ pressed }) => [styles.linkCard, p.cardStyle, { backgroundColor: p.surface, opacity: pressed ? 0.62 : 1 }]}>
             <MemoryGlyph icon={icons.link} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.linkLabel, { color: p.tertiary }]}>SAVED LINK</Text>
@@ -287,7 +287,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
           </V5Group>
         </View>
 
-        <Pressable accessibilityRole="button" accessibilityState={{ disabled: saving || !title.trim(), busy: saving }} disabled={saving || !title.trim()} onPress={saveChanges} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !title.trim() ? 0.38 : pressed ? 0.72 : 1 }]}>
+        <Pressable accessibilityRole="button" accessibilityState={{ disabled: saving || !title.trim(), busy: saving }} disabled={saving || !title.trim()} onPress={saveChanges} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: saving || !title.trim() ? 0.38 : pressed ? 0.72 : 1 }]}>
           <OneIcon name={icons.check} size={15} color={p.onAccent} />
           <Text style={[styles.primaryButtonText, { color: p.onAccent }]}>{saving ? 'Saving…' : 'Save Changes'}</Text>
         </Pressable>
@@ -297,7 +297,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
           <Text style={[styles.deleteText, { color: p.danger }]}>Delete Memory</Text>
         </Pressable>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 }

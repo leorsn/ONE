@@ -1,4 +1,6 @@
 import { initialTriageStateForItem } from '../inbox/triage.ts';
+import { processItemIntelligence } from '../intelligence/pipeline';
+import { NEVER_INTELLIGENCE_VERSION } from '../intelligence/versioning';
 import { normalizeContextLabel, normalizeTags } from './contextNormalization.ts';
 import type { CaptureDraft } from './core';
 import type { OneItem, OneSourceType } from '../types/item';
@@ -71,7 +73,11 @@ export function buildItemFromCapture({
       overall: draft.overallConfidence,
       fields: draft.fieldConfidence
     },
-    aiMetadata: { origin: 'deterministic' },
+    aiMetadata: {
+      origin: 'deterministic',
+      version: NEVER_INTELLIGENCE_VERSION,
+      interpretedAt: timestamp
+    },
     executedActions: [],
     processedAt: draft.destinationConfirmed || automaticallyProcessed ? timestamp : undefined,
     capturedAt: timestamp,
@@ -111,10 +117,14 @@ export function buildItemFromCapture({
     updatedAt: timestamp
   };
 
-  return {
+  const triaged: OneItem = {
     ...item,
-    triageState: draft.destinationConfirmed || automaticallyProcessed ? 'processed' : initialTriageStateForItem(item)
+    triageState: draft.destinationConfirmed || automaticallyProcessed
+      ? 'processed'
+      : initialTriageStateForItem(item)
   };
+
+  return processItemIntelligence(triaged, now).item;
 }
 
 function normalizeEntity(value: string) {

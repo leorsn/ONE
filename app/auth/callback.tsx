@@ -2,7 +2,7 @@ import { neverType } from '@/src/theme/tokens';
 import { useEffect, useState } from 'react';
 import { ScrollView, ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { supabase } from '@/src/supabase/client';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { V5Group, V5Wordmark, useNeverV5Palette } from '@/src/ui/appleV5';
@@ -36,13 +36,13 @@ export default function AuthCallbackScreen() {
   }, [params.code, params.error, params.error_description]);
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.shell}>
         <V5Wordmark />
 
         <View style={styles.hero}>
           <Text style={[styles.eyebrow, { color: errorMessage ? p.danger : p.chrome }]}>{errorMessage ? 'ACCOUNT' : 'SECURE SIGN-IN'}</Text>
-          <Text style={[styles.title, { color: p.label }]}>{errorMessage ? 'We could not confirm this account.' : 'Connecting your memory.'}</Text>
+          <Text style={[styles.title, p.heading, { color: p.label }]}>{errorMessage ? 'We could not confirm this account.' : 'Connecting your memory.'}</Text>
           <Text style={[styles.body, { color: p.secondary }]}>{errorMessage || 'NEVER is securely completing sign-in on this device.'}</Text>
         </View>
 
@@ -56,7 +56,7 @@ export default function AuthCallbackScreen() {
 
         <View style={styles.trustRow}><OneIcon name={icons.lock} size={12.5} color={p.chrome} /><Text style={[styles.trustText, { color: p.tertiary }]}>The link is exchanged for your authenticated NEVER session on this device.</Text></View>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 }
 

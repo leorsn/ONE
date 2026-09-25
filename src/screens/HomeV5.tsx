@@ -4,9 +4,9 @@ import { useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { selectionFeedback } from '@/src/ui/material';
-import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
+import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import { neverSpacing, neverType } from '@/src/theme/tokens';
 import { buildItemFromCapture } from '@/src/capture/buildItem';
 import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
@@ -100,10 +100,9 @@ export default function HomeV5() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
-      <NeverBackdrop />
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, p.pageStyle]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
         automaticallyAdjustKeyboardInsets
@@ -116,7 +115,7 @@ export default function HomeV5() {
 
         <View style={styles.heroCopy}>
           <NeverEyebrow>Personal memory</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>
             {`${greetingFor(now)}${firstName ? `,\n${firstName}.` : '.'}`}
           </Text>
           <Text style={[styles.heroSubtitle, { color: p.secondary }]}>
@@ -136,12 +135,12 @@ export default function HomeV5() {
             </View>
           </View>
 
-          <View style={[styles.captureComposer, { backgroundColor: p.dark ? '#0D12174D' : '#FFFFFF78', borderColor: p.glassBorder }]}>
+          <View style={[styles.captureComposer, p.inputStyle, { backgroundColor: p.inputStyle.backgroundColor, borderColor: p.glassBorder }]}>
             <Pressable
               onPress={() => focusCapture()}
               accessibilityRole="button"
               accessibilityLabel="Start a capture"
-              style={[styles.capturePlus, { backgroundColor: p.graphite }]}
+              style={[styles.capturePlus, { borderRadius: p.radius.icon, backgroundColor: p.graphite }]}
             >
               <OneIcon name={icons.plus} size={20} color={p.onAccent} />
             </Pressable>
@@ -186,7 +185,7 @@ export default function HomeV5() {
               {!structuredReview ? (
                 <>
                   <View style={styles.draftRow}>
-                    <View style={[styles.draftIcon, { backgroundColor: p.fillSoft }]}>
+                    <View style={[styles.draftIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
                       <OneIcon name={iconForDraft(draft)} size={16} color={p.chrome} />
                     </View>
                     <View style={{ flex: 1 }}>
@@ -213,7 +212,7 @@ export default function HomeV5() {
             onPress={() => router.push('/ask')}
             style={({ pressed }) => [styles.askRow, { opacity: pressed ? 0.66 : 1 }]}
           >
-            <View style={[styles.askIcon, { backgroundColor: p.graphite }]}>
+            <View style={[styles.askIcon, { borderRadius: p.radius.icon, backgroundColor: p.graphite }]}>
               <OneIcon name={icons.ask} size={17} color={p.onAccent} />
             </View>
             <View style={styles.askCopy}>
@@ -280,7 +279,7 @@ export default function HomeV5() {
           </View>
         ) : null}
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 }
@@ -322,7 +321,7 @@ function QuickAction({ label, icon, onPress }: { label: string; icon: (typeof ic
       onPress={() => { selectionFeedback(); onPress(); }}
       style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.58 : 1 }]}
     >
-      <View style={[styles.actionIcon, { backgroundColor: p.dark ? '#FFFFFF0D' : '#FFFFFF70', borderColor: p.glassBorder }]}>
+      <View style={[styles.actionIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.glassBorder }]}>
         <OneIcon name={icon} size={19} color={p.chrome} />
       </View>
       <Text style={[styles.quickActionLabel, { color: p.secondary }]}>{label}</Text>
@@ -339,7 +338,7 @@ function TodayRow({ item, reason }: { item: OneItem; reason: string }) {
   return (
     <Pressable accessibilityRole="button"
       onPress={() => router.push({ pathname: activeInbox ? '/inbox/[id]' : '/item/[id]', params: { id: item.id } } as never)}
-      style={({ pressed }) => [styles.todayCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      style={({ pressed }) => [styles.todayCard, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
     >
       <View style={[styles.todayRail, { backgroundColor: overdue ? p.warning : p.chrome }]} />
       <View style={styles.todayCopy}>
@@ -359,10 +358,10 @@ function RecentCard({ item }: { item: OneItem }) {
   return (
     <Pressable accessibilityRole="button"
       onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-      style={({ pressed }) => [styles.recentCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      style={({ pressed }) => [styles.recentCard, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
     >
       <View style={styles.recentCardTop}>
-        <View style={[styles.recentIcon, { backgroundColor: p.fillSoft }]}>
+        <View style={[styles.recentIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
           <OneIcon name={iconForType(item.type)} size={18} color={p.chrome} />
         </View>
         <Text style={[styles.recentDate, { color: p.tertiary }]}>{shortDate(item.updatedAt)}</Text>
@@ -393,9 +392,9 @@ const styles = StyleSheet.create({
   heroTitle: { fontSize: 42, lineHeight: 45, fontFamily: neverType.hero.fontFamily, fontWeight: '400', letterSpacing: -1.35 },
   heroSubtitle: { maxWidth: 390, fontSize: 14.5, lineHeight: 20 },
   captureStage: { padding: 18, gap: 15 },
-  captureStageHeader: { flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'space-between', gap: 14 },
+  captureStageHeader: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'flex-end', justifyContent: 'space-between', gap: 14 },
   captureStageTitle: { marginTop: 4, fontSize: 21, lineHeight: 25, fontWeight: '600', letterSpacing: -0.45 },
-  captureMetrics: { flexDirection: 'row', gap: 15 },
+  captureMetrics: { flexDirection: 'row', flexWrap: 'wrap', gap: 15 },
   captureComposer: {
     minHeight: 66,
     paddingHorizontal: 9,

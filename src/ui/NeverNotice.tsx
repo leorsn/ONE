@@ -1,3 +1,4 @@
+import { materialStyle } from '@/src/theme/editions';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useTheme } from '@/src/theme/useTheme';
 import { neverType } from '@/src/theme/tokens';
@@ -8,7 +9,7 @@ export function NeverNotice({ title, body, tone = 'neutral', action, onAction }:
 }) {
   const t = useTheme();
   const color = tone === 'error' ? t.danger : tone === 'success' ? t.success : t.chrome;
-  return <View accessibilityLiveRegion="polite" style={[styles.notice, { backgroundColor: t.surface }]}>
+  return <View accessibilityLiveRegion="polite" style={[styles.notice, materialStyle(t, 'card')]}>
     <View style={styles.heading}>
       {tone === 'busy' ? <ActivityIndicator color={color} /> : <OneIcon name={tone === 'success' ? icons.check : icons.info} color={color} size={20} />}
       <View style={styles.copy}><Text accessibilityRole={tone === 'error' ? 'alert' : undefined} style={[styles.title, { color: t.text }]}>{title}</Text>

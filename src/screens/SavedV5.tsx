@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useItems } from '@/src/context/ItemsContext';
 import {
   filterDocuments,
@@ -14,7 +14,7 @@ import {
 } from '@/src/documents/analytics';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { MemoryRow } from '@/src/ui/MemoryRow';
-import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
+import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import { neverSpacing } from '@/src/theme/tokens';
 import {
   V5Group,
@@ -86,12 +86,11 @@ export default function SavedV5() {
   }, [savedItems]);
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
-      <NeverBackdrop />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         <View style={styles.heroCopy}>
           <NeverEyebrow>Curated memory</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>{filter === 'Documents' ? 'Documents.' : 'Saved.'}</Text>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>{filter === 'Documents' ? 'Documents.' : 'Saved.'}</Text>
           <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Everything worth keeping, organized without feeling like a file manager.</Text>
         </View>
 
@@ -166,7 +165,7 @@ export default function SavedV5() {
           </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 }
@@ -185,7 +184,7 @@ function LibraryTile({ label, count, icon, onPress }: { label: string; count: nu
   return (
     <Pressable accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.libraryTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      style={({ pressed }) => [styles.libraryTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
     >
       <View style={styles.libraryTileTop}>
         <View style={[styles.libraryTileIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={18} color={p.chrome} /></View>

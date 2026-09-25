@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useItems } from '@/src/context/ItemsContext';
 import { exportOneData } from '@/src/export/exportOneData';
 import { OneIcon, icons } from '@/src/ui/icons';
@@ -58,8 +58,8 @@ export default function PrivacyScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
         <NeverNavigation title="Privacy" onBack={() => goBackOrHome()} />
 
         <V5LargeHeader title="Privacy" subtitle="Your personal memory stays under your control." />
@@ -110,7 +110,7 @@ export default function PrivacyScreen() {
 
         <Text style={[styles.footer, { color: p.tertiary }]}>NEVER · YOUR INFORMATION, UNDER YOUR CONTROL</Text>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
   function SettingsBlock({ title, children }: { title: string; children: React.ReactNode }) {

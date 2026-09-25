@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { usePlan } from '@/src/context/PlanContext';
@@ -13,7 +13,7 @@ import { retrieveLocalOneItems, retrieveOneItems } from '@/src/search/retrieve';
 import { searchSemantically } from '@/src/search/semantic';
 import { matchesMemoryCategory } from '@/src/ui/memoryPresentation';
 import { MemoryRow } from '@/src/ui/MemoryRow';
-import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
+import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import { neverSpacing, neverType } from '@/src/theme/tokens';
 import { NeverChromeButton } from '@/src/ui/never';
 import { iconForType } from '@/src/ui/OneItemRow';
@@ -139,10 +139,9 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
   const discovery = mode === 'quick' && !query.trim() && category === 'All';
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
-      <NeverBackdrop />
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <ScrollView
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, p.pageStyle]}
         keyboardShouldPersistTaps="handled"
         automaticallyAdjustKeyboardInsets
         keyboardDismissMode="interactive"
@@ -150,7 +149,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
       >
         <View style={styles.heroCopy}>
           <NeverEyebrow>{mode === 'ask' ? 'Grounded recall' : 'Memory index'}</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>
             {mode === 'ask' ? 'Ask NEVER.' : 'Search.'}
           </Text>
           <Text style={[styles.heroSubtitle, { color: p.secondary }]}>
@@ -160,7 +159,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
 
         <NeverHeroSurface style={styles.searchStage}>
           <View style={styles.modeRow}>
-            <View style={[styles.modeSwitch, { backgroundColor: p.dark ? '#FFFFFF0A' : '#FFFFFF66', borderColor: p.glassBorder }]}>
+            <View style={[styles.modeSwitch, { borderRadius: p.radius.chip, backgroundColor: p.fillSoft, borderColor: p.glassBorder }]}>
               <ModeButton label="Search" active={mode === 'quick'} onPress={() => void setSearchMode('quick')} />
               <ModeButton label="Ask" active={mode === 'ask'} onPress={() => void setSearchMode('ask')} />
             </View>
@@ -183,7 +182,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
             />
           ) : (
             <View style={styles.askPromise}>
-              <View style={[styles.askPromiseIcon, { backgroundColor: p.fillSoft }]}>
+              <View style={[styles.askPromiseIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
                 <OneIcon name={icons.shield} size={15} color={p.chrome} />
               </View>
               <Text style={[styles.askPromiseText, { color: p.secondary }]}>Grounded in your saved evidence first.</Text>
@@ -248,7 +247,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
                   onPress={() => void setSearchMode('ask')}
                   style={({ pressed }) => [styles.askBridge, { opacity: pressed ? 0.65 : 1 }]}
                 >
-                  <View style={[styles.askBridgeIcon, { backgroundColor: p.graphite }]}>
+                  <View style={[styles.askBridgeIcon, { borderRadius: p.radius.icon, backgroundColor: p.graphite }]}>
                     <OneIcon name={icons.ask} size={14} color={p.onAccent} />
                   </View>
                   <View style={{ flex: 1 }}>
@@ -290,7 +289,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 }
@@ -311,7 +310,7 @@ function ModeButton({ label, active, onPress }: { label: string; active: boolean
       accessibilityRole="button"
       accessibilityState={{ selected: active }}
       onPress={onPress}
-      style={({ pressed }) => [styles.modeButton, { backgroundColor: active ? p.graphite : 'transparent', opacity: pressed ? 0.62 : 1 }]}
+      style={({ pressed }) => [styles.modeButton, { borderRadius: p.radius.chip, backgroundColor: active ? p.graphite : 'transparent', opacity: pressed ? 0.62 : 1 }]}
     >
       <Text style={[styles.modeButtonText, { color: active ? p.onAccent : p.secondary, fontWeight: active ? '600' : '500' }]}>{label}</Text>
     </Pressable>
@@ -323,10 +322,10 @@ function CategoryTile({ icon, label, count, copy, onPress }: { icon: (typeof ico
   return (
     <Pressable accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.categoryTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      style={({ pressed }) => [styles.categoryTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
     >
       <View style={styles.categoryTop}>
-        <View style={[styles.categoryIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={18} color={p.chrome} /></View>
+        <View style={[styles.categoryIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={18} color={p.chrome} /></View>
         <Text style={[styles.categoryCount, { color: p.tertiary }]}>{count}</Text>
       </View>
       <Text style={[styles.categoryTitle, { color: p.label }]}>{label}</Text>
@@ -340,10 +339,10 @@ function MemoryTile({ item }: { item: OneItem }) {
   return (
     <Pressable accessibilityRole="button"
       onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-      style={({ pressed }) => [styles.memoryTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      style={({ pressed }) => [styles.memoryTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
     >
       <View style={styles.memoryTileTop}>
-        <View style={[styles.memoryTileIcon, { backgroundColor: p.fillSoft }]}>
+        <View style={[styles.memoryTileIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
           <OneIcon name={iconForType(item.type)} size={17} color={p.chrome} />
         </View>
         <V5Chevron />
@@ -358,7 +357,7 @@ function EmptyResults({ query, category }: { query: string; category: SearchCate
   const p = useNeverV5Palette();
   return (
     <View style={styles.emptyState}>
-      <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}>
+      <View style={[styles.emptyIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
         <OneIcon name={icons.search} size={18} color={p.chrome} />
       </View>
       <Text style={[styles.emptyTitle, { color: p.label }]}>{query.trim() || category !== 'All' ? 'No matching memories' : 'Your memory is ready'}</Text>
@@ -372,9 +371,9 @@ function PromptTile({ text, icon, onSelect }: { text: string; icon: (typeof icon
   return (
     <Pressable accessibilityRole="button"
       onPress={() => onSelect(text)}
-      style={({ pressed }) => [styles.promptTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      style={({ pressed }) => [styles.promptTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
     >
-      <View style={[styles.promptIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={15} color={p.chrome} /></View>
+      <View style={[styles.promptIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={15} color={p.chrome} /></View>
       <Text style={[styles.promptText, { color: p.label }]}>{text}</Text>
     </Pressable>
   );

@@ -1,17 +1,18 @@
+import { appearanceLabel } from '@/src/theme/editions';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { router } from 'expo-router';
 import Constants from 'expo-constants';
 import { ActivityIndicator, Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { useOnboarding } from '@/src/context/OnboardingContext';
 import { usePlan } from '@/src/context/PlanContext';
 import { deleteOneAccount } from '@/src/supabase/account';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
+import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import {
   V5Chevron,
   V5Group,
@@ -116,12 +117,11 @@ export default function SettingsV5() {
         : 'Up to date';
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
-      <NeverBackdrop />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCopy}>
           <NeverEyebrow>Control center</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>Settings.</Text>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>Settings.</Text>
           <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Your account, memory preferences and NEVER membership.</Text>
         </View>
 
@@ -229,7 +229,7 @@ export default function SettingsV5() {
 
         <Text style={[styles.footer, { color: p.tertiary }]}>NEVER · {hasAi ? 'AI enabled' : 'Core'} · {APP_VERSION}</Text>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 }
@@ -261,11 +261,6 @@ function membershipValue(plan: 'none' | 'one' | 'one_ai', localizedPrices: Parti
   if (plan === 'one') return localizedPrices.one ? `${localizedPrices.one} / month · Active` : billingConfigured ? 'Active · App Store' : '€2.99 / month';
   return 'Compare NEVER plans';
 }
-function appearanceLabel(value: 'system' | 'light' | 'dark') {
-  if (value === 'light') return 'Light';
-  if (value === 'dark') return 'Dark';
-  return 'Auto';
-}
 
 function PreferenceTile({
   icon,
@@ -294,9 +289,9 @@ function PreferenceTile({
       <Text style={[styles.preferenceValue, { color: p.secondary }]} numberOfLines={2}>{value}</Text>
     </>
   );
-  if (!onPress) return <View style={[styles.preferenceTile, { backgroundColor: p.surface, borderColor: p.border }]}>{body}</View>;
+  if (!onPress) return <View style={[styles.preferenceTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border }]}>{body}</View>;
   return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.preferenceTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}>
+    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.preferenceTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}>
       {body}
     </Pressable>
   );
