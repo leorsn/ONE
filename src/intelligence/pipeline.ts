@@ -1,6 +1,6 @@
-import { ensureCanonicalItemMetadata } from '@/src/capture/itemMetadata';
-import type { OneItem, OneProcessingStatus, OneUnderstandingConfidence } from '@/src/types/item';
-import { buildIntelligenceSnapshot } from './engine';
+import { ensureCanonicalItemMetadata } from '../capture/itemMetadata.ts';
+import type { OneItem, OneProcessingStatus, OneUnderstandingConfidence } from '../types/item';
+import { buildIntelligenceSnapshot } from './engine.ts';
 import type { IntelligenceSnapshot } from './types';
 
 export type IntelligenceProcessingResult = {

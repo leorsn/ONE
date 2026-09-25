@@ -30,7 +30,7 @@ export function OneItemRow({
         styles.row,
         {
           borderBottomColor: theme.border,
-          backgroundColor: pressed ? theme.fill : 'transparent'
+          backgroundColor: pressed ? theme.accentSoft : 'transparent'
         }
       ]}
     >
@@ -48,17 +48,20 @@ export function OneItemRow({
           style={[
             styles.check,
             {
+              borderRadius: theme.radius.icon,
               borderColor: item.completed ? theme.success : theme.border,
-              backgroundColor: item.completed ? theme.success : theme.surface
+              backgroundColor: item.completed ? theme.success : theme.accentSoft
             }
           ]}
         >
-          {item.completed ? <OneIcon name={icons.check} size={10.5} color={theme.onAccent} /> : null}
+          {item.completed ? <OneIcon name={icons.check} size={10.5} color={theme.background} /> : null}
         </Pressable>
       ) : previewUri ? (
-        <Image source={{ uri: previewUri }} style={[styles.preview, { backgroundColor: theme.fill }]} resizeMode="cover" />
+        <View style={[styles.previewFrame, { borderRadius: theme.radius.icon, backgroundColor: theme.accentSoft, borderColor: theme.border }]}>
+          <Image source={{ uri: previewUri }} style={StyleSheet.absoluteFill} resizeMode="cover" />
+        </View>
       ) : (
-        <View style={[styles.glyph, { backgroundColor: theme.fill }]}>
+        <View style={[styles.glyph, { borderRadius: theme.radius.icon, backgroundColor: theme.accentSoft, borderColor: theme.border }]}>
           <OneIcon name={iconForType(item.type)} size={17} color={theme.chrome} />
         </View>
       )}
@@ -155,9 +158,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 11
   },
-  check: { width: 26, height: 26, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
-  preview: { width: 44, height: 44, borderRadius: 11 },
-  glyph: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  check: { width: 26, height: 26, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  previewFrame: { width: 44, height: 44, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  glyph: { width: 40, height: 40, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   content: { flex: 1, minWidth: 0 },
   title: { fontSize: 16, lineHeight: 20, fontWeight: '600', letterSpacing: -0.15 },
   meta: { fontSize: 13, lineHeight: 17, marginTop: 2 },

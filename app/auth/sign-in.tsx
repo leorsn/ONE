@@ -84,7 +84,7 @@ export default function SignInScreen() {
               <Text style={[styles.formCaption, { color: p.secondary }]}>{mode === 'signin' ? 'Use your NEVER account' : 'Email and password'}</Text>
 
               {!configured ? (
-                <View style={[styles.configurationNotice, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.shield} size={14} color={p.danger} /><Text style={[styles.configurationError, { color: p.danger }]}>Cloud authentication is not configured in this build.</Text></View>
+                <View style={[styles.configurationNotice, { borderRadius: p.radius.button, backgroundColor: p.fillSoft, borderColor: p.danger }]}><OneIcon name={icons.shield} size={14} color={p.danger} /><Text style={[styles.configurationError, { color: p.danger }]}>Cloud authentication is not configured in this build.</Text></View>
               ) : null}
 
               <View style={styles.form}>
@@ -97,7 +97,7 @@ export default function SignInScreen() {
                   <NeverInput value={password} onChangeText={setPassword} placeholder={mode === 'signup' ? 'At least 8 characters' : 'Password'} placeholderTextColor={p.tertiary} secureTextEntry autoCapitalize="none" autoCorrect={false} textContentType={mode === 'signup' ? 'newPassword' : 'password'} accessibilityLabel="Password" onSubmitEditing={() => void submit()} style={[styles.input, { color: p.label, backgroundColor: p.fillSoft }]} />
                 </View>
 
-                <Pressable accessibilityRole="button" accessibilityState={{ disabled: !configured || submitting || resetting, busy: submitting }} disabled={!configured || submitting || resetting} onPress={submit} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: !configured || submitting ? 0.38 : pressed ? 0.72 : 1 }]}>
+                <Pressable accessibilityRole="button" accessibilityState={{ disabled: !configured || submitting || resetting, busy: submitting }} disabled={!configured || submitting || resetting} onPress={submit} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, borderColor: p.graphite, opacity: !configured || submitting ? 0.38 : pressed ? 0.72 : 1 }]}>
                   {submitting ? <ActivityIndicator size="small" color={p.onAccent} /> : null}
                   <Text style={[styles.primaryText, { color: p.onAccent }]}>{mode === 'signin' ? 'Sign In to NEVER' : 'Create NEVER Account'}</Text>
                 </Pressable>
@@ -137,12 +137,12 @@ const styles = StyleSheet.create({
   formCard: { padding: 15 },
   formTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.2 },
   formCaption: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
-  configurationNotice: { minHeight: 44, borderRadius: 12, paddingHorizontal: 11, marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  configurationNotice: { minHeight: 44, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 11, marginTop: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
   configurationError: { flex: 1, fontSize: 11, lineHeight: 15.5 },
   form: { marginTop: 15, gap: 12 },
   inputLabel: { marginLeft: 2, marginBottom: 5, fontSize: 11.5, lineHeight: 14, fontWeight: '500' },
-  input: { minHeight: 54, paddingVertical: 12, borderRadius: 14, paddingHorizontal: 13, fontSize: 16, lineHeight: 22 },
-  primaryButton: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  input: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 13, fontSize: 16, lineHeight: 22 },
+  primaryButton: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
   primaryText: { flexShrink: 1, textAlign: 'center', fontSize: 16, lineHeight: 22, fontWeight: '600' },
   formFooter: { marginTop: 15, paddingTop: 7, borderTopWidth: StyleSheet.hairlineWidth },
   textAction: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },

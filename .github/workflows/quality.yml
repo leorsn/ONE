@@ -3,10 +3,10 @@ name: NEVER Quality
 on:
   push:
     branches:
-      - dev/foundation
-  pull_request:
-    branches:
       - main
+      - dev/foundation
+      - 'design/**'
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -30,9 +30,6 @@ jobs:
 
       - name: Install locked dependencies
         run: npm ci --no-audit --no-fund
-
-      - name: Install pinned lint tooling
-        run: npm install --no-save --package-lock=false --no-audit --no-fund eslint@9.39.5 eslint-config-expo@57.0.2
 
       - name: Quality gate
         run: npm run quality

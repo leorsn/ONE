@@ -1,7 +1,7 @@
 import { NeverNotice } from '@/src/ui/NeverNotice';
 import { goBackOrHome } from '@/src/ui/navigation';
 import { NeverSettingsSection, NeverNavigation } from '@/src/ui/utility';
-import { themeIds, themes, appearanceLabel } from '@/src/theme/editions';
+import { themeIds, themes, appearanceLabel, resolveMaterialAppearance } from '@/src/theme/editions';
 import { ThemePreview } from '@/src/ui/ThemePreview';
 import { neverType } from '@/src/theme/tokens';
 import { useRef, useState } from 'react';
@@ -23,7 +23,7 @@ export default function AppearanceScreen() {
   const p = useNeverV5Palette();
   const { fontScale, width } = useWindowDimensions();
   const singleColumn = fontScale > 1.3 || width < 340;
-  const { preference, setPreference } = useThemePreference();
+  const { preference, setPreference, reduceTransparency } = useThemePreference();
   const [appIcon, setAppIcon] = useState<NeverAppIconName>(() => getNeverAppIcon());
   const [iconError, setIconError] = useState<string | null>(null);
   const canSwitchAppIcon = supportsNeverAppIcons();
@@ -68,19 +68,32 @@ export default function AppearanceScreen() {
           {[...themeIds, 'system' as const].map((value) => {
             const active = preference === value;
             const name = appearanceLabel(value);
-            const descriptor = value === 'system' ? 'Adapts automatically.' : themes[value].descriptor;
+            const optionTheme = value === 'system' ? null : themes[value];
+            const descriptor = value === 'system' ? 'Adapts automatically.' : optionTheme!.descriptor;
+            const optionAppearance = optionTheme ? resolveMaterialAppearance(optionTheme, 'card', { reduceTransparency }) : null;
+            const optionSurface = optionAppearance?.style.backgroundColor ?? p.surface;
+            const optionBorder = active ? (optionTheme?.accent ?? p.graphite) : (optionAppearance?.style.borderColor ?? p.border);
+            const optionText = optionTheme?.text ?? p.label;
+            const optionSecondary = optionTheme?.textSecondary ?? p.secondary;
+            const optionTertiary = optionTheme?.textTertiary ?? p.tertiary;
+            const optionAccent = optionTheme?.accent ?? p.graphite;
+            const optionOnAccent = optionTheme?.onAccent ?? p.onAccent;
+            const optionRadius = optionTheme?.radius.card ?? p.radius.card;
             return <Pressable key={value} accessible accessibilityRole="radio"
               accessibilityLabel={`${name}. ${descriptor}${value === 'platinum' ? ' Default NEVER appearance.' : ''}`}
               accessibilityHint="Applies immediately and saves on this device"
               disabled={changing} accessibilityState={{ checked: active, disabled: changing }}
               onPress={() => void select(value)}
-              style={({ pressed }) => [styles.themeOption, singleColumn && { flexBasis: '100%' }, { backgroundColor: p.surface, borderColor: active ? p.graphite : p.border, borderWidth: 1.5, opacity: pressed ? 0.75 : 1, borderRadius: p.radius.card }]}>
-              <View style={styles.previewClip}><ThemePreview preference={value} /></View>
+              style={({ pressed }) => [styles.themeOption, singleColumn && { flexBasis: '100%' }, { backgroundColor: optionSurface, borderColor: optionBorder, borderWidth: active ? 1.5 : StyleSheet.hairlineWidth, opacity: pressed ? 0.75 : 1, borderRadius: optionRadius }]}>
+              <View style={[styles.previewClip, { borderRadius: Math.max(6, optionRadius - 4) }]}><ThemePreview preference={value} /></View>
               <View style={styles.themeCopy}>
-                <View style={styles.themeNameRow}><Text style={[styles.rowTitle, { color: p.label, flex: 1 }]}>{name}</Text><SelectionMark active={active} /></View>
-                <Text style={[styles.rowBody, { color: p.secondary }]}>{descriptor}</Text>
-                {value === 'platinum' ? <Text style={[styles.defaultLabel, { color: p.tertiary }]}>NEVER ORIGINAL</Text> : null}
-                {value === 'system' ? <Text style={[styles.rowBody, { color: p.tertiary }]}>Platinum by day. Monolith in dark mode.</Text> : null}
+                <View style={styles.themeNameRow}>
+                  <Text style={[styles.rowTitle, { color: optionText, flex: 1 }]}>{name}</Text>
+                  <SelectionMark active={active} accent={optionAccent} onAccent={optionOnAccent} tertiary={optionTertiary} />
+                </View>
+                <Text style={[styles.rowBody, { color: optionSecondary }]}>{descriptor}</Text>
+                {value === 'platinum' ? <Text style={[styles.defaultLabel, { color: optionTertiary }]}>NEVER ORIGINAL</Text> : null}
+                {value === 'system' ? <Text style={[styles.rowBody, { color: optionTertiary }]}>Platinum by day. Monolith in dark mode.</Text> : null}
               </View>
             </Pressable>;
           })}
@@ -88,19 +101,21 @@ export default function AppearanceScreen() {
         {appearanceError ? <NeverNotice tone="error" title="Appearance could not be saved" body={appearanceError} /> : null}
 
         <NeverSettingsSection title="App Icon">
-          {iconOptions.map((option, index) => {
-            const active = appIcon === option.value;
-            return (
-              <Pressable key={option.value} accessibilityRole="radio" accessibilityState={{ checked: active, disabled: !canSwitchAppIcon || changing }} disabled={!canSwitchAppIcon || changing} onPress={() => selectAppIcon(option.value)} style={({ pressed }) => [styles.row, index < iconOptions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: !canSwitchAppIcon ? 0.55 : 1 }]}>
-                <Image source={option.source} style={styles.appIconPreview} />
-                <View style={styles.rowCopy}>
-                  <Text style={[styles.rowTitle, { color: p.label }]}>{option.title}</Text>
-                  <Text style={[styles.rowBody, { color: p.secondary }]}>{option.body}</Text>
-                </View>
-                <SelectionMark active={active} />
-              </Pressable>
-            );
-          })}
+          <View accessibilityRole="radiogroup" accessibilityLabel="App icon">
+            {iconOptions.map((option, index) => {
+              const active = appIcon === option.value;
+              return (
+                <Pressable key={option.value} accessibilityRole="radio" accessibilityState={{ checked: active, disabled: !canSwitchAppIcon || changing }} disabled={!canSwitchAppIcon || changing} onPress={() => selectAppIcon(option.value)} style={({ pressed }) => [styles.row, index < iconOptions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: !canSwitchAppIcon ? 0.55 : 1 }]}>
+                  <Image source={option.source} style={styles.appIconPreview} />
+                  <View style={styles.rowCopy}>
+                    <Text style={[styles.rowTitle, { color: p.label }]}>{option.title}</Text>
+                    <Text style={[styles.rowBody, { color: p.secondary }]}>{option.body}</Text>
+                  </View>
+                  <SelectionMark active={active} accent={p.graphite} onAccent={p.onAccent} tertiary={p.tertiary} />
+                </Pressable>
+              );
+            })}
+          </View>
         </NeverSettingsSection>
 
         {!canSwitchAppIcon ? (
@@ -111,10 +126,9 @@ export default function AppearanceScreen() {
     </NeverScreen>
   );
 }
-function SelectionMark({ active }: { active: boolean }) {
-  const p = useNeverV5Palette();
-  return <View style={[styles.radio, { borderColor: active ? p.graphite : p.tertiary, backgroundColor: active ? p.graphite : 'transparent' }]}>
-    {active ? <OneIcon name={icons.check} size={10} color={p.onAccent} /> : null}
+function SelectionMark({ active, accent, onAccent, tertiary }: { active: boolean; accent: string; onAccent: string; tertiary: string }) {
+  return <View style={[styles.radio, { borderColor: active ? accent : tertiary, backgroundColor: active ? accent : 'transparent' }]}>
+    {active ? <OneIcon name={icons.check} size={10} color={onAccent} /> : null}
   </View>;
 }
 
@@ -122,7 +136,7 @@ const styles = StyleSheet.create({
   collectionHeading: { gap: 4 }, collectionTitle: { ...neverType.section },
   themeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'stretch' },
   themeOption: { flexBasis: '46%', flexGrow: 1, minWidth: 130, overflow: 'hidden' },
-  previewClip: { overflow: 'hidden', margin: 5, borderRadius: 7 },
+  previewClip: { overflow: 'hidden', margin: 5 },
   themeCopy: { padding: 12, gap: 5 }, themeNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   defaultLabel: { fontSize: 9, fontWeight: '600', letterSpacing: 1.1, marginTop: 3 },
 

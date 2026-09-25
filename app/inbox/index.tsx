@@ -43,7 +43,7 @@ export default function InboxIndexScreen() {
               />
             )) : (
               <View style={styles.emptyState}>
-                <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.check} size={18} color={p.chrome} /></View>
+                <View style={[styles.emptyIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><OneIcon name={icons.check} size={18} color={p.chrome} /></View>
                 <View style={{ flex: 1 }}>
                   <Text style={[styles.emptyTitle, { color: p.label }]}>Inbox clear</Text>
                   <Text style={[styles.emptyBody, { color: p.secondary }]}>Everything you captured has a place.</Text>
@@ -68,7 +68,7 @@ const styles = StyleSheet.create({
   navLabel: { fontSize: 10, letterSpacing: 1.5, fontWeight: '600' },
   section: { gap: 12 },
   emptyState: { minHeight: 78, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  emptyIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { width: 38, height: 38, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
   emptyBody: { marginTop: 1, fontSize: 12.5, lineHeight: 16 }
 });

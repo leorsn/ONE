@@ -1,6 +1,6 @@
 import { initialTriageStateForItem } from '../inbox/triage.ts';
-import { processItemIntelligence } from '../intelligence/pipeline';
-import { NEVER_INTELLIGENCE_VERSION } from '../intelligence/versioning';
+import { processItemIntelligence } from '../intelligence/pipeline.ts';
+import { NEVER_INTELLIGENCE_VERSION } from '../intelligence/versioning.ts';
 import { normalizeContextLabel, normalizeTags } from './contextNormalization.ts';
 import type { CaptureDraft } from './core';
 import type { OneItem, OneSourceType } from '../types/item';

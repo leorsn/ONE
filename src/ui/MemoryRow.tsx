@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme } from '@/src/theme/useTheme';
-import { neverControl, neverIcon, neverType, neverSpacing, neverRadius } from '@/src/theme/tokens';
+import { neverControl, neverIcon, neverType, neverSpacing } from '@/src/theme/tokens';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { iconForType } from '@/src/ui/OneItemRow';
 import type { OneItem } from '@/src/types/item';
@@ -19,8 +19,8 @@ export function MemoryRow({ item, last = false, reason, subtitle, onPress }: { i
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`${item.title}. ${meta}`} accessibilityHint="Opens memory details"
       onPress={onPress ?? (() => router.push({ pathname: '/item/[id]', params: { id: item.id } }))}
-      style={({ pressed }) => [styles.row, { backgroundColor: pressed ? t.fill : 'transparent' }]}>
-      <View style={[styles.preview, { backgroundColor: t.fill }]}>
+      style={({ pressed }) => [styles.row, { backgroundColor: pressed ? t.accentSoft : 'transparent' }]}>
+      <View style={[styles.preview, { borderRadius: t.radius.icon, backgroundColor: t.accentSoft, borderColor: t.border }]}>
         {preview && failedPreview !== preview ? <Image onError={() => setFailedPreview(preview)} source={{ uri: preview }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <OneIcon name={iconForType(item.type)} size={neverIcon.medium} color={t.chrome} />}
       </View>
       <View style={[styles.content, !last && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border }]}>
@@ -38,7 +38,7 @@ export function MemoryRow({ item, last = false, reason, subtitle, onPress }: { i
 
 const styles = StyleSheet.create({
   row: { minHeight: neverControl.row, paddingLeft: neverSpacing.md, flexDirection: 'row', alignItems: 'center', gap: neverSpacing.md },
-  preview: { width: neverIcon.preview, height: neverIcon.preview, borderRadius: neverRadius.sm, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  preview: { width: neverIcon.preview, height: neverIcon.preview, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   content: { minHeight: neverControl.row, flex: 1, paddingVertical: neverSpacing.md, paddingRight: neverSpacing.md, flexDirection: 'row', alignItems: 'center', gap: neverSpacing.sm },
   copy: { flex: 1, minWidth: 0 }, title: { ...neverType.bodyStrong }, meta: { ...neverType.caption, marginTop: 3 }, reason: { ...neverType.caption }
 });

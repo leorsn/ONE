@@ -51,12 +51,12 @@ export default function NotificationSettingsScreen() {
     void Haptics.selectionAsync().catch(() => undefined);
     setError(null);
     try {
-    if (permission === 'denied') {
-      await Linking.openSettings();
-      return;
-    }
-    const granted = await ensureNotificationPermissions();
-    setPermission(granted ? 'granted' : await getNotificationPermissionStatus());
+      if (permission === 'denied') {
+        await Linking.openSettings();
+        return;
+      }
+      const granted = await ensureNotificationPermissions();
+      setPermission(granted ? 'granted' : await getNotificationPermissionStatus());
     } catch { setError('Could not open notification settings. Please try again.'); }
   }
 
@@ -80,7 +80,7 @@ export default function NotificationSettingsScreen() {
         {error ? <NeverNotice tone="error" title="Notifications need attention" body={error} action="Try again" onAction={() => { setError(null); setPermission('loading'); setReload((value) => value + 1); }} /> : null}
         <NeverSettingsSection title="Access">
           <View style={styles.permissionRow}>
-            <View style={[styles.rowIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.bell} size={15} color={p.chrome} /></View>
+            <View style={[styles.rowIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><OneIcon name={icons.bell} size={15} color={p.chrome} /></View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.permissionTitle, { color: p.label }]}>Notification Access</Text>
               <Text style={[styles.permissionBody, { color: p.secondary }]}>{permissionDescription(permission)}</Text>
@@ -90,7 +90,11 @@ export default function NotificationSettingsScreen() {
             ) : permission === 'granted' ? (
               <View style={styles.statusWrap}><View style={[styles.statusDot, { backgroundColor: p.success }]} /><Text style={[styles.statusText, { color: p.secondary }]}>On</Text></View>
             ) : permission !== 'unsupported' ? (
-              <Pressable accessibilityRole="button" onPress={() => void handlePermissionAction()} style={({ pressed }) => [styles.enableButton, { backgroundColor: p.fill, opacity: pressed ? 0.62 : 1 }]}>
+              <Pressable accessibilityRole="button" onPress={() => void handlePermissionAction()} style={({ pressed }) => [styles.enableButton, {
+                borderRadius: p.radius.button,
+                backgroundColor: pressed ? p.fill : p.fillSoft,
+                borderColor: pressed ? p.chrome : p.border
+              }]}>
                 <Text style={[styles.enableText, { color: p.label }]}>{permission === 'denied' ? 'Settings' : 'Enable'}</Text>
               </Pressable>
             ) : null}
@@ -99,29 +103,41 @@ export default function NotificationSettingsScreen() {
 
         {saving ? <NeverNotice tone="busy" title="Saving reminder timing…" /> : null}
         <NeverSettingsSection title="Default Timing">
-          {leadOptions.map((option, index) => {
-            const active = leadMinutes === option.value;
-            return (
-              <Pressable key={option.value} accessibilityRole="radio" disabled={saving || !preferencesReady} accessibilityState={{ checked: active, disabled: saving || !preferencesReady, busy: saving }} onPress={() => void chooseLead(option.value)} style={({ pressed }) => [styles.optionRow, index < leadOptions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }, { backgroundColor: pressed ? p.fillSoft : 'transparent' }]}>
-                <View style={[styles.rowIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.clock} size={15} color={p.chrome} /></View>
-                <View style={{ flex: 1 }}>
-                  <Text style={[styles.optionLabel, { color: p.label }]}>{option.label}</Text>
-                  <Text style={[styles.optionDetail, { color: p.secondary }]}>{option.detail}</Text>
-                </View>
-                <View style={[styles.radio, { borderColor: active ? p.chrome : p.tertiary, backgroundColor: active ? p.chrome : 'transparent' }]}>
-                  {active ? <View style={[styles.radioInner, { backgroundColor: p.onAccent }]} /> : null}
-                </View>
-              </Pressable>
-            );
-          })}
+          <View accessibilityRole="radiogroup" accessibilityLabel="Default reminder timing">
+            {leadOptions.map((option, index) => {
+              const active = leadMinutes === option.value;
+              const disabled = saving || !preferencesReady;
+              return (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="radio"
+                  disabled={disabled}
+                  accessibilityState={{ checked: active, disabled, busy: saving }}
+                  onPress={() => void chooseLead(option.value)}
+                  style={({ pressed }) => [
+                    styles.optionRow,
+                    index < leadOptions.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth },
+                    { backgroundColor: pressed ? p.fillSoft : 'transparent', opacity: disabled ? 0.55 : 1 }
+                  ]}
+                >
+                  <View style={[styles.rowIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><OneIcon name={icons.clock} size={15} color={p.chrome} /></View>
+                  <View style={{ flex: 1 }}>
+                    <Text style={[styles.optionLabel, { color: p.label }]}>{option.label}</Text>
+                    <Text style={[styles.optionDetail, { color: p.secondary }]}>{option.detail}</Text>
+                  </View>
+                  <View style={[styles.radio, { borderColor: active ? p.graphite : p.tertiary, backgroundColor: active ? p.graphite : 'transparent' }]}>
+                    {active ? <View style={[styles.radioInner, { backgroundColor: p.onAccent }]} /> : null}
+                  </View>
+                </Pressable>
+              );
+            })}
+          </View>
         </NeverSettingsSection>
 
         <View style={styles.note}><OneIcon name={icons.bell} size={12.5} color={p.chrome} /><Text style={[styles.noteText, { color: p.tertiary }]}>This timing is applied when a reminder is newly scheduled or edited. Individual items can still use their own reminder details.</Text></View>
       </ScrollView>
     </NeverScreen>
   );
-
-
 }
 
 function permissionDescription(permission: PermissionState) {
@@ -137,13 +153,13 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 34, gap: 18 },
   permissionRow: { minHeight: 72, paddingHorizontal: 13, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  rowIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  rowIcon: { width: 34, height: 34, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   permissionTitle: { fontSize: 15, lineHeight: 18, fontWeight: '600' },
   permissionBody: { marginTop: 2, ...neverType.caption },
   statusWrap: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   statusDot: { width: 6, height: 6, borderRadius: 3 },
   statusText: { ...neverType.caption, fontWeight: '600' },
-  enableButton: { minHeight: 44, borderRadius: 14, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
+  enableButton: { minHeight: 44, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 10, alignItems: 'center', justifyContent: 'center' },
   enableText: { ...neverType.caption, fontWeight: '600' },
   optionRow: { minHeight: 62, paddingHorizontal: 13, paddingVertical: 7, flexDirection: 'row', alignItems: 'center', gap: 10 },
   optionLabel: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },

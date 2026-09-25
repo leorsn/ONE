@@ -49,7 +49,7 @@ export default function AuthCallbackScreen() {
         {!errorMessage ? (
           <V5Group><View style={styles.statusRow}><ActivityIndicator size="small" color={p.chrome} /><View style={{ flex: 1 }}><Text style={[styles.statusTitle, { color: p.label }]}>Confirming account</Text><Text style={[styles.statusBody, { color: p.secondary }]}>This should finish automatically.</Text></View></View></V5Group>
         ) : (
-          <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)/settings')} style={({ pressed }) => [styles.button, { backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
+          <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)/settings')} style={({ pressed }) => [styles.button, { borderRadius: p.radius.button, backgroundColor: p.graphite, borderColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
             <Text style={[styles.buttonText, { color: p.onAccent }]}>Return to NEVER</Text>
           </Pressable>
         )}
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   statusRow: { minHeight: 62, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
   statusTitle: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
   statusBody: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
-  button: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
+  button: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   buttonText: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
   trustRow: { marginTop: 17, flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
   trustText: { flex: 1, ...neverType.caption }

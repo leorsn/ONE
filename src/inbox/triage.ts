@@ -61,7 +61,7 @@ export function proposedActionsForItem(item: OneItem): ProposedInboxAction[] {
     add({
       id: 'create_reminder',
       label: 'Add reminder',
-      reason: 'Use the confirmed event date for a ONE reminder.',
+      reason: 'Use the confirmed event date for a NEVER reminder.',
       confidence,
       primary: false
     });
@@ -102,7 +102,7 @@ export function proposedActionsForItem(item: OneItem): ProposedInboxAction[] {
     add({
       id: 'save_note',
       label: item.type === 'idea' ? 'Save idea' : 'Save',
-      reason: 'Keep this as a durable ONE memory.',
+      reason: 'Keep this as a durable NEVER memory.',
       confidence,
       primary: true
     });
@@ -113,7 +113,7 @@ export function proposedActionsForItem(item: OneItem): ProposedInboxAction[] {
       id: 'save_reference',
       label: 'Save reference',
       reason: confidence === 'low'
-        ? 'ONE is not confident enough to create a calendar item or reminder automatically.'
+        ? 'NEVER is not confident enough to create a calendar item or reminder automatically.'
         : 'Keep this capture without adding unsupported assumptions.',
       confidence,
       primary: false

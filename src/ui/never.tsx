@@ -1,9 +1,10 @@
 import { neverControl, neverRadius, neverType } from '@/src/theme/tokens';
+import { resolveMaterialAppearance } from '@/src/theme/editions';
 import { NeverMaterial, selectionFeedback } from '@/src/ui/material';
 import type { ReactNode } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { useTheme } from '@/src/theme/useTheme';
+import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 
 type IconName = (typeof icons)[keyof typeof icons];
 type GlassTone = 'quiet' | 'default' | 'strong';
@@ -48,6 +49,8 @@ export function NeverCommandBar({
   onPress: () => void;
 }) {
   const theme = useTheme();
+  const { reduceTransparency } = useThemePreference();
+  const cardAppearance = resolveMaterialAppearance(theme, 'card', { reduceTransparency });
   return (
     <Pressable
       accessibilityRole="button"
@@ -58,13 +61,15 @@ export function NeverCommandBar({
       }}
       style={({ pressed }) => [
         styles.commandBar,
+        cardAppearance.style,
         {
-          backgroundColor: theme.surface,
-          opacity: pressed ? 0.62 : 1
+          borderRadius: theme.radius.card,
+          backgroundColor: pressed ? theme.accentSoft : cardAppearance.style.backgroundColor,
+          borderColor: pressed ? theme.chrome : cardAppearance.style.borderColor
         }
       ]}
     >
-      <View style={[styles.commandGlyph, { backgroundColor: theme.fill }]}>
+      <View style={[styles.commandGlyph, { backgroundColor: theme.accentSoft, borderColor: theme.border, borderRadius: theme.radius.icon }]}>
         <OneIcon name={icons.ask} size={15} color={theme.chrome} />
       </View>
       <View style={styles.commandCopy}>
@@ -107,6 +112,7 @@ export function NeverChromeButton({
         compact && styles.primaryButtonCompact,
         {
           backgroundColor: theme.accent,
+          borderColor: theme.mode === 'dark' ? theme.glassBorder : theme.accent,
           borderRadius: theme.radius.button,
           opacity: disabled || busy ? 0.32 : pressed ? 0.72 : 1
         }
@@ -140,13 +146,15 @@ export function NeverIconButton({
       }}
       style={({ pressed }) => [
         styles.iconButton,
-        { borderRadius: theme.radius.icon,
-          backgroundColor: filled ? theme.text : theme.surface,
-          opacity: pressed ? 0.58 : 1
+        {
+          borderRadius: theme.radius.icon,
+          backgroundColor: filled ? theme.accent : pressed ? theme.fillStrong : theme.accentSoft,
+          borderColor: filled ? theme.accent : pressed ? theme.chrome : theme.border,
+          opacity: filled && pressed ? 0.72 : 1
         }
       ]}
     >
-      <OneIcon name={icon} size={16} color={filled ? theme.background : theme.text} />
+      <OneIcon name={icon} size={16} color={filled ? theme.onAccent : theme.chrome} />
     </Pressable>
   );
 }
@@ -192,7 +200,7 @@ const styles = StyleSheet.create({
   },
   commandBar: {
     minHeight: 68,
-    borderRadius: 20,
+    borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 14,
     flexDirection: 'row',
     alignItems: 'center',
@@ -201,7 +209,7 @@ const styles = StyleSheet.create({
   commandGlyph: {
     width: 40,
     height: 40,
-    borderRadius: 12,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -221,6 +229,7 @@ const styles = StyleSheet.create({
     minHeight: neverControl.primary,
     paddingVertical: 12,
     borderRadius: neverRadius.md,
+    borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 18,
     flexDirection: 'row',
     alignItems: 'center',
@@ -236,7 +245,7 @@ const styles = StyleSheet.create({
   iconButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderWidth: StyleSheet.hairlineWidth,
     alignItems: 'center',
     justifyContent: 'center'
   },
@@ -259,21 +268,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 16,
     fontWeight: '800',
-    letterSpacing: 4.3
+    letterSpacing: 4.5
   },
-  signal: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 3
-  },
-  signalLong: {
-    width: 18,
-    height: 3,
-    borderRadius: 2
-  },
-  signalShort: {
-    width: 7,
-    height: 3,
-    borderRadius: 2
-  }
+  signal: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  signalLong: { width: 16, height: 2.5, borderRadius: 2 },
+  signalShort: { width: 6, height: 2.5, borderRadius: 2 }
 });

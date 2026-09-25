@@ -1,11 +1,11 @@
-import { initialTriageStateForItem } from '@/src/inbox/triage';
+import { initialTriageStateForItem } from '../inbox/triage.ts';
 import type {
   OneDestination,
   OneItem,
   OneItemKind,
   OneReviewStatus,
   OneUnderstandingConfidence
-} from '@/src/types/item';
+} from '../types/item';
 
 export function canonicalKindForItem(
   item: Pick<OneItem, 'type' | 'documentKind' | 'sourceType'>

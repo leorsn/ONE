@@ -258,7 +258,7 @@ export default function HandleShareScreen() {
           ) : null}
 
           {error ? (
-            <View style={[styles.notice, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.more} size={14} color={p.warning} /><Text style={[styles.noticeText, { color: p.secondary }]}>Some shared details could not be resolved. The available content can still be reviewed.</Text></View>
+            <View style={[styles.notice, { borderRadius: p.radius.button, backgroundColor: p.fillSoft, borderColor: p.warning }]}><OneIcon name={icons.more} size={14} color={p.warning} /><Text style={[styles.noticeText, { color: p.secondary }]}>Some shared details could not be resolved. The available content can still be reviewed.</Text></View>
           ) : null}
 
           {primary ? (
@@ -266,7 +266,7 @@ export default function HandleShareScreen() {
               <View style={styles.section}>
                 <V5SectionHeader title="Original" meta={sharedPayloads.length > 1 ? `${completedIndices.length + 1} of ${sharedPayloads.length}` : undefined} />
                 <V5Group style={styles.originalCard}>
-                  {imageUri ? <Image source={{ uri: imageUri }} style={[styles.image, { backgroundColor: p.fill }]} resizeMode="cover" /> : <View style={[styles.originalIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={primary.shareType === 'url' ? icons.link : icons.upload} size={22} color={p.chrome} /></View>}
+                  {imageUri ? <Image source={{ uri: imageUri }} style={[styles.image, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]} resizeMode="cover" /> : <View style={[styles.originalIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><OneIcon name={primary.shareType === 'url' ? icons.link : icons.upload} size={22} color={p.chrome} /></View>}
                   <View style={{ flex: 1, minWidth: 0 }}><Text style={[styles.kind, { color: p.tertiary }]}>{labelFor(primary.shareType)}</Text><Text style={[styles.previewTitle, { color: p.label }]} numberOfLines={4}>{preview}</Text></View>
                 </V5Group>
               </View>
@@ -283,13 +283,13 @@ export default function HandleShareScreen() {
 
               <View style={styles.storageLine}><OneIcon name={icons.cloud} size={12.5} color={p.chrome} /><Text style={[styles.storageText, { color: p.tertiary }]}>{session ? 'NEVER saves locally first. Account sync can retry when the network is available.' : 'This capture stays on this device until you sign in.'}</Text></View>
 
-              <Pressable accessibilityRole="button" disabled={saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')} onPress={handleSave} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready') ? 0.38 : pressed ? 0.72 : 1 }]}>
+              <Pressable accessibilityRole="button" disabled={saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')} onPress={handleSave} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, borderColor: p.graphite, opacity: saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready') ? 0.38 : pressed ? 0.72 : 1 }]}>
                 <OneIcon name={icons.check} size={14.5} color={p.onAccent} />
                 <Text style={[styles.primaryText, { color: p.onAccent }]}>{saving ? 'Saving…' : allowDuplicate ? 'Save Again' : sharedPayloads.length - completedIndices.length > 1 ? 'Save & review next' : 'Save to NEVER'}</Text>
               </Pressable>
             </>
           ) : !isResolving ? (
-            <V5Group><View style={styles.emptyState}><View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.upload} size={18} color={p.chrome} /></View><Text style={[styles.stateTitle, { color: p.label }]}>Nothing usable arrived</Text><Text style={[styles.emptyText, { color: p.secondary }]}>Return to the iOS Share Sheet and choose NEVER again. Empty or unsupported content is never saved silently.</Text></View></V5Group>
+            <V5Group><View style={styles.emptyState}><View style={[styles.emptyIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><OneIcon name={icons.upload} size={18} color={p.chrome} /></View><Text style={[styles.stateTitle, { color: p.label }]}>Nothing usable arrived</Text><Text style={[styles.emptyText, { color: p.secondary }]}>Return to the iOS Share Sheet and choose NEVER again. Empty or unsupported content is never saved silently.</Text></View></V5Group>
           ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
@@ -300,7 +300,7 @@ export default function HandleShareScreen() {
     const color = tone === 'success' ? p.success : tone === 'warning' ? p.warning : p.chrome;
     return (
       <View style={styles.statusLine}>
-        <View style={[styles.statusIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={14.5} color={color} /></View>
+        <View style={[styles.statusIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: tone === 'chrome' ? p.border : color }]}><OneIcon name={icon} size={14.5} color={color} /></View>
         <View style={{ flex: 1 }}><Text style={[styles.statusTitle, { color: p.label }]}>{title}</Text><Text style={[styles.statusBody, { color: p.secondary }]}>{body}</Text></View>
         {loading ? <ActivityIndicator size="small" color={p.chrome} /> : null}
       </View>
@@ -344,24 +344,24 @@ const styles = StyleSheet.create({
   navTitle: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
   section: { gap: 7 },
   originalCard: { minHeight: 86, padding: 11, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  originalIcon: { width: 62, height: 62, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  image: { width: 62, height: 62, borderRadius: 14 },
+  originalIcon: { width: 62, height: 62, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
+  image: { width: 62, height: 62, borderWidth: StyleSheet.hairlineWidth },
   kind: { fontSize: 8, lineHeight: 10, fontWeight: '700', letterSpacing: 1 },
   previewTitle: { marginTop: 4, fontSize: 14, lineHeight: 18, fontWeight: '600' },
-  notice: { minHeight: 50, borderRadius: 13, paddingHorizontal: 12, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  notice: { minHeight: 50, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 8 },
   noticeText: { flex: 1, ...neverType.caption },
   stateRow: { minHeight: 64, paddingHorizontal: 13, flexDirection: 'row', alignItems: 'center', gap: 10 },
   stateTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   stateText: { marginTop: 2, ...neverType.caption },
   statusLine: { paddingHorizontal: 3, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  statusIcon: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  statusIcon: { width: 34, height: 34, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   statusTitle: { fontSize: 12.5, lineHeight: 16, fontWeight: '600' },
   statusBody: { marginTop: 1, ...neverType.caption },
   storageLine: { paddingHorizontal: 3, flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
   storageText: { flex: 1, ...neverType.caption },
-  primaryButton: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  primaryButton: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
   primaryText: { flexShrink: 1, textAlign: 'center', fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   emptyState: { minHeight: 150, padding: 22, alignItems: 'center', justifyContent: 'center' },
-  emptyIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
+  emptyIcon: { width: 42, height: 42, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   emptyText: { marginTop: 5, maxWidth: 330, ...neverType.caption, textAlign: 'center' }
 });

@@ -24,7 +24,7 @@ export default function ShareGuideScreen() {
 
         <V5Group style={styles.shareVignette}>
           <View style={styles.sourceCard}>
-            <View style={[styles.previewIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.screenshot} size={17} color={p.chrome} /></View>
+            <View style={[styles.previewIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><OneIcon name={icons.screenshot} size={17} color={p.chrome} /></View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.sourceLabel, { color: p.tertiary }]}>FROM PHOTOS</Text>
               <Text style={[styles.sourceTitle, { color: p.label }]}>Flight confirmation</Text>
@@ -34,7 +34,7 @@ export default function ShareGuideScreen() {
 
           <View style={styles.flowLine}>
             <View style={[styles.flowRule, { backgroundColor: p.separator }]} />
-            <View style={[styles.shareNode, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.upload} size={14} color={p.chrome} /></View>
+            <View style={[styles.shareNode, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><OneIcon name={icons.upload} size={14} color={p.chrome} /></View>
             <View style={[styles.flowRule, { backgroundColor: p.separator }]} />
           </View>
 
@@ -51,7 +51,7 @@ export default function ShareGuideScreen() {
         <V5Group>
           {steps.map(([number, title, body], index) => (
             <View key={number} style={[styles.row, index < steps.length - 1 && { borderBottomColor: p.separator, borderBottomWidth: StyleSheet.hairlineWidth }]}>
-              <View style={[styles.numberCircle, { backgroundColor: p.fillSoft }]}><Text style={[styles.numberText, { color: p.chrome }]}>{number}</Text></View>
+              <View style={[styles.numberCircle, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, borderColor: p.border }]}><Text style={[styles.numberText, { color: p.chrome }]}>{number}</Text></View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.rowTitle, { color: p.label }]}>{title}</Text>
                 <Text style={[styles.rowBody, { color: p.secondary }]}>{body}</Text>
@@ -74,13 +74,13 @@ const styles = StyleSheet.create({
   content: { flexGrow: 1, width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 26, gap: 18 },
   shareVignette: { padding: 13 },
   sourceCard: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  previewIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
+  previewIcon: { width: 38, height: 38, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   sourceLabel: { fontSize: 8, fontWeight: '700', letterSpacing: 0.8 },
   sourceTitle: { marginTop: 3, fontSize: 14, lineHeight: 18, fontWeight: '600' },
   sourceMeta: { marginTop: 1, ...neverType.caption },
   flowLine: { height: 30, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 44 },
   flowRule: { flex: 1, height: StyleSheet.hairlineWidth },
-  shareNode: { width: 26, height: 26, borderRadius: 13, alignItems: 'center', justifyContent: 'center', marginHorizontal: 7 },
+  shareNode: { width: 26, height: 26, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', marginHorizontal: 7 },
   neverCard: { minHeight: 64, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 11 },
   neverHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   neverLabel: { fontSize: 8.5, fontWeight: '800', letterSpacing: 1.2 },
@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
   neverTitle: { marginTop: 8, fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   neverMeta: { marginTop: 2, ...neverType.caption },
   row: { minHeight: 64, paddingHorizontal: 13, paddingVertical: 9, flexDirection: 'row', alignItems: 'flex-start', gap: 11 },
-  numberCircle: { width: 28, height: 28, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
+  numberCircle: { width: 28, height: 28, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   numberText: { ...neverType.caption, fontWeight: '700' },
   rowTitle: { fontSize: 14, lineHeight: 18, fontWeight: '600' },
   rowBody: { marginTop: 2, ...neverType.caption },

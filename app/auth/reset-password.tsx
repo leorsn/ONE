@@ -106,7 +106,7 @@ export default function ResetPasswordScreen() {
                   <Text style={[styles.label, { color: p.secondary }]}>Confirm Password</Text>
                   <NeverInput value={confirmPassword} onChangeText={setConfirmPassword} placeholder="Repeat new password" placeholderTextColor={p.tertiary} secureTextEntry textContentType="newPassword" autoCapitalize="none" accessibilityLabel="Confirm new password" onSubmitEditing={() => void savePassword()} style={[styles.input, { color: p.label, backgroundColor: p.fillSoft }]} />
                 </View>
-                <Pressable accessibilityRole="button" disabled={saving} onPress={savePassword} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: saving ? 0.45 : pressed ? 0.72 : 1 }]}>
+                <Pressable accessibilityRole="button" disabled={saving} onPress={savePassword} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, borderColor: p.graphite, opacity: saving ? 0.45 : pressed ? 0.72 : 1 }]}>
                   {saving ? <ActivityIndicator size="small" color={p.onAccent} /> : <OneIcon name={icons.check} size={14} color={p.onAccent} />}
                   <Text style={[styles.primaryText, { color: p.onAccent }]}>{saving ? 'Updating…' : 'Update Password'}</Text>
                 </Pressable>
@@ -114,7 +114,7 @@ export default function ResetPasswordScreen() {
             ) : null}
 
             {errorMessage ? (
-              <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)/settings')} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
+              <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)/settings')} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, borderColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
                 <Text style={[styles.primaryText, { color: p.onAccent }]}>Return to NEVER</Text>
               </Pressable>
             ) : null}
@@ -140,8 +140,8 @@ const styles = StyleSheet.create({
   formCard: { padding: 15, gap: 13 },
   field: { gap: 5 },
   label: { marginLeft: 2, fontSize: 11.5, lineHeight: 14, fontWeight: '500' },
-  input: { minHeight: 54, paddingVertical: 12, borderRadius: 14, paddingHorizontal: 13, fontSize: 16, lineHeight: 22 },
-  primaryButton: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
+  input: { minHeight: 54, paddingVertical: 12, paddingHorizontal: 13, fontSize: 16, lineHeight: 22 },
+  primaryButton: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 7 },
   primaryText: { flexShrink: 1, textAlign: 'center', fontSize: 16, lineHeight: 22, fontWeight: '600' },
   trustRow: { marginTop: 17, flexDirection: 'row', alignItems: 'flex-start', gap: 7 },
   trustText: { flex: 1, ...neverType.caption }

@@ -17,9 +17,10 @@ export function NeverHeroSurface({
 }) {
   const p = useNeverV5Palette();
   const theme = useTheme();
+  const radius = compact ? Math.max(8, theme.radius.card - 2) : theme.radius.card;
   return (
-    <NeverMaterial glass={glass} style={[styles.hero, compact && styles.heroCompact, style]}>
-      {theme.effects.reflection ? <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
+    <NeverMaterial glass={glass} style={[styles.hero, { borderRadius: radius }, compact && styles.heroCompact, style]}>
+      {theme.effects.reflection ? <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill, { overflow: 'hidden', borderRadius: radius }]}>
         <View style={[styles.heroReflection, { backgroundColor: p.reflection }]} />
         <View
           style={[
@@ -59,12 +60,10 @@ export function NeverMetric({
 const styles = StyleSheet.create({
   hero: {
     minHeight: 150,
-    borderRadius: 30,
     overflow: 'hidden'
   },
   heroCompact: {
-    minHeight: 0,
-    borderRadius: 24
+    minHeight: 0
   },
   heroReflection: {
     position: 'absolute',

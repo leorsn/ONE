@@ -237,9 +237,9 @@ export default function ScanScreen() {
 
           {!asset ? (
             <V5Group style={styles.capturePanel}>
-              <View style={[styles.documentStage, { backgroundColor: p.fillSoft }]}>
-                <View style={[styles.scanFrame, { borderColor: p.chromeSoft }]}>
-                  <View style={[styles.paper, { backgroundColor: p.surface }]}>
+              <View style={[styles.documentStage, { borderRadius: p.radius.card, backgroundColor: p.fillSoft, borderColor: p.border }]}>
+                <View style={[styles.scanFrame, { borderRadius: Math.max(8, p.radius.card - 2), borderColor: p.chromeSoft }]}>
+                  <View style={[styles.paper, { borderRadius: Math.max(5, p.radius.chip), backgroundColor: p.surface, borderColor: p.border }]}>
                     <OneIcon name={icons.document} size={24} color={p.chrome} />
                     <View style={[styles.paperLine, { backgroundColor: p.tertiary }]} />
                     <View style={[styles.paperLine, styles.paperLineShort, { backgroundColor: p.tertiary }]} />
@@ -253,11 +253,11 @@ export default function ScanScreen() {
               </View>
 
               <View style={styles.actions}>
-                <Pressable accessibilityRole="button" onPress={takePhoto} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
+                <Pressable accessibilityRole="button" onPress={takePhoto} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, borderColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
                   <OneIcon name={icons.scan} size={15} color={p.onAccent} />
                   <Text style={[styles.primaryText, { color: p.onAccent }]}>Open Camera</Text>
                 </Pressable>
-                <Pressable accessibilityRole="button" onPress={choosePhoto} style={({ pressed }) => [styles.secondaryButton, { backgroundColor: p.fill, opacity: pressed ? 0.62 : 1 }]}>
+                <Pressable accessibilityRole="button" onPress={choosePhoto} style={({ pressed }) => [styles.secondaryButton, { borderRadius: p.radius.button, backgroundColor: p.fillSoft, borderColor: p.border, opacity: pressed ? 0.62 : 1 }]}>
                   <OneIcon name={icons.screenshot} size={15} color={p.chrome} />
                   <Text style={[styles.secondaryText, { color: p.label }]}>Choose Photo</Text>
                 </Pressable>
@@ -267,9 +267,9 @@ export default function ScanScreen() {
             <>
               <View style={styles.section}>
                 <V5SectionHeader title="Original" meta={stateLabel(state)} />
-                <View style={styles.previewShell}>
-                  <Image source={{ uri: asset.uri }} style={[styles.preview, { backgroundColor: p.fill }]} resizeMode="contain" />
-                  <View style={[styles.previewBadge, { backgroundColor: p.surface }]}>
+                <View style={[styles.previewShell, { borderRadius: p.radius.card, borderColor: p.border }]}>
+                  <Image source={{ uri: asset.uri }} style={[styles.preview, { borderRadius: p.radius.card, backgroundColor: p.fill }]} resizeMode="contain" />
+                  <View style={[styles.previewBadge, { borderRadius: p.radius.chip, backgroundColor: p.surface, borderColor: p.border }]}>
                     {state === 'reading'
                       ? <ActivityIndicator size="small" color={p.chrome} />
                       : <OneIcon name={state === 'ready' ? icons.check : icons.document} size={12.5} color={state === 'ready' ? p.success : p.chrome} />}
@@ -315,7 +315,9 @@ export default function ScanScreen() {
                 style={({ pressed }) => [
                   styles.primaryButton,
                   {
+                    borderRadius: p.radius.button,
                     backgroundColor: p.graphite,
+                    borderColor: p.graphite,
                     opacity: saving || !draft?.title.trim() ? 0.38 : pressed ? 0.72 : 1
                   }
                 ]}
@@ -361,23 +363,23 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 38, gap: 18 },
   capturePanel: { padding: 14 },
-  documentStage: { height: 210, borderRadius: 14, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
-  scanFrame: { width: 160, height: 178, borderRadius: 20, borderWidth: 1.5, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
-  paper: { width: 104, height: 128, borderRadius: 8, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
+  documentStage: { height: 210, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  scanFrame: { width: 160, height: 178, borderWidth: 1.5, borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' },
+  paper: { width: 104, height: 128, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 18 },
   paperLine: { width: '72%', height: 2, borderRadius: 1, marginTop: 16, opacity: 0.4 },
   paperLineShort: { width: '48%', marginTop: 9 },
   captureCopy: { paddingTop: 14, paddingHorizontal: 2 },
   emptyTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600' },
   emptyBody: { marginTop: 3, ...neverType.body },
   actions: { marginTop: 15, gap: 8 },
-  primaryButton: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  primaryButton: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   primaryText: { flexShrink: 1, textAlign: 'center', fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
-  secondaryButton: { minHeight: 44, borderRadius: 13, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
+  secondaryButton: { minHeight: 44, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   secondaryText: { flexShrink: 1, textAlign: 'center', fontSize: 14, lineHeight: 18, fontWeight: '500' },
   section: { gap: 7 },
-  previewShell: { position: 'relative', borderRadius: 16, overflow: 'hidden' },
-  preview: { width: '100%', height: 320, borderRadius: 16 },
-  previewBadge: { position: 'absolute', right: 10, top: 10, minHeight: 30, paddingHorizontal: 10, borderRadius: 10, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  previewShell: { position: 'relative', borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden' },
+  preview: { width: '100%', height: 320 },
+  previewBadge: { position: 'absolute', right: 10, top: 10, minHeight: 30, paddingHorizontal: 10, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 6 },
   previewBadgeText: { ...neverType.caption, fontWeight: '600' },
   statusLine: { paddingHorizontal: 3, flexDirection: 'row', alignItems: 'flex-start', gap: 9 },
   statusDot: { width: 6, height: 6, borderRadius: 3, marginTop: 7 },

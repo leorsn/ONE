@@ -64,9 +64,14 @@ export function TriageRow({
             disabled={working}
             accessibilityState={{ disabled: working, busy: working }}
             onPress={() => void execute(action.id)}
-            style={({ pressed }) => [styles.action, { backgroundColor: p.fill, opacity: pressed ? 0.55 : 1 }]}
+            style={({ pressed }) => [styles.action, {
+              borderRadius: p.radius.chip,
+              backgroundColor: pressed ? p.fill : p.fillSoft,
+              borderColor: pressed ? p.chrome : p.border,
+              opacity: working ? 0.5 : 1
+            }]}
           >
-            {working ? <ActivityIndicator color={p.chrome} /> : <Text style={[styles.actionText, { color: p.label }]}>{shortActionLabel(action.label)}</Text>}
+            {working ? <ActivityIndicator color={p.chrome} /> : <Text style={[styles.actionText, { color: p.chrome }]}>{shortActionLabel(action.label)}</Text>}
           </Pressable>
         ) : null}
     </View>
@@ -124,6 +129,6 @@ const styles = StyleSheet.create({
   metaLine: { marginTop: 4, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 7 },
   source: { flex: 1, minWidth: 0, fontSize: 12, lineHeight: 16 },
   state: { fontSize: 12, lineHeight: 16, fontWeight: '600' },
-  action: { minHeight: 44, minWidth: 56, paddingHorizontal: 11, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  action: { minHeight: 44, minWidth: 56, paddingHorizontal: 11, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, alignItems: 'center', justifyContent: 'center' },
   actionText: { fontSize: 12, lineHeight: 16, fontWeight: '600' }
 });
