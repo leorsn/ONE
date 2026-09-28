@@ -13,10 +13,9 @@ import { retrieveLocalOneItems, retrieveOneItems } from '@/src/search/retrieve';
 import { searchSemantically } from '@/src/search/semantic';
 import { matchesMemoryCategory } from '@/src/ui/memoryPresentation';
 import { MemoryRow } from '@/src/ui/MemoryRow';
-import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
+import { NeverHeroSurface } from '@/src/ui/neverVisual';
 import { neverSpacing, neverType } from '@/src/theme/tokens';
 import { NeverChromeButton } from '@/src/ui/never';
-import { iconForType } from '@/src/ui/OneItemRow';
 import { OneIcon, icons } from '@/src/ui/icons';
 import {
   V5Chevron,
@@ -62,12 +61,6 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
     const filtered = items.filter((item) => matchesMemoryCategory(item, category));
     return retrieveLocalOneItems(query, filtered, { limit: 18, recentWhenEmpty: true });
   }, [query, items, category]);
-
-  const counts = useMemo(() => ({
-    Documents: items.filter((item) => matchesMemoryCategory(item, 'Documents')).length,
-    Links: items.filter((item) => matchesMemoryCategory(item, 'Links')).length,
-    Ideas: items.filter((item) => matchesMemoryCategory(item, 'Ideas')).length
-  }), [items]);
 
   function rememberSearch(value = query) {
     const clean = value.trim();
@@ -149,25 +142,18 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
         keyboardDismissMode="interactive"
         showsVerticalScrollIndicator={false}
       >
-        <View style={[styles.heroCopy, p.textSurface, { padding: 16 }]}>
-          <NeverEyebrow>{mode === 'ask' ? 'Grounded recall' : 'Memory index'}</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>
+        <View style={styles.titleRow}>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, p.environmentText]}>
             {mode === 'ask' ? 'Ask NEVER.' : 'Search.'}
           </Text>
-          <Text style={[styles.heroSubtitle, { color: p.secondary }]}>
-            {mode === 'ask' ? 'Ask a question. NEVER answers from what you saved.' : 'Find anything you captured, even when you only remember part of it.'}
-          </Text>
+          <Pressable accessibilityRole="button" accessibilityLabel={mode === 'ask' ? 'Switch to Search' : 'Switch to Ask NEVER'}
+            onPress={() => void setSearchMode(mode === 'ask' ? 'quick' : 'ask')}
+            style={({ pressed }) => [styles.modeLink, { opacity: pressed ? 0.6 : 1 }]}>
+            <Text style={[styles.modeLinkText, p.environmentText]}>{mode === 'ask' ? 'Search' : 'Ask NEVER'}</Text>
+          </Pressable>
         </View>
 
         <View style={styles.searchStage}>
-          <View style={styles.modeRow}>
-            <View style={[styles.modeSwitch, { borderRadius: p.radius.chip, backgroundColor: p.fillSoft, borderColor: p.glassBorder }]}>
-              <ModeButton label="Search" active={mode === 'quick'} onPress={() => void setSearchMode('quick')} />
-              <ModeButton label="Ask" active={mode === 'ask'} onPress={() => void setSearchMode('ask')} />
-            </View>
-            <NeverMetric value={`${items.length}`} label="memories" />
-          </View>
-
           <V5SearchField
             value={query}
             onChangeText={updateQuery}
@@ -187,7 +173,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
               <View style={[styles.askPromiseIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
                 <OneIcon name={icons.shield} size={15} color={p.chrome} />
               </View>
-              <Text style={[styles.askPromiseText, { color: p.secondary }]}>Grounded in your saved evidence first.</Text>
+              <Text style={[styles.askPromiseText, p.environmentText]}>Grounded in your saved evidence first.</Text>
             </View>
           )}
         </View>
@@ -196,18 +182,9 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
           <>
             {discovery ? (
               <>
-                <View style={styles.section}>
-                  <V5SectionHeader title="Explore memory" />
-                  <View style={styles.categoryGrid}>
-                    <CategoryTile icon={icons.document} label="Documents" count={counts.Documents} copy="Scans & files" onPress={() => setCategory('Documents')} />
-                    <CategoryTile icon={icons.link} label="Links" count={counts.Links} copy="Places to return" onPress={() => setCategory('Links')} />
-                    <CategoryTile icon={icons.idea} label="Ideas" count={counts.Ideas} copy="Notes & thoughts" onPress={() => setCategory('Ideas')} />
-                  </View>
-                </View>
-
                 {recentSearches.length ? (
                   <View style={styles.section}>
-                    <V5SectionHeader title="Recent searches" action={<Pressable accessibilityRole="button" onPress={() => setRecentSearches([])} hitSlop={12}><Text style={{ color: p.chrome }}>Clear</Text></Pressable>} />
+                    <V5SectionHeader title="Recent searches" action={<Pressable accessibilityRole="button" onPress={() => setRecentSearches([])} hitSlop={12}><Text style={p.environmentText}>Clear</Text></Pressable>} />
                     <V5Group>{recentSearches.map((entry, index) => <V5Row key={entry} icon={icons.clock} title={entry} onPress={() => updateQuery(entry)} last={index === recentSearches.length - 1} />)}</V5Group>
                   </View>
                 ) : null}
@@ -215,9 +192,9 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
                 <View style={styles.section}>
                   <V5SectionHeader title="Recently captured" meta={`${results.length}`} />
                   {results.length ? (
-                    <View style={styles.memoryGrid}>
-                      {results.slice(0, 6).map(({ item }) => <MemoryTile key={item.id} item={item} />)}
-                    </View>
+                    <V5Group>
+                      {results.slice(0, 6).map(({ item }, index, recent) => <MemoryRow key={item.id} item={item} last={index === recent.length - 1} />)}
+                    </V5Group>
                   ) : (
                     <V5Group><EmptyResults query={query} category={category} /></V5Group>
                   )}
@@ -266,12 +243,12 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
             <NeverChromeButton label={asking ? 'Searching your memory…' : 'Ask NEVER'} icon={icons.ask} onPress={askNever} busy={asking} disabled={!query.trim()} />
 
             {!answer && !asking && !askError ? (
-              <View style={styles.promptGrid}>
+              <V5Group>
                 <PromptTile onSelect={(text) => { updateQuery(text); void askNeverFor(text); }} text="What did I save today?" icon={icons.clock} />
                 <PromptTile onSelect={(text) => { updateQuery(text); void askNeverFor(text); }} text="Find the link I saved" icon={icons.link} />
                 <PromptTile onSelect={(text) => { updateQuery(text); void askNeverFor(text); }} text="What was that appointment?" icon={icons.calendar} />
                 <PromptTile onSelect={(text) => { updateQuery(text); void askNeverFor(text); }} text="Show my recent ideas" icon={icons.idea} />
-              </View>
+              </V5Group>
             ) : null}
 
             {asking ? (
@@ -305,56 +282,6 @@ function reasonLabel(reasons?: string[]) {
 function extractHttpUrls(value: string) { return Array.from(new Set((value.match(/https?:\/\/[^\s)\]}>,]+/gi) || []).map((url) => url.replace(/[.,;:!?]+$/, '')))); }
 function withoutStandaloneUrlLines(value: string) { return value.split('\n').filter((line) => !/^\s*https?:\/\/\S+\s*$/.test(line)).join('\n').trim(); }
 
-function ModeButton({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  const p = useNeverV5Palette();
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ selected: active }}
-      onPress={onPress}
-      style={({ pressed }) => [styles.modeButton, { borderRadius: p.radius.chip, backgroundColor: active ? p.graphite : 'transparent', opacity: pressed ? 0.62 : 1 }]}
-    >
-      <Text style={[styles.modeButtonText, { color: active ? p.onAccent : p.secondary, fontWeight: active ? '600' : '500' }]}>{label}</Text>
-    </Pressable>
-  );
-}
-
-function CategoryTile({ icon, label, count, copy, onPress }: { icon: (typeof icons)[keyof typeof icons]; label: SearchCategory; count: number; copy: string; onPress: () => void }) {
-  const p = useNeverV5Palette();
-  return (
-    <Pressable accessibilityRole="button"
-      onPress={onPress}
-      style={({ pressed }) => [styles.categoryTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
-    >
-      <View style={styles.categoryTop}>
-        <View style={[styles.categoryIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={18} color={p.chrome} /></View>
-        <Text style={[styles.categoryCount, { color: p.tertiary }]}>{count}</Text>
-      </View>
-      <Text style={[styles.categoryTitle, { color: p.label }]}>{label}</Text>
-      <Text style={[styles.categoryCopy, { color: p.secondary }]} numberOfLines={2}>{copy}</Text>
-    </Pressable>
-  );
-}
-
-function MemoryTile({ item }: { item: OneItem }) {
-  const p = useNeverV5Palette();
-  return (
-    <Pressable accessibilityRole="button"
-      onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-      style={({ pressed }) => [styles.memoryTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
-    >
-      <View style={styles.memoryTileTop}>
-        <View style={[styles.memoryTileIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
-          <OneIcon name={iconForType(item.type)} size={17} color={p.chrome} />
-        </View>
-        <V5Chevron />
-      </View>
-      <Text style={[styles.memoryTileTitle, { color: p.label }]} numberOfLines={2}>{item.title}</Text>
-      <Text style={[styles.memoryTileMeta, { color: p.secondary }]} numberOfLines={1}>{item.category || item.type}</Text>
-    </Pressable>
-  );
-}
-
 function EmptyResults({ query, category }: { query: string; category: SearchCategory }) {
   const p = useNeverV5Palette();
   return (
@@ -373,7 +300,7 @@ function PromptTile({ text, icon, onSelect }: { text: string; icon: (typeof icon
   return (
     <Pressable accessibilityRole="button"
       onPress={() => onSelect(text)}
-      style={({ pressed }) => [styles.promptTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      style={({ pressed }) => [styles.promptTile, { borderBottomColor: p.separator, opacity: pressed ? 0.66 : 1 }]}
     >
       <View style={[styles.promptIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={15} color={p.chrome} /></View>
       <Text style={[styles.promptText, { color: p.label }]}>{text}</Text>
@@ -428,31 +355,15 @@ function AnswerPanel({ answer: current, itemById }: { answer: AskAnswer; itemByI
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 126, gap: 26 },
-  heroCopy: { gap: 5 },
-  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: neverType.hero.fontFamily, fontWeight: '400', letterSpacing: -1.35 },
-  heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
-  searchStage: { gap: 16 },
-  modeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  modeSwitch: { padding: 3, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center' },
-  modeButton: { minWidth: 68, minHeight: 44, paddingHorizontal: 13, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  modeButtonText: { fontSize: 11.5, lineHeight: 15 },
+  titleRow: { flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  modeLink: { minHeight: 44, justifyContent: 'center', flexShrink: 0 },
+  modeLinkText: { fontSize: 14, fontWeight: '600' },
+  heroTitle: { flexShrink: 1, fontSize: 43, lineHeight: 47, fontFamily: neverType.hero.fontFamily, fontWeight: '400', letterSpacing: -1.35 },
+  searchStage: { gap: 8 },
   askPromise: { minHeight: 38, flexDirection: 'row', alignItems: 'center', gap: 9 },
   askPromiseIcon: { width: 30, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   askPromiseText: { flex: 1, fontSize: 11.5, lineHeight: 16 },
   section: { gap: neverSpacing.md },
-  categoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  categoryTile: { flex: 1, minWidth: 100, minHeight: 142, borderRadius: 21, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
-  categoryTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  categoryIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  categoryCount: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
-  categoryTitle: { marginTop: 16, fontSize: 14, lineHeight: 18, fontWeight: '600', letterSpacing: -0.15 },
-  categoryCopy: { marginTop: 2, fontSize: 10.5, lineHeight: 14 },
-  memoryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  memoryTile: { flexBasis: '47%', flexGrow: 1, minWidth: 130, minHeight: 132, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
-  memoryTileTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  memoryTileIcon: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  memoryTileTitle: { marginTop: 13, fontSize: 14.5, lineHeight: 18, fontWeight: '600', letterSpacing: -0.16 },
-  memoryTileMeta: { marginTop: 4, fontSize: 10.5, lineHeight: 14, textTransform: 'capitalize' },
   emptyState: { minHeight: 156, padding: 22, alignItems: 'center', justifyContent: 'center' },
   emptyIcon: { width: 42, height: 42, borderRadius: 13, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { marginTop: 10, fontSize: 16.5, lineHeight: 20, fontWeight: '600' },
@@ -463,10 +374,9 @@ const styles = StyleSheet.create({
   askBridgeTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   askBridgeSubtitle: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
   askSection: { gap: 12 },
-  promptGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  promptTile: { flexBasis: '47%', flexGrow: 1, minWidth: 130, minHeight: 104, borderRadius: 19, borderWidth: StyleSheet.hairlineWidth, padding: 13, justifyContent: 'space-between' },
+  promptTile: { minHeight: 52, padding: 12, gap: 12, flexDirection: 'row', alignItems: 'center', borderBottomWidth: StyleSheet.hairlineWidth },
   promptIcon: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  promptText: { marginTop: 12, fontSize: 13, lineHeight: 17, fontWeight: '600' },
+  promptText: { flex: 1, fontSize: 13, lineHeight: 17, fontWeight: '600' },
   loadingRow: { minHeight: 62, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 10 },
   loadingText: { flex: 1, paddingVertical: 12, fontSize: 13.5, lineHeight: 17 },
   answerStack: { gap: 14 },

@@ -18,7 +18,7 @@ export function NeverHeroSurface({
   const p = useNeverV5Palette();
   const theme = useTheme();
   return (
-    <NeverMaterial shape="hero" role={glass ? "input" : "card"} style={[styles.hero, compact && styles.heroCompact, style]}>
+    <NeverMaterial shape="hero" role={glass ? "input" : "hero"} style={[styles.hero, compact && styles.heroCompact, style]}>
       {theme.effects.reflection ? <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill, { overflow: 'hidden', borderRadius: 24 }]}>
         <View style={[styles.heroReflection, { backgroundColor: p.reflection }]} />
         <View

@@ -60,9 +60,9 @@ export default function AppearanceScreen() {
 
         <V5LargeHeader title="Appearance" subtitle="Same experience. A different atmosphere." />
 
-        <View style={[styles.collectionHeading, p.textSurface, { padding: 8 }]}>
-          <Text style={[styles.collectionTitle, { color: p.label }]}>Choose your perspective.</Text>
-          <Text style={[styles.rowBody, { color: p.secondary }]}>Six material worlds. One NEVER.</Text>
+        <View style={styles.collectionHeading}>
+          <Text style={[styles.collectionTitle, p.environmentText]}>Choose your perspective.</Text>
+          <Text style={[styles.rowBody, p.environmentText]}>Six material worlds. One NEVER.</Text>
         </View>
         <View accessibilityRole="radiogroup" accessibilityLabel="Interface theme" style={styles.themeGrid}>
           {[...themeIds, 'system' as const].map((value) => {

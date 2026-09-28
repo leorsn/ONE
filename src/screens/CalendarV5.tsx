@@ -58,10 +58,9 @@ export default function CalendarV5() {
   return (
     <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
-        <View style={[styles.heroCopy, p.textSurface, { padding: 16 }]}>
-          <NeverEyebrow>Time intelligence</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>Calendar.</Text>
-          <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Dates, reminders and plans extracted from what you save.</Text>
+        <View style={styles.heroCopy}>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, p.environmentText]}>Calendar.</Text>
+          <Text style={[styles.heroSubtitle, p.environmentText]}>Dates, reminders and plans extracted from what you save.</Text>
         </View>
 
         <NeverHeroSurface style={styles.calendarStage}>

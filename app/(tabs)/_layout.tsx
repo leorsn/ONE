@@ -59,7 +59,6 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(7, insets.bottom - 7), left: Math.max(18, insets.left), right: Math.max(18, insets.right) }]}>
       <NeverMaterial role="navigation" style={styles.bar}>
-        <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.reflection }]} />
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const routeName = route.name as keyof typeof tabIcon;
@@ -83,11 +82,11 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               onLongPress={onLongPress}
               style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.54 : 1 }]}
             >
-              <View style={[styles.iconWell, { borderRadius: p.radius.icon }, focused && { backgroundColor: p.graphite, borderColor: p.dark ? p.glassBorder : p.graphite }]}>
+              <View style={[styles.iconWell, { borderRadius: p.radius.icon }, focused && { backgroundColor: p.dark ? '#FFFFFF14' : '#171D2210' }]}>
                 <OneIcon
                   name={tabIcon[routeName]}
-                  size={focused ? 19 : 20}
-                  color={focused ? p.onAccent : p.secondary}
+                  size={21}
+                  color={focused ? p.label : p.secondary}
                 />
               </View>
               <Text
@@ -117,20 +116,19 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 4,
-    paddingVertical: 4,
+    paddingVertical: 2,
     flexDirection: 'row',
     alignItems: 'center',
     overflow: 'hidden',
-    shadowOpacity: 0.11,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 9 },
-    elevation: 6
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2
   },
-  highlight: { position: 'absolute', left: 24, right: 24, top: 0, height: StyleSheet.hairlineWidth, opacity: 0.9 },
-  tab: { flex: 1, minHeight: 56, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  tab: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', gap: 3 },
   iconWell: {
     width: 42,
-    height: 30,
+    height: 26,
     borderRadius: 11,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',

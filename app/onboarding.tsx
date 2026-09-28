@@ -69,7 +69,7 @@ export default function OnboardingScreen() {
 
   return (
     <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-      <View style={[styles.top, p.textSurface, { padding: 8 }]}>
+      <View style={styles.top}>
         <V5Wordmark />
         <Pressable accessibilityRole="button" accessibilityLabel="Skip introduction" disabled={finishing} accessibilityState={{ disabled: finishing, busy: finishing }} onPress={finish} style={{ minHeight: 44, justifyContent: 'center' }}>
           <Text style={[styles.skip, { color: p.secondary }]}>Skip</Text>

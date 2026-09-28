@@ -33,7 +33,7 @@ for (const id of themeIds) test(`${id} has complete semantic tokens and readable
     assert.ok(contrast(t[foreground], t[background]) >= 4.5, `${id}: ${foreground} on ${background}`);
   }
   assert.ok(contrast(t.onAccent, t.accent) >= 4.5);
-  for (const role of ['card', 'input', 'navigation', 'modal']) {
+  for (const role of ['card', 'hero', 'input', 'navigation', 'modal']) {
     const style = materialStyle(t, role);
     assert.ok(style.backgroundColor && style.borderColor);
     assert.ok(Number.isFinite(style.borderRadius));
@@ -80,7 +80,7 @@ test('queued writes preserve selection order and recover after failure', async (
 
 test('Reduce Transparency makes every glass role opaque, including form fields', async () => {
   const { resolveMaterialAppearance } = await import('../src/theme/editions.ts');
-  for (const theme of Object.values(themes)) for (const role of ['card', 'input', 'navigation', 'modal']) {
+  for (const theme of Object.values(themes)) for (const role of ['card', 'hero', 'input', 'navigation', 'modal']) {
     const result = resolveMaterialAppearance(theme, role, { reduceTransparency: true, nativeGlass: true });
     assert.equal(result.useGlass, false);
     assert.match(result.style.backgroundColor, /^#[0-9a-f]{6}$/i);
@@ -117,5 +117,18 @@ test('material text remains readable over both artwork luminance extremes', () =
     for (const backdrop of [0, 255]) for (const foreground of ['text', 'textSecondary', 'textTertiary']) {
       assert.ok(contrast(theme[foreground], composite(material.color, backdrop)) >= 4.5, `${theme.id} ${foreground}`);
     }
+  }
+});
+
+test('native glass avoids stacking the fallback fill and reduced transparency restores it', async () => {
+  const { resolveMaterialAppearance } = await import('../src/theme/editions.ts');
+  for (const theme of Object.values(themes)) for (const role of ['input', 'navigation']) {
+    const native = resolveMaterialAppearance(theme, role, { reduceTransparency: false, nativeGlass: true });
+    const fallback = resolveMaterialAppearance(theme, role, { reduceTransparency: false, nativeGlass: false });
+    const reduced = resolveMaterialAppearance(theme, role, { reduceTransparency: true, nativeGlass: true });
+    assert.ok(parseInt(native.style.backgroundColor.slice(7), 16) < 64);
+    assert.ok(parseInt(fallback.style.backgroundColor.slice(7), 16) > 160);
+    assert.equal(reduced.style.backgroundColor.length, 7);
+    assert.equal(reduced.useGlass, false);
   }
 });

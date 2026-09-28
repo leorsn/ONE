@@ -119,10 +119,9 @@ export default function SettingsV5() {
   return (
     <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
-        <View style={[styles.heroCopy, p.textSurface, { padding: 16 }]}>
-          <NeverEyebrow>Control center</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>Settings.</Text>
-          <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Your account, memory preferences and NEVER membership.</Text>
+        <View style={styles.heroCopy}>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, p.environmentText]}>Settings.</Text>
+          <Text style={[styles.heroSubtitle, p.environmentText]}>Your account, memory preferences and NEVER membership.</Text>
         </View>
 
         {session ? (
@@ -150,9 +149,9 @@ export default function SettingsV5() {
         ) : null}
 
         <View style={styles.section}>
-          <View style={[styles.sectionHeading, p.textSurface, { padding: 8 }]}>
-            <Text style={[styles.sectionTitle, { color: p.label }]}>Preferences</Text>
-            <Text style={[styles.sectionMeta, { color: p.tertiary }]}>DEVICE & MEMORY</Text>
+          <View style={styles.sectionHeading}>
+            <Text style={[styles.sectionTitle, p.environmentText]}>Preferences</Text>
+            <Text style={[styles.sectionMeta, p.environmentText]}>DEVICE & MEMORY</Text>
           </View>
           <V5Group>
             <SettingsRow icon={icons.appearance} label="Appearance" value={appearanceLabel(preference)} onPress={() => router.push('/settings/appearance')} />
@@ -163,9 +162,9 @@ export default function SettingsV5() {
         </View>
 
         <View style={styles.section}>
-          <View style={[styles.sectionHeading, p.textSurface, { padding: 8 }]}>
-            <Text style={[styles.sectionTitle, { color: p.label }]}>Membership</Text>
-            <Text style={[styles.sectionMeta, { color: p.tertiary }]}>{isBetaAccess ? 'BETA' : 'NEVER'}</Text>
+          <View style={styles.sectionHeading}>
+            <Text style={[styles.sectionTitle, p.environmentText]}>Membership</Text>
+            <Text style={[styles.sectionMeta, p.environmentText]}>{isBetaAccess ? 'BETA' : 'NEVER'}</Text>
           </View>
           <NeverHeroSurface compact>
             <Pressable accessibilityRole="button" onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.membershipRow, { opacity: pressed ? 0.65 : 1 }]}>

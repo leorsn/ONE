@@ -132,7 +132,7 @@ function RootNavigation() {
       <View style={{ flex: 1, backgroundColor: p.canvas, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
         <ThemeBackdrop theme={theme} />
         <StatusBar style={resolvedMode === 'dark' ? 'light' : 'dark'} />
-        <View style={[p.textSurface, { padding: 16 }]}><V5Wordmark /></View>
+        <V5Wordmark />
         {hydrationError ? <View style={{ width: '100%', maxWidth: 420, paddingHorizontal: 24 }}><NeverNotice tone="error" title="Your memory could not be opened" body="Your saved data has not been cleared. Try opening it again." action="Try again" onAction={retryHydration} /></View> : <>
         <Text accessibilityLiveRegion="polite" style={[p.textSurface, { color: p.secondary, fontSize: 15, padding: 8 }]}>Opening your memory…</Text>
         <ActivityIndicator accessibilityLabel="Loading NEVER" color={p.chrome} />

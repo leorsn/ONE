@@ -5,9 +5,9 @@ import { icons } from './icons';
 
 export function NeverNavigation({ title, onBack, action }: { title: string; onBack?: () => void; action?: ReactNode }) {
   const p = useNeverV5Palette();
-  return <View style={[styles.nav, p.textSurface]}>
+  return <View style={styles.nav}>
     <View style={styles.side}>{onBack ? <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={onBack} /> : null}</View>
-    <Text accessibilityRole="header" style={[styles.title, { color: p.label }]}>{title}</Text>
+    <Text accessibilityRole="header" style={[styles.title, p.environmentText]}>{title}</Text>
     <View style={styles.side}>{action}</View>
   </View>;
 }

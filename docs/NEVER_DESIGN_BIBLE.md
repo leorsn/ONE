@@ -5,6 +5,9 @@ Status: implementation notes from 21 September 2026, amended 28 September 2026.
 The user-supplied `NEVER_UI_Design_Bible(1).pdf` takes precedence over older
 specifications below. The approved Image A Material Worlds supersede the older
 background restrictions and theme explorations. See `APPROVED_MATERIAL_WORLDS.md`.
+The foreground correction is recorded in `FOREGROUND_NATIVE_POLISH.md`: editorial
+headers and wordmarks are uncontained; native glass must not stack the fallback
+fill beneath it; groups and compact controls replace decorative dashboard tiles.
 Current controls share neutral light/dark materials; primary actions stay graphite
 in both modes. Shared headings use native system semibold, 34–40 pt; sections
 20 pt. Primary actions are 52 pt / radius 15, inputs radius 15, cards radius 20,

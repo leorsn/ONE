@@ -6,7 +6,7 @@ export const themeIds = ['platinum', 'monolith', 'archive', 'aurora', 'tactile',
 export type ThemeId = typeof themeIds[number];
 export type ThemePreference = ThemeId | 'system';
 export const primaryAction = { background: '#252B31', foreground: '#FCFDFD', border: '#FFFFFF30' } as const;
-export type MaterialRole = 'card' | 'navigation' | 'input' | 'modal';
+export type MaterialRole = 'card' | 'hero' | 'navigation' | 'input' | 'modal';
 export type MaterialToken = { color: string; tint: string; border: string; radius: number; glass: boolean; shadow: ViewStyle };
 export type NeverTheme = OneTheme & {
   id: ThemeId; name: string; descriptor: string; mode: 'light' | 'dark';
@@ -20,11 +20,11 @@ export type NeverTheme = OneTheme & {
 
 // The artwork changes; controls retain one neutral light/dark design system.
 const neutralLight: OneTheme = {
-  ...lightTheme, textSecondary: '#454F59', textTertiary: '#505B65', chrome: '#505B65',
+  ...lightTheme, textSecondary: '#343D45', textTertiary: '#39434C', chrome: '#505B65',
   accent: '#252B31', onAccent: '#FCFDFD', glassBorder: '#FFFFFF70'
 };
 const neutralDark: OneTheme = {
-  ...darkTheme, background: '#101418', textSecondary: '#C6CDD3', textTertiary: '#C0C9D0',
+  ...darkTheme, background: '#101418', textSecondary: '#E0E5E9', textTertiary: '#D0D6DB',
   chrome: '#C6CDD3', accent: '#E3E8EC', onAccent: '#172028', glassBorder: '#FFFFFF30'
 };
 
@@ -33,14 +33,15 @@ function edition(id: ThemeId, name: string, descriptor: string, mode: 'light' | 
   const none: ViewStyle = { shadowOpacity: 0, elevation: 0 };
   const elevated: ViewStyle = { shadowColor: colors.shadow, shadowOpacity: 0.06, shadowRadius: 12, shadowOffset: { width: 0, height: 3 }, elevation: 2 };
   const material = (color: string, radius: number, glass: boolean, shadow: ViewStyle = none): MaterialToken => ({
-    color, radius, glass, shadow, tint: colors.surface + 'CC', border: colors.glassBorder
+    color, radius, glass, shadow, tint: colors.surface + '45', border: colors.glassBorder
   });
   return {
     ...colors, id, name, descriptor, mode, colors,
     materials: {
-      card: material(colors.surface + 'DB', 20, false),
-      input: material(colors.surfaceElevated + 'DB', 15, true),
-      navigation: material(colors.surface + 'F0', 20, true, elevated),
+      card: material(colors.surface + 'C7', 20, false),
+      hero: material(colors.surface + 'D1', 24, false),
+      input: material(colors.surfaceElevated + 'D9', 15, true),
+      navigation: material(colors.surface + (mode === 'dark' ? 'CC' : 'B8'), 20, true, { ...elevated, shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 2 } }),
       modal: material(colors.surfaceElevated + 'F5', 24, false, elevated)
     },
     radius: { card: 20, button: 15, icon: 10, chip: 10, sheet: 24 },
@@ -86,8 +87,8 @@ export function resolveMaterialAppearance(theme: NeverTheme, role: MaterialRole,
     useGlass, tint: material.tint,
     style: {
       ...materialStyle(theme, role),
-      // A legibility floor also remains beneath native glass over variable artwork.
-      backgroundColor: options.reduceTransparency ? opaque : material.color,
+      // Native glass supplies its own optical material; do not stack the fallback beneath it.
+      backgroundColor: options.reduceTransparency ? opaque : useGlass ? theme.surface + '14' : material.color,
       borderColor: options.focused ? theme.chrome + '80' : material.border
     }
   };

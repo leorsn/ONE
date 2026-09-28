@@ -14,6 +14,12 @@ export function useNeverV5Palette() {
   const dark = resolvedMode === 'dark';
   const t = useTheme();
   const { width, fontScale } = useWindowDimensions();
+  const lightEnvironmentInk = ['monolith', 'tactile', 'archive', 'orbit'].includes(t.id);
+  const environmentText = {
+    color: lightEnvironmentInk ? '#FCFDFD' : '#171D22',
+    textShadowColor: lightEnvironmentInk ? '#071018B3' : '#FFFFFFB3',
+    textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 8
+  };
   const compact = width < 375 || fontScale > 1.3;
   const cardStyle = resolveMaterialAppearance(t, 'card', { reduceTransparency }).style;
   const inputStyle = resolveMaterialAppearance(t, 'input', { reduceTransparency }).style;
@@ -25,7 +31,7 @@ export function useNeverV5Palette() {
     success: t.success, danger: t.danger, glass: t.glassStrong,
     glassBorder: t.glassBorder, reflection: t.reflection, shadow: t.shadow,
     onAccent: t.onAccent, heading: t.typography.heading, wordmark: t.typography.wordmark,
-    radius: t.radius, cardStyle, inputStyle,
+    radius: t.radius, cardStyle, inputStyle, environmentText,
     textSurface: { backgroundColor: reduceTransparency ? t.surface : t.materials.card.color, borderRadius: 10 },
     pageStyle: { paddingHorizontal: width < 375 ? 18 : width >= 430 ? 24 : t.spacing.page, gap: t.spacing.section },
     rowHeight: t.spacing.row,
@@ -37,10 +43,10 @@ export function V5Wordmark() {
   const p = useNeverV5Palette();
   return (
     <View style={styles.wordmarkRow}>
-      <Text style={[styles.wordmark, p.wordmark, { color: p.label }]}>NEVER</Text>
+      <Text style={[styles.wordmark, p.wordmark, p.environmentText]}>NEVER</Text>
       <View style={styles.signal}>
-        <View style={[styles.signalLong, { backgroundColor: p.chrome }]} />
-        <View style={[styles.signalShort, { backgroundColor: p.tertiary }]} />
+        <View style={[styles.signalLong, { backgroundColor: p.environmentText.color }]} />
+        <View style={[styles.signalShort, { backgroundColor: p.environmentText.color }]} />
       </View>
     </View>
   );
@@ -59,11 +65,11 @@ export function V5LargeHeader({
 }) {
   const p = useNeverV5Palette();
   return (
-    <View style={[styles.largeHeader, p.textSurface, { padding: 16 }]}>
+    <View style={styles.largeHeader}>
       <View style={{ flex: 1, minWidth: 0 }}>
-        {eyebrow ? <Text style={[styles.eyebrow, { color: p.secondary }]}>{eyebrow}</Text> : null}
-        <Text accessibilityRole="header" style={[styles.largeTitle, p.heroType, p.heading, { color: p.label }]}>{title}</Text>
-        {subtitle ? <Text style={[styles.subtitle, { color: p.secondary }]}>{subtitle}</Text> : null}
+        {eyebrow ? <Text style={[styles.eyebrow, p.environmentText]}>{eyebrow}</Text> : null}
+        <Text accessibilityRole="header" style={[styles.largeTitle, p.heroType, p.heading, p.environmentText]}>{title}</Text>
+        {subtitle ? <Text style={[styles.subtitle, p.environmentText]}>{subtitle}</Text> : null}
       </View>
       {action}
     </View>
@@ -73,10 +79,10 @@ export function V5LargeHeader({
 export function V5SectionHeader({ title, meta, action }: { title: string; meta?: string; action?: ReactNode }) {
   const p = useNeverV5Palette();
   return (
-    <View style={[styles.sectionHeader, p.textSurface]}>
-      <Text accessibilityRole="header" style={[styles.sectionTitle, { color: p.label }]}>{title}</Text>
+    <View style={styles.sectionHeader}>
+      <Text accessibilityRole="header" style={[styles.sectionTitle, p.environmentText]}>{title}</Text>
       <View style={styles.sectionRight}>
-        {meta ? <Text style={[styles.sectionMeta, { color: p.tertiary }]}>{meta}</Text> : null}
+        {meta ? <Text style={[styles.sectionMeta, p.environmentText]}>{meta}</Text> : null}
         {action}
       </View>
     </View>
@@ -202,7 +208,7 @@ export function V5Segmented({
 }) {
   const p = useNeverV5Palette();
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.segmented} keyboardShouldPersistTaps="handled">
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={[styles.segmented, { backgroundColor: p.inputStyle.backgroundColor }]} keyboardShouldPersistTaps="handled">
       {options.map((option) => {
         const active = option === selected;
         return (
@@ -213,11 +219,11 @@ export function V5Segmented({
             onPress={() => { selectionFeedback(); onSelect(option); }}
             style={({ pressed }) => [
               styles.segment,
-              { backgroundColor: active ? p.graphite : p.fillSoft, borderRadius: p.radius.chip },
+              { backgroundColor: active ? p.fillSoft : 'transparent', borderRadius: p.radius.chip },
               { opacity: pressed ? 0.65 : 1 }
             ]}
           >
-            <Text style={[styles.segmentText, { color: active ? p.onAccent : p.secondary, fontWeight: active ? '600' : '500' }]}>{option}</Text>
+            <Text style={[styles.segmentText, { color: active ? p.label : p.secondary, fontWeight: active ? '600' : '500' }]}>{option}</Text>
           </Pressable>
         );
       })}
@@ -244,7 +250,7 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, lineHeight: 14, fontWeight: '600', marginBottom: 4 },
   largeTitle: { ...neverType.hero },
   subtitle: { marginTop: 5, maxWidth: 520, fontSize: 14, lineHeight: 19 },
-  sectionHeader: { flexWrap: 'wrap', minHeight: 24, paddingHorizontal: 8, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  sectionHeader: { flexWrap: 'wrap', minHeight: 24, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   sectionTitle: { ...neverType.section, flexShrink: 1 },
   sectionRight: { flexWrap: 'wrap', flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionMeta: { fontSize: 12, lineHeight: 15, fontWeight: '500' },
@@ -261,8 +267,9 @@ const styles = StyleSheet.create({
   searchInput: { flex: 1, minHeight: 44, fontSize: 16, lineHeight: 20, paddingVertical: 0 },
   clearButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   clearCircle: { width: 17, height: 17, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
-  segmented: { minHeight: neverControl.minimum, flexDirection: 'row', alignItems: 'center', gap: neverSpacing.sm },
-  segment: { paddingVertical: 8, minHeight: neverControl.minimum, paddingHorizontal: 17, borderRadius: neverRadius.pill, alignItems: 'center', justifyContent: 'center' },
+  filterScroll: { flexGrow: 0, alignSelf: 'flex-start', borderRadius: 12 },
+  segmented: { paddingHorizontal: 4, minHeight: neverControl.minimum, flexDirection: 'row', alignItems: 'center', gap: neverSpacing.sm },
+  segment: { paddingVertical: 8, minHeight: neverControl.minimum, paddingHorizontal: 12, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   segmentText: { ...neverType.caption },
   iconButton: { width: neverControl.minimum, height: neverControl.minimum, borderRadius: neverRadius.pill, alignItems: 'center', justifyContent: 'center' }
 });
