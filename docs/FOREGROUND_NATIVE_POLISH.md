@@ -1,5 +1,8 @@
 # Foreground hierarchy and native material pass
 
+**Historical record — rejected foreground direction. Superseded by
+`PASS3_VISUAL_RESTORATION.md`; do not use its small Ask row as design canon.**
+
 28 September 2026. Branch: `design/never-material-worlds`, existing PR #4.
 Builds on `1e298245cb94cb9b7555ef598d1eb682ae912ae2`, preserving the personal-team
 iOS build fix. No backend, data-provider, capture/search/recall logic, dependency,

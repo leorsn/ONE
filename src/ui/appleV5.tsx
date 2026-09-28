@@ -4,7 +4,7 @@ import { useRef, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { NeverMaterial, NeverPressable, selectionFeedback } from '@/src/ui/material';
-import { neverType, neverSpacing, neverRadius, neverControl } from '@/src/theme/tokens';
+import { neverType, neverSpacing, neverRadius, neverControl, pass3 } from '@/src/theme/tokens';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 
 type IconName = (typeof icons)[keyof typeof icons];
@@ -35,6 +35,7 @@ export function useNeverV5Palette() {
     textSurface: { backgroundColor: reduceTransparency ? t.surface : t.materials.card.color, borderRadius: 10 },
     pageStyle: { paddingHorizontal: width < 375 ? 18 : width >= 430 ? 24 : t.spacing.page, gap: t.spacing.section },
     rowHeight: t.spacing.row,
+    pass3Heading: compact ? { ...pass3.editorial, fontSize: 34, lineHeight: 39 } : pass3.editorial,
     compact, heroType: compact ? neverType.hero : { ...neverType.hero, fontSize: 40, lineHeight: 45 }
   } as const;
 }
@@ -231,11 +232,11 @@ export function V5Segmented({
   );
 }
 
-export function V5IconButton({ icon, onPress, accessibilityLabel, disabled = false }: { icon: IconName; onPress: () => void; accessibilityLabel: string; disabled?: boolean }) {
+export function V5IconButton({ icon, onPress, accessibilityLabel, disabled = false, quiet = false }: { icon: IconName; onPress: () => void; accessibilityLabel: string; disabled?: boolean; quiet?: boolean }) {
   const p = useNeverV5Palette();
   return (
-    <NeverPressable disabled={disabled} accessibilityState={{ disabled }} accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={({ pressed }) => [styles.iconButton, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, opacity: disabled ? 0.4 : pressed ? 0.6 : 1 }]}>
-      <OneIcon name={icon} size={20} color={p.label} />
+    <NeverPressable disabled={disabled} accessibilityState={{ disabled }} accessibilityRole="button" accessibilityLabel={accessibilityLabel} onPress={onPress} style={({ pressed }) => [styles.iconButton, { borderRadius: p.radius.icon, backgroundColor: quiet ? 'transparent' : p.fillSoft, opacity: disabled ? 0.4 : pressed ? 0.6 : 1 }]}>
+      <OneIcon name={icon} size={quiet ? 17 : 20} color={quiet ? p.environmentText.color : p.label} />
     </NeverPressable>
   );
 }
@@ -243,9 +244,9 @@ export function V5IconButton({ icon, onPress, accessibilityLabel, disabled = fal
 const styles = StyleSheet.create({
   wordmarkRow: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   wordmark: { fontSize: 13, lineHeight: 16, fontWeight: '800', letterSpacing: 4.5 },
-  signal: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  signalLong: { width: 15, height: 2.5, borderRadius: 2 },
-  signalShort: { width: 5.5, height: 2.5, borderRadius: 2 },
+  signal: { alignItems: 'flex-start', gap: 2 },
+  signalLong: { width: 11, height: 1.5, borderRadius: 2 },
+  signalShort: { width: 7, height: 1.5, borderRadius: 2 },
   largeHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
   eyebrow: { fontSize: 11, lineHeight: 14, fontWeight: '600', marginBottom: 4 },
   largeTitle: { ...neverType.hero },

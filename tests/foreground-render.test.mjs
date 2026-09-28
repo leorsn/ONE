@@ -29,11 +29,21 @@ for (const theme of Object.values(themes)) for (const populated of [false, true]
       '@/src/ui/openLink': { openMemoryLink() {} }
     };
     const { loadScreen } = loadComponents(theme, !populated, mocks, { width: populated ? 430 : 320, height: 852, scale: 3, fontScale: populated ? 1 : 1.5 });
+    const Calendar = loadScreen('src/screens/CalendarV5.tsx').default;
+    const calendar = renderToStaticMarkup(React.createElement(Calendar));
+    for (const label of ['Previous month', 'Next month']) assert.ok(calendar.includes(`aria-label="${label}"`));
+    for (const mode of ['Day', 'Week', 'Month']) assert.ok(calendar.includes(`>${mode}</`));
     const Home = loadScreen('src/screens/HomeV5.tsx').default;
     const Search = loadScreen('src/screens/SearchV5.tsx').default;
     const home = renderToStaticMarkup(React.createElement(Home));
     const search = renderToStaticMarkup(React.createElement(Search));
-    for (const control of ['Quick capture', 'Scan', 'Link', 'Note', 'Share', 'Ask NEVER', 'Open your settings']) assert.ok(home.includes(`aria-label="${control}"`), control);
+    for (const control of ['Quick capture', 'Scan', 'Link', 'Share', 'Ask NEVER', 'Open your settings']) assert.ok(home.includes(`aria-label="${control}"`), control);
+    assert.ok(home.includes('YOUR MEMORY'));
+    assert.ok(home.includes('Everything worth remembering, ready when you need it.'));
+    assert.ok(home.includes('RECALL WITH NEVER'));
+    assert.ok(home.includes('Ask anything you’ve saved.'));
+    assert.ok(home.indexOf('RECALL WITH NEVER') < home.indexOf('aria-label="Quick capture"'));
+    assert.ok(home.includes('placeholder="Capture something…"'));
     assert.ok(search.includes('aria-label="Search your memory…"'));
     assert.ok(search.includes('aria-label="Switch to Ask NEVER"'));
     for (const category of ['All', 'Documents', 'Links', 'Ideas']) assert.ok(search.includes(`>${category}</`));

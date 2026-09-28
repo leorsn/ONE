@@ -4,7 +4,7 @@ import { Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-nat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { NeverMaterial, selectionFeedback } from '@/src/ui/material';
-import { neverControl } from '@/src/theme/tokens';
+import { neverControl, pass3 } from '@/src/theme/tokens';
 import { useNeverV5Palette } from '@/src/ui/appleV5';
 
 const tabIcon = {
@@ -58,7 +58,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
 
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(7, insets.bottom - 7), left: Math.max(18, insets.left), right: Math.max(18, insets.right) }]}>
-      <NeverMaterial role="navigation" style={styles.bar}>
+      <NeverMaterial role="navigation" shape="capsule" style={styles.bar}>
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const routeName = route.name as keyof typeof tabIcon;
@@ -82,11 +82,11 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               onLongPress={onLongPress}
               style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.54 : 1 }]}
             >
-              <View style={[styles.iconWell, { borderRadius: p.radius.icon }, focused && { backgroundColor: p.dark ? '#FFFFFF14' : '#171D2210' }]}>
+              <View style={[styles.iconWell, { borderRadius: p.radius.icon }, focused && { backgroundColor: pass3.recall }]}>
                 <OneIcon
                   name={tabIcon[routeName]}
                   size={21}
-                  color={focused ? p.label : p.secondary}
+                  color={focused ? pass3.onRecall : p.secondary}
                 />
               </View>
               <Text
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     borderWidth: StyleSheet.hairlineWidth,
     paddingHorizontal: 4,
-    paddingVertical: 2,
+    paddingVertical: 5,
     flexDirection: 'row',
     alignItems: 'center',
     overflow: 'hidden',
@@ -125,10 +125,10 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 3 },
     elevation: 2
   },
-  tab: { flex: 1, minHeight: 48, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  tab: { flex: 1, minHeight: 52, alignItems: 'center', justifyContent: 'center', gap: 3 },
   iconWell: {
     width: 42,
-    height: 26,
+    height: 30,
     borderRadius: 11,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',

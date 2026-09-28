@@ -5,13 +5,16 @@ Status: implementation notes from 21 September 2026, amended 28 September 2026.
 The user-supplied `NEVER_UI_Design_Bible(1).pdf` takes precedence over older
 specifications below. The approved Image A Material Worlds supersede the older
 background restrictions and theme explorations. See `APPROVED_MATERIAL_WORLDS.md`.
-The foreground correction is recorded in `FOREGROUND_NATIVE_POLISH.md`: editorial
-headers and wordmarks are uncontained; native glass must not stack the fallback
-fill beneath it; groups and compact controls replace decorative dashboard tiles.
-Current controls share neutral light/dark materials; primary actions stay graphite
-in both modes. Shared headings use native system semibold, 34–40 pt; sections
-20 pt. Primary actions are 52 pt / radius 15, inputs radius 15, cards radius 20,
-hero surfaces radius 24. Page margins are 18/20/24 pt and section gaps 24 pt.
+The latest user instruction supersedes the rejected foreground pass: the physical
+IMG_2826 reference and HomePass3 at `3e1294311dd38dba9a06011ebd8191792759aee6`
+are the foreground canon. See `PASS3_VISUAL_RESTORATION.md`. Restore the large
+blue/graphite Ask hero, standalone capture capsule, three shortcuts and negative
+space while retaining current functionality and the approved six Material Worlds.
+The Pass 3 blue recall hero and selected navigation well are intentional exceptions
+to older neutral-only guidance; routine primary actions remain graphite.
+Home, Search and Calendar use native regular editorial headings (42/44 pt, 34/39
+on compact layouts). Other shared controls retain the current design-bible tokens.
+Backgrounds belong outside content safe areas and fill both axes explicitly.
 The historical palette table below describes the original base tokens; active
 material/contrast overrides live in `src/theme/editions.ts`.
 Replaces the V5.3 palette and typography specification. The V5 screen/component
@@ -78,9 +81,9 @@ surfaces and the primary-action label. Translucent compositing still needs devic
 
 ## Typography and density
 
-Large titles and the Home greeting use the device's Georgia face (serif fallback
-on Android/web), following the supplied concept. Utility text uses the native
-system font. No downloaded font or font-loading gate is added.
+Current large titles and the Home greeting use the native system font. The older
+Georgia exploration is superseded by the Pass 3 restoration. Utility text also
+uses the native system font. No downloaded font or font-loading gate is added.
 
 | Role | Size / line height | Weight |
 | --- | --- | --- |
@@ -99,9 +102,9 @@ Tab icons are 21 points; text remains visible. Font scaling remains enabled.
 
 ## Core composition
 
-- **Home:** wordmark/profile access, real greeting, capture composer and four
-  existing capture actions, existing Ask entry, relevant Today entries, recent
-  memories and real review items. Capture has pending, success and failure copy,
+- **Home:** wordmark/profile access, YOUR MEMORY eyebrow, real greeting and
+  subtitle, large Ask hero, standalone capture bar, Scan / Link / Share, relevant
+  Today entries, recent memories and conditional review items. Capture has pending, success and failure copy,
   with an immediate duplicate-submission guard. No invented suggestions.
 - **Search:** editorial heading, material input, persistent type filters, category
   suggestions, real recent searches from this mounted session, results and the

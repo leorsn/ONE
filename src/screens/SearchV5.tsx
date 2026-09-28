@@ -143,7 +143,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.titleRow}>
-          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, p.environmentText]}>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.pass3Heading, p.environmentText]}>
             {mode === 'ask' ? 'Ask NEVER.' : 'Search.'}
           </Text>
           <Pressable accessibilityRole="button" accessibilityLabel={mode === 'ask' ? 'Switch to Search' : 'Switch to Ask NEVER'}
@@ -192,11 +192,11 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
                 <View style={styles.section}>
                   <V5SectionHeader title="Recently captured" meta={`${results.length}`} />
                   {results.length ? (
-                    <V5Group>
-                      {results.slice(0, 6).map(({ item }, index, recent) => <MemoryRow key={item.id} item={item} last={index === recent.length - 1} />)}
-                    </V5Group>
+                    <View>
+                      {results.slice(0, 6).map(({ item }, index, recent) => <MemoryRow floating key={item.id} item={item} last={index === recent.length - 1} />)}
+                    </View>
                   ) : (
-                    <V5Group><EmptyResults query={query} category={category} /></V5Group>
+                    <EmptyResults query={query} category={category} />
                   )}
                 </View>
               </>
@@ -206,9 +206,9 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
                   title={query.trim() ? 'Results' : category}
                   meta={`${results.length}`}
                 />
-                <V5Group>
+                <View>
                   {results.length ? results.map(({ item, reasons }, index) => (
-                    <MemoryRow
+                    <MemoryRow floating
                       key={item.id}
                       item={item}
                       reason={query.trim() ? reasonLabel(reasons) : undefined}
@@ -216,7 +216,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
                       last={index === results.length - 1}
                     />
                   )) : <EmptyResults query={query} category={category} />}
-                </V5Group>
+                </View>
               </View>
             )}
 
@@ -289,8 +289,8 @@ function EmptyResults({ query, category }: { query: string; category: SearchCate
       <View style={[styles.emptyIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}>
         <OneIcon name={icons.search} size={18} color={p.chrome} />
       </View>
-      <Text style={[styles.emptyTitle, { color: p.label }]}>{query.trim() || category !== 'All' ? 'No matching memories' : 'Your memory is ready'}</Text>
-      <Text style={[styles.emptyBody, { color: p.secondary }]}>{query.trim() ? 'Try a name, a phrase or another category.' : 'Capture a note, document or link to find it here.'}</Text>
+      <Text style={[styles.emptyTitle, p.environmentText]}>{query.trim() || category !== 'All' ? 'No matching memories' : 'Your memory is ready'}</Text>
+      <Text style={[styles.emptyBody, p.environmentText]}>{query.trim() ? 'Try a name, a phrase or another category.' : 'Capture a note, document or link to find it here.'}</Text>
     </View>
   );
 }
@@ -343,9 +343,9 @@ function AnswerPanel({ answer: current, itemById }: { answer: AskAnswer; itemByI
       {sources.length ? (
         <View style={styles.section}>
           <V5SectionHeader title="Sources" meta={`${sources.length}`} />
-          <V5Group>
-            {sources.map((item, index) => <MemoryRow key={item.id} item={item} last={index === sources.length - 1} onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })} />)}
-          </V5Group>
+          <View>
+            {sources.map((item, index) => <MemoryRow floating key={item.id} item={item} last={index === sources.length - 1} onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })} />)}
+          </View>
         </View>
       ) : null}
     </View>
