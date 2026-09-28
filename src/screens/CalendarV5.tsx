@@ -1,7 +1,7 @@
 import { useLocalDay } from '@/src/ui/useLocalDay';
 import { getReminderDate } from '@/src/notifications/reminderDate';
 import { shiftCalendarMonth } from '@/src/ui/calendarPresentation';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
@@ -24,7 +24,9 @@ export default function CalendarV5() {
   const p = useNeverV5Palette();
   const { items } = useItems();
   const today = useLocalDay();
+  const stripRef = useRef<ScrollView>(null);
   const [chosenDate, setSelectedDate] = useState<string | null>(null);
+
   const selectedDate = chosenDate ?? today;
   const [mode, setMode] = useState<CalendarMode>('Day');
 
@@ -58,7 +60,7 @@ export default function CalendarV5() {
       <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCopy}>
           <NeverEyebrow>Time intelligence</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>Calendar.</Text>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>Calendar.</Text>
           <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Dates, reminders and plans extracted from what you save.</Text>
         </View>
 
@@ -76,7 +78,7 @@ export default function CalendarV5() {
             <View style={styles.dateActions}>
               <NeverMetric value={`${selectedItems.length}`} label={selectedDate === today ? 'today' : 'on date'} />
               <Pressable accessibilityRole="button" onPress={jumpToday} style={({ pressed }) => [styles.todayButton, { borderRadius: p.radius.chip, backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
-                <Text style={[styles.todayText, { color: p.chrome }]}>Now</Text>
+                <Text style={[styles.todayText, { color: p.chrome }]}>Today</Text>
               </Pressable>
             </View>
           </View>
@@ -91,13 +93,14 @@ export default function CalendarV5() {
             </Pressable>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayStrip}>
+          <ScrollView ref={stripRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayStrip}>
             {strip.map((day) => {
               const active = day.iso === selectedDate;
               const hasItems = datedItems.some((item) => item.date === day.iso);
               return (
                 <Pressable accessibilityRole="button"
-                  accessibilityLabel={prettyGroupDate(day.iso)} accessibilityState={{ selected: active }} key={day.iso}
+                  onLayout={active ? (event) => stripRef.current?.scrollTo({ x: Math.max(0, event.nativeEvent.layout.x - 96), animated: false }) : undefined}
+                  accessibilityLabel={`${prettyGroupDate(day.iso)}${hasItems ? ', has plans' : ''}`} accessibilityState={{ selected: active }} key={day.iso}
                   onPress={async () => { void Haptics.selectionAsync().catch(() => undefined); setSelectedDate(day.iso); }}
                   style={({ pressed }) => [styles.day, { opacity: pressed ? 0.55 : 1 }]}
                 >
@@ -133,7 +136,7 @@ export default function CalendarV5() {
           </>
         ) : (
           <View style={styles.section}>
-            <V5SectionHeader title={mode === 'Week' ? 'This Week' : monthName} meta={`${visibleItems.length}`} />
+            <V5SectionHeader title={mode === 'Week' ? 'Selected week' : monthName} meta={`${visibleItems.length}`} />
             {grouped.length ? grouped.map((group) => (
               <View key={group.date} style={styles.groupBlock}>
                 <Text style={[styles.dateLabel, { color: p.tertiary }]}>{prettyGroupDate(group.date)}</Text>
@@ -221,7 +224,7 @@ function AgendaCard({ item }: { item: OneItem }) {
       style={({ pressed }) => [styles.agendaCard, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}
     >
       <View style={[styles.timeBadge, { backgroundColor: p.fillSoft }]}>
-        <Text style={[styles.time, { color: p.chrome }]}>{item.time || 'Any'}</Text>
+        <Text style={[styles.time, { color: p.chrome }]}>{item.time || 'Any time'}</Text>
       </View>
       <View style={styles.agendaCopy}>
         <Text style={[styles.itemTitle, { color: p.label }]} numberOfLines={2}>{item.title}</Text>
@@ -277,7 +280,7 @@ const styles = StyleSheet.create({
   dateLabel: { paddingHorizontal: 4, fontSize: 11.5, lineHeight: 14, fontWeight: '600' },
   agendaStack: { gap: 8 },
   agendaCard: { minHeight: 72, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  timeBadge: { width: 50, minHeight: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  timeBadge: { minWidth: 50, padding: 8, minHeight: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   time: { fontSize: 11, lineHeight: 14, fontWeight: '700' },
   agendaCopy: { flex: 1, minWidth: 0 },
   itemTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },

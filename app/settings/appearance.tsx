@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
   themeOption: { flexBasis: '46%', flexGrow: 1, minWidth: 130, overflow: 'hidden' },
   previewClip: { overflow: 'hidden', margin: 5, borderRadius: 7 },
   themeCopy: { padding: 12, gap: 5 }, themeNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  defaultLabel: { fontSize: 9, fontWeight: '600', letterSpacing: 1.1, marginTop: 3 },
+  defaultLabel: { fontSize: 12, fontWeight: '600', letterSpacing: 1.1, marginTop: 3 },
 
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 34, gap: 18 },

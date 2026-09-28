@@ -14,6 +14,6 @@ export const NeverInput = forwardRef<TextInput, TextInputProps>(function NeverIn
     placeholderTextColor={theme.textTertiary} {...props}
     onFocus={(event) => { setFocused(true); onFocus?.(event); }}
     onBlur={(event) => { setFocused(false); onBlur?.(event); }}
-    style={[styles.input, style, hasSurface && { backgroundColor: surface.backgroundColor, borderRadius: theme.radius.button, borderWidth: StyleSheet.hairlineWidth, borderColor: surface.borderColor }, { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: focused ? theme.chrome : 'transparent' }]} />;
+    style={[styles.input, style, hasSurface && { backgroundColor: surface.backgroundColor, borderRadius: theme.radius.button, borderWidth: StyleSheet.hairlineWidth, borderColor: surface.borderColor }, !hasSurface && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: focused ? theme.chrome : 'transparent' }]} />;
 });
 const styles = StyleSheet.create({ input: { minWidth: 0, minHeight: 44 } });

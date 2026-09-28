@@ -1,7 +1,7 @@
 import { materialStyle } from '@/src/theme/editions';
 import { NeverInput } from '@/src/ui/NeverInput';
-import { useState, type ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRef, useState, type ReactNode } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { NeverMaterial, NeverPressable, selectionFeedback } from '@/src/ui/material';
 import { neverType, neverSpacing, neverRadius, neverControl } from '@/src/theme/tokens';
@@ -13,6 +13,8 @@ export function useNeverV5Palette() {
   const { resolvedMode } = useThemePreference();
   const dark = resolvedMode === 'dark';
   const t = useTheme();
+  const { width, fontScale } = useWindowDimensions();
+  const compact = width < 375 || fontScale > 1.3;
   return {
     dark, canvas: t.background, surface: t.surface, elevated: t.surfaceElevated,
     fill: t.fillStrong, fillSoft: t.fill, label: t.text, secondary: t.textSecondary,
@@ -23,7 +25,8 @@ export function useNeverV5Palette() {
     onAccent: t.onAccent, heading: t.typography.heading, wordmark: t.typography.wordmark,
     radius: t.radius, cardStyle: materialStyle(t, 'card'), inputStyle: materialStyle(t, 'input'),
     pageStyle: { paddingHorizontal: t.spacing.page, gap: t.spacing.section },
-    rowHeight: t.spacing.row
+    rowHeight: t.spacing.row,
+    compact, heroType: compact ? neverType.hero : { ...neverType.hero, fontSize: 40, lineHeight: 45 }
   } as const;
 }
 
@@ -56,7 +59,7 @@ export function V5LargeHeader({
     <View style={styles.largeHeader}>
       <View style={{ flex: 1, minWidth: 0 }}>
         {eyebrow ? <Text style={[styles.eyebrow, { color: p.secondary }]}>{eyebrow}</Text> : null}
-        <Text accessibilityRole="header" style={[styles.largeTitle, p.heading, { color: p.label }]}>{title}</Text>
+        <Text accessibilityRole="header" style={[styles.largeTitle, p.heroType, p.heading, { color: p.label }]}>{title}</Text>
         {subtitle ? <Text style={[styles.subtitle, { color: p.secondary }]}>{subtitle}</Text> : null}
       </View>
       {action}
@@ -154,10 +157,12 @@ export function V5SearchField({
 }) {
   const p = useNeverV5Palette();
   const [focused, setFocused] = useState(false);
+  const inputRef = useRef<TextInput>(null);
   return (
     <NeverMaterial role="input" focused={focused} style={styles.searchField}>
       <OneIcon name={ask ? icons.ask : icons.search} size={16} color={p.secondary} />
       <NeverInput
+        ref={inputRef}
         accessibilityLabel={placeholder}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
@@ -173,7 +178,7 @@ export function V5SearchField({
         onSubmitEditing={onSubmit}
       />
       {value ? (
-        <Pressable accessibilityRole="button" accessibilityLabel="Clear" onPress={() => onChangeText('')} style={styles.clearButton} hitSlop={8}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Clear" onPress={() => { onChangeText(''); inputRef.current?.focus(); }} style={styles.clearButton} hitSlop={8}>
           <View style={[styles.clearCircle, { backgroundColor: p.tertiary }]}>
             <OneIcon name={icons.close} size={9} color={p.canvas} />
           </View>
@@ -236,9 +241,9 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, lineHeight: 14, fontWeight: '600', marginBottom: 4 },
   largeTitle: { ...neverType.hero },
   subtitle: { marginTop: 5, maxWidth: 520, fontSize: 14, lineHeight: 19 },
-  sectionHeader: { minHeight: 24, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  sectionHeader: { flexWrap: 'wrap', minHeight: 24, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   sectionTitle: { ...neverType.section, flexShrink: 1 },
-  sectionRight: { flexShrink: 0, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  sectionRight: { flexWrap: 'wrap', flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionMeta: { fontSize: 12, lineHeight: 15, fontWeight: '500' },
   group: { borderRadius: neverRadius.lg },
   glyph: { alignItems: 'center', justifyContent: 'center', marginLeft: 13 },
@@ -248,13 +253,13 @@ const styles = StyleSheet.create({
   rowTitleLine: { flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 8 },
   rowTitle: { flex: 1, fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
   rowSubtitle: { marginTop: 2, fontSize: 13, lineHeight: 18 },
-  rowMeta: { maxWidth: 110, fontSize: 11.5, lineHeight: 14, textAlign: 'right' },
+  rowMeta: { maxWidth: 110, fontSize: 12, lineHeight: 16, textAlign: 'right' },
   searchField: { minHeight: neverControl.input, borderRadius: neverRadius.lg, paddingHorizontal: neverSpacing.lg, flexDirection: 'row', alignItems: 'center', gap: 8 },
   searchInput: { flex: 1, minHeight: 44, fontSize: 16, lineHeight: 20, paddingVertical: 0 },
   clearButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   clearCircle: { width: 17, height: 17, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   segmented: { minHeight: neverControl.minimum, flexDirection: 'row', alignItems: 'center', gap: neverSpacing.sm },
-  segment: { minHeight: neverControl.minimum, paddingHorizontal: 17, borderRadius: neverRadius.pill, alignItems: 'center', justifyContent: 'center' },
-  segmentText: { fontSize: 12, lineHeight: 14 },
+  segment: { paddingVertical: 8, minHeight: neverControl.minimum, paddingHorizontal: 17, borderRadius: neverRadius.pill, alignItems: 'center', justifyContent: 'center' },
+  segmentText: { ...neverType.caption },
   iconButton: { width: neverControl.minimum, height: neverControl.minimum, borderRadius: neverRadius.pill, alignItems: 'center', justifyContent: 'center' }
 });

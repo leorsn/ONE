@@ -1,7 +1,8 @@
-import { memo } from 'react';
+import { memo, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
 import type { NeverTheme, ThemeId } from '@/src/theme/editions';
 import { NEVER_THEME_BACKGROUND_SPRITE } from '@/src/theme/themeBackgroundSprite';
+import { backgroundSpriteLayout } from '@/src/theme/backgroundLayout';
 
 const spriteOrder: ThemeId[] = ['monolith', 'aurora', 'archive', 'orbit', 'tactile', 'platinum'];
 
@@ -14,10 +15,12 @@ const spriteOrder: ThemeId[] = ['monolith', 'aurora', 'archive', 'orbit', 'tacti
  * still rendering real artwork instead of procedural View geometry.
  */
 export const ThemeBackdrop = memo(function ThemeBackdrop({ theme, preview = false }: { theme: NeverTheme; preview?: boolean }) {
+  const [size, setSize] = useState({ width: 0, height: 0 });
   const index = Math.max(0, spriteOrder.indexOf(theme.id));
 
   return (
     <View
+      onLayout={({ nativeEvent: { layout } }) => setSize((previous) => previous.width === layout.width && previous.height === layout.height ? previous : { width: layout.width, height: layout.height })}
       pointerEvents="none"
       accessible={false}
       accessibilityElementsHidden
@@ -26,12 +29,12 @@ export const ThemeBackdrop = memo(function ThemeBackdrop({ theme, preview = fals
     >
       <Image
         source={{ uri: NEVER_THEME_BACKGROUND_SPRITE }}
-        resizeMode="stretch"
+        resizeMode="contain"
         fadeDuration={0}
         style={[
           styles.sprite,
           {
-            left: `${index * -100}%`,
+            ...backgroundSpriteLayout(size.width, size.height, index),
             opacity: preview ? 0.98 : 1,
           },
         ]}
@@ -55,8 +58,5 @@ const styles = StyleSheet.create({
   },
   sprite: {
     position: 'absolute',
-    top: 0,
-    width: '600%',
-    height: '100%',
   },
 });

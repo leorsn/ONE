@@ -148,5 +148,5 @@ const styles = StyleSheet.create({
   rowBody: { marginTop: 2, ...neverType.caption },
   devNotice: { minHeight: 48, borderRadius: 13, paddingHorizontal: 12, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 8 },
   devNoticeText: { flex: 1, ...neverType.caption },
-  footer: { textAlign: 'center', fontSize: 8.5, fontWeight: '600', letterSpacing: 0.9 }
+  footer: { textAlign: 'center', fontSize: 12, fontWeight: '600', letterSpacing: 0.9 }
 });

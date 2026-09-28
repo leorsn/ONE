@@ -16,17 +16,17 @@ export default function AuthCallbackScreen() {
     let cancelled = false;
     async function completeAuth() {
       if (params.error || params.error_description) {
-        if (!cancelled) setErrorMessage(params.error_description || params.error || 'Authentication failed.');
+        if (!cancelled) setErrorMessage('This link could not be used. Return to sign-in and request a new email link.');
         return;
       }
       if (!params.code) {
-        if (!cancelled) setErrorMessage('The confirmation link is missing its authorization code.');
+        if (!cancelled) setErrorMessage('This link could not be used. Return to sign-in and request a new email link.');
         return;
       }
       const { error } = await supabase.auth.exchangeCodeForSession(params.code);
       if (cancelled) return;
       if (error) {
-        setErrorMessage(error.message);
+        setErrorMessage('This link could not be used. Return to sign-in and request a new email link.');
         return;
       }
       router.replace('/(tabs)/settings');
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   body: { marginTop: 8, maxWidth: 405, ...neverType.body },
   statusRow: { minHeight: 62, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
   statusTitle: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
-  statusBody: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
+  statusBody: { marginTop: 2, fontSize: 12, lineHeight: 16 },
   button: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   buttonText: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
   trustRow: { marginTop: 17, flexDirection: 'row', alignItems: 'flex-start', gap: 7 },

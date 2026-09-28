@@ -24,14 +24,14 @@ export default function ResetPasswordScreen() {
     let cancelled = false;
     async function prepareRecoverySession() {
       if (params.error || params.error_description) {
-        if (!cancelled) setErrorMessage(params.error_description || params.error || 'Password recovery failed.');
+        if (!cancelled) setErrorMessage('This link could not be used. Return to sign-in and request a new email link.');
         return;
       }
       if (params.code) {
         const { error } = await supabase.auth.exchangeCodeForSession(params.code);
         if (cancelled) return;
         if (error) {
-          setErrorMessage(error.message);
+          setErrorMessage('This link could not be used. Return to sign-in and request a new email link.');
           return;
         }
         setReady(true);
@@ -40,7 +40,7 @@ export default function ResetPasswordScreen() {
       const { data, error } = await supabase.auth.getSession();
       if (cancelled) return;
       if (error || !data.session) {
-        setErrorMessage(error?.message || 'This password reset link is incomplete or has expired.');
+        setErrorMessage('This link could not be used. Return to sign-in and request a new email link.');
         return;
       }
       setReady(true);

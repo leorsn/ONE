@@ -108,7 +108,7 @@ export function NeverChromeButton({
         {
           backgroundColor: theme.accent,
           borderRadius: theme.radius.button,
-          opacity: disabled || busy ? 0.32 : pressed ? 0.72 : 1
+          opacity: disabled && !busy ? 0.45 : pressed ? 0.72 : 1
         }
       ]}
     >
@@ -179,12 +179,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12
   },
-  sectionLabel: {
-    fontSize: 20,
-    lineHeight: 24,
-    fontWeight: '700',
-    letterSpacing: -0.35
-  },
+  sectionLabel: { ...neverType.section, flexShrink: 1 },
   sectionMeta: {
     fontSize: 13,
     lineHeight: 16,

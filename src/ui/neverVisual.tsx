@@ -19,7 +19,7 @@ export function NeverHeroSurface({
   const theme = useTheme();
   return (
     <NeverMaterial glass={glass} style={[styles.hero, compact && styles.heroCompact, style]}>
-      {theme.effects.reflection ? <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}>
+      {theme.effects.reflection ? <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill, { overflow: 'hidden', borderRadius: theme.radius.card }]}>
         <View style={[styles.heroReflection, { backgroundColor: p.reflection }]} />
         <View
           style={[
@@ -83,11 +83,10 @@ const styles = StyleSheet.create({
     top: -104
   },
   eyebrow: {
-    fontSize: 10.5,
-    lineHeight: 14,
-    fontWeight: '700',
-    letterSpacing: 1.35,
-    textTransform: 'uppercase'
+    fontSize: 12,
+    lineHeight: 16,
+    fontWeight: '500',
+    letterSpacing: 0.3
   },
   metric: {
     minWidth: 72,
@@ -101,8 +100,8 @@ const styles = StyleSheet.create({
     letterSpacing: -0.35
   },
   metricLabel: {
-    fontSize: 10.5,
-    lineHeight: 14,
+    fontSize: 12,
+    lineHeight: 16,
     fontWeight: '500'
   }
 });

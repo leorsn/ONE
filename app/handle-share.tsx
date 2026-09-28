@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
   originalCard: { minHeight: 86, padding: 11, flexDirection: 'row', alignItems: 'center', gap: 11 },
   originalIcon: { width: 62, height: 62, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   image: { width: 62, height: 62, borderRadius: 14 },
-  kind: { fontSize: 8, lineHeight: 10, fontWeight: '700', letterSpacing: 1 },
+  kind: { fontSize: 12, lineHeight: 16, fontWeight: '700', letterSpacing: 1 },
   previewTitle: { marginTop: 4, fontSize: 14, lineHeight: 18, fontWeight: '600' },
   notice: { minHeight: 50, borderRadius: 13, paddingHorizontal: 12, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 8 },
   noticeText: { flex: 1, ...neverType.caption },

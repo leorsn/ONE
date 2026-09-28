@@ -30,6 +30,8 @@ export default function OnboardingScreen() {
   const scrollRef = useRef<ScrollView>(null);
   const previousWidthRef = useRef(width);
   const [index, setIndex] = useState(0);
+  const [finishing, setFinishing] = useState(false);
+  const finishingRef = useRef(false);
 
   useEffect(() => {
     if (previousWidthRef.current === width) return;
@@ -43,11 +45,15 @@ export default function OnboardingScreen() {
   }
 
   async function finish() {
+    if (finishingRef.current) return;
+    finishingRef.current = true;
+    setFinishing(true);
     void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
     try {
       await complete();
       router.replace(configured && !session ? '/auth/sign-in' : '/(tabs)');
     } catch { Alert.alert('Could not continue', 'Please try again.'); }
+    finally { finishingRef.current = false; setFinishing(false); }
   }
 
   async function next() {
@@ -65,7 +71,7 @@ export default function OnboardingScreen() {
     <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <View style={styles.top}>
         <V5Wordmark />
-        <Pressable accessibilityRole="button" accessibilityLabel="Skip introduction" onPress={finish} style={{ minHeight: 44, justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Skip introduction" disabled={finishing} accessibilityState={{ disabled: finishing, busy: finishing }} onPress={finish} style={{ minHeight: 44, justifyContent: 'center' }}>
           <Text style={[styles.skip, { color: p.secondary }]}>Skip</Text>
         </Pressable>
       </View>
@@ -92,8 +98,8 @@ export default function OnboardingScreen() {
           ))}
         </View>
 
-        <Pressable accessibilityRole="button" onPress={next} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
-          <Text style={[styles.primaryText, { color: p.onAccent }]}>{index === slides.length - 1 ? 'Continue to NEVER' : 'Continue'}</Text>
+        <Pressable accessibilityRole="button" disabled={finishing} accessibilityState={{ disabled: finishing, busy: finishing }} onPress={next} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
+          <Text style={[styles.primaryText, { color: p.onAccent }]}>{finishing ? 'Opening NEVER…' : index === slides.length - 1 ? 'Continue to NEVER' : 'Continue'}</Text>
           <OneIcon name={index === slides.length - 1 ? icons.check : icons.chevron} size={13.5} color={p.onAccent} />
         </Pressable>
 
@@ -110,7 +116,7 @@ function ProductVignette({ slide }: { slide: Slide }) {
     <V5Group style={styles.visual}>
       <View style={styles.visualHeader}>
         <Text style={[styles.visualWordmark, { color: p.label }]}>NEVER</Text>
-        <Text style={[styles.visualMeta, { color: p.tertiary }]}>{slide.eyebrow}</Text>
+        <Text style={[styles.visualMeta, { color: p.tertiary }]}>Example · {slide.eyebrow.toLowerCase()}</Text>
       </View>
 
       {slide.eyebrow === 'CAPTURE' ? (
@@ -172,9 +178,9 @@ const styles = StyleSheet.create({
   slideScroll: { flexGrow: 1, paddingHorizontal: 20, paddingVertical: 24, justifyContent: 'center' },
   slideContent: { width: '100%', maxWidth: 500, alignSelf: 'center' },
   visual: { minHeight: 250, padding: 16 },
-  visualHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  visualHeader: { flexWrap: 'wrap', gap: 8, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   visualWordmark: { fontSize: 9.5, fontWeight: '700', letterSpacing: 2.7 },
-  visualMeta: { fontSize: 7.5, fontWeight: '700', letterSpacing: 1.2 },
+  visualMeta: { fontSize: 10, lineHeight: 14, fontWeight: '500', letterSpacing: 0.3 },
   vignetteBody: { flex: 1, justifyContent: 'center', gap: 10, paddingHorizontal: 1 },
   captureField: { minHeight: 50, borderRadius: 14, paddingHorizontal: 9, flexDirection: 'row', alignItems: 'center', gap: 9 },
   smallIcon: { width: 30, height: 30, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },

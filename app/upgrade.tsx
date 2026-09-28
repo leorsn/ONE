@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
   planIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   planName: { fontSize: 18, lineHeight: 22, fontWeight: '700', letterSpacing: -0.25 },
   descriptor: { marginTop: 2, maxWidth: 420, ...neverType.caption },
-  currentText: { fontSize: 9, lineHeight: 12, fontWeight: '700', letterSpacing: 0.6 },
+  currentText: { fontSize: 12, lineHeight: 16, fontWeight: '700', letterSpacing: 0.6 },
   priceRow: { marginTop: 17, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'baseline', gap: 5 },
   price: { fontSize: 27, lineHeight: 32, fontWeight: '700', letterSpacing: -0.8 },
   period: { ...neverType.caption },
@@ -261,5 +261,5 @@ const styles = StyleSheet.create({
   legal: { textAlign: 'center', ...neverType.caption },
   legalLinks: { minHeight: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   legalLink: { ...neverType.caption, fontWeight: '600' },
-  legalDivider: { fontSize: 10.5 }
+  legalDivider: { fontSize: 12 }
 });

@@ -90,11 +90,11 @@ export default function SavedV5() {
       <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         <View style={styles.heroCopy}>
           <NeverEyebrow>Curated memory</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>{filter === 'Documents' ? 'Documents.' : 'Saved.'}</Text>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>{filter === 'Documents' ? 'Documents.' : 'Saved.'}</Text>
           <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Everything worth keeping, organized without feeling like a file manager.</Text>
         </View>
 
-        <NeverHeroSurface style={styles.libraryStage}>
+        <View style={styles.libraryStage}>
           <View style={styles.libraryTop}>
             <View style={styles.libraryMetrics}>
               <NeverMetric value={`${libraryItems.length}`} label="saved" />
@@ -118,7 +118,7 @@ export default function SavedV5() {
           />
 
           <V5Segmented options={[...filters]} selected={filter} onSelect={(value) => setFilter(value as typeof filter)} />
-        </NeverHeroSurface>
+        </View>
 
         {filter === 'Documents' ? (
           <DocumentsView
@@ -277,9 +277,9 @@ const styles = StyleSheet.create({
   heroCopy: { gap: 5 },
   heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
   heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
-  libraryStage: { padding: 17, gap: 14 },
-  libraryTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
-  libraryMetrics: { flex: 1, flexDirection: 'row', gap: 14 },
+  libraryStage: { gap: 16 },
+  libraryTop: { flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
+  libraryMetrics: { flexWrap: 'wrap', flex: 1, flexDirection: 'row', gap: 14 },
   captureButton: { width: 44, height: 44, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   section: { gap: neverSpacing.md },
   libraryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },

@@ -85,12 +85,14 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
     const version = ++requestVersion.current;
     rememberSearch(clean);
     setAsking(true);
+    setAnswer(null);
     setAskError(null);
     try {
       const retrieval = await retrieveOneItems(clean, items, {
         limit: 12,
         semanticSearch: session?.user.id ? searchSemantically : undefined
       });
+      if (version !== requestVersion.current) return;
       const response = await answerFromRetrievedItems({
         query: clean,
         retrieval: retrieval.results,
@@ -102,7 +104,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
         title: response.title,
         body: response.body,
         sourceIds: response.sourceIds,
-        meta: [response.meta, retrieval.semanticError ? 'Semantic search unavailable' : undefined].filter(Boolean).join(' · '),
+        meta: [response.meta, retrieval.semanticError ? 'Showing keyword matches' : undefined].filter(Boolean).join(' · '),
         mode: response.mode
       });
     } catch {
@@ -149,7 +151,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
       >
         <View style={styles.heroCopy}>
           <NeverEyebrow>{mode === 'ask' ? 'Grounded recall' : 'Memory index'}</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>
             {mode === 'ask' ? 'Ask NEVER.' : 'Search.'}
           </Text>
           <Text style={[styles.heroSubtitle, { color: p.secondary }]}>
@@ -157,7 +159,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
           </Text>
         </View>
 
-        <NeverHeroSurface style={styles.searchStage}>
+        <View style={styles.searchStage}>
           <View style={styles.modeRow}>
             <View style={[styles.modeSwitch, { borderRadius: p.radius.chip, backgroundColor: p.fillSoft, borderColor: p.glassBorder }]}>
               <ModeButton label="Search" active={mode === 'quick'} onPress={() => void setSearchMode('quick')} />
@@ -188,7 +190,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
               <Text style={[styles.askPromiseText, { color: p.secondary }]}>Grounded in your saved evidence first.</Text>
             </View>
           )}
-        </NeverHeroSurface>
+        </View>
 
         {mode === 'quick' ? (
           <>
@@ -261,7 +263,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
           </>
         ) : (
           <View style={styles.askSection}>
-            <NeverChromeButton label={asking ? 'Searching your memory…' : 'Ask NEVER'} icon={icons.ask} onPress={askNever} disabled={asking || !query.trim()} />
+            <NeverChromeButton label={asking ? 'Searching your memory…' : 'Ask NEVER'} icon={icons.ask} onPress={askNever} busy={asking} disabled={!query.trim()} />
 
             {!answer && !asking && !askError ? (
               <View style={styles.promptGrid}>
@@ -274,7 +276,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
 
             {asking ? (
               <V5Group>
-                <View style={styles.loadingRow}>
+                <View accessibilityLiveRegion="polite" accessibilityState={{ busy: true }} style={styles.loadingRow}>
                   <ActivityIndicator size="small" color={p.chrome} />
                   <Text style={[styles.loadingText, { color: p.secondary }]}>Looking through your memory…</Text>
                 </View>
@@ -392,7 +394,7 @@ function AnswerPanel({ answer: current, itemById }: { answer: AskAnswer; itemByI
             <View style={[styles.answerMark, { backgroundColor: p.graphite }]}>
               <OneIcon name={icons.ask} size={13} color={p.onAccent} />
             </View>
-            <Text style={[styles.answerMode, { color: p.tertiary }]}>{current.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text>
+            <Text style={[styles.answerMode, { color: p.tertiary }]}>{current.mode === 'ai' ? 'AI answer' : 'From your memory'}</Text>
           </View>
           <Text style={[styles.answerTitle, { color: p.label }]}>{current.title}</Text>
           {body ? <Text selectable style={[styles.answerText, { color: p.secondary }]}>{body}</Text> : null}
@@ -429,8 +431,8 @@ const styles = StyleSheet.create({
   heroCopy: { gap: 5 },
   heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: neverType.hero.fontFamily, fontWeight: '400', letterSpacing: -1.35 },
   heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
-  searchStage: { padding: 17, gap: 14 },
-  modeRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  searchStage: { gap: 16 },
+  modeRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   modeSwitch: { padding: 3, borderRadius: 15, borderWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center' },
   modeButton: { minWidth: 68, minHeight: 44, paddingHorizontal: 13, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   modeButtonText: { fontSize: 11.5, lineHeight: 15 },
@@ -466,12 +468,12 @@ const styles = StyleSheet.create({
   promptIcon: { width: 34, height: 34, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   promptText: { marginTop: 12, fontSize: 13, lineHeight: 17, fontWeight: '600' },
   loadingRow: { minHeight: 62, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  loadingText: { fontSize: 13.5, lineHeight: 17 },
+  loadingText: { flex: 1, paddingVertical: 12, fontSize: 13.5, lineHeight: 17 },
   answerStack: { gap: 14 },
   answerBodyWrap: { padding: 16 },
   answerHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   answerMark: { width: 32, height: 32, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  answerMode: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.65 },
+  answerMode: { fontSize: 12, lineHeight: 16, fontWeight: '700', letterSpacing: 0.65 },
   answerTitle: { marginTop: 13, fontSize: 20, lineHeight: 24, fontWeight: '700', letterSpacing: -0.35 },
   answerText: { marginTop: 7, fontSize: 14.5, lineHeight: 20 },
   answerMeta: { marginTop: 10, fontSize: 10.5, lineHeight: 14 },

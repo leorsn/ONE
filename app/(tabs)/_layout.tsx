@@ -75,7 +75,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
           return (
             <Pressable
               key={route.key}
-              accessibilityRole="button"
+              accessibilityRole="tab"
               accessibilityState={focused ? { selected: true } : {}}
               accessibilityLabel={options?.tabBarAccessibilityLabel ?? label}
               testID={options?.tabBarButtonTestID}
@@ -95,7 +95,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
                   styles.label,
                   { color: focused ? p.label : p.secondary, fontWeight: focused ? '600' : '500' }
                 ]}
-                numberOfLines={1} maxFontSizeMultiplier={1.3}
+                numberOfLines={2} maxFontSizeMultiplier={1.5}
               >
                 {label}
               </Text>
@@ -137,5 +137,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center'
   },
-  label: { fontSize: 9.5, lineHeight: 12, letterSpacing: 0.02 }
+  label: { fontSize: 11, lineHeight: 14, textAlign: 'center', letterSpacing: 0 }
 });

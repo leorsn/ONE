@@ -115,7 +115,7 @@ export default function HomeV5() {
 
         <View style={styles.heroCopy}>
           <NeverEyebrow>Personal memory</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>
             {`${greetingFor(now)}${firstName ? `,\n${firstName}.` : '.'}`}
           </Text>
           <Text style={[styles.heroSubtitle, { color: p.secondary }]}>
@@ -193,12 +193,12 @@ export default function HomeV5() {
                       <Text style={[styles.draftMeta, { color: p.secondary }]}>{labelForKind(draft.canonicalKind)} · Ready to save</Text>
                     </View>
                   </View>
-                  <View style={styles.draftButton}><NeverChromeButton label={saving ? 'Saving…' : 'Save to NEVER'} icon={icons.check} onPress={handleSave} disabled={saving} /></View>
+                  <View style={styles.draftButton}><NeverChromeButton label={saving ? 'Saving…' : 'Save to NEVER'} icon={icons.check} onPress={handleSave} busy={saving} /></View>
                 </>
               ) : (
                 <View style={styles.reviewEditor}>
                   <CaptureReviewEditor draft={draft} onChange={setReviewedDraft} showExtractedText={false} />
-                  <NeverChromeButton label="Save to NEVER" icon={icons.check} onPress={handleSave} disabled={saving || !draft.title.trim()} />
+                  <NeverChromeButton label="Save to NEVER" icon={icons.check} onPress={handleSave} busy={saving} disabled={!draft.title.trim()} />
                 </View>
               )}
             </V5Group>
@@ -264,7 +264,7 @@ export default function HomeV5() {
           <View style={styles.section}>
             <V5SectionHeader
               title="Needs Review"
-              meta={`${inboxItems.length}`}
+              meta={`${reviewItems.length}`}
               action={(
                 <Pressable accessibilityRole="button" onPress={() => router.push('/inbox')} hitSlop={8}>
                   <Text style={[styles.seeAll, { color: p.chrome }]}>Open</Text>

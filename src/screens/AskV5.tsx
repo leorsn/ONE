@@ -101,7 +101,7 @@ export default function AskV5() {
         role: 'assistant',
         title: answer.title,
         body: answer.body,
-        meta: [answer.meta, retrieval.semanticError ? 'Semantic search unavailable' : undefined].filter(Boolean).join(' · '),
+        meta: [answer.meta, retrieval.semanticError ? 'Showing keyword matches' : undefined].filter(Boolean).join(' · '),
         sourceIds: answer.sourceIds,
         mode: answer.mode
       }]);
@@ -123,7 +123,7 @@ export default function AskV5() {
           </View>
           <View style={styles.lockedHeroCopy}>
             <NeverEyebrow>Grounded recall</NeverEyebrow>
-            <Text style={[styles.heroTitle, p.heading, { color: p.label }]}>Ask NEVER.</Text>
+            <Text style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>Ask NEVER.</Text>
             <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Turn your saved memory into direct, evidence-backed answers.</Text>
           </View>
           <NeverHeroSurface style={styles.lockedStage}>
@@ -150,7 +150,7 @@ export default function AskV5() {
             <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => goBackOrHome()} />
             <View style={styles.navBrand}>
               <Text style={[styles.navTitle, { color: p.label }]}>Ask NEVER</Text>
-              <View style={[styles.liveDot, { backgroundColor: p.success }]} />
+
             </View>
             {messages.length && !sending ? <V5IconButton icon={icons.close} accessibilityLabel="Clear conversation" onPress={() => { setMessages([]); setFailedQuestion(null); }} /> : <View style={{ width: 44 }} />}
           </View>
@@ -170,7 +170,7 @@ export default function AskV5() {
               <>
                 <View style={styles.heroCopy}>
                   <NeverEyebrow>Grounded recall</NeverEyebrow>
-                  <Text accessibilityRole="header" style={[styles.heroTitle, p.heading, { color: p.label }]}>Ask your memory.</Text>
+                  <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>Ask your memory.</Text>
                   <Text style={[styles.heroSubtitle, { color: p.secondary }]}>NEVER searches what you saved first, then answers from the evidence it can actually find.</Text>
                 </View>
 
@@ -297,7 +297,7 @@ function MessageBubble({ message, itemById }: { message: ChatMessage; itemById: 
         <View style={styles.assistantHeader}>
           <View style={[styles.assistantMark, { backgroundColor: p.graphite }]}><OneIcon name={icons.ask} size={12.5} color={p.onAccent} /></View>
           <Text style={[styles.assistantBrand, { color: p.label }]}>NEVER</Text>
-          {message.mode ? <Text style={[styles.modeLabel, { color: p.tertiary }]}>{message.mode === 'ai' ? 'SYNTHESIZED' : 'GROUNDED'}</Text> : null}
+          {message.mode ? <Text style={[styles.modeLabel, { color: p.tertiary }]}>{message.mode === 'ai' ? 'AI answer' : 'From your memory'}</Text> : null}
         </View>
 
         {message.title ? <Text style={[styles.answerTitle, { color: p.label }]}>{message.title}</Text> : null}
@@ -337,7 +337,6 @@ const styles = StyleSheet.create({
   nav: { minHeight: 56, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth },
   navBrand: { flexDirection: 'row', alignItems: 'center', gap: 7 },
   navTitle: { fontSize: 16, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
-  liveDot: { width: 5, height: 5, borderRadius: 3 },
   chat: { flex: 1 },
   emptyContent: { paddingHorizontal: 20, paddingTop: 24, paddingBottom: 26, gap: 24 },
   chatContent: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 26, gap: 18 },
@@ -350,7 +349,7 @@ const styles = StyleSheet.create({
   trustCopy: { flex: 1, minWidth: 0 },
   trustTitle: { marginTop: 3, fontSize: 18, lineHeight: 22, fontWeight: '600', letterSpacing: -0.25 },
   trustBody: { marginTop: 3, fontSize: 12.5, lineHeight: 17 },
-  trustMetrics: { minHeight: 64, paddingTop: 11, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  trustMetrics: { flexWrap: 'wrap', minHeight: 64, paddingTop: 11, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   section: { gap: 9 },
   suggestionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
   suggestionTile: { flexBasis: '47%', flexGrow: 1, minWidth: 130, minHeight: 118, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13, justifyContent: 'space-between' },
@@ -362,17 +361,17 @@ const styles = StyleSheet.create({
   userText: { fontSize: 14.5, lineHeight: 20 },
   assistantSurface: { overflow: 'hidden' },
   assistantBody: { padding: 16, gap: 9 },
-  assistantHeader: { flexDirection: 'row', alignItems: 'center', gap: 7 },
+  assistantHeader: { flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', gap: 7 },
   assistantMark: { width: 29, height: 29, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
   assistantBrand: { fontSize: 11.5, lineHeight: 14, fontWeight: '700', letterSpacing: 0.65 },
-  modeLabel: { marginLeft: 'auto', fontSize: 9.5, lineHeight: 12, fontWeight: '600', letterSpacing: 0.45 },
+  modeLabel: { flexShrink: 1, marginLeft: 'auto', fontSize: 12, lineHeight: 16, fontWeight: '600', letterSpacing: 0.45 },
   answerTitle: { marginTop: 3, fontSize: 20, lineHeight: 25, fontWeight: '700', letterSpacing: -0.35 },
   answerBody: { fontSize: 14.5, lineHeight: 21 },
   answerMeta: { fontSize: 10.5, lineHeight: 14 },
   answerLinks: { borderTopWidth: StyleSheet.hairlineWidth },
   loadingSurface: { minHeight: 62 },
   loadingLine: { minHeight: 62, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  loadingText: { fontSize: 13.5, lineHeight: 17 },
+  loadingText: { flex: 1, paddingVertical: 12, fontSize: 13.5, lineHeight: 17 },
   linkRow: { minHeight: 50, paddingLeft: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
   linkContent: { flex: 1, minHeight: 50, paddingRight: 13, flexDirection: 'row', alignItems: 'center', gap: 9 },
   linkText: { flex: 1, fontSize: 12.5, lineHeight: 16 },
