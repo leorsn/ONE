@@ -117,11 +117,11 @@ export default function AskV5() {
     return (
       <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
         <ScrollView contentContainerStyle={styles.lockedPage} showsVerticalScrollIndicator={false}>
-          <View style={styles.lockedTop}>
+          <View style={[styles.lockedTop, p.textSurface, { padding: 8 }]}>
             <V5Wordmark />
             <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => goBackOrHome()} />
           </View>
-          <View style={styles.lockedHeroCopy}>
+          <View style={[styles.lockedHeroCopy, p.textSurface, { padding: 16 }]}>
             <NeverEyebrow>Grounded recall</NeverEyebrow>
             <Text style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>Ask NEVER.</Text>
             <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Turn your saved memory into direct, evidence-backed answers.</Text>
@@ -168,7 +168,7 @@ export default function AskV5() {
           >
             {!messages.length ? (
               <>
-                <View style={styles.heroCopy}>
+                <View style={[styles.heroCopy, p.textSurface, { padding: 16 }]}>
                   <NeverEyebrow>Grounded recall</NeverEyebrow>
                   <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>Ask your memory.</Text>
                   <Text style={[styles.heroSubtitle, { color: p.secondary }]}>NEVER searches what you saved first, then answers from the evidence it can actually find.</Text>

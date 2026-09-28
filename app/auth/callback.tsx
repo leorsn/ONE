@@ -40,7 +40,7 @@ export default function AuthCallbackScreen() {
       <ScrollView contentContainerStyle={styles.shell}>
         <V5Wordmark />
 
-        <View style={styles.hero}>
+        <View style={[styles.hero, p.textSurface, { padding: 8 }]}>
           <Text style={[styles.eyebrow, { color: errorMessage ? p.danger : p.chrome }]}>{errorMessage ? 'ACCOUNT' : 'SECURE SIGN-IN'}</Text>
           <Text style={[styles.title, p.heading, { color: p.label }]}>{errorMessage ? 'We could not confirm this account.' : 'Connecting your memory.'}</Text>
           <Text style={[styles.body, { color: p.secondary }]}>{errorMessage || 'NEVER is securely completing sign-in on this device.'}</Text>

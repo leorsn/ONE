@@ -73,7 +73,7 @@ export default function SignInScreen() {
           <View style={styles.shell}>
             <V5Wordmark />
 
-            <View style={styles.hero}>
+            <View style={[styles.hero, p.textSurface, { padding: 8 }]}>
               <Text style={[styles.eyebrow, { color: p.chrome }]}>{mode === 'signin' ? 'WELCOME BACK' : 'CREATE YOUR MEMORY'}</Text>
               <Text style={[styles.title, p.heading, { color: p.label }]}>{mode === 'signin' ? 'Your memory, with you.' : 'One private place for what matters.'}</Text>
               <Text style={[styles.body, { color: p.secondary }]}>{mode === 'signin' ? 'Sign in to keep your saved information available across your NEVER devices.' : 'Create a NEVER account to sync memories, documents and context across your devices.'}</Text>

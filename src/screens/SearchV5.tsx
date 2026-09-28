@@ -149,7 +149,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
         keyboardDismissMode="interactive"
         showsVerticalScrollIndicator={false}
       >
-        <View style={styles.heroCopy}>
+        <View style={[styles.heroCopy, p.textSurface, { padding: 16 }]}>
           <NeverEyebrow>{mode === 'ask' ? 'Grounded recall' : 'Memory index'}</NeverEyebrow>
           <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>
             {mode === 'ask' ? 'Ask NEVER.' : 'Search.'}

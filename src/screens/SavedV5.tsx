@@ -88,7 +88,7 @@ export default function SavedV5() {
   return (
     <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
-        <View style={styles.heroCopy}>
+        <View style={[styles.heroCopy, p.textSurface, { padding: 16 }]}>
           <NeverEyebrow>Curated memory</NeverEyebrow>
           <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>{filter === 'Documents' ? 'Documents.' : 'Saved.'}</Text>
           <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Everything worth keeping, organized without feeling like a file manager.</Text>
@@ -145,7 +145,7 @@ export default function SavedV5() {
               <V5SectionHeader title={filter === 'All' ? 'Collections' : filter} meta={`${savedItems.length}`} />
               {savedItems.length ? groups.map((group) => (
                 <View key={group.label} style={styles.collectionBlock}>
-                  <View style={styles.collectionHeader}>
+                  <View style={[styles.collectionHeader, p.textSurface, { padding: 8 }]}>
                     <View>
                       <Text style={[styles.collectionLabel, { color: p.label }]}>{group.label}</Text>
                       <Text style={[styles.collectionCount, { color: p.tertiary }]}>{group.items.length} {group.items.length === 1 ? 'memory' : 'memories'}</Text>

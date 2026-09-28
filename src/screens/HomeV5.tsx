@@ -108,12 +108,12 @@ export default function HomeV5() {
         automaticallyAdjustKeyboardInsets
         keyboardDismissMode="interactive"
       >
-        <View style={styles.brandBar}>
+        <View style={[styles.brandBar, p.textSurface, { padding: 8 }]}>
           <V5Wordmark />
           <V5IconButton icon={icons.person} accessibilityLabel="Open your settings" onPress={() => router.push('/(tabs)/settings')} />
         </View>
 
-        <View style={styles.heroCopy}>
+        <View style={[styles.heroCopy, p.textSurface, { padding: 16 }]}>
           <NeverEyebrow>Personal memory</NeverEyebrow>
           <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, { color: p.label }]}>
             {`${greetingFor(now)}${firstName ? `,\n${firstName}.` : '.'}`}

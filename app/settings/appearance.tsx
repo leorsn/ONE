@@ -60,7 +60,7 @@ export default function AppearanceScreen() {
 
         <V5LargeHeader title="Appearance" subtitle="Same experience. A different atmosphere." />
 
-        <View style={styles.collectionHeading}>
+        <View style={[styles.collectionHeading, p.textSurface, { padding: 8 }]}>
           <Text style={[styles.collectionTitle, { color: p.label }]}>Choose your perspective.</Text>
           <Text style={[styles.rowBody, { color: p.secondary }]}>Six material worlds. One NEVER.</Text>
         </View>
@@ -79,8 +79,8 @@ export default function AppearanceScreen() {
               <View style={styles.themeCopy}>
                 <View style={styles.themeNameRow}><Text style={[styles.rowTitle, { color: p.label, flex: 1 }]}>{name}</Text><SelectionMark active={active} /></View>
                 <Text style={[styles.rowBody, { color: p.secondary }]}>{descriptor}</Text>
-                {value === 'platinum' ? <Text style={[styles.defaultLabel, { color: p.tertiary }]}>NEVER ORIGINAL</Text> : null}
-                {value === 'system' ? <Text style={[styles.rowBody, { color: p.tertiary }]}>Platinum by day. Monolith in dark mode.</Text> : null}
+                {value === 'platinum' ? <Text style={[styles.defaultLabel, { color: p.tertiary }]}>Default appearance</Text> : null}
+                {value === 'system' ? <Text style={[styles.rowBody, { color: p.tertiary }]}>Follows your device: Platinum in light mode, Monolith in dark mode.</Text> : null}
               </View>
             </Pressable>;
           })}
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   collectionHeading: { gap: 4 }, collectionTitle: { ...neverType.section },
   themeGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, alignItems: 'stretch' },
   themeOption: { flexBasis: '46%', flexGrow: 1, minWidth: 130, overflow: 'hidden' },
-  previewClip: { overflow: 'hidden', margin: 5, borderRadius: 7 },
+  previewClip: { overflow: 'hidden', margin: 4, borderRadius: 16 },
   themeCopy: { padding: 12, gap: 5 }, themeNameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   defaultLabel: { fontSize: 12, fontWeight: '600', letterSpacing: 1.1, marginTop: 3 },
 

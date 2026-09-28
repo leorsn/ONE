@@ -1,4 +1,4 @@
-import { materialStyle } from '@/src/theme/editions';
+import { resolveMaterialAppearance } from '@/src/theme/editions';
 import { NeverInput } from '@/src/ui/NeverInput';
 import { useRef, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
@@ -10,21 +10,24 @@ import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 type IconName = (typeof icons)[keyof typeof icons];
 
 export function useNeverV5Palette() {
-  const { resolvedMode } = useThemePreference();
+  const { resolvedMode, reduceTransparency } = useThemePreference();
   const dark = resolvedMode === 'dark';
   const t = useTheme();
   const { width, fontScale } = useWindowDimensions();
   const compact = width < 375 || fontScale > 1.3;
+  const cardStyle = resolveMaterialAppearance(t, 'card', { reduceTransparency }).style;
+  const inputStyle = resolveMaterialAppearance(t, 'input', { reduceTransparency }).style;
   return {
-    dark, canvas: t.background, surface: t.surface, elevated: t.surfaceElevated,
+    dark, canvas: t.background, surface: cardStyle.backgroundColor, elevated: t.surfaceElevated,
     fill: t.fillStrong, fillSoft: t.fill, label: t.text, secondary: t.textSecondary,
     tertiary: t.textTertiary, separator: t.border, border: t.border, graphite: t.accent,
     chrome: t.chrome, chromeSoft: t.chromeSoft, warning: t.warning,
     success: t.success, danger: t.danger, glass: t.glassStrong,
     glassBorder: t.glassBorder, reflection: t.reflection, shadow: t.shadow,
     onAccent: t.onAccent, heading: t.typography.heading, wordmark: t.typography.wordmark,
-    radius: t.radius, cardStyle: materialStyle(t, 'card'), inputStyle: materialStyle(t, 'input'),
-    pageStyle: { paddingHorizontal: t.spacing.page, gap: t.spacing.section },
+    radius: t.radius, cardStyle, inputStyle,
+    textSurface: { backgroundColor: reduceTransparency ? t.surface : t.materials.card.color, borderRadius: 10 },
+    pageStyle: { paddingHorizontal: width < 375 ? 18 : width >= 430 ? 24 : t.spacing.page, gap: t.spacing.section },
     rowHeight: t.spacing.row,
     compact, heroType: compact ? neverType.hero : { ...neverType.hero, fontSize: 40, lineHeight: 45 }
   } as const;
@@ -56,7 +59,7 @@ export function V5LargeHeader({
 }) {
   const p = useNeverV5Palette();
   return (
-    <View style={styles.largeHeader}>
+    <View style={[styles.largeHeader, p.textSurface, { padding: 16 }]}>
       <View style={{ flex: 1, minWidth: 0 }}>
         {eyebrow ? <Text style={[styles.eyebrow, { color: p.secondary }]}>{eyebrow}</Text> : null}
         <Text accessibilityRole="header" style={[styles.largeTitle, p.heroType, p.heading, { color: p.label }]}>{title}</Text>
@@ -70,7 +73,7 @@ export function V5LargeHeader({
 export function V5SectionHeader({ title, meta, action }: { title: string; meta?: string; action?: ReactNode }) {
   const p = useNeverV5Palette();
   return (
-    <View style={styles.sectionHeader}>
+    <View style={[styles.sectionHeader, p.textSurface]}>
       <Text accessibilityRole="header" style={[styles.sectionTitle, { color: p.label }]}>{title}</Text>
       <View style={styles.sectionRight}>
         {meta ? <Text style={[styles.sectionMeta, { color: p.tertiary }]}>{meta}</Text> : null}
@@ -241,7 +244,7 @@ const styles = StyleSheet.create({
   eyebrow: { fontSize: 11, lineHeight: 14, fontWeight: '600', marginBottom: 4 },
   largeTitle: { ...neverType.hero },
   subtitle: { marginTop: 5, maxWidth: 520, fontSize: 14, lineHeight: 19 },
-  sectionHeader: { flexWrap: 'wrap', minHeight: 24, paddingHorizontal: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
+  sectionHeader: { flexWrap: 'wrap', minHeight: 24, paddingHorizontal: 8, paddingVertical: 4, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   sectionTitle: { ...neverType.section, flexShrink: 1 },
   sectionRight: { flexWrap: 'wrap', flexShrink: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
   sectionMeta: { fontSize: 12, lineHeight: 15, fontWeight: '500' },
@@ -254,7 +257,7 @@ const styles = StyleSheet.create({
   rowTitle: { flex: 1, fontSize: 15.5, lineHeight: 19, fontWeight: '600', letterSpacing: -0.12 },
   rowSubtitle: { marginTop: 2, fontSize: 13, lineHeight: 18 },
   rowMeta: { maxWidth: 110, fontSize: 12, lineHeight: 16, textAlign: 'right' },
-  searchField: { minHeight: neverControl.input, borderRadius: neverRadius.lg, paddingHorizontal: neverSpacing.lg, flexDirection: 'row', alignItems: 'center', gap: 8 },
+  searchField: { minHeight: 52, borderRadius: 15, paddingHorizontal: neverSpacing.lg, flexDirection: 'row', alignItems: 'center', gap: 8 },
   searchInput: { flex: 1, minHeight: 44, fontSize: 16, lineHeight: 20, paddingVertical: 0 },
   clearButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   clearCircle: { width: 17, height: 17, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },

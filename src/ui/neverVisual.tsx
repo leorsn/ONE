@@ -18,8 +18,8 @@ export function NeverHeroSurface({
   const p = useNeverV5Palette();
   const theme = useTheme();
   return (
-    <NeverMaterial glass={glass} style={[styles.hero, compact && styles.heroCompact, style]}>
-      {theme.effects.reflection ? <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill, { overflow: 'hidden', borderRadius: theme.radius.card }]}>
+    <NeverMaterial shape="hero" role={glass ? "input" : "card"} style={[styles.hero, compact && styles.heroCompact, style]}>
+      {theme.effects.reflection ? <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[StyleSheet.absoluteFill, { overflow: 'hidden', borderRadius: 24 }]}>
         <View style={[styles.heroReflection, { backgroundColor: p.reflection }]} />
         <View
           style={[
@@ -59,7 +59,7 @@ export function NeverMetric({
 const styles = StyleSheet.create({
   hero: {
     minHeight: 150,
-    borderRadius: 30,
+    borderRadius: 24,
     overflow: 'hidden'
   },
   heroCompact: {

@@ -13,7 +13,7 @@ function contrast(a, b) { const [hi, lo] = [luminance(a), luminance(b)].sort((a,
 test('all six selections resolve independently of OS appearance', () => {
   assert.equal(themeIds.length, 6);
   for (const id of themeIds) for (const os of ['light', 'dark']) assert.equal(resolveTheme(id, os), themes[id]);
-  assert.deepEqual(themes.platinum.colors, lightTheme);
+  assert.equal(themes.platinum.accent, '#252B31');
 });
 test('System follows changes in OS appearance without changing stored preference', () => {
   assert.equal(resolveTheme('system', 'light').id, 'platinum');
@@ -40,14 +40,16 @@ for (const id of themeIds) test(`${id} has complete semantic tokens and readable
     assert.equal(typeof t.materials[role].glass, 'boolean');
   }
 });
-test('editions differ in materials and geometry, not only color', () => {
-  assert.equal(themes.archive.materials.card.shadow.shadowOpacity, 0);
-  assert.equal(themes.archive.materials.input.glass, false);
-  assert.equal(themes.tactile.effects.texture, true);
-  assert.equal(themes.tactile.materials.navigation.glass, false);
-  assert.equal(themes.aurora.materials.navigation.glass, true);
-  assert.equal(themes.orbit.radius.icon, 999);
-  assert.equal(new Set(themeIds.map((id) => themes[id].radius.card)).size, 6);
+test('six worlds retain one control geometry and preserve stored identities', () => {
+  assert.deepEqual(themeIds.map(id => themes[id].name), ['Platinum', 'Monolith', 'Archive', 'Aurora', 'Canyon', 'Tidal']);
+  for (const id of themeIds) {
+    assert.deepEqual(themes[id].radius, themes.platinum.radius);
+    assert.deepEqual(themes[id].spacing, themes.platinum.spacing);
+  }
+  assert.equal(themes.archive.mode, 'light');
+  assert.equal(themes.monolith.mode, 'dark');
+  assert.equal(parseThemePreference('canyon'), 'tactile');
+  assert.equal(parseThemePreference('tidal'), 'orbit');
 });
 test('each preference persists and reloads using the existing device key', async () => {
   const data = new Map();
@@ -85,13 +87,13 @@ test('Reduce Transparency makes every glass role opaque, including form fields',
     assert.ok(contrast(theme.text, result.style.backgroundColor) >= 4.5);
   }
 });
-test('native glass stays disabled for paper/archive and unavailable platforms', async () => {
+test('native glass is consistent across worlds and disabled on unavailable platforms', async () => {
   const { resolveMaterialAppearance } = await import('../src/theme/editions.ts');
   for (const theme of Object.values(themes)) {
     const fallback = resolveMaterialAppearance(theme, 'input', { reduceTransparency: false, nativeGlass: false });
     assert.equal(fallback.useGlass, false);
     const native = resolveMaterialAppearance(theme, 'navigation', { reduceTransparency: false, nativeGlass: true });
-    assert.equal(native.useGlass, !['archive', 'tactile'].includes(theme.id));
+    assert.equal(native.useGlass, true);
   }
   const orbit = resolveMaterialAppearance(themes.orbit, 'input', { reduceTransparency: false, nativeGlass: true });
   const monolith = resolveMaterialAppearance(themes.monolith, 'input', { reduceTransparency: false, nativeGlass: true });
@@ -101,7 +103,19 @@ test('input focus retains edition geometry and changes its visible boundary', as
   const { resolveMaterialAppearance } = await import('../src/theme/editions.ts');
   for (const theme of Object.values(themes)) {
     const result = resolveMaterialAppearance(theme, 'input', { reduceTransparency: false, focused: true });
-    assert.equal(result.style.borderColor, theme.chrome);
+    assert.equal(result.style.borderColor, theme.chrome + '80');
     assert.equal(result.style.borderRadius, theme.materials.input.radius);
+  }
+});
+
+function composite(hex, backdrop) {
+  const alpha = hex.length === 9 ? parseInt(hex.slice(7), 16) / 255 : 1;
+  return '#' + [1, 3, 5].map(i => Math.round(parseInt(hex.slice(i, i + 2), 16) * alpha + backdrop * (1 - alpha)).toString(16).padStart(2, '0')).join('');
+}
+test('material text remains readable over both artwork luminance extremes', () => {
+  for (const theme of Object.values(themes)) for (const material of Object.values(theme.materials)) {
+    for (const backdrop of [0, 255]) for (const foreground of ['text', 'textSecondary', 'textTertiary']) {
+      assert.ok(contrast(theme[foreground], composite(material.color, backdrop)) >= 4.5, `${theme.id} ${foreground}`);
+    }
   }
 });

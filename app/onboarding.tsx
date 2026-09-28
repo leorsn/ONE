@@ -69,7 +69,7 @@ export default function OnboardingScreen() {
 
   return (
     <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-      <View style={styles.top}>
+      <View style={[styles.top, p.textSurface, { padding: 8 }]}>
         <V5Wordmark />
         <Pressable accessibilityRole="button" accessibilityLabel="Skip introduction" disabled={finishing} accessibilityState={{ disabled: finishing, busy: finishing }} onPress={finish} style={{ minHeight: 44, justifyContent: 'center' }}>
           <Text style={[styles.skip, { color: p.secondary }]}>Skip</Text>
@@ -81,7 +81,7 @@ export default function OnboardingScreen() {
           <ScrollView key={slide.eyebrow} style={[styles.slide, { width }]} contentContainerStyle={styles.slideScroll}>
             <View style={styles.slideContent}>
               <ProductVignette slide={slide} />
-              <View style={styles.copy}>
+              <View style={[styles.copy, p.textSurface, { padding: 8 }]}>
                 <Text style={[styles.eyebrow, { color: p.chrome }]}>{slide.eyebrow}</Text>
                 <Text style={[styles.title, p.heading, { color: p.label }]}>{slide.title}</Text>
                 <Text style={[styles.body, { color: p.secondary }]}>{slide.body}</Text>

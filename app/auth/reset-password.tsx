@@ -86,7 +86,7 @@ export default function ResetPasswordScreen() {
           <View style={styles.shell}>
             <V5Wordmark />
 
-            <View style={styles.hero}>
+            <View style={[styles.hero, p.textSurface, { padding: 8 }]}>
               <Text style={[styles.eyebrow, { color: errorMessage ? p.danger : p.chrome }]}>{eyebrow}</Text>
               <Text style={[styles.title, p.heading, { color: p.label }]}>{title}</Text>
               <Text style={[styles.body, { color: p.secondary }]}>{body}</Text>

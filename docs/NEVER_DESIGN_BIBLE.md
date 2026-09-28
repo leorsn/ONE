@@ -1,6 +1,16 @@
 # NEVER — Design foundation, pass 1
 
-Status: canonical implementation specification, 21 September 2026.
+Status: implementation notes from 21 September 2026, amended 28 September 2026.
+
+The user-supplied `NEVER_UI_Design_Bible(1).pdf` takes precedence over older
+specifications below. The approved Image A Material Worlds supersede the older
+background restrictions and theme explorations. See `APPROVED_MATERIAL_WORLDS.md`.
+Current controls share neutral light/dark materials; primary actions stay graphite
+in both modes. Shared headings use native system semibold, 34–40 pt; sections
+20 pt. Primary actions are 52 pt / radius 15, inputs radius 15, cards radius 20,
+hero surfaces radius 24. Page margins are 18/20/24 pt and section gaps 24 pt.
+The historical palette table below describes the original base tokens; active
+material/contrast overrides live in `src/theme/editions.ts`.
 Replaces the V5.3 palette and typography specification. The V5 screen/component
 names remain compatibility entry points; they do not define a second design system.
 

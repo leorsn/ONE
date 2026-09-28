@@ -16,13 +16,14 @@ const nativeWeb = require('react-native-web');
 // are stubbed here; these checks do not assert native glass or pixel layout.
 function loadComponents(theme, reduced) {
   const cache = new Map();
+  const images = [];
   const context = { theme, preference: theme.id, resolvedMode: theme.mode, loaded: true, reduceTransparency: reduced, reduceMotion: true };
   function load(filename) {
     if (cache.has(filename)) return cache.get(filename).exports;
     const module = { exports: {} }; cache.set(filename, module);
     const compiled = ts.transpileModule(readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText;
     function localRequire(name) {
-      if (name === 'react-native') return nativeWeb;
+      if (name === 'react-native') return { ...nativeWeb, Image: (props) => { images.push(props); return React.createElement(nativeWeb.Image, props); } };
       if (name === 'expo-glass-effect') return { GlassView: nativeWeb.View, isGlassEffectAPIAvailable: () => false, isLiquidGlassAvailable: () => false };
       if (name === 'expo-haptics') return { selectionAsync: async () => undefined };
       if (name === '@/src/theme/useTheme') return { useTheme: () => theme, useThemePreference: () => context };
@@ -31,12 +32,14 @@ function loadComponents(theme, reduced) {
       const base = name.startsWith('@/') ? path.join(root, name.slice(2)) : path.resolve(path.dirname(filename), name);
       const resolved = [base, `${base}.ts`, `${base}.tsx`].find(existsSync);
       if (!resolved) throw Error(`Unresolved test import ${name}`);
+      if (resolved.endsWith('.png')) return { uri: `/assets/material-worlds/${path.basename(resolved)}` };
       return load(resolved);
     }
     new Function('require', 'module', 'exports', compiled)(localRequire, module, module.exports);
     return module.exports;
   }
   return {
+    images,
     ...load(path.join(root, 'src/ui/ThemePreview.tsx')),
     ...load(path.join(root, 'src/ui/material.tsx')),
     ...load(path.join(root, 'src/ui/NeverInput.tsx'))
@@ -44,7 +47,7 @@ function loadComponents(theme, reduced) {
 }
 for (const theme of Object.values(themes)) test(`${theme.id} production preview, material and field render in both transparency modes`, () => {
   for (const reduced of [false, true]) {
-    const { ThemePreview, NeverMaterial, NeverInput } = loadComponents(theme, reduced);
+    const { ThemePreview, NeverMaterial, NeverInput, images } = loadComponents(theme, reduced);
     const markup = renderToStaticMarkup(React.createElement(React.Fragment, null,
       React.createElement(ThemePreview, { preference: theme.id }),
       React.createElement(NeverMaterial, { role: 'input' }, React.createElement(NeverInput, { accessibilityLabel: 'Capture', value: 'Unsent draft', onChangeText() {}, style: { backgroundColor: theme.fill } }))
@@ -53,6 +56,10 @@ for (const theme of Object.values(themes)) test(`${theme.id} production preview,
     assert.match(markup, /Unsent draft/);
     assert.match(markup, /aria-label="Capture"/);
     assert.doesNotMatch(markup, /NaN/);
+    const asset = { tactile: 'canyon', orbit: 'tidal' }[theme.id] ?? theme.id;
+    assert.equal(images.length, 1);
+    assert.equal(images[0].source.uri, `/assets/material-worlds/${asset}.png`);
+    assert.equal(images[0].resizeMode, 'cover');
   }
 });
 test('System preview renders both material editions together', () => {

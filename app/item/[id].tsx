@@ -31,7 +31,7 @@ export default function ItemDetailScreen() {
   if (!item) {
     return (
       <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]}>
-        <View style={styles.missing}>
+        <View style={[styles.missing, p.textSurface]}>
           <View style={[styles.missingIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.note} size={19} color={p.chrome} /></View>
           <Text style={[styles.missingTitle, { color: p.label }]}>Memory not found</Text>
           <Text style={[styles.missingBody, { color: p.secondary }]}>This memory may have been removed.</Text>
@@ -146,13 +146,13 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
   return (
     <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
-        <View style={styles.nav}>
+        <View style={[styles.nav, p.textSurface]}>
           <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => goBackOrHome()} />
           <Text style={[styles.navTitle, { color: p.label }]}>Memory</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Save changes" accessibilityState={{ disabled: saving || !title.trim(), busy: saving }} disabled={saving || !title.trim()} onPress={saveChanges} style={styles.navSave}><Text style={{ color: p.chrome, fontWeight: '600', opacity: saving || !title.trim() ? 0.4 : 1 }}>{saving ? 'Saving…' : 'Done'}</Text></Pressable>
         </View>
 
-        <View style={styles.identity}>
+        <View style={[styles.identity, p.textSurface, { padding: 8 }]}>
           <View style={[styles.identityGlyph, { backgroundColor: p.fillSoft }]}>
             <OneIcon name={iconForType(currentItem.type)} size={17} color={p.chrome} />
           </View>
@@ -165,7 +165,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
         <NeverInput
           value={title}
           onChangeText={setTitle}
-          style={[styles.titleInput, p.heading, { color: p.label }]}
+          style={[styles.titleInput, p.textSurface, p.heading, { color: p.label }]}
           placeholder="Title"
           placeholderTextColor={p.tertiary}
           accessibilityLabel="Item title"

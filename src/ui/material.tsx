@@ -20,16 +20,17 @@ export function useReducedMotion() {
   return useThemeContext().reduceMotion;
 }
 
-// Glass is reserved for controls floating over content. Lists use quiet opaque surfaces.
-export function NeverMaterial({ children, style, glass = false, role, focused = false }: { children?: ReactNode; style?: StyleProp<ViewStyle>; glass?: boolean; role?: MaterialRole; focused?: boolean }) {
+// Glass is reserved for controls floating over content. Lists use quiet translucent surfaces.
+export function NeverMaterial({ children, style, glass = false, role, shape = 'standard', focused = false }: { children?: ReactNode; style?: StyleProp<ViewStyle>; glass?: boolean; role?: MaterialRole; shape?: 'standard' | 'hero'; focused?: boolean }) {
   const theme = useTheme();
   const { resolvedMode, reduceTransparency: reduced } = useThemePreference();
   const materialRole = role ?? (glass ? 'input' : 'card');
   const material = theme.materials[materialRole];
   const appearance = resolveMaterialAppearance(theme, materialRole, { reduceTransparency: reduced, nativeGlass: nativeGlassAvailable(), focused });
+  const radius = shape === 'hero' ? 24 : material.radius;
   return (
-    <View style={[styles.surface, style, appearance.style]}>
-      {appearance.useGlass ? <GlassView pointerEvents="none" colorScheme={resolvedMode} tintColor={appearance.tint} glassEffectStyle="regular" style={[StyleSheet.absoluteFill, { borderRadius: material.radius, overflow: 'hidden' }]} /> : null}
+    <View style={[styles.surface, style, appearance.style, { borderRadius: radius }]}>
+      {appearance.useGlass ? <GlassView pointerEvents="none" colorScheme={resolvedMode} tintColor={appearance.tint} glassEffectStyle="regular" style={[StyleSheet.absoluteFill, { borderRadius: radius, overflow: 'hidden' }]} /> : null}
       {theme.effects.texture ? <View pointerEvents="none" style={{ position: 'absolute', top: 1, left: 2, right: 2, bottom: 2, borderRadius: material.radius - 1, borderTopWidth: 1, borderBottomWidth: 1, borderTopColor: theme.glassBorder, borderBottomColor: theme.border }} /> : null}
       {children}
     </View>
