@@ -20,17 +20,20 @@ const cases = [
 ];
 for (const theme of Object.values(themes)) for (const viewport of cases) {
   const populated = viewport.count > 0;
-  test(`${theme.name}: Home/Search/Calendar at ${viewport.width} with ${viewport.count} memories and font scale ${viewport.fontScale}`, () => {
+  test(`${theme.name}: Home/Search/Calendar/Saved/Settings/Onboarding at ${viewport.width} with ${viewport.count} memories and font scale ${viewport.fontScale}`, () => {
     const title = viewport.count > 1 ? 'Design meeting notes — a long memory title with people, places and follow-up decisions '.repeat(3) : 'Design meeting notes';
     const items = Array.from({ length: viewport.count }, (_, index) => ({ id: `memory-${index}`, title, date: '2026-09-29', time: '14:30', type: 'note', kind: 'note', category: 'Work', summary: 'Review the sketch and supporting details. '.repeat(12), sourceType: 'manual', tags: [], completed: false, createdAt: '2026-09-29T10:00:00Z', updatedAt: '2026-09-29T10:00:00Z', inboxState: 'processed' }));
     const mocks = {
       '@/src/ui/useLocalDay': { useLocalDay: () => '2026-09-29' },
       'expo-router': { router: { push() {} }, useLocalSearchParams: () => ({ q: viewport.count > 1 ? 'Design' : '' }) },
       'expo-symbols': { SymbolView: () => null },
-      'react-native-safe-area-context': { SafeAreaView: View },
-      '@/src/context/AuthContext': { useAuth: () => ({ session: null }) },
+      'react-native-safe-area-context': { SafeAreaView: View, useSafeAreaInsets: () => ({ top: 47, bottom: 34, left: 0, right: 0 }) },
+      'expo-constants': { expoConfig: { version: '0.1.0' } },
+      '@/src/context/OnboardingContext': { useOnboarding: () => ({ complete: async () => {}, reset: async () => {} }) },
+      '@/src/supabase/account': { deleteOneAccount: async () => null },
+      '@/src/context/AuthContext': { useAuth: () => ({ session: null, configured: false }) },
       '@/src/context/ItemsContext': { useItems: () => ({ items, add: async () => {}, update: async () => {} }) },
-      '@/src/context/PlanContext': { usePlan: () => ({ hasAi: false }) },
+      '@/src/context/PlanContext': { usePlan: () => ({ hasAi: false, plan: 'none', localizedPrices: {}, billingConfigured: false }) },
       '@/src/capture/buildItem': { buildItemFromCapture() {} },
       '@/src/capture/CaptureReviewEditor': { CaptureReviewEditor: () => null },
       '@/src/notifications/status': { notificationSaveWarning: () => null },
@@ -61,6 +64,13 @@ for (const theme of Object.values(themes)) for (const viewport of cases) {
     assert.ok(search.indexOf('aria-label="Search your memory…"') < search.indexOf('>Documents</'));
     if (populated) for (const markup of [home, search, calendar]) assert.ok(markup.includes('Design meeting notes'));
     else { assert.ok(home.includes('Your memory starts here.')); assert.ok(search.includes('Your memory is ready')); }
-    for (const markup of [home, search, calendar]) assert.doesNotMatch(markup, /NaN|undefinedpx/);
+    const saved = renderToStaticMarkup(React.createElement(loadScreen('src/screens/SavedV5.tsx').default));
+    const settings = renderToStaticMarkup(React.createElement(loadScreen('src/screens/SettingsV5.tsx').default));
+    const onboarding = renderToStaticMarkup(React.createElement(loadScreen('app/onboarding.tsx').default));
+    assert.ok(saved.includes('Library map'));
+    assert.ok(settings.includes('Appearance'));
+    assert.ok(settings.includes('Replay Onboarding'));
+    for (const copy of ['Capture naturally.', 'Send anything to NEVER.', 'Remember by asking.']) assert.ok(onboarding.includes(copy));
+    for (const markup of [home, search, calendar, saved, settings, onboarding]) assert.doesNotMatch(markup, /NaN|undefinedpx/);
   });
 }

@@ -21,7 +21,6 @@ import { TriageRow } from '@/src/ui/TriageRow';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { NeverChromeButton } from '@/src/ui/never';
 import {
-  V5Chevron,
   V5Group,
   V5SectionHeader,
   V5Wordmark,
@@ -144,7 +143,7 @@ export default function HomeV5() {
                 onPress={() => focusCapture()}
                 accessibilityRole="button"
                 accessibilityLabel="Start a capture"
-                style={[styles.capturePlus, { borderRadius: p.radius.icon, backgroundColor: primaryAction.background }]}
+                style={[styles.capturePlus, { backgroundColor: primaryAction.background }]}
               >
                 <OneIcon name={icons.plus} size={20} color={primaryAction.foreground} />
               </Pressable>
@@ -307,27 +306,11 @@ function QuickAction({ label, icon, onPress }: { label: string; icon: (typeof ic
 }
 
 function TodayRow({ item, reason }: { item: OneItem; reason: string }) {
-  const p = useNeverV5Palette();
   const activeInbox = isInboxActive(item, new Date());
-  const overdue = reason === 'Overdue';
-  const detail = [item.location, item.summary].filter(Boolean).join(' · ') || reason;
-  const timeLabel = item.time || (overdue ? 'Past' : reason);
-  return (
-    <Pressable accessibilityRole="button"
-      onPress={() => router.push({ pathname: activeInbox ? '/inbox/[id]' : '/item/[id]', params: { id: item.id } } as never)}
-      style={({ pressed }) => [styles.todayCard, { backgroundColor: p.inputStyle.backgroundColor, opacity: pressed ? 0.66 : 1 }]}
-    >
-      <View style={[styles.todayRail, { backgroundColor: overdue ? p.warning : p.chrome }]} />
-      <View style={styles.todayCopy}>
-        <View style={styles.listTitleLine}>
-          <Text style={[styles.listTitle, { color: p.label }]} numberOfLines={2}>{item.title}</Text>
-          <Text style={[styles.listMeta, { color: overdue ? p.warning : p.tertiary }]}>{timeLabel}</Text>
-        </View>
-        <Text style={[styles.listSubtitle, { color: p.secondary }]} numberOfLines={1}>{detail}</Text>
-      </View>
-      <V5Chevron />
-    </Pressable>
-  );
+  const detail = [item.location, item.summary !== item.title ? item.summary : undefined].filter(Boolean).join(' · ');
+  const status = [item.time, reason].filter(Boolean).join(' · ');
+  return <MemoryRow floating item={item} status={status} subtitle={detail || undefined}
+    onPress={() => router.push({ pathname: activeInbox ? '/inbox/[id]' : '/item/[id]', params: { id: item.id } } as never)} />;
 }
 
 const styles = StyleSheet.create({
@@ -358,7 +341,7 @@ const styles = StyleSheet.create({
     gap: 9,
     overflow: 'hidden'
   },
-  capturePlus: { width: 44, height: 44, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
+  capturePlus: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   captureInput: { flex: 1, minHeight: 46, fontSize: 15.5, lineHeight: 20, paddingVertical: 0 },
   captureSave: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   quickActions: { flexWrap: 'wrap', flexDirection: 'row', gap: 26, paddingHorizontal: 6, paddingTop: 14, paddingBottom: 8 },
@@ -382,23 +365,6 @@ const styles = StyleSheet.create({
   askBody: { color: pass3.recallSecondary, fontSize: 14, lineHeight: 20, maxWidth: 290, marginTop: 8 },
   askAction: { marginTop: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   askActionText: { color: pass3.onRecall, fontSize: 15, fontWeight: '600' },
-  todayCard: {
-    minHeight: 68,
-    borderRadius: 12,
-    marginBottom: 8,
-    paddingLeft: 12,
-    paddingRight: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    overflow: 'hidden'
-  },
-  todayRail: { width: 3, alignSelf: 'stretch' },
-  todayCopy: { flex: 1, minWidth: 0 },
-  listTitleLine: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  listTitle: { flex: 1, fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
-  listMeta: { fontSize: 11.5, lineHeight: 14 },
-  listSubtitle: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
   seeAllTarget: { minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'flex-end' },
   seeAll: { fontSize: 13, lineHeight: 17, fontWeight: '600' },
   emptyRow: { minHeight: 86, padding: 15, justifyContent: 'center' },

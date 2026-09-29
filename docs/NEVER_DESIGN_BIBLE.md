@@ -1,6 +1,11 @@
 # NEVER — Design foundation, pass 1
 
-Status: implementation notes from 21 September 2026, amended 28 September 2026.
+Status: implementation notes from 21 September 2026, amended 29 September 2026.
+
+Latest annotated iPhone feedback preserves the Pass 3 Home hero and Saved grid,
+repairs lower onboarding copy and shared rows/filters, and restores a central
+Calendar surface. Its final Calendar reference supersedes earlier sparse-calendar
+guidance. See `VISUAL_SYSTEM_REPAIR.md`, including the open Retina asset target.
 
 The user-supplied `NEVER_UI_Design_Bible(1).pdf` takes precedence over older
 specifications below. The approved Image A Material Worlds supersede the older

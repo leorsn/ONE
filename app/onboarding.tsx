@@ -12,9 +12,9 @@ import { OneIcon, icons } from '@/src/ui/icons';
 import { V5Group, V5Wordmark, useNeverV5Palette } from '@/src/ui/appleV5';
 
 const slides = [
-  { icon: icons.inbox, eyebrow: 'CAPTURE', title: 'Get it out of your head.', body: 'Tasks, appointments, links and ideas. Type naturally and NEVER organizes the details for you.' },
-  { icon: icons.upload, eyebrow: 'SHARE', title: 'Send anything to NEVER.', body: 'Share links, text and screenshots from other apps. NEVER keeps the content together with the context that matters.' },
-  { icon: icons.ask, eyebrow: 'RECALL', title: 'Remember by asking.', body: 'You do not need to remember where something was saved. Ask NEVER and search your personal memory by meaning.' }
+  { icon: icons.inbox, eyebrow: 'CAPTURE', title: 'Capture naturally.', body: 'Tasks, reminders, links and ideas — NEVER organizes the details.' },
+  { icon: icons.upload, eyebrow: 'SHARE', title: 'Send anything to NEVER.', body: 'Share links, text and screenshots from other apps. Keep the content and its context together.' },
+  { icon: icons.ask, eyebrow: 'RECALL', title: 'Remember by asking.', body: 'Ask NEVER in plain language and find what you saved by meaning, not location.' }
 ] as const;
 
 type Slide = (typeof slides)[number];
@@ -72,7 +72,7 @@ export default function OnboardingScreen() {
       <View style={styles.top}>
         <V5Wordmark />
         <Pressable accessibilityRole="button" accessibilityLabel="Skip introduction" disabled={finishing} accessibilityState={{ disabled: finishing, busy: finishing }} onPress={finish} style={{ minHeight: 44, justifyContent: 'center' }}>
-          <Text style={[styles.skip, { color: p.secondary }]}>Skip</Text>
+          <Text style={[styles.skip, p.environmentText]}>Skip</Text>
         </Pressable>
       </View>
 
@@ -81,9 +81,9 @@ export default function OnboardingScreen() {
           <ScrollView key={slide.eyebrow} style={[styles.slide, { width }]} contentContainerStyle={styles.slideScroll}>
             <View style={styles.slideContent}>
               <ProductVignette slide={slide} />
-              <View style={[styles.copy, p.textSurface, { padding: 8 }]}>
+              <View style={[styles.copy, p.textSurface]}>
                 <Text style={[styles.eyebrow, { color: p.chrome }]}>{slide.eyebrow}</Text>
-                <Text style={[styles.title, p.heading, { color: p.label }]}>{slide.title}</Text>
+                <Text style={[styles.title, { color: p.label }]}>{slide.title}</Text>
                 <Text style={[styles.body, { color: p.secondary }]}>{slide.body}</Text>
               </View>
             </View>
@@ -103,7 +103,7 @@ export default function OnboardingScreen() {
           <OneIcon name={index === slides.length - 1 ? icons.check : icons.chevron} size={13.5} color={p.onAccent} />
         </Pressable>
 
-        <Text style={[styles.privacy, { color: p.tertiary }]}>Private by default. Your memory belongs to you.</Text>
+        <Text style={[styles.privacy, p.environmentText]}>Private by default. Your memory belongs to you.</Text>
       </View>
     </NeverScreen>
   );
@@ -209,10 +209,10 @@ const styles = StyleSheet.create({
   answerText: { marginTop: 10, fontSize: 15, lineHeight: 20, fontWeight: '600' },
   sourceMini: { marginTop: 11, paddingTop: 9, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 6 },
   sourceText: { fontSize: 10, lineHeight: 13 },
-  copy: { marginTop: 26, paddingHorizontal: 2 },
-  eyebrow: { ...neverType.eyebrow },
-  title: { marginTop: 8, maxWidth: 500, ...neverType.hero },
-  body: { marginTop: 8, maxWidth: 480, ...neverType.body },
+  copy: { marginTop: 28, padding: 20, maxWidth: 360 },
+  eyebrow: { ...neverType.eyebrow, fontSize: 10, lineHeight: 14, letterSpacing: 1.5 },
+  title: { ...neverType.hero, marginTop: 8, maxWidth: 320, fontSize: 29, lineHeight: 34, fontWeight: '500', letterSpacing: -0.65 },
+  body: { ...neverType.body, marginTop: 12, maxWidth: 310, fontSize: 15, lineHeight: 22 },
   bottom: { width: '100%', maxWidth: 500, alignSelf: 'center', paddingHorizontal: 20, paddingBottom: 8, gap: 12 },
   dots: { height: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 5 },
   dot: { height: 6, borderRadius: 3 },

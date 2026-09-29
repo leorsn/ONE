@@ -2,7 +2,15 @@
 
 Branch: `design/never-material-worlds`, existing PR #4.
 
-## Canon and mapping
+## Current asset revision
+
+On 29 September, the annotated-device repair request authorized reconstruction
+of the six worlds for better fidelity. The shipped PNGs are now generated
+853 × 1844 reconstructions; the requested 1290 × 2796 target remains open.
+See `VISUAL_SYSTEM_REPAIR.md`. The original integration history below describes
+the earlier 336 × 744 crops, not the current asset provenance.
+
+## Original canon and mapping
 
 Primary source: Image A, `ChatGPT-Bild 28. Sept. 2026, 13_00_43-3.png`
 (2048 × 748). Images B and C were inspected as support only. All shipped pixels

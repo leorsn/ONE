@@ -16,7 +16,7 @@ export const ThemeBackdrop = memo(function ThemeBackdrop({ theme, preview = fals
 });
 const styles = StyleSheet.create({
   clip: { overflow: 'hidden' },
-  // iOS Image prepends the bundled source dimensions (336 × 744). Insets alone
+  // iOS Image prepends the bundled source dimensions. Insets alone
   // do not override those explicit dimensions in Yoga; size to the container.
   image: { width: '100%', height: '100%' }
 });

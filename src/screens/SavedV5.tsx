@@ -89,7 +89,7 @@ export default function SavedV5() {
     <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         <View style={styles.heroCopy}>
-          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, p.environmentText]}>{filter === 'Documents' ? 'Documents.' : 'Saved.'}</Text>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.pass3Heading, p.environmentText]}>{filter === 'Documents' ? 'Documents.' : 'Saved.'}</Text>
           <Text style={[styles.heroSubtitle, p.environmentText]}>Everything worth keeping, organized without feeling like a file manager.</Text>
         </View>
 
@@ -274,8 +274,8 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 126, gap: 26 },
   heroCopy: { gap: 5 },
-  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
-  heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
+  heroTitle: { fontSize: 43, lineHeight: 47, fontWeight: '400', letterSpacing: -1.35 },
+  heroSubtitle: { maxWidth: 340, fontSize: 15, lineHeight: 22 },
   libraryStage: { gap: 16 },
   libraryTop: { flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
   libraryMetrics: { flexWrap: 'wrap', flex: 1, flexDirection: 'row', gap: 14 },

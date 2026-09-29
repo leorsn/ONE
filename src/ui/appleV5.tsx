@@ -201,15 +201,17 @@ export function V5SearchField({
 export function V5Segmented({
   options,
   selected,
-  onSelect
+  onSelect,
+  contained = false
 }: {
   options: string[];
   selected: string;
+  contained?: boolean;
   onSelect: (value: string) => void;
 }) {
   const p = useNeverV5Palette();
   return (
-    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={[styles.segmented, { backgroundColor: p.inputStyle.backgroundColor }]} keyboardShouldPersistTaps="handled">
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filterScroll} contentContainerStyle={styles.segmented} keyboardShouldPersistTaps="handled">
       {options.map((option) => {
         const active = option === selected;
         return (
@@ -220,11 +222,11 @@ export function V5Segmented({
             onPress={() => { selectionFeedback(); onSelect(option); }}
             style={({ pressed }) => [
               styles.segment,
-              { backgroundColor: active ? p.fillSoft : 'transparent', borderRadius: p.radius.chip },
+              { backgroundColor: active ? p.inputStyle.backgroundColor : 'transparent' },
               { opacity: pressed ? 0.65 : 1 }
             ]}
           >
-            <Text style={[styles.segmentText, { color: active ? p.label : p.secondary, fontWeight: active ? '600' : '500' }]}>{option}</Text>
+            <Text style={[styles.segmentText, !active && !contained && p.environmentText, { color: active ? p.label : contained ? p.secondary : p.environmentText.color, fontWeight: active ? '600' : '500' }]}>{option}</Text>
           </Pressable>
         );
       })}
@@ -269,8 +271,8 @@ const styles = StyleSheet.create({
   clearButton: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   clearCircle: { width: 17, height: 17, borderRadius: 9, alignItems: 'center', justifyContent: 'center' },
   filterScroll: { flexGrow: 0, alignSelf: 'flex-start', borderRadius: 12 },
-  segmented: { paddingHorizontal: 4, minHeight: neverControl.minimum, flexDirection: 'row', alignItems: 'center', gap: neverSpacing.sm },
-  segment: { paddingVertical: 8, minHeight: neverControl.minimum, paddingHorizontal: 12, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
+  segmented: { paddingHorizontal: 0, minHeight: neverControl.minimum, flexDirection: 'row', alignItems: 'center', gap: neverSpacing.sm },
+  segment: { paddingVertical: 6, minHeight: neverControl.minimum, paddingHorizontal: 14, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   segmentText: { ...neverType.caption },
   iconButton: { width: neverControl.minimum, height: neverControl.minimum, borderRadius: neverRadius.pill, alignItems: 'center', justifyContent: 'center' }
 });

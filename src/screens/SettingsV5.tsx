@@ -120,7 +120,7 @@ export default function SettingsV5() {
     <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
       <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCopy}>
-          <Text accessibilityRole="header" style={[styles.heroTitle, p.heroType, p.heading, p.environmentText]}>Settings.</Text>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.pass3Heading, p.environmentText]}>Settings.</Text>
           <Text style={[styles.heroSubtitle, p.environmentText]}>Your account, memory preferences and NEVER membership.</Text>
         </View>
 
@@ -226,7 +226,7 @@ export default function SettingsV5() {
           </SettingsSection>
         ) : null}
 
-        <Text style={[styles.footer, { color: p.tertiary }]}>NEVER · {hasAi ? 'AI enabled' : 'Core'} · {APP_VERSION}</Text>
+        <Text style={[styles.footer, p.environmentText]}>NEVER · {hasAi ? 'AI enabled' : 'Core'} · {APP_VERSION}</Text>
       </ScrollView>
     </NeverScreen>
   );
@@ -265,7 +265,7 @@ function SettingsSection({ title, children }: { title: string; children: ReactNo
   const p = useNeverV5Palette();
   return (
     <View style={styles.section}>
-      <Text style={[styles.groupTitle, { color: p.secondary }]}>{title}</Text>
+      <Text style={[styles.groupTitle, p.environmentText]}>{title}</Text>
       <V5Group>{children}</V5Group>
     </View>
   );
@@ -315,8 +315,8 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 26, paddingBottom: 126, gap: 26 },
   heroCopy: { gap: 5 },
-  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
-  heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
+  heroTitle: { fontSize: 43, lineHeight: 47, fontWeight: '400', letterSpacing: -1.35 },
+  heroSubtitle: { maxWidth: 340, fontSize: 15, lineHeight: 22 },
   profileStage: { padding: 16 },
   profileTop: { minHeight: 92, flexDirection: 'row', alignItems: 'center', gap: 13 },
   avatar: { width: 58, height: 58, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
