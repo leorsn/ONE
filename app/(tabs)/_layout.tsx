@@ -82,7 +82,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               onLongPress={onLongPress}
               style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.54 : 1 }]}
             >
-              <View style={[styles.iconWell, { borderRadius: p.radius.icon }, focused && { backgroundColor: pass3.recall }]}>
+              <View style={[styles.iconWell, focused && { backgroundColor: pass3.recall }]}>
                 <OneIcon
                   name={tabIcon[routeName]}
                   size={21}
@@ -129,11 +129,11 @@ const styles = StyleSheet.create({
   iconWell: {
     width: 42,
     height: 30,
-    borderRadius: 11,
+    borderRadius: 15,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center'
   },
-  label: { fontSize: 11, lineHeight: 14, textAlign: 'center', letterSpacing: 0 }
+  label: { maxWidth: '100%', fontSize: 11, lineHeight: 14, textAlign: 'center', letterSpacing: 0 }
 });

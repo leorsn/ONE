@@ -184,7 +184,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
               <>
                 {recentSearches.length ? (
                   <View style={styles.section}>
-                    <V5SectionHeader title="Recent searches" action={<Pressable accessibilityRole="button" onPress={() => setRecentSearches([])} hitSlop={12}><Text style={p.environmentText}>Clear</Text></Pressable>} />
+                    <V5SectionHeader title="Recent searches" action={<Pressable accessibilityRole="button" onPress={() => setRecentSearches([])} style={styles.clearTarget}><Text style={p.environmentText}>Clear</Text></Pressable>} />
                     <V5Group>{recentSearches.map((entry, index) => <V5Row key={entry} icon={icons.clock} title={entry} onPress={() => updateQuery(entry)} last={index === recentSearches.length - 1} />)}</V5Group>
                   </View>
                 ) : null}
@@ -357,6 +357,7 @@ const styles = StyleSheet.create({
   content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 126, gap: 26 },
   titleRow: { flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
   modeLink: { minHeight: 44, justifyContent: 'center', flexShrink: 0 },
+  clearTarget: { minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'flex-end' },
   modeLinkText: { fontSize: 14, fontWeight: '600' },
   heroTitle: { flexShrink: 1, fontSize: 43, lineHeight: 47, fontFamily: neverType.hero.fontFamily, fontWeight: '400', letterSpacing: -1.35 },
   searchStage: { gap: 8 },

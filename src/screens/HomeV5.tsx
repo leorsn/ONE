@@ -160,7 +160,7 @@ export default function HomeV5() {
                 onSubmitEditing={structuredReview ? undefined : handleSave}
                 accessibilityLabel="Quick capture"
               />
-              {saving ? <ActivityIndicator color={p.chrome} /> : input.trim() ? (
+              {saving ? <ActivityIndicator accessibilityLabel="Saving capture" accessibilityState={{ busy: true }} color={p.chrome} /> : input.trim() ? (
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Save capture"
@@ -224,7 +224,7 @@ export default function HomeV5() {
           <V5SectionHeader
             title="Recent memory"
             action={recentItems.length ? (
-              <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/saved')} hitSlop={8}>
+              <Pressable accessibilityRole="button" onPress={() => router.push('/(tabs)/saved')} style={styles.seeAllTarget}>
                 <Text style={[styles.seeAll, p.environmentText]}>See All</Text>
               </Pressable>
             ) : undefined}
@@ -361,10 +361,10 @@ const styles = StyleSheet.create({
   capturePlus: { width: 44, height: 44, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   captureInput: { flex: 1, minHeight: 46, fontSize: 15.5, lineHeight: 20, paddingVertical: 0 },
   captureSave: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  quickActions: { flexDirection: 'row', gap: 26, paddingHorizontal: 6, paddingTop: 14, paddingBottom: 8 },
-  quickAction: { minWidth: 44, alignItems: 'center', gap: 6 },
+  quickActions: { flexWrap: 'wrap', flexDirection: 'row', gap: 26, paddingHorizontal: 6, paddingTop: 14, paddingBottom: 8 },
+  quickAction: { width: 44, minHeight: 44, alignItems: 'center', gap: 6 },
   actionIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  quickActionLabel: { textAlign: 'center', fontSize: 12, lineHeight: 17, fontWeight: '600' },
+  quickActionLabel: { maxWidth: '100%', textAlign: 'center', fontSize: 12, lineHeight: 17, fontWeight: '600' },
   captureStatus: { ...neverType.caption },
   section: { marginTop: 32, gap: neverSpacing.md },
   draftGroup: { padding: 13 },
@@ -399,6 +399,7 @@ const styles = StyleSheet.create({
   listTitle: { flex: 1, fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
   listMeta: { fontSize: 11.5, lineHeight: 14 },
   listSubtitle: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
+  seeAllTarget: { minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'flex-end' },
   seeAll: { fontSize: 13, lineHeight: 17, fontWeight: '600' },
   emptyRow: { minHeight: 86, padding: 15, justifyContent: 'center' },
   emptyTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
