@@ -19,6 +19,7 @@
     "release:client-secret-check": "node scripts/verify-client-secret-safety.mjs",
     "release:asset-check": "node scripts/verify-store-assets.mjs",
     "release:privacy-check": "node scripts/verify-ios-privacy-manifests.mjs",
+    "release:testflight-check": "NEVER_RELEASE_SCOPE=testflight NEVER_REQUIRE_BILLING=1 npm run release:env-check && NEVER_RELEASE_SCOPE=testflight NEVER_REQUIRE_BILLING=1 npm run release:monetization-check && npm run release:store-subscription-check && npm run release:eas-check && npm run release:client-secret-check && npm run release:asset-check && npm run release:privacy-check && npm run native:release-check",
     "release:appstore-check": "NEVER_RELEASE_SCOPE=appstore npm run release:env-check && NEVER_RELEASE_SCOPE=appstore npm run release:brand-check && NEVER_RELEASE_SCOPE=appstore npm run release:monetization-check && npm run release:store-subscription-check && npm run release:eas-check && npm run release:client-secret-check && npm run release:asset-check && npm run release:privacy-check && npm run native:release-check",
     "release:script-check": "node --check scripts/verify-release-env.mjs && node --check scripts/verify-brand-release.mjs && node --check scripts/verify-monetization-release.mjs && node --check scripts/verify-store-subscriptions.mjs && node --check scripts/verify-eas-production.mjs && node --check scripts/verify-client-secret-safety.mjs && node --check scripts/verify-store-assets.mjs && node --check scripts/verify-ios-privacy-manifests.mjs",
     "lint": "expo lint",
