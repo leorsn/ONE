@@ -8,12 +8,14 @@ export const NeverInput = forwardRef<TextInput, TextInputProps>(function NeverIn
   const theme = useTheme();
   const { resolvedMode, reduceTransparency } = useThemePreference();
   const [focused, setFocused] = useState(false);
-  const hasSurface = Boolean(StyleSheet.flatten(style)?.backgroundColor);
+  const flattened = StyleSheet.flatten(style);
+  const hasSurface = Boolean(flattened?.backgroundColor);
   const surface = resolveMaterialAppearance(theme, 'input', { reduceTransparency, focused }).style;
+  const effectiveRadius = typeof flattened?.borderRadius === 'number' ? flattened.borderRadius : theme.materials.input.radius;
   return <TextInput ref={ref} selectionColor={theme.chrome} keyboardAppearance={resolvedMode}
     placeholderTextColor={theme.textTertiary} {...props}
     onFocus={(event) => { setFocused(true); onFocus?.(event); }}
     onBlur={(event) => { setFocused(false); onBlur?.(event); }}
-    style={[styles.input, style, hasSurface && { backgroundColor: surface.backgroundColor, borderRadius: theme.materials.input.radius, borderWidth: StyleSheet.hairlineWidth, borderColor: surface.borderColor }, !hasSurface && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: focused ? theme.chrome : 'transparent' }]} />;
+    style={[styles.input, style, hasSurface && { backgroundColor: surface.backgroundColor, borderRadius: effectiveRadius, borderWidth: StyleSheet.hairlineWidth, borderColor: surface.borderColor }, !hasSurface && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: focused ? theme.chrome : 'transparent' }]} />;
 });
 const styles = StyleSheet.create({ input: { minWidth: 0, minHeight: 44 } });
