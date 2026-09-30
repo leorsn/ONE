@@ -31,11 +31,15 @@ assert(!envExample.includes('EXPO_PUBLIC_OPENAI'), 'OpenAI secrets must never be
 const expectedAuthCallback = `${expo.scheme}://auth/callback`;
 const expectedPasswordReset = `${expo.scheme}://auth/reset-password`;
 assert(
-  supabaseClient.includes(`ONE_AUTH_CALLBACK_URL = '${expectedAuthCallback}'`),
+  supabaseClient.includes("return scheme || 'one';"),
+  'Runtime auth scheme must retain one as its safe fallback'
+);
+assert(
+  supabaseClient.includes('export const NEVER_AUTH_CALLBACK_URL = `${appScheme}://auth/callback`;'),
   `Auth callback must remain ${expectedAuthCallback}`
 );
 assert(
-  supabaseClient.includes(`ONE_PASSWORD_RESET_URL = '${expectedPasswordReset}'`),
+  supabaseClient.includes('export const NEVER_PASSWORD_RESET_URL = `${appScheme}://auth/reset-password`;'),
   `Password reset callback must remain ${expectedPasswordReset}`
 );
 
@@ -59,7 +63,7 @@ assert(fs.existsSync(path.join(root, 'assets/icons/never-nature.png')), 'Default
 assert(fs.existsSync(path.join(root, 'assets/icons/never-wordmark.png')), 'Alternate NEVER wordmark icon asset is missing');
 assert(fs.existsSync(path.join(root, 'plugins/with-never-app-icons.js')), 'NEVER alternate app icon config plugin file is missing');
 assert(fs.existsSync(path.join(root, 'modules/never-app-icon/expo-module.config.json')), 'NEVER app icon Expo module config is missing');
-assert(fs.existsSync(path.join(root, 'modules/never-app-icon/ios/NeverAppIconModule.swift')), 'NEVER app icon native iOS module is missing');
+assert(fs.existsSync(path.join(root, 'modules/never-app-icon/ios/NeverAppIconModule.swift')), 'NEVER app icon native iOS module config is missing');
 
 const appIconModuleConfig = JSON.parse(
   fs.readFileSync(path.join(root, 'modules/never-app-icon/expo-module.config.json'), 'utf8')
