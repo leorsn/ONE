@@ -1,5 +1,5 @@
-import type { OneItem } from '@/src/types/item';
-import { migrateItemIntelligence, planIntelligenceMigration } from './versioning';
+import type { OneItem } from '../types/item';
+import { migrateItemIntelligence, planIntelligenceMigration } from './versioning.ts';
 
 export type IntelligenceRecoveryResult = { items: OneItem[]; recoveredItemIds: string[]; skippedItemIds: string[] };
 
