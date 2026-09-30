@@ -30,8 +30,13 @@ if (!revenueCatSource.includes('if (!apiKey || Platform.OS === \'web\') return f
 }
 
 const scope = process.env.NEVER_RELEASE_SCOPE || 'testflight';
-if (scope === 'appstore') {
-  if (!process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY?.trim()) failures.push('EXPO_PUBLIC_REVENUECAT_IOS_KEY is missing');
+const requireBilling = scope === 'appstore' || process.env.NEVER_REQUIRE_BILLING === '1';
+
+if (requireBilling && !process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY?.trim()) {
+  failures.push('EXPO_PUBLIC_REVENUECAT_IOS_KEY is missing for a billing-enabled release');
+}
+
+if (scope === 'appstore' || requireBilling) {
   if (/app\.one\.mobile\./.test(productsSource) && process.env.NEVER_ALLOW_LEGACY_IDENTIFIERS !== '1') {
     warnings.push('subscription product IDs still use the legacy app.one.mobile namespace; confirm these exact IDs exist in App Store Connect and RevenueCat before release');
   }
