@@ -102,7 +102,7 @@ Reference name:
 
 Product ID:
 
-`app.one.mobile.one.monthly`
+`app.never.mobile.monthly`
 
 Suggested display name:
 
@@ -136,7 +136,7 @@ Reference name:
 
 Product ID:
 
-`app.one.mobile.oneai.monthly`
+`app.never.mobile.ai.monthly`
 
 Suggested display name:
 
