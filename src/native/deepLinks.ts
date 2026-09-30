@@ -38,9 +38,13 @@ export function resolveOneNativePath(path: string): NativeRouteResolution {
       if (target === 'dev-native') {
         return { route: `/dev-native${suffix}`, kind: 'acceptance' };
       }
+
+      return { route: '/', kind: 'invalid' };
     }
 
-    return { route: path, kind: 'app' };
+    // NEVER does not currently register universal-link domains or any other
+    // external scheme. Do not hand arbitrary absolute URLs to Expo Router.
+    return { route: '/', kind: 'invalid' };
   } catch {
     return { route: '/', kind: 'invalid' };
   }
