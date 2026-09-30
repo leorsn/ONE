@@ -33,7 +33,23 @@ export async function answerFromRetrievedItems({ query, retrieval, allItems, pre
     const { data, error } = await supabase.functions.invoke('answer-one-recall', { body: { query: query.trim().slice(0, 800), itemIds: allowedIds } });
     if (error) throw error; if (data?.error) throw new Error(String(data.error));
     const validated = validateRecallModelPayload(data?.answer, allowedIds); if (!validated) throw new Error('invalid_recall_payload');
-    return { ...validated, mode: 'ai', meta: [data?.model ? `Grounded recall · ${String(data.model)}` : 'Grounded recall', grounding.reviewItemIds.length ? 'Uncertain sources excluded' : undefined].filter(Boolean).join(' · ') };
+
+    const evidenceMeta = validated.evidence === 'none'
+      ? 'No supporting saved memory found'
+      : validated.evidence === 'inferred'
+        ? 'Inference from saved memory · review sources'
+        : data?.model
+          ? `Grounded recall · ${String(data.model)}`
+          : 'Grounded recall';
+
+    return {
+      ...validated,
+      mode: 'ai',
+      meta: [
+        evidenceMeta,
+        grounding.reviewItemIds.length ? 'Uncertain sources excluded' : undefined
+      ].filter(Boolean).join(' · ')
+    };
   } catch {
     return { ...fallback, aiUnavailable: true, meta: [fallback.meta, 'AI synthesis unavailable; showing grounded local recall'].filter(Boolean).join(' · ') };
   }
