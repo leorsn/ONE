@@ -11,6 +11,7 @@ import { usePlan } from '@/src/context/PlanContext';
 import { answerFromRetrievedItems } from '@/src/recall/service';
 import { retrieveLocalOneItems, retrieveOneItems } from '@/src/search/retrieve';
 import { searchSemantically } from '@/src/search/semantic';
+import { addRecentSearch, clearRecentSearches, loadRecentSearches, saveRecentSearches } from '@/src/storage/recentSearches';
 import { matchesMemoryCategory } from '@/src/ui/memoryPresentation';
 import { MemoryRow } from '@/src/ui/MemoryRow';
 import { NeverHeroSurface } from '@/src/ui/neverVisual';
@@ -55,7 +56,16 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
   const [answer, setAnswer] = useState<AskAnswer | null>(null);
   const [askError, setAskError] = useState<string | null>(null);
 
-  useEffect(() => () => { requestVersion.current += 1; }, []);
+  useEffect(() => {
+    let cancelled = false;
+    void loadRecentSearches().then((stored) => {
+      if (!cancelled) setRecentSearches(stored);
+    });
+    return () => {
+      cancelled = true;
+      requestVersion.current += 1;
+    };
+  }, []);
 
   const results = useMemo(() => {
     const filtered = items.filter((item) => matchesMemoryCategory(item, category));
@@ -64,7 +74,17 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
 
   function rememberSearch(value = query) {
     const clean = value.trim();
-    if (clean) setRecentSearches((current) => [clean, ...current.filter((entry) => entry !== clean)].slice(0, 5));
+    if (!clean) return;
+    setRecentSearches((current) => {
+      const next = addRecentSearch(current, clean);
+      void saveRecentSearches(next).catch(() => undefined);
+      return next;
+    });
+  }
+
+  function clearSearchHistory() {
+    setRecentSearches([]);
+    void clearRecentSearches().catch(() => undefined);
   }
 
   const itemById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
@@ -184,7 +204,7 @@ function SearchContent({ initialQuery }: { initialQuery: string }) {
               <>
                 {recentSearches.length ? (
                   <View style={styles.section}>
-                    <V5SectionHeader title="Recent searches" action={<Pressable accessibilityRole="button" onPress={() => setRecentSearches([])} style={styles.clearTarget}><Text style={p.environmentText}>Clear</Text></Pressable>} />
+                    <V5SectionHeader title="Recent searches" action={<Pressable accessibilityRole="button" accessibilityLabel="Clear recent searches" onPress={clearSearchHistory} style={styles.clearTarget}><Text style={p.environmentText}>Clear</Text></Pressable>} />
                     <V5Group>{recentSearches.map((entry, index) => <V5Row key={entry} icon={icons.clock} title={entry} onPress={() => updateQuery(entry)} last={index === recentSearches.length - 1} />)}</V5Group>
                   </View>
                 ) : null}
@@ -389,4 +409,5 @@ const styles = StyleSheet.create({
   answerText: { marginTop: 7, fontSize: 14.5, lineHeight: 20 },
   answerMeta: { marginTop: 10, fontSize: 10.5, lineHeight: 14 },
   answerLink: { minHeight: 48, paddingHorizontal: 15, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  answerLinkText: { flex: 1, fontSize: 12.5, lineHeight: 16 },});
+  answerLinkText: { flex: 1, fontSize: 12.5, lineHeight: 16 },
+});
