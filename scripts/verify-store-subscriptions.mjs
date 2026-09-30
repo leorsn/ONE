@@ -7,18 +7,18 @@ const expected = {
   group: 'NEVER Membership',
   offering: 'default',
   base: {
-    productId: 'app.one.mobile.one.monthly',
-    packageId: 'one_monthly',
-    entitlementId: 'one',
+    productId: 'app.never.mobile.monthly',
+    packageId: 'never_monthly',
+    entitlementId: 'never',
     displayName: 'NEVER',
     priceEUR: 2.99,
     trialDays: 7,
     subscriptionLevel: 2
   },
   ai: {
-    productId: 'app.one.mobile.oneai.monthly',
-    packageId: 'one_ai_monthly',
-    entitlementId: 'one_ai',
+    productId: 'app.never.mobile.ai.monthly',
+    packageId: 'never_ai_monthly',
+    entitlementId: 'never_ai',
     displayName: 'NEVER AI',
     priceEUR: 4.99,
     trialDays: 0,
@@ -27,23 +27,25 @@ const expected = {
 };
 
 const required = [
-  [`subscription group`, `SUBSCRIPTION_GROUP = '${expected.group}'`],
-  [`RevenueCat offering`, `REVENUECAT_OFFERING_ID = '${expected.offering}'`],
-  [`base product id`, `id: '${expected.base.productId}'`],
-  [`base package id`, `revenueCatPackageId: '${expected.base.packageId}'`],
-  [`base entitlement`, `entitlementId: revenueCatEntitlements.one`],
-  [`base display name`, `displayName: '${expected.base.displayName}'`],
-  [`base nominal EUR price`, `priceEUR: ${expected.base.priceEUR}`],
-  [`base trial`, `trialDays: ${expected.base.trialDays}`],
-  [`base subscription level`, `subscriptionLevel: ${expected.base.subscriptionLevel}`],
-  [`AI product id`, `id: '${expected.ai.productId}'`],
-  [`AI package id`, `revenueCatPackageId: '${expected.ai.packageId}'`],
-  [`AI entitlement`, `entitlementId: revenueCatEntitlements.oneAi`],
-  [`AI display name`, `displayName: '${expected.ai.displayName}'`],
-  [`AI nominal EUR price`, `priceEUR: ${expected.ai.priceEUR}`],
-  [`AI trial`, `trialDays: ${expected.ai.trialDays}`],
-  [`AI subscription level`, `subscriptionLevel: ${expected.ai.subscriptionLevel}`],
-  [`auto renewal`, `autoRenews: true`]
+  ['subscription group', `SUBSCRIPTION_GROUP = '${expected.group}'`],
+  ['RevenueCat offering', `REVENUECAT_OFFERING_ID = '${expected.offering}'`],
+  ['base entitlement map', `one: '${expected.base.entitlementId}'`],
+  ['AI entitlement map', `oneAi: '${expected.ai.entitlementId}'`],
+  ['base product id', `id: '${expected.base.productId}'`],
+  ['base package id', `revenueCatPackageId: '${expected.base.packageId}'`],
+  ['base entitlement', 'entitlementId: revenueCatEntitlements.one'],
+  ['base display name', `displayName: '${expected.base.displayName}'`],
+  ['base nominal EUR price', `priceEUR: ${expected.base.priceEUR}`],
+  ['base trial', `trialDays: ${expected.base.trialDays}`],
+  ['base subscription level', `subscriptionLevel: ${expected.base.subscriptionLevel}`],
+  ['AI product id', `id: '${expected.ai.productId}'`],
+  ['AI package id', `revenueCatPackageId: '${expected.ai.packageId}'`],
+  ['AI entitlement', 'entitlementId: revenueCatEntitlements.oneAi'],
+  ['AI display name', `displayName: '${expected.ai.displayName}'`],
+  ['AI nominal EUR price', `priceEUR: ${expected.ai.priceEUR}`],
+  ['AI trial', `trialDays: ${expected.ai.trialDays}`],
+  ['AI subscription level', `subscriptionLevel: ${expected.ai.subscriptionLevel}`],
+  ['auto renewal', 'autoRenews: true']
 ];
 
 for (const [label, literal] of required) {
@@ -61,6 +63,10 @@ const uniqueValues = [
 ];
 for (const [label, values] of uniqueValues) {
   if (new Set(values).size !== values.length) failures.push(`${label} must be unique`);
+}
+
+for (const legacy of ['app.one.mobile', "one: 'one'", "oneAi: 'one_ai'", "revenueCatPackageId: 'one_monthly'", "revenueCatPackageId: 'one_ai_monthly'"]) {
+  if (source.includes(legacy)) failures.push(`legacy Store identifier remains: ${legacy}`);
 }
 
 if (failures.length) {
