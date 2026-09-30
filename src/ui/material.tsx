@@ -27,11 +27,55 @@ export function NeverMaterial({ children, style, glass = false, role, shape = 's
   const materialRole = role ?? (glass ? 'input' : 'card');
   const material = theme.materials[materialRole];
   const appearance = resolveMaterialAppearance(theme, materialRole, { reduceTransparency: reduced, nativeGlass: nativeGlassAvailable(), focused });
-  const radius = shape === 'capsule' ? 30 : shape === 'hero' ? 24 : material.radius;
+  const override = StyleSheet.flatten(style);
+  const shapeRadius = shape === 'capsule' ? 30 : shape === 'hero' ? 24 : material.radius;
+  const effectiveRadius = typeof override?.borderRadius === 'number' ? override.borderRadius : shapeRadius;
+
   return (
-    <View style={[styles.surface, style, appearance.style, { borderRadius: radius }]}>
-      {appearance.useGlass ? <GlassView pointerEvents="none" colorScheme={resolvedMode} tintColor={appearance.tint} glassEffectStyle="regular" style={[StyleSheet.absoluteFill, { borderRadius: radius, overflow: 'hidden' }]} /> : null}
-      {theme.effects.texture ? <View pointerEvents="none" style={{ position: 'absolute', top: 1, left: 2, right: 2, bottom: 2, borderRadius: material.radius - 1, borderTopWidth: 1, borderBottomWidth: 1, borderTopColor: theme.glassBorder, borderBottomColor: theme.border }} /> : null}
+    <View style={[styles.surface, appearance.style, { borderRadius: effectiveRadius }, style]}>
+      {appearance.useGlass ? (
+        <GlassView
+          colorScheme={resolvedMode}
+          tintColor={appearance.tint}
+          glassEffectStyle="regular"
+          style={[StyleSheet.absoluteFill, { pointerEvents: 'none', borderRadius: effectiveRadius, overflow: 'hidden' }]}
+        />
+      ) : null}
+      {appearance.useGlass && theme.effects.reflection ? (
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={[
+            StyleSheet.absoluteFill,
+            styles.glassEdge,
+            {
+              pointerEvents: 'none',
+              borderRadius: effectiveRadius,
+              borderTopColor: theme.reflection,
+              borderLeftColor: theme.reflection
+            }
+          ]}
+        />
+      ) : null}
+      {theme.effects.texture ? (
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={{
+            pointerEvents: 'none',
+            position: 'absolute',
+            top: 1,
+            left: 2,
+            right: 2,
+            bottom: 2,
+            borderRadius: Math.max(0, effectiveRadius - 1),
+            borderTopWidth: 1,
+            borderBottomWidth: 1,
+            borderTopColor: theme.glassBorder,
+            borderBottomColor: theme.border
+          }}
+        />
+      ) : null}
       {children}
     </View>
   );
@@ -61,5 +105,6 @@ export function NeverPressable({ children, style, onPress, ...props }: Pressable
 }
 
 const styles = StyleSheet.create({
-  surface: { borderRadius: neverRadius.xl, borderWidth: StyleSheet.hairlineWidth, borderCurve: 'continuous', overflow: 'visible' }
+  surface: { borderRadius: neverRadius.xl, borderWidth: StyleSheet.hairlineWidth, borderCurve: 'continuous', overflow: 'visible' },
+  glassEdge: { borderTopWidth: StyleSheet.hairlineWidth, borderLeftWidth: StyleSheet.hairlineWidth }
 });
