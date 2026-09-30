@@ -80,7 +80,7 @@ export function buildGroundedFallback(
 export function noEvidenceAnswer(): GroundedRecallAnswer {
   return {
     title: "I couldn't find that in NEVER.",
-    body: "I couldn't find anything saved in NEVER that answers that reliably.",
+    body: "I couldn't find anything saved in NEVER with enough saved evidence to answer that reliably.",
     sourceIds: [],
     evidence: 'none',
     mode: 'deterministic',
