@@ -1,5 +1,5 @@
-import { summaryForItem } from '@/src/capture/itemMetadata';
-import type { OneInboxAction, OneItem, OneUnderstandingConfidence } from '@/src/types/item';
+import { summaryForItem } from '../capture/itemMetadata.ts';
+import type { OneInboxAction, OneItem, OneUnderstandingConfidence } from '../types/item';
 import type { IntelligenceEntity, IntelligenceSnapshot, IntelligenceSuggestion } from './types';
 
 const confidenceRank: Record<OneUnderstandingConfidence, number> = { low: 0, medium: 1, high: 2 };
