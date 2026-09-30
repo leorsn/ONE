@@ -1,15 +1,15 @@
 {
   "expo": {
     "name": "NEVER",
-    "slug": "one-app",
-    "scheme": "one",
+    "slug": "never-app",
+    "scheme": "never",
     "version": "0.1.0",
     "orientation": "default",
     "userInterfaceStyle": "automatic",
     "icon": "./assets/icons/never-nature.png",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "app.one.mobile",
+      "bundleIdentifier": "app.never.mobile",
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -72,7 +72,7 @@
       }
     },
     "android": {
-      "package": "app.one.mobile",
+      "package": "app.never.mobile",
       "versionCode": 1
     },
     "web": {
@@ -87,8 +87,8 @@
         {
           "ios": {
             "enabled": true,
-            "extensionBundleIdentifier": "app.one.mobile.ShareExtension",
-            "appGroupId": "group.app.one.mobile",
+            "extensionBundleIdentifier": "app.never.mobile.ShareExtension",
+            "appGroupId": "group.app.never.mobile",
             "activationRule": {
               "supportsText": true,
               "supportsWebUrlWithMaxCount": 1,
