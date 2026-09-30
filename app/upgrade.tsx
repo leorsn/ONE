@@ -12,8 +12,20 @@ import type { RevenueCatIntroOffer } from '@/src/subscription/revenueCat';
 const PRIVACY_POLICY_URL = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL?.trim();
 const TERMS_URL = process.env.EXPO_PUBLIC_TERMS_URL?.trim();
 
-const baseFeatures = ['Capture, calendar & reminders', 'Saved & classical search', 'Share to NEVER', 'Scan to NEVER & OCR', 'Private cloud sync'];
-const aiFeatures = ['Everything in NEVER', 'Ask NEVER', 'Meaning-based semantic recall', 'AI answers grounded in your memory', 'Cross-item document & receipt analysis'];
+const baseFeatures = [
+  'Capture notes, links, images and documents',
+  'Calendar, reminders and saved memory',
+  'Search across everything you keep',
+  'Share and scan directly into NEVER',
+  'Private account sync across your devices'
+];
+const aiFeatures = [
+  'Everything in NEVER',
+  'Ask NEVER across your saved memory',
+  'Meaning-based semantic recall',
+  'Grounded answers linked to your own evidence',
+  'Cross-item document and receipt analysis'
+];
 
 type PurchasePlan = 'one' | 'one_ai';
 
@@ -53,7 +65,7 @@ export default function UpgradeScreen() {
           <View style={{ width: 44 }} />
         </View>
 
-        <V5LargeHeader title="Choose your NEVER." subtitle="Organize everything with NEVER. Add grounded memory recall with NEVER AI." />
+        <V5LargeHeader title="Choose your NEVER." subtitle="Keep your memory organized with NEVER. Add grounded recall and answers with NEVER AI." />
 
         <PlanCard
           name="NEVER"
@@ -68,7 +80,7 @@ export default function UpgradeScreen() {
 
         <PlanCard
           name="NEVER AI"
-          descriptor="Ask questions across your private saved memory."
+          descriptor="Ask questions and get grounded answers from what you saved."
           price={neverAiPrice}
           period={localizedPrices.one_ai || !billingConfigured ? '/ month' : ''}
           offer={neverAiOffer}
@@ -148,7 +160,7 @@ export default function UpgradeScreen() {
           <View style={styles.planTop}>
             <View style={styles.planNameRow}>
               <View style={[styles.planIcon, { backgroundColor: featured ? p.graphite : p.fillSoft }]}>
-                <OneIcon name={featured ? icons.ask : icons.saved} size={17} color={featured ? (p.onAccent) : p.chrome} />
+                <OneIcon name={featured ? icons.ask : icons.saved} size={17} color={featured ? p.onAccent : p.chrome} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.planName, { color: p.label }]}>{name}</Text>
@@ -194,7 +206,7 @@ export default function UpgradeScreen() {
               ]}
             >
               {isThisPlanPurchasing ? <ActivityIndicator size="small" color={p.onAccent} /> : null}
-              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? (p.onAccent) : p.tertiary }]}>
+              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? p.onAccent : p.tertiary }]}>
                 {purchaseReady
                   ? purchaseLabel(planKey, plan)
                   : !billingConfigured && isBetaAccess
