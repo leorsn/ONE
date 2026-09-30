@@ -14,12 +14,13 @@ const android = expo.android ?? {};
 const plugins = expo.plugins ?? [];
 
 assert(expo.name === 'NEVER', 'Expo display name must be NEVER');
-assert(expo.scheme === 'one', 'Expo scheme must remain one');
+assert(expo.slug === 'never-app', 'Expo slug must be never-app');
+assert(expo.scheme === 'never', 'Expo scheme must be never');
 assert(expo.orientation === 'default', 'NEVER must remain adaptively orientable for supported iPad layouts');
-assert(ios.bundleIdentifier === 'app.one.mobile', 'Unexpected iOS bundle identifier');
+assert(ios.bundleIdentifier === 'app.never.mobile', 'Unexpected iOS bundle identifier');
 assert(ios.supportsTablet === true, 'iPad support must remain enabled');
 assert(ios.requireFullScreen !== true, 'iPad support must not opt out of resizing/multitasking via requireFullScreen');
-assert(android.package === 'app.one.mobile', 'Unexpected Android package identifier');
+assert(android.package === 'app.never.mobile', 'Unexpected Android package identifier');
 assert(envExample.includes('EXPO_PUBLIC_SUPABASE_URL'), 'Supabase URL example is missing');
 assert(envExample.includes('EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY'), 'Supabase publishable key example is missing');
 assert(envExample.includes('EXPO_PUBLIC_PRIVACY_POLICY_URL'), 'Privacy policy URL example is missing');
@@ -31,8 +32,8 @@ assert(!envExample.includes('EXPO_PUBLIC_OPENAI'), 'OpenAI secrets must never be
 const expectedAuthCallback = `${expo.scheme}://auth/callback`;
 const expectedPasswordReset = `${expo.scheme}://auth/reset-password`;
 assert(
-  supabaseClient.includes("return scheme || 'one';"),
-  'Runtime auth scheme must retain one as its safe fallback'
+  supabaseClient.includes("return scheme || 'never';"),
+  'Runtime auth scheme must retain never as its safe fallback'
 );
 assert(
   supabaseClient.includes('export const NEVER_AUTH_CALLBACK_URL = `${appScheme}://auth/callback`;'),
@@ -79,11 +80,11 @@ const sharingPlugin = plugins.find((entry) => Array.isArray(entry) && entry[0] =
 assert(sharingPlugin, 'expo-sharing config plugin is missing');
 assert(sharingPlugin[1]?.ios?.enabled === true, 'iOS incoming sharing is not enabled');
 assert(
-  sharingPlugin[1]?.ios?.extensionBundleIdentifier === 'app.one.mobile.ShareExtension',
+  sharingPlugin[1]?.ios?.extensionBundleIdentifier === 'app.never.mobile.ShareExtension',
   'Share Extension bundle identifier is incorrect'
 );
 assert(
-  sharingPlugin[1]?.ios?.appGroupId === 'group.app.one.mobile',
+  sharingPlugin[1]?.ios?.appGroupId === 'group.app.never.mobile',
   'Share Extension App Group is incorrect'
 );
 assert(sharingPlugin[1]?.ios?.activationRule?.supportsText === true, 'Share Extension must accept text');
