@@ -12,8 +12,8 @@ const supabasePublishableKey =
 
 function runtimeScheme() {
   const scheme = Constants.expoConfig?.scheme;
-  if (Array.isArray(scheme)) return scheme[0] || 'one';
-  return scheme || 'one';
+  if (Array.isArray(scheme)) return scheme[0] || 'never';
+  return scheme || 'never';
 }
 
 const appScheme = runtimeScheme();
