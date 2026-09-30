@@ -207,6 +207,14 @@ Static Store contract:
 npm run release:store-subscription-check
 ```
 
+Billing-ready TestFlight gate before creating the production TestFlight build:
+
+```sh
+npm run release:testflight-check
+```
+
+This intentionally requires the production-facing RevenueCat iOS public SDK key and Terms URL so the TestFlight build can exercise the real subscription path.
+
 Full App Store release gate after production environment variables and native identity are final:
 
 ```sh
