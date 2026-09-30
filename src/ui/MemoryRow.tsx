@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
-import { neverControl, neverIcon, neverType, neverSpacing, neverRadius } from '@/src/theme/tokens';
+import { neverControl, neverIcon, neverType, neverSpacing } from '@/src/theme/tokens';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { iconForType } from '@/src/ui/OneItemRow';
 import type { OneItem } from '@/src/types/item';
@@ -21,8 +21,18 @@ export function MemoryRow({ item, last = false, reason, subtitle, onPress, statu
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={`${item.title}. ${meta}${status ? `. ${status}` : ''}`} accessibilityHint="Opens memory details"
       onPress={onPress ?? (() => router.push({ pathname: '/item/[id]', params: { id: item.id } }))}
-      style={({ pressed }) => [styles.row, floating && styles.floating, { backgroundColor: pressed ? t.fill : floating ? (reduceTransparency ? t.surface : t.surface + (t.mode === 'dark' ? 'CC' : 'B8')) : 'transparent' }]}>
-      <View style={[styles.preview, { backgroundColor: t.fill }]}>
+      style={({ pressed }) => [
+        styles.row,
+        floating && { ...styles.floating, borderRadius: t.radius.card, borderColor: t.border },
+        {
+          backgroundColor: pressed
+            ? t.accentSoft
+            : floating
+              ? (reduceTransparency ? t.surface : t.surface + (t.mode === 'dark' ? 'CC' : 'B8'))
+              : 'transparent'
+        }
+      ]}>
+      <View style={[styles.preview, { borderRadius: t.radius.icon, backgroundColor: t.accentSoft, borderColor: t.border }]}>
         {preview && failedPreview !== preview ? <Image onError={() => setFailedPreview(preview)} source={{ uri: preview }} style={StyleSheet.absoluteFill} resizeMode="cover" /> : <OneIcon name={iconForType(item.type)} size={neverIcon.medium} color={t.chrome} />}
       </View>
       <View style={[styles.content, !last && !floating && { borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: t.border }]}>
@@ -40,9 +50,9 @@ export function MemoryRow({ item, last = false, reason, subtitle, onPress, statu
 }
 
 const styles = StyleSheet.create({
-  floating: { borderRadius: 12, marginBottom: 8 },
+  floating: { marginBottom: 8, borderWidth: StyleSheet.hairlineWidth },
   row: { minHeight: neverControl.row, paddingLeft: neverSpacing.md, flexDirection: 'row', alignItems: 'center', gap: neverSpacing.md },
-  preview: { width: neverIcon.preview, height: neverIcon.preview, borderRadius: neverRadius.sm, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  preview: { width: neverIcon.preview, height: neverIcon.preview, borderWidth: StyleSheet.hairlineWidth, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   content: { minHeight: neverControl.row, flex: 1, paddingVertical: neverSpacing.md, paddingRight: neverSpacing.md, flexDirection: 'row', alignItems: 'center', gap: neverSpacing.sm },
   status: { ...neverType.caption, marginTop: 4, fontWeight: '500' },
   copy: { flex: 1, minWidth: 0 }, title: { ...neverType.bodyStrong }, meta: { ...neverType.caption, marginTop: 3 }, reason: { ...neverType.caption }
