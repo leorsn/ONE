@@ -1,6 +1,8 @@
 import fs from 'node:fs';
 
 const source = fs.readFileSync(new URL('../src/subscription/products.ts', import.meta.url), 'utf8');
+const metadataDraft = fs.readFileSync(new URL('../docs/APP_STORE_METADATA_DRAFT.md', import.meta.url), 'utf8');
+const productionRunbook = fs.readFileSync(new URL('../docs/APP_STORE_REVENUECAT_PRODUCTION.md', import.meta.url), 'utf8');
 const failures = [];
 
 const expected = {
@@ -69,6 +71,22 @@ for (const legacy of ['app.one.mobile', "one: 'one'", "oneAi: 'one_ai'", "revenu
   if (source.includes(legacy)) failures.push(`legacy Store identifier remains: ${legacy}`);
 }
 
+const releaseDocuments = [
+  ['App Store metadata draft', metadataDraft],
+  ['App Store / RevenueCat production runbook', productionRunbook]
+];
+for (const [label, document] of releaseDocuments) {
+  for (const productId of [expected.base.productId, expected.ai.productId]) {
+    if (!document.includes(productId)) failures.push(`${label} is missing approved product ID ${productId}`);
+  }
+}
+
+for (const legacyProductId of ['app.one.mobile.one.monthly', 'app.one.mobile.oneai.monthly']) {
+  if (metadataDraft.includes(legacyProductId) || productionRunbook.includes(legacyProductId)) {
+    failures.push(`release Store documentation contains retired product ID ${legacyProductId}`);
+  }
+}
+
 if (failures.length) {
   console.error('NEVER Store subscription contract check failed:');
   for (const failure of failures) console.error(`- ${failure}`);
@@ -79,3 +97,4 @@ console.log('NEVER Store subscription contract check passed.');
 console.log(`- Group: ${expected.group}`);
 console.log(`- NEVER: ${expected.base.productId} · level ${expected.base.subscriptionLevel} · €${expected.base.priceEUR.toFixed(2)} · ${expected.base.trialDays}-day intro trial`);
 console.log(`- NEVER AI: ${expected.ai.productId} · level ${expected.ai.subscriptionLevel} · €${expected.ai.priceEUR.toFixed(2)} · no planned trial`);
+console.log('- Release Store documentation matches the approved product IDs.');
