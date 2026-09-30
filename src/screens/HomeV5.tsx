@@ -31,6 +31,8 @@ import type { OneInboxAction, OneItem } from '@/src/types/item';
 
 export default function HomeV5() {
   const p = useNeverV5Palette();
+  const archive = p.archiveControls;
+  const recall = archive ?? pass3;
   const { session } = useAuth();
   const captureRef = useRef<TextInput>(null);
   const [input, setInput] = useState('');
@@ -123,21 +125,22 @@ export default function HomeV5() {
         </View>
 
         <Pressable accessibilityRole="button" accessibilityLabel="Ask NEVER" onPress={() => router.push('/ask')}
-          style={({ pressed }) => [styles.askHero, { opacity: pressed ? 0.86 : 1 }]}>
+          style={({ pressed }) => [styles.askHero, { backgroundColor: recall.recall }, { opacity: pressed ? 0.86 : 1 }]}>
           <View style={styles.askTop}>
-            <View style={styles.askGlyph}><OneIcon name={icons.ask} size={19} color={pass3.recall} /></View>
-            <Text style={styles.askMeta}>RECALL WITH NEVER</Text>
+            <View style={[styles.askGlyph, { backgroundColor: recall.glyph }]}><OneIcon name={icons.ask} size={19} color={recall.recall} /></View>
+            <Text style={[styles.askMeta, { color: recall.recallSecondary }]}>RECALL WITH NEVER</Text>
           </View>
-          <Text style={styles.askTitle}>Ask anything you’ve saved.</Text>
-          <Text style={styles.askBody}>People, places, links, notes, plans — describe what you remember.</Text>
+          <Text style={[styles.askTitle, { color: recall.onRecall }]}>Ask anything you’ve saved.</Text>
+          <Text style={[styles.askBody, { color: recall.recallSecondary }]}>People, places, links, notes, plans — describe what you remember.</Text>
           <View style={styles.askAction}>
-            <Text style={styles.askActionText}>Ask NEVER</Text>
-            <OneIcon name={icons.chevron} size={13} color={pass3.recallSecondary} />
+            <Text style={[styles.askActionText, { color: recall.onRecall }]}>Ask NEVER</Text>
+            <OneIcon name={icons.chevron} size={13} color={recall.recallSecondary} />
           </View>
         </Pressable>
 
         <View style={styles.captureStage}>
-          <NeverMaterial role="input" shape="capsule" style={styles.captureControls}>
+          <NeverMaterial role="input" shape="capsule" tintColor={archive?.captureTint}
+            style={[styles.captureControls, archive && { backgroundColor: p.reduceTransparency ? archive.captureOpaque : archive.capture, borderColor: archive.captureBorder }]}>
             <View style={styles.captureComposer}>
               <Pressable
                 onPress={() => focusCapture()}
@@ -153,13 +156,13 @@ export default function HomeV5() {
                 onChangeText={(value) => { setInput(value); setReviewedDraft(null); setCaptureStatus(''); }}
                 editable={!saving}
                 placeholder="Capture something…"
-                placeholderTextColor={p.tertiary}
-                style={[styles.captureInput, { color: p.label }]}
+                placeholderTextColor={archive?.onRecall ?? p.tertiary}
+                style={[styles.captureInput, { color: archive?.onRecall ?? p.label }]}
                 returnKeyType={structuredReview ? 'default' : 'done'}
                 onSubmitEditing={structuredReview ? undefined : handleSave}
                 accessibilityLabel="Quick capture"
               />
-              {saving ? <ActivityIndicator accessibilityLabel="Saving capture" accessibilityState={{ busy: true }} color={p.chrome} /> : input.trim() ? (
+              {saving ? <ActivityIndicator accessibilityLabel="Saving capture" accessibilityState={{ busy: true }} color={archive?.onRecall ?? p.chrome} /> : input.trim() ? (
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Save capture"
@@ -297,8 +300,8 @@ function QuickAction({ label, icon, onPress }: { label: string; icon: (typeof ic
       onPress={() => { selectionFeedback(); onPress(); }}
       style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.58 : 1 }]}
     >
-      <View style={[styles.actionIcon, { backgroundColor: p.inputStyle.backgroundColor }]}>
-        <OneIcon name={icon} size={16} color={p.chrome} />
+      <View style={[styles.actionIcon, { backgroundColor: p.archiveControls?.action ?? p.inputStyle.backgroundColor }]}>
+        <OneIcon name={icon} size={16} color={p.archiveControls?.actionInk ?? p.chrome} />
       </View>
       <Text style={[styles.quickActionLabel, p.environmentText]}>{label}</Text>
     </Pressable>

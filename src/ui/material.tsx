@@ -21,7 +21,7 @@ export function useReducedMotion() {
 }
 
 // Glass is reserved for controls floating over content. Lists use quiet translucent surfaces.
-export function NeverMaterial({ children, style, glass = false, role, shape = 'standard', focused = false }: { children?: ReactNode; style?: StyleProp<ViewStyle>; glass?: boolean; role?: MaterialRole; shape?: 'standard' | 'hero' | 'capsule'; focused?: boolean }) {
+export function NeverMaterial({ children, style, glass = false, role, shape = 'standard', focused = false, tintColor }: { children?: ReactNode; style?: StyleProp<ViewStyle>; glass?: boolean; role?: MaterialRole; shape?: 'standard' | 'hero' | 'capsule'; focused?: boolean; tintColor?: string }) {
   const theme = useTheme();
   const { resolvedMode, reduceTransparency: reduced } = useThemePreference();
   const materialRole = role ?? (glass ? 'input' : 'card');
@@ -36,7 +36,7 @@ export function NeverMaterial({ children, style, glass = false, role, shape = 's
       {appearance.useGlass ? (
         <GlassView
           colorScheme={resolvedMode}
-          tintColor={appearance.tint}
+          tintColor={tintColor ?? appearance.tint}
           glassEffectStyle="regular"
           style={[StyleSheet.absoluteFill, { pointerEvents: 'none', borderRadius: effectiveRadius, overflow: 'hidden' }]}
         />

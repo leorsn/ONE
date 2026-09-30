@@ -82,11 +82,11 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               onLongPress={onLongPress}
               style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.54 : 1 }]}
             >
-              <View style={[styles.iconWell, focused && { backgroundColor: pass3.recall }]}>
+              <View style={[styles.iconWell, focused && { backgroundColor: p.archiveControls?.recall ?? pass3.recall }]}>
                 <OneIcon
                   name={tabIcon[routeName]}
                   size={21}
-                  color={focused ? pass3.onRecall : p.secondary}
+                  color={focused ? (p.archiveControls?.onRecall ?? pass3.onRecall) : p.secondary}
                 />
               </View>
               <Text

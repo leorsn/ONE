@@ -7,12 +7,30 @@ import { uiFontFamily } from '@/src/theme/typography';
 /** Real artwork and the same neutral controls used by the application. */
 export const ThemePreview = memo(function ThemePreview({ preference }: { preference: ThemePreference }) {
   if (preference === 'system') return <View style={styles.system}>
-    <Miniature theme={themes.platinum} half />
-    <Miniature theme={themes.monolith} half />
+    <BasicMiniature dark={false} />
+    <BasicMiniature dark />
     <View style={styles.systemLabel}><Text allowFontScaling={false} style={{ color: themes.platinum.text, fontSize: 11, fontWeight: '600' }}>Light / Dark</Text></View>
   </View>;
   return <Miniature theme={themes[preference]} />;
 });
+
+// A plain light/dark swatch, deliberately separate from premium world previews.
+function BasicMiniature({ dark }: { dark: boolean }) {
+  const ink = dark ? '#F5F5F5' : '#242424';
+  const surface = dark ? '#242424' : '#FFFFFF';
+  return <View accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants"
+    style={[styles.preview, { flex: 1, backgroundColor: dark ? '#151515' : '#F2F2F2' }]}>
+    <View style={styles.copy}><Text allowFontScaling={false} style={[styles.brand, { color: ink, letterSpacing: 1 }]}>NEVER</Text></View>
+    <View style={styles.space} />
+    <View style={[styles.capture, { backgroundColor: surface, borderColor: dark ? '#393939' : '#DDDDDD' }]}>
+      <Text allowFontScaling={false} style={{ color: ink, fontSize: 18 }}>+</Text>
+    </View>
+    <View style={[styles.dock, { backgroundColor: surface, borderColor: dark ? '#393939' : '#DDDDDD' }]}>
+      {[0, 1, 2, 3, 4].map(key => <View key={key} style={{ width: 5, height: 5, borderRadius: 2, backgroundColor: ink }} />)}
+    </View>
+  </View>;
+}
+
 function Miniature({ theme: t, half = false }: { theme: NeverTheme; half?: boolean }) {
   return <View accessible={false} accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={[styles.preview, half && { flex: 1 }, { backgroundColor: t.background }]}>
     <ThemeBackdrop theme={t} preview />

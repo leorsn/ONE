@@ -11,3 +11,11 @@ export const pass3 = {
   heroRadius: 26,
   editorial: { fontSize: 42, lineHeight: 44, fontWeight: '400' as const, letterSpacing: -0.65 }
 } as const;
+
+// Approved Archive-only exception; all other worlds keep the Pass 3 palette.
+export const archiveControls = {
+  recall: '#4E6A57', onRecall: '#F7F5F0', recallSecondary: '#EEE7DC', glyph: '#C8D1C2',
+  capture: 'rgba(63, 86, 72, 0.88)', captureOpaque: '#3F5648',
+  captureBorder: '#D9D1C380', captureTint: '#3F5648',
+  action: '#5B4638', actionInk: '#F7F5F0'
+} as const;

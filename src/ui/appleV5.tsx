@@ -4,7 +4,7 @@ import { useRef, useState, type ReactNode } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, useWindowDimensions, View } from 'react-native';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { NeverMaterial, NeverPressable, selectionFeedback } from '@/src/ui/material';
-import { neverType, neverSpacing, neverRadius, neverControl, pass3 } from '@/src/theme/tokens';
+import { neverType, neverSpacing, neverRadius, neverControl, pass3, archiveControls } from '@/src/theme/tokens';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
 
 type IconName = (typeof icons)[keyof typeof icons];
@@ -24,6 +24,8 @@ export function useNeverV5Palette() {
   const cardStyle = resolveMaterialAppearance(t, 'card', { reduceTransparency }).style;
   const inputStyle = resolveMaterialAppearance(t, 'input', { reduceTransparency }).style;
   return {
+    archiveControls: t.id === 'archive' ? archiveControls : undefined,
+    reduceTransparency,
     dark, canvas: t.background, surface: cardStyle.backgroundColor, elevated: t.surfaceElevated,
     fill: t.fillStrong, fillSoft: t.fill, label: t.text, secondary: t.textSecondary,
     tertiary: t.textTertiary, separator: t.border, border: t.border, graphite: t.accent,
