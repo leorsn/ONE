@@ -136,9 +136,18 @@ export async function purchaseRevenueCatPlan(plan: PaidOnePlan): Promise<Purchas
 export async function restoreRevenueCatPurchases(): Promise<PurchaseOutcome> {
   try {
     const customerInfo = await Purchases.restorePurchases();
+    const activePlan = planFromCustomerInfo(customerInfo);
+    if (activePlan === 'none') {
+      return {
+        ok: false,
+        plan: 'none',
+        error: 'No active NEVER subscription was found for this App Store account.'
+      };
+    }
+
     return {
       ok: true,
-      plan: planFromCustomerInfo(customerInfo)
+      plan: activePlan
     };
   } catch (error) {
     return {
