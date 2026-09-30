@@ -5,7 +5,7 @@ export type RecallModelPayload = {
   title: string;
   body: string;
   sourceIds: string[];
-  evidence: 'saved' | 'inferred';
+  evidence: 'saved' | 'inferred' | 'none';
 };
 
 export type GroundedRecallAnswer = RecallModelPayload & {
@@ -22,12 +22,21 @@ export function validateRecallModelPayload(
   const source = value as Record<string, unknown>;
   if (typeof source.title !== 'string' || !source.title.trim()) return undefined;
   if (typeof source.body !== 'string' || !source.body.trim()) return undefined;
-  if (source.evidence !== 'saved' && source.evidence !== 'inferred') return undefined;
-  if (!Array.isArray(source.sourceIds) || !source.sourceIds.length || !source.sourceIds.every((id) => typeof id === 'string')) return undefined;
+  if (source.evidence !== 'saved' && source.evidence !== 'inferred' && source.evidence !== 'none') return undefined;
+  if (!Array.isArray(source.sourceIds) || !source.sourceIds.every((id) => typeof id === 'string')) return undefined;
 
   const allowed = new Set(allowedSourceIds);
   const sourceIds = Array.from(new Set(source.sourceIds as string[]));
   if (sourceIds.some((id) => !allowed.has(id))) return undefined;
+
+  // A grounded or inferred answer must cite at least one retrieved source.
+  // A no-evidence answer must cite none, so the model cannot make an
+  // unsupported refusal look sourced.
+  if (source.evidence === 'none') {
+    if (sourceIds.length) return undefined;
+  } else if (!sourceIds.length) {
+    return undefined;
+  }
 
   return {
     title: source.title.trim().slice(0, 220),
@@ -71,9 +80,10 @@ export function buildGroundedFallback(
 export function noEvidenceAnswer(): GroundedRecallAnswer {
   return {
     title: "I couldn't find that in NEVER.",
-    body: "I couldn't find anything saved in NEVER that answers that.",
+    body: "I couldn't find enough saved evidence in NEVER to answer that reliably.",
     sourceIds: [],
-    evidence: 'saved',
-    mode: 'deterministic'
+    evidence: 'none',
+    mode: 'deterministic',
+    meta: 'No supporting saved memory found'
   };
 }
