@@ -80,7 +80,7 @@ export default function AppearanceScreen() {
                 <View style={styles.themeNameRow}><Text style={[styles.rowTitle, { color: p.label, flex: 1 }]}>{name}</Text><SelectionMark active={active} /></View>
                 <Text style={[styles.rowBody, { color: p.secondary }]}>{descriptor}</Text>
                 {value === 'platinum' ? <Text style={[styles.defaultLabel, { color: p.tertiary }]}>Default appearance</Text> : null}
-                {value === 'system' ? <Text style={[styles.rowBody, { color: p.tertiary }]}>Follows your device: Platinum in light mode, Monolith in dark mode.</Text> : null}
+                {value === 'system' ? <Text style={[styles.rowBody, { color: p.tertiary }]}>Follows your device’s light or dark appearance.</Text> : null}
               </View>
             </Pressable>;
           })}

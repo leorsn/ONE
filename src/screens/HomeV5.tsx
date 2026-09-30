@@ -31,8 +31,8 @@ import type { OneInboxAction, OneItem } from '@/src/types/item';
 
 export default function HomeV5() {
   const p = useNeverV5Palette();
-  const archive = p.archiveControls;
-  const recall = archive ?? pass3;
+  const controls = p.archiveControls ?? p.tidalControls;
+  const recall = controls ?? pass3;
   const { session } = useAuth();
   const captureRef = useRef<TextInput>(null);
   const [input, setInput] = useState('');
@@ -139,8 +139,8 @@ export default function HomeV5() {
         </Pressable>
 
         <View style={styles.captureStage}>
-          <NeverMaterial role="input" shape="capsule" tintColor={archive?.captureTint}
-            style={[styles.captureControls, archive && { backgroundColor: p.reduceTransparency ? archive.captureOpaque : archive.capture, borderColor: archive.captureBorder }]}>
+          <NeverMaterial role="input" shape="capsule" tintColor={controls?.captureTint}
+            style={[styles.captureControls, controls && { backgroundColor: p.reduceTransparency ? controls.captureOpaque : controls.capture, borderColor: controls.captureBorder }]}>
             <View style={styles.captureComposer}>
               <Pressable
                 onPress={() => focusCapture()}
@@ -156,13 +156,13 @@ export default function HomeV5() {
                 onChangeText={(value) => { setInput(value); setReviewedDraft(null); setCaptureStatus(''); }}
                 editable={!saving}
                 placeholder="Capture something…"
-                placeholderTextColor={archive?.onRecall ?? p.tertiary}
-                style={[styles.captureInput, { color: archive?.onRecall ?? p.label }]}
+                placeholderTextColor={controls?.onRecall ?? p.tertiary}
+                style={[styles.captureInput, { color: controls?.onRecall ?? p.label }]}
                 returnKeyType={structuredReview ? 'default' : 'done'}
                 onSubmitEditing={structuredReview ? undefined : handleSave}
                 accessibilityLabel="Quick capture"
               />
-              {saving ? <ActivityIndicator accessibilityLabel="Saving capture" accessibilityState={{ busy: true }} color={archive?.onRecall ?? p.chrome} /> : input.trim() ? (
+              {saving ? <ActivityIndicator accessibilityLabel="Saving capture" accessibilityState={{ busy: true }} color={controls?.onRecall ?? p.chrome} /> : input.trim() ? (
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel="Save capture"
@@ -293,6 +293,7 @@ function labelForKind(kind: string) { return kind.charAt(0).toUpperCase() + kind
 function sortUpdated(a: OneItem, b: OneItem) { return new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(); }
 function QuickAction({ label, icon, onPress }: { label: string; icon: (typeof icons)[keyof typeof icons]; onPress: () => void }) {
   const p = useNeverV5Palette();
+  const controls = p.archiveControls ?? p.tidalControls;
   return (
     <Pressable
       accessibilityRole="button"
@@ -300,8 +301,8 @@ function QuickAction({ label, icon, onPress }: { label: string; icon: (typeof ic
       onPress={() => { selectionFeedback(); onPress(); }}
       style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.58 : 1 }]}
     >
-      <View style={[styles.actionIcon, { backgroundColor: p.archiveControls?.action ?? p.inputStyle.backgroundColor }]}>
-        <OneIcon name={icon} size={16} color={p.archiveControls?.actionInk ?? p.chrome} />
+      <View style={[styles.actionIcon, { backgroundColor: controls?.action ?? p.inputStyle.backgroundColor }]}>
+        <OneIcon name={icon} size={16} color={controls?.actionInk ?? p.chrome} />
       </View>
       <Text style={[styles.quickActionLabel, p.environmentText]}>{label}</Text>
     </Pressable>

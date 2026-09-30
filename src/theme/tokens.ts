@@ -19,3 +19,11 @@ export const archiveControls = {
   captureBorder: '#D9D1C380', captureTint: '#3F5648',
   action: '#5B4638', actionInk: '#F7F5F0'
 } as const;
+
+// Tidal-only surface contrast; approved Archive values above stay unchanged.
+export const tidalControls = {
+  recall: '#B7DCE3', onRecall: '#1F2B30', recallSecondary: '#31464E', glyph: '#31464E',
+  capture: 'rgba(140, 184, 194, 0.96)', captureOpaque: '#8CB8C2',
+  captureBorder: '#4F6E78B3', captureTint: '#8CB8C2',
+  action: '#45636B', actionInk: '#F8FCFD'
+} as const;

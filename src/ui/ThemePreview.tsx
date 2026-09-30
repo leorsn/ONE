@@ -9,7 +9,7 @@ export const ThemePreview = memo(function ThemePreview({ preference }: { prefere
   if (preference === 'system') return <View style={styles.system}>
     <BasicMiniature dark={false} />
     <BasicMiniature dark />
-    <View style={styles.systemLabel}><Text allowFontScaling={false} style={{ color: themes.platinum.text, fontSize: 11, fontWeight: '600' }}>Light / Dark</Text></View>
+    <View style={styles.systemLabel}><Text allowFontScaling={false} style={{ color: '#242424', fontSize: 11, fontWeight: '600' }}>Light / Dark</Text></View>
   </View>;
   return <Miniature theme={themes[preference]} />;
 });
@@ -58,5 +58,5 @@ const styles = StyleSheet.create({
   line: { height: 2, width: '58%', opacity: 0.55, borderRadius: 2 },
   dock: { flexDirection: 'row', justifyContent: 'space-around', alignItems: 'center', height: 24, borderRadius: 10, borderWidth: 0.5 },
   system: { flexDirection: 'row', height: 280, overflow: 'hidden' },
-  systemLabel: { position: 'absolute', alignSelf: 'center', left: '15%', right: '15%', bottom: 88, alignItems: 'center', padding: 8, borderRadius: 10, backgroundColor: themes.platinum.surface }
+  systemLabel: { position: 'absolute', alignSelf: 'center', left: '15%', right: '15%', bottom: 88, alignItems: 'center', padding: 8, borderRadius: 10, backgroundColor: '#E5E5E5' }
 });
