@@ -15,7 +15,14 @@ Record before testing:
 - Apple/TestFlight account used
 - RevenueCat App User ID / NEVER user ID where relevant
 
-Do not accept a build when its Git SHA cannot be mapped back to the release candidate.
+Verify the installed build uses:
+
+- bundle ID `app.never.mobile`
+- URL scheme `never`
+- Share Extension `app.never.mobile.ShareExtension`
+- App Group `group.app.never.mobile`
+
+Do not accept a build when its Git SHA cannot be mapped back to the release candidate or when any retired `app.one.mobile` / `one://` identifier is active.
 
 ## A. Install and lifecycle
 
@@ -41,8 +48,10 @@ Do not accept a build when its Git SHA cannot be mapped back to the release cand
 
 Verify cold-start and warm-start for:
 
-- `one://auth/callback`
-- `one://auth/reset-password`
+- `never://auth/callback`
+- `never://auth/reset-password`
+
+Also verify the retired `one://auth/callback` does not route as an accepted NEVER deep link.
 
 Malformed or unrelated external URLs must not route into arbitrary NEVER screens.
 
@@ -80,6 +89,8 @@ Test from:
 Expected:
 
 - NEVER appears in the Share Sheet
+- extension is signed as `app.never.mobile.ShareExtension`
+- handoff uses `group.app.never.mobile`
 - shared payload opens review flow
 - original supported attachment is secured locally before save
 - supported attachment syncs to the signed-in account
@@ -116,14 +127,14 @@ Requires real App Store Connect products + RevenueCat production app configurati
 
 Products:
 
-- NEVER: `app.one.mobile.one.monthly`, Apple group level 2
-- NEVER AI: `app.one.mobile.oneai.monthly`, Apple group level 1
+- NEVER: `app.never.mobile.monthly`, Apple group level 2
+- NEVER AI: `app.never.mobile.ai.monthly`, Apple group level 1
 
 RevenueCat:
 
 - offering `default`
-- package `one_monthly` → entitlement `one`
-- package `one_ai_monthly` → entitlement `one_ai`
+- package `never_monthly` → entitlement `never`
+- package `never_ai_monthly` → entitlement `never_ai`
 
 Acceptance:
 
@@ -181,6 +192,8 @@ Production build must open final HTTPS URLs for:
 - Terms of Use
 - Support
 
+Confirm the final archive contains the expected privacy manifest and the App Store privacy questionnaire matches `docs/APP_STORE_PRIVACY_DATA_INVENTORY.md`.
+
 Data export:
 
 - creates a JSON export through the native share sheet
@@ -207,10 +220,12 @@ Only fix actual clipping, inaccessible controls, broken focus or unreadable stat
 A TestFlight build is launch-eligible only when:
 
 1. repository Quality gate is green for its exact SHA,
-2. `npm run release:appstore-check` passes with the intended production environment,
-3. Supabase production deployment manifest has been applied to the actual NEVER project,
-4. App Store/RevenueCat subscription configuration matches the repository contract,
-5. all critical rows above pass on TestFlight,
-6. there are no known data-loss, cross-account privacy, purchase-access, crash or account-deletion defects.
+2. `npm run release:testflight-check` passes with the intended production/TestFlight environment,
+3. `npm run release:appstore-check` passes before final App Store submission,
+4. Supabase production deployment manifest has been applied to the actual NEVER project,
+5. App Store/RevenueCat subscription configuration matches the final NEVER identifiers,
+6. Apple signing/capabilities use the final bundle/extension/App Group identifiers,
+7. all critical rows above pass on TestFlight,
+8. there are no known data-loss, cross-account privacy, purchase-access, crash or account-deletion defects.
 
 Cosmetic changes are explicitly outside this acceptance phase unless they are genuine usability/accessibility defects.
