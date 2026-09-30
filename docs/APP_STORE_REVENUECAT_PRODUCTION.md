@@ -1,26 +1,26 @@
 # NEVER — App Store Connect + RevenueCat production setup
 
-Status: production configuration contract for the current iOS launch candidate.
+Status: final production configuration contract for the current iOS launch candidate.
 
 This document does not change the app UI. It defines the external Store configuration that must match the repository before TestFlight/App Store release.
 
-## 1. Native identity decision first
+## 1. Final native identity
 
-Current iOS bundle identifier in the repository:
+The public NEVER namespace is final for the first release:
 
-`app.one.mobile`
+- Expo slug: `never-app`
+- Deep-link scheme: `never`
+- iOS bundle identifier: `app.never.mobile`
+- Android package: `app.never.mobile`
+- Share Extension bundle identifier: `app.never.mobile.ShareExtension`
+- App Group: `group.app.never.mobile`
 
-Current subscription product IDs intentionally inherit that namespace:
+Supabase Auth callbacks:
 
-- `app.one.mobile.one.monthly`
-- `app.one.mobile.oneai.monthly`
+- `never://auth/callback`
+- `never://auth/reset-password`
 
-Before creating production App Store records, make one explicit decision:
-
-1. retain `app.one.mobile` for the first NEVER release and set `NEVER_ALLOW_LEGACY_IDENTIFIERS=1` only after that decision is intentional, or
-2. migrate the native app identity before creating final App Store products/provisioning.
-
-Do not create final subscription products under one namespace and then rename the app identifiers casually afterward.
+Do not create new App Store, RevenueCat or Apple capability records under the retired `app.one.mobile` / `one://` namespace.
 
 ## 2. Apple account prerequisites
 
@@ -30,7 +30,8 @@ Before App Store subscription testing:
 - The Paid Applications Agreement must be accepted in App Store Connect.
 - Required tax forms must be completed.
 - Banking information must be added and cleared.
-- The App Store Connect app record bundle identifier must match the Xcode/Expo bundle identifier used for production.
+- The App Store Connect app record must use bundle identifier `app.never.mobile`.
+- Apple capabilities must be configured for `app.never.mobile`, `app.never.mobile.ShareExtension`, and `group.app.never.mobile` as required by the production build.
 
 ## 3. App Store subscription group
 
@@ -40,13 +41,11 @@ Reference name:
 
 `NEVER Membership`
 
-Add at least one localization to the subscription group before review submission.
-
 Recommended English display name:
 
 `NEVER Membership`
 
-German localization can be added before submission if Germany is a launch storefront.
+Add the required localization(s) before review submission.
 
 ## 4. Product A — NEVER
 
@@ -56,7 +55,7 @@ Reference name:
 
 Product ID:
 
-`app.one.mobile.one.monthly`
+`app.never.mobile.monthly`
 
 Duration:
 
@@ -64,25 +63,23 @@ Duration:
 
 Approved launch price target:
 
-`€2.99 / month` in the German storefront, using Apple's closest available price point.
+`€2.99 / month` in the German storefront, using Apple's available price point.
 
 Subscription level:
 
 `Level 2`
 
-Reason: NEVER AI offers the higher service tier and therefore occupies Level 1 in the same group.
-
 Introductory offer target:
 
 - Free Trial
 - 7 days
-- Apple ultimately determines customer eligibility.
+- Apple determines customer eligibility.
 
 Repository mapping:
 
-- RevenueCat package ID: `one_monthly`
-- RevenueCat entitlement: `one`
-- App plan: `one`
+- RevenueCat package ID: `never_monthly`
+- RevenueCat entitlement: `never`
+- Internal app plan key: `one`
 
 ## 5. Product B — NEVER AI
 
@@ -92,7 +89,7 @@ Reference name:
 
 Product ID:
 
-`app.one.mobile.oneai.monthly`
+`app.never.mobile.ai.monthly`
 
 Duration:
 
@@ -100,13 +97,11 @@ Duration:
 
 Approved launch price target:
 
-`€4.99 / month` in the German storefront, using Apple's closest available price point.
+`€4.99 / month` in the German storefront, using Apple's available price point.
 
 Subscription level:
 
 `Level 1`
-
-Reason: Level 1 is the higher service tier in an Apple subscription group. NEVER AI includes NEVER plus the AI/semantic-recall feature set.
 
 Introductory offer target:
 
@@ -114,22 +109,22 @@ Introductory offer target:
 
 Repository mapping:
 
-- RevenueCat package ID: `one_ai_monthly`
-- RevenueCat entitlement: `one_ai`
-- App plan: `one_ai`
+- RevenueCat package ID: `never_ai_monthly`
+- RevenueCat entitlement: `never_ai`
+- Internal app plan key: `one_ai`
 
-## 6. Subscription upgrade/downgrade contract
+## 6. Upgrade/downgrade contract
 
 The two products must remain in the same Apple subscription group.
 
-Expected path:
+Expected hierarchy:
 
 - NEVER → NEVER AI = upgrade to Level 1.
 - NEVER AI → NEVER = downgrade to Level 2.
 
-The app does not invent entitlement state locally. Access is resolved from RevenueCat CustomerInfo after purchase/restore/refresh.
+The app does not invent entitlement state locally. Access is resolved from RevenueCat CustomerInfo after purchase, restore and refresh.
 
-## 7. App Store product metadata required before review
+## 7. Product metadata required before review
 
 For both subscription products configure:
 
@@ -138,30 +133,32 @@ For both subscription products configure:
 - price
 - availability/storefronts
 - review screenshot showing the actual NEVER Membership screen
-- optional review notes if needed
+- review notes where useful
 
 Suggested reviewer note:
 
-`The Membership screen is available after account sign-in. NEVER is the base subscription. NEVER AI is the higher tier and includes grounded AI recall over the user's saved memory. Restore Purchases is available on the Membership screen.`
+`The Membership screen is available after account sign-in. NEVER is the base subscription. NEVER AI is the higher tier and includes grounded AI recall over the user's saved memory. Restore Purchases and Manage Subscription are available in the app.`
 
-## 8. RevenueCat project
+## 8. RevenueCat production project
 
-Create/connect the NEVER iOS app using the same production App Store bundle identifier.
+Create/connect the NEVER iOS app using bundle identifier:
+
+`app.never.mobile`
 
 Import/link both Apple products exactly:
 
-- `app.one.mobile.one.monthly`
-- `app.one.mobile.oneai.monthly`
+- `app.never.mobile.monthly`
+- `app.never.mobile.ai.monthly`
 
 Create entitlements exactly:
 
-- `one`
-- `one_ai`
+- `never`
+- `never_ai`
 
 Attach products:
 
-- `app.one.mobile.one.monthly` → entitlement `one`
-- `app.one.mobile.oneai.monthly` → entitlement `one_ai`
+- `app.never.mobile.monthly` → entitlement `never`
+- `app.never.mobile.ai.monthly` → entitlement `never_ai`
 
 Create offering:
 
@@ -169,10 +166,8 @@ Create offering:
 
 Add packages exactly:
 
-- `one_monthly` → NEVER product
-- `one_ai_monthly` → NEVER AI product
-
-The app accepts either the configured package ID or exact Apple product ID when locating a package, but the approved production configuration should use the package IDs above.
+- `never_monthly` → NEVER product
+- `never_ai_monthly` → NEVER AI product
 
 ## 9. RevenueCat public SDK key
 
@@ -182,7 +177,16 @@ Configure the iOS public SDK key in the EAS production environment as:
 
 This is a client/public RevenueCat SDK key. Never place RevenueCat secret API keys in an `EXPO_PUBLIC_*` variable or in the repository.
 
-## 10. Required sandbox/TestFlight matrix
+## 10. Supabase Auth redirect allowlist
+
+Before TestFlight, add these exact Additional Redirect URLs to the dedicated NEVER Supabase project:
+
+- `never://auth/callback`
+- `never://auth/reset-password`
+
+The production build no longer accepts the retired `one://` scheme.
+
+## 11. Required sandbox/TestFlight matrix
 
 Before App Store submission, run all of these with a StoreKit sandbox/TestFlight account:
 
@@ -192,14 +196,16 @@ Before App Store submission, run all of these with a StoreKit sandbox/TestFlight
 4. Restore Purchases → NEVER restored correctly.
 5. Upgrade NEVER → NEVER AI → AI access becomes active.
 6. Relaunch → NEVER AI remains active.
-7. Downgrade/switch to NEVER through Apple's subscription management flow → final entitlement follows Apple/RevenueCat state.
+7. Downgrade/switch through Apple's subscription management flow → final entitlement follows Apple/RevenueCat state.
 8. Restore with no active subscription → app reports that no active NEVER subscription was found.
-9. Cancel purchase sheet → no error entitlement and no false success message.
+9. Cancel purchase sheet → no false success state.
 10. Network interruption during purchase/refresh → no locally fabricated paid access.
-11. Sign out and sign into a different NEVER account → RevenueCat identity is changed before paid state is reused.
+11. Sign out and sign into a different NEVER account → RevenueCat identity changes before paid state is reused.
 12. Verify Apple's Manage Subscription URL opens from the active subscription state.
+13. Verify email confirmation opens `never://auth/callback` in NEVER.
+14. Verify password reset opens `never://auth/reset-password` in NEVER.
 
-## 11. Release commands
+## 12. Release commands
 
 Static Store contract:
 
@@ -207,31 +213,32 @@ Static Store contract:
 npm run release:store-subscription-check
 ```
 
-Billing-ready TestFlight gate before creating the production TestFlight build:
+Billing-ready TestFlight gate:
 
 ```sh
 npm run release:testflight-check
 ```
 
-This intentionally requires the production-facing RevenueCat iOS public SDK key and Terms URL so the TestFlight build can exercise the real subscription path.
-
-Full App Store release gate after production environment variables and native identity are final:
+Full App Store release gate:
 
 ```sh
-NEVER_ALLOW_LEGACY_IDENTIFIERS=1 npm run release:appstore-check
+npm run release:appstore-check
 ```
 
-Only set `NEVER_ALLOW_LEGACY_IDENTIFIERS=1` if retaining the legacy native identifiers is an explicit production decision. Otherwise migrate them first.
+No legacy-identifier bypass is part of the final release flow.
 
-## 12. External evidence still required
+## 13. External evidence still required
 
-Repository checks cannot prove App Store Connect or RevenueCat dashboard state. Before submission, manually confirm:
+Repository checks cannot prove App Store Connect, RevenueCat, Apple Developer or Supabase dashboard state. Before submission, manually confirm:
 
-- both exact products exist and are Ready to Submit/approved as appropriate
+- App Store record bundle ID is exactly `app.never.mobile`
+- Share Extension and App Group capabilities use the final NEVER IDs
+- both exact subscription products exist
 - subscription group levels are correct
 - offering `default` exposes both packages
 - each entitlement is attached to the correct product
-- RevenueCat iOS public SDK key belongs to the NEVER production project/app
+- RevenueCat iOS public SDK key belongs to the NEVER production app
+- Supabase redirect allowlist contains both `never://` callbacks
 - paid agreements/tax/banking are complete
 - product reviewer screenshots are attached
-- TestFlight purchase/restore matrix above passes
+- TestFlight purchase/restore/auth/share/notification matrix passes
