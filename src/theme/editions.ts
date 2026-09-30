@@ -9,7 +9,7 @@ export const primaryAction = { background: '#252B31', foreground: '#FCFDFD', bor
 export type MaterialRole = 'card' | 'hero' | 'navigation' | 'input' | 'modal';
 export type MaterialToken = { color: string; tint: string; border: string; radius: number; glass: boolean; shadow: ViewStyle };
 export type NeverTheme = OneTheme & {
-  id: ThemeId; name: string; descriptor: string; mode: 'light' | 'dark';
+  id: ThemeId; name: string; descriptor: string; mode: 'light' | 'dark'; artwork?: boolean;
   colors: OneTheme;
   materials: Record<MaterialRole, MaterialToken>;
   radius: { card: number; button: number; icon: number; chip: number; sheet: number };
@@ -36,7 +36,7 @@ function edition(id: ThemeId, name: string, descriptor: string, mode: 'light' | 
     color, radius, glass, shadow, tint: colors.surface + '45', border: colors.glassBorder
   });
   return {
-    ...colors, id, name, descriptor, mode, colors,
+    ...colors, id, name, descriptor, mode, artwork: true, colors,
     materials: {
       card: material(colors.surface + 'C7', 20, false),
       hero: material(colors.surface + 'D1', 24, false),
@@ -60,8 +60,25 @@ export const themes: Record<ThemeId, NeverTheme> = {
   orbit: edition('orbit', 'Tidal', 'Crystal water · cool luminous depth', 'light')
 };
 
+// System is intentionally a basic/free appearance. It follows the device's
+// light/dark mode but never inherits Platinum/Monolith artwork. Explicitly
+// selecting either premium world still keeps its bundled artwork unchanged.
+const basicSystemLight: NeverTheme = {
+  ...themes.platinum,
+  name: 'System',
+  descriptor: 'Basic light appearance',
+  artwork: false
+};
+const basicSystemDark: NeverTheme = {
+  ...themes.monolith,
+  name: 'System',
+  descriptor: 'Basic dark appearance',
+  artwork: false
+};
+
 export function resolveTheme(preference: ThemePreference, systemMode: 'light' | 'dark'): NeverTheme {
-  return themes[preference === 'system' ? (systemMode === 'dark' ? 'monolith' : 'platinum') : preference];
+  if (preference === 'system') return systemMode === 'dark' ? basicSystemDark : basicSystemLight;
+  return themes[preference];
 }
 export function parseThemePreference(value: unknown): ThemePreference {
   if (value === 'light') return 'platinum';
