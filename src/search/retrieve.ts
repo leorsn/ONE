@@ -1,4 +1,4 @@
-import { applyIntelligenceRetrievalSignals } from '../intelligence/retrieval';
+import { applyIntelligenceRetrievalSignals } from '../intelligence/retrieval.ts';
 import { searchOneItems, type SearchResult } from './searchItems.ts';
 import type { OneItem } from '../types/item';
 
