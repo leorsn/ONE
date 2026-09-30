@@ -394,9 +394,25 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       await cancelItemNotification(local.notificationId);
       return concurrent;
     }
-    itemsRef.current = [local, ...itemsRef.current];
-    setItems(itemsRef.current);
-    await saveItems(scope, itemsRef.current);
+
+    const previousItems = itemsRef.current;
+    const nextItems = [local, ...previousItems];
+    try {
+      await saveItems(scope, nextItems);
+    } catch (error) {
+      await cancelItemNotification(local.notificationId);
+      await recordLastNativeError('local-add', error);
+      throw error;
+    }
+
+    if (!canApplyScopedSyncResult(scope, activeScopeRef.current)) {
+      await cancelItemNotification(local.notificationId);
+      await saveItems(scope, previousItems).catch((error) => recordLastNativeError('local-add-rollback', error));
+      throw new Error('Your account changed. Please try again.');
+    }
+
+    itemsRef.current = nextItems;
+    setItems(nextItems);
 
     if (!userId || !shouldSyncItem(local)) return local;
 
