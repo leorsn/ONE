@@ -3,7 +3,9 @@ name: NEVER Quality
 on:
   push:
     branches:
+      - main
       - dev/foundation
+      - 'design/**'
   pull_request:
     branches:
       - main
