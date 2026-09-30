@@ -25,7 +25,7 @@ export function resolveOneNativePath(path: string): NativeRouteResolution {
       return { route: '/handle-share', kind: 'share' };
     }
 
-    if (url.protocol === 'one:') {
+    if (url.protocol === 'never:') {
       const target = `${url.hostname}${url.pathname}`.replace(/^\/+/, '');
       const suffix = `${url.search}${url.hash}`;
 
