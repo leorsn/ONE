@@ -26,12 +26,13 @@ const tabLabel = {
 type NeverTabBarProps = Parameters<NonNullable<ComponentProps<typeof Tabs>['tabBar']>>[0];
 
 export default function TabsLayout() {
+  const p = useNeverV5Palette();
   return (
     <Tabs
       tabBar={(props) => <NeverTabBar {...props} />}
       screenOptions={{
         headerShown: false,
-        sceneStyle: { backgroundColor: 'transparent' },
+        sceneStyle: { backgroundColor: p.canvas },
         tabBarHideOnKeyboard: true
       }}
     >
