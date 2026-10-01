@@ -1,3 +1,6 @@
+import { Icon, type IconName } from "./icons";
+import { Navigation } from "./navigation";
+
 const worlds = [
   { name: "Aurora", className: "world-panel world-aurora", label: "Memory as atmosphere.", index: "01" },
   { name: "Monolith", className: "world-panel world-monolith", label: "Quiet. Focused. Reduced.", index: "02" },
@@ -30,7 +33,7 @@ function PhoneFrame({ variant = "aurora", screen = "home", className = "" }: { v
           <div className="phone-wallpaper" />
           <div className="phone-glass" aria-hidden="true" />
           <div className="phone-ui">
-            <div className="phone-status"><span>9:41</span><span>••• ᯤ ▰</span></div>
+            <div className="phone-status"><span>9:41</span><span className="phone-indicators"><i className="signal-bars" /><i className="battery" /></span></div>
             {screen === "home" && (
               <>
                 <div className="phone-brand">NEVER</div>
@@ -57,7 +60,7 @@ function PhoneFrame({ variant = "aurora", screen = "home", className = "" }: { v
                 <div className="saved-grid"><div><span>TRAVEL</span><b>Lisbon weekend</b></div><div><span>IDEA</span><b>Dad’s birthday</b></div><div><span>DOC</span><b>Contract notes</b></div><div><span>LINK</span><b>Restaurant list</b></div></div>
               </>
             )}
-            <div className="phone-tabs"><span>⌂<small>Today</small></span><span>⌕<small>Ask</small></span><span>◇<small>Saved</small></span><span>▦<small>Calendar</small></span><span>⚙<small>More</small></span></div>
+            <div className="phone-tabs"><span><Icon name="home" /><small>Today</small></span><span><Icon name="recall" /><small>Ask</small></span><span><Icon name="organize" /><small>Saved</small></span><span><Icon name="calendar" /><small>Calendar</small></span><span><Icon name="settings" /><small>More</small></span></div>
           </div>
         </div>
       </div>
@@ -66,46 +69,46 @@ function PhoneFrame({ variant = "aurora", screen = "home", className = "" }: { v
 }
 
 function FlowCard({ item }: { item: string[] }) {
-  return <article className="flow-card"><span>{item[0]}</span><h3>{item[1]}</h3><p>{item[2]}</p></article>;
+  return <article className="flow-card"><span className="flow-number">{item[0]}</span><span className="flow-icon"><Icon name={item[1].toLowerCase() as IconName} /></span><h3>{item[1]}</h3><p>{item[2]}</p></article>;
 }
 
 export default function Home() {
   return (
     <main>
-      <header className="nav shell">
-        <a className="brand" href="#top" aria-label="NEVER home"><NeverMark /></a>
-        <nav className="nav-links" aria-label="Primary navigation"><a href="#product">Product</a><a href="#worlds">Worlds</a><a href="#privacy">Privacy</a></nav>
-        <a className="nav-cta" href="#download">Get NEVER <Arrow /></a>
-      </header>
+      <Navigation />
 
       <section id="top" className="hero">
         <div className="hero-wallpaper" aria-hidden="true" />
         <div className="hero-light hero-light-a" aria-hidden="true" />
         <div className="hero-light hero-light-b" aria-hidden="true" />
         <div className="hero-vignette" aria-hidden="true" />
-        <div className="hero-content shell intro-copy">
+        <div className="hero-grid" aria-hidden="true" />
+        <div id="main-content" tabIndex={-1} className="hero-content shell">
           <p className="eyebrow">A second memory for your life.</p>
           <h1>Your memory,<br /><span>without the maintenance.</span></h1>
           <p className="hero-copy">Capture what matters once. NEVER keeps the context, makes it searchable and brings it back when it becomes useful again.</p>
           <div className="hero-actions"><a className="button button-light" href="#download">Coming to iPhone</a><a className="text-link" href="#product">Enter NEVER <span>↓</span></a></div>
+          <div className="hero-note"><span>Capture</span><i /><span>Understand</span><i /><span>Recall</span></div>
         </div>
         <div className="hero-word" aria-hidden="true">NEVER</div>
+        <div className="hero-pedestal" aria-hidden="true" />
         <div className="hero-phone-stage" aria-hidden="true"><PhoneFrame variant="aurora" screen="home" /></div>
         <div className="hero-orbit" aria-hidden="true">
           <div className="glass-card memory-card"><span className="micro">CAPTURED</span><strong>Gift idea for Dad</strong><p>Safari · product page · saved with context</p></div>
           <div className="glass-card ask-card"><span className="micro">ASK NEVER</span><p>“What did I save for Dad?”</p><span className="answer">Three memories found.</span></div>
         </div>
+        <div className="hero-caption" aria-hidden="true"><span className="world-dot" /><span>Aurora</span><small>Material World 01</small></div>
         <div className="scroll-cue" aria-hidden="true"><span>SCROLL</span><i /></div>
       </section>
 
       <section id="product" className="section product-section">
+        <div className="chapter-line shell"><span>01 / Product</span><span>A second memory for your life.</span></div>
         <div className="shell product-intro reveal">
           <p className="kicker">One quiet system.</p>
           <h2>Save it once.<br />Find it forever.</h2>
           <p className="lede">NEVER is built around the full life of a memory — from the instant you capture it to the moment it becomes useful again.</p>
         </div>
         <div className="flow-shell shell">
-          <div className="flow-rail" aria-hidden="true" />
           <div className="flow-grid">{memoryFlow.map((item) => <FlowCard key={item[1]} item={item} />)}</div>
         </div>
         <div className="shell capture-scene">
@@ -120,6 +123,7 @@ export default function Home() {
 
       <section className="everything-section">
         <div className="everything-light" aria-hidden="true" />
+        <div className="chapter-line shell chapter-dark"><span>02 / Recall</span><span>Today · Ask · Saved</span></div>
         <div className="shell everything-grid">
           <div className="everything-copy reveal"><p className="kicker kicker-dark">Everything comes back.</p><h2>Not another archive.<br />A usable memory.</h2><p>Today, Ask and Saved are three views of the same memory system. Different moments. The same context underneath.</p></div>
           <div className="phone-stack" aria-hidden="true">
@@ -131,10 +135,12 @@ export default function Home() {
       </section>
 
       <section id="worlds" className="worlds-section">
+        <div className="chapter-line shell chapter-dark"><span>03 / Material Worlds</span><span>One product. Three environments.</span></div>
         <div className="worlds-intro shell reveal"><p className="kicker kicker-dark">Material Worlds</p><h2>Not wallpapers.<br />Environments.</h2><p>Each world changes light, density and atmosphere while the product remains unmistakably NEVER.</p></div>
+        <nav className="world-selector shell" aria-label="Explore Material Worlds">{worlds.map((world) => <a className={`world-choice choice-${world.name.toLowerCase()}`} key={world.name} href={`#world-${world.name.toLowerCase()}`}><i aria-hidden="true" /><span>{world.name}</span><small>{world.index}</small><Arrow /></a>)}</nav>
         <div className="world-stage">
           {worlds.map((world) => (
-            <article className={world.className} key={world.name}>
+            <article id={`world-${world.name.toLowerCase()}`} className={world.className} key={world.name}>
               <div className="world-image" aria-hidden="true" />
               <div className="world-scrim" aria-hidden="true" />
               <div className="world-content shell"><span>{world.index}</span><div><h3>{world.name}</h3><p>{world.label}</p></div><small>Material World</small></div>
@@ -146,6 +152,7 @@ export default function Home() {
 
       <section id="privacy" className="privacy-section">
         <div className="privacy-metal" aria-hidden="true" />
+        <div className="chapter-line shell chapter-dark"><span>04 / Privacy</span><span>Your memory stays yours.</span></div>
         <div className="shell privacy-grid reveal">
           <div><p className="kicker kicker-dark">Privacy</p><h2>Your memory<br />stays yours.</h2></div>
           <div className="privacy-copy"><p>NEVER is designed around explicit capture and clear control of what you store. You can manage your account, export your data and use deletion controls without turning privacy into a hidden settings exercise.</p><div className="privacy-points"><span><i>01</i> Clear account controls</span><span><i>02</i> Exportable data</span><span><i>03</i> Deletion controls</span><span><i>04</i> Grounded answers from saved content</span></div></div>
@@ -155,10 +162,10 @@ export default function Home() {
       <section id="download" className="download-section">
         <div className="download-bg" aria-hidden="true" />
         <div className="download-vignette" aria-hidden="true" />
-        <div className="download-inner shell reveal"><NeverMark /><h2>Keep what matters.</h2><p>Remember less. Keep more.</p><div className="store-pill" aria-label="App Store coming soon"><span className="apple"></span><span><small>COMING SOON ON THE</small><b>App Store</b></span></div></div>
+        <div className="download-inner shell reveal"><NeverMark /><h2>Keep what matters.</h2><p>Remember less. Keep more.</p><div className="store-pill" aria-label="App Store coming soon"><Icon name="phone" /><span><small>COMING SOON ON THE</small><b>App Store</b></span></div></div>
       </section>
 
-      <footer className="footer shell"><NeverMark /><div className="footer-links"><a href="#product">Product</a><a href="#worlds">Worlds</a><a href="#privacy">Privacy</a><span>© 2026 NEVER</span></div></footer>
+      <footer className="footer"><div className="footer-inner shell"><a href="#top" aria-label="Back to top"><NeverMark /></a><div className="footer-links"><a href="#product">Product</a><a href="#worlds">Worlds</a><a href="#privacy">Privacy</a></div><span className="copyright">© 2026 NEVER</span></div></footer>
     </main>
   );
 }
