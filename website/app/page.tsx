@@ -1,7 +1,15 @@
 const worlds = [
-  { name: "Aurora", className: "world world-aurora", label: "Luminous depth" },
-  { name: "Monolith", className: "world world-monolith", label: "Graphite restraint" },
-  { name: "Platinum", className: "world world-platinum", label: "Quiet clarity" },
+  { name: "Aurora", className: "world-panel world-aurora", label: "Memory as atmosphere.", index: "01" },
+  { name: "Monolith", className: "world-panel world-monolith", label: "Quiet. Focused. Reduced.", index: "02" },
+  { name: "Platinum", className: "world-panel world-platinum", label: "Light, clarity and structure.", index: "03" },
+];
+
+const memoryFlow = [
+  ["01", "Capture", "Send NEVER a screenshot, link, thought, document or plan."],
+  ["02", "Understand", "Source, subject and useful context stay attached to what you saved."],
+  ["03", "Organize", "NEVER gives information structure without asking you to maintain folders."],
+  ["04", "Recall", "Search or ask naturally instead of remembering where you put something."],
+  ["05", "Resurface", "Today brings useful memories back when they matter again."],
 ];
 
 function NeverMark() {
@@ -12,13 +20,15 @@ function Arrow() {
   return <span aria-hidden="true">↗</span>;
 }
 
-function PhoneFrame({ variant = "aurora", screen = "home" }: { variant?: "aurora" | "monolith" | "platinum"; screen?: "home" | "search" | "saved" }) {
+function PhoneFrame({ variant = "aurora", screen = "home", className = "" }: { variant?: "aurora" | "monolith" | "platinum"; screen?: "home" | "search" | "saved"; className?: string }) {
   return (
-    <div className={`phone-frame phone-${variant}`} aria-label={`NEVER ${screen} preview`}>
+    <div className={`phone-frame phone-${variant} ${className}`} aria-label={`NEVER ${screen} preview`}>
+      <div className="phone-metal" aria-hidden="true" />
       <div className="phone-bezel">
         <div className="dynamic-island" />
         <div className="phone-screen">
           <div className="phone-wallpaper" />
+          <div className="phone-glass" aria-hidden="true" />
           <div className="phone-ui">
             <div className="phone-status"><span>9:41</span><span>••• ᯤ ▰</span></div>
             {screen === "home" && (
@@ -33,12 +43,11 @@ function PhoneFrame({ variant = "aurora", screen = "home" }: { variant?: "aurora
             )}
             {screen === "search" && (
               <>
-                <div className="phone-title">Search</div>
-                <div className="phone-search">Search your memory</div>
-                <div className="phone-filters"><span>All</span><span>Links</span><span>Documents</span></div>
-                <div className="search-question">“When was the dentist appointment?”</div>
-                <div className="search-answer"><small>FROM YOUR MEMORY</small><b>13 October · 14:30</b><p>Appointment confirmation saved from Mail.</p></div>
-                <div className="phone-list compact"><small>RELATED</small><div><b>Dental clinic address</b><span>Saved 2 weeks ago</span></div><div><b>Insurance card</b><span>Document</span></div></div>
+                <div className="phone-title">Ask NEVER</div>
+                <div className="phone-search">Ask your memory</div>
+                <div className="search-question">“What were the ideas I saved for Dad’s birthday?”<i className="cursor" /></div>
+                <div className="search-answer"><small>FROM YOUR MEMORY</small><b>Three ideas saved</b><p>Leather weekender, vinyl reissue, dinner at the place near the Elbe.</p></div>
+                <div className="phone-list compact"><small>SOURCES</small><div><b>Gift idea for Dad</b><span>Safari · 4 days ago</span></div><div><b>Restaurant note</b><span>Captured yesterday</span></div></div>
               </>
             )}
             {screen === "saved" && (
@@ -48,7 +57,7 @@ function PhoneFrame({ variant = "aurora", screen = "home" }: { variant?: "aurora
                 <div className="saved-grid"><div><span>TRAVEL</span><b>Lisbon weekend</b></div><div><span>IDEA</span><b>Dad’s birthday</b></div><div><span>DOC</span><b>Contract notes</b></div><div><span>LINK</span><b>Restaurant list</b></div></div>
               </>
             )}
-            <div className="phone-tabs"><span>⌂<small>Home</small></span><span>⌕<small>Search</small></span><span>◇<small>Saved</small></span><span>▦<small>Calendar</small></span><span>⚙<small>Settings</small></span></div>
+            <div className="phone-tabs"><span>⌂<small>Today</small></span><span>⌕<small>Ask</small></span><span>◇<small>Saved</small></span><span>▦<small>Calendar</small></span><span>⚙<small>More</small></span></div>
           </div>
         </div>
       </div>
@@ -56,83 +65,100 @@ function PhoneFrame({ variant = "aurora", screen = "home" }: { variant?: "aurora
   );
 }
 
+function FlowCard({ item }: { item: string[] }) {
+  return <article className="flow-card"><span>{item[0]}</span><h3>{item[1]}</h3><p>{item[2]}</p></article>;
+}
+
 export default function Home() {
   return (
     <main>
       <header className="nav shell">
         <a className="brand" href="#top" aria-label="NEVER home"><NeverMark /></a>
-        <nav className="nav-links" aria-label="Primary navigation">
-          <a href="#product">Product</a>
-          <a href="#experience">Experience</a>
-          <a href="#worlds">Material Worlds</a>
-          <a href="#privacy">Privacy</a>
-        </nav>
+        <nav className="nav-links" aria-label="Primary navigation"><a href="#product">Product</a><a href="#worlds">Worlds</a><a href="#privacy">Privacy</a></nav>
         <a className="nav-cta" href="#download">Get NEVER <Arrow /></a>
       </header>
 
       <section id="top" className="hero">
         <div className="hero-wallpaper" aria-hidden="true" />
+        <div className="hero-light hero-light-a" aria-hidden="true" />
+        <div className="hero-light hero-light-b" aria-hidden="true" />
         <div className="hero-vignette" aria-hidden="true" />
-        <div className="hero-content shell reveal">
+        <div className="hero-content shell intro-copy">
           <p className="eyebrow">A second memory for your life.</p>
-          <h1>Remember less.<br />Keep more.</h1>
-          <p className="hero-copy">Send NEVER a screenshot, link, thought, document or plan. It quietly turns what you save into something you can find, understand and use again.</p>
-          <div className="hero-actions">
-            <a className="button button-light" href="#download">Coming to iPhone</a>
-            <a className="text-link" href="#product">Discover NEVER <span>↓</span></a>
-          </div>
+          <h1>Your memory,<br /><span>without the maintenance.</span></h1>
+          <p className="hero-copy">Capture what matters once. NEVER keeps the context, makes it searchable and brings it back when it becomes useful again.</p>
+          <div className="hero-actions"><a className="button button-light" href="#download">Coming to iPhone</a><a className="text-link" href="#product">Enter NEVER <span>↓</span></a></div>
         </div>
+        <div className="hero-word" aria-hidden="true">NEVER</div>
         <div className="hero-phone-stage" aria-hidden="true"><PhoneFrame variant="aurora" screen="home" /></div>
         <div className="hero-orbit" aria-hidden="true">
-          <div className="glass-card memory-card"><span className="micro">YOUR MEMORY</span><strong>Everything you meant to keep.</strong><p>One place for the things that would otherwise disappear.</p></div>
-          <div className="glass-card ask-card"><span className="micro">ASK NEVER</span><p>“What were the ideas I saved for Dad’s birthday?”</p><span className="answer">NEVER remembers the context.</span></div>
+          <div className="glass-card memory-card"><span className="micro">CAPTURED</span><strong>Gift idea for Dad</strong><p>Safari · product page · saved with context</p></div>
+          <div className="glass-card ask-card"><span className="micro">ASK NEVER</span><p>“What did I save for Dad?”</p><span className="answer">Three memories found.</span></div>
         </div>
+        <div className="scroll-cue" aria-hidden="true"><span>SCROLL</span><i /></div>
       </section>
 
-      <section id="product" className="section section-light">
+      <section id="product" className="section product-section">
         <div className="shell product-intro reveal">
-          <p className="kicker">Built around memory, not folders.</p>
-          <h2>Capture first.<br />Organize later.</h2>
-          <p className="lede">NEVER is designed for the moment before information gets lost. Share almost anything into the app, let it understand the context, then return to it through Today, Search, Saved or Ask.</p>
+          <p className="kicker">One quiet system.</p>
+          <h2>Save it once.<br />Find it forever.</h2>
+          <p className="lede">NEVER is built around the full life of a memory — from the instant you capture it to the moment it becomes useful again.</p>
         </div>
-        <div className="shell feature-grid">
-          <article className="feature feature-capture reveal"><div className="feature-copy"><span className="feature-index">01</span><h3>Capture anything.</h3><p>Screenshots, links, notes, documents and the small things you usually promise yourself you will remember.</p></div><div className="capture-demo" aria-hidden="true"><span>Share to</span><b>NEVER</b><i>Saved</i></div></article>
-          <article className="feature feature-ask reveal"><div className="feature-copy"><span className="feature-index">02</span><h3>Ask naturally.</h3><p>Search is useful. Context is better. Ask NEVER about the things you previously saved and get grounded answers from your own memory.</p></div><div className="ask-demo" aria-hidden="true"><span className="ask-label">ASK NEVER</span><p>When was that appointment I saved?</p><div className="ask-response">Tuesday, 13 October · 14:30<br/><small>From your saved appointment confirmation</small></div></div></article>
-          <article className="feature feature-today reveal"><div className="feature-copy"><span className="feature-index">03</span><h3>See what matters now.</h3><p>NEVER brings relevant memories back into view instead of turning your life into another archive you have to maintain.</p></div><div className="today-demo" aria-hidden="true"><span>TODAY</span><div><b>Flight confirmation</b><small>Tomorrow · 08:10</small></div><div><b>Gift idea</b><small>Dad’s birthday</small></div></div></article>
+        <div className="flow-shell shell">
+          <div className="flow-rail" aria-hidden="true" />
+          <div className="flow-grid">{memoryFlow.map((item) => <FlowCard key={item[1]} item={item} />)}</div>
         </div>
-      </section>
-
-      <section id="experience" className="experience-section">
-        <div className="experience-backdrop" aria-hidden="true" />
-        <div className="shell experience-head reveal"><p className="kicker kicker-dark">The NEVER experience</p><h2>Designed to disappear<br/>into your day.</h2></div>
-        <div className="shell phone-story">
-          <div className="story-copy reveal"><span>01 / CAPTURE</span><h3>Save it in seconds.</h3><p>Use the share sheet, scan something physical or capture a thought directly. NEVER keeps the source and context attached.</p></div>
-          <div className="story-phone story-phone-a"><PhoneFrame variant="aurora" screen="home" /></div>
-          <div className="story-phone story-phone-b"><PhoneFrame variant="monolith" screen="search" /></div>
-          <div className="story-copy story-copy-right reveal"><span>02 / RECALL</span><h3>Ask instead of digging.</h3><p>NEVER searches what you actually saved, then answers with the source still visible. No folder archaeology required.</p></div>
-          <div className="story-copy reveal"><span>03 / RETURN</span><h3>Your memory, surfaced.</h3><p>Saved ideas, documents and plans stay quiet until they are relevant again — then Today and Saved bring them back into focus.</p></div>
-          <div className="story-phone story-phone-c"><PhoneFrame variant="platinum" screen="saved" /></div>
+        <div className="shell capture-scene">
+          <div className="capture-copy reveal"><span className="sequence-label">CAPTURE → UNDERSTAND → RECALL</span><h3>“Gift idea for Dad”</h3><p>You share one small thing. NEVER keeps the useful context attached, then lets you retrieve it later in ordinary language.</p></div>
+          <div className="capture-stage" aria-hidden="true">
+            <div className="share-sheet glass-surface"><small>SHARE TO</small><div><span className="mini-mark">N</span><b>NEVER</b><em>Save</em></div><p>Gift idea for Dad</p></div>
+            <div className="context-card glass-surface"><small>UNDERSTOOD</small><b>Gift idea</b><p>Dad · birthday · product reference</p></div>
+            <div className="answer-card glass-surface"><small>ASK NEVER</small><p>What were my ideas for Dad?</p><b>3 memories found →</b></div>
+          </div>
         </div>
       </section>
 
-      <section id="worlds" className="section worlds-section">
-        <div className="shell worlds-heading reveal"><div><p className="kicker kicker-dark">Material Worlds</p><h2>Your memory.<br />Your atmosphere.</h2></div><p>NEVER is not skinned with themes. Each Material World changes the atmosphere while preserving the same restrained interface, legibility and hierarchy.</p></div>
-        <div className="world-strip">
-          {worlds.map((world) => <article className={world.className} key={world.name}><div className="world-shade" /><div className="world-meta"><span>{world.name}</span><small>{world.label}</small></div></article>)}
+      <section className="everything-section">
+        <div className="everything-light" aria-hidden="true" />
+        <div className="shell everything-grid">
+          <div className="everything-copy reveal"><p className="kicker kicker-dark">Everything comes back.</p><h2>Not another archive.<br />A usable memory.</h2><p>Today, Ask and Saved are three views of the same memory system. Different moments. The same context underneath.</p></div>
+          <div className="phone-stack" aria-hidden="true">
+            <PhoneFrame variant="monolith" screen="saved" className="stack-phone stack-back" />
+            <PhoneFrame variant="platinum" screen="search" className="stack-phone stack-mid" />
+            <PhoneFrame variant="aurora" screen="home" className="stack-phone stack-front" />
+          </div>
         </div>
       </section>
 
-      <section id="privacy" className="section privacy-section">
-        <div className="privacy-glow" aria-hidden="true" />
-        <div className="shell privacy-grid reveal"><div><p className="kicker kicker-dark">Private by design</p><h2>Your memory should still feel like yours.</h2></div><div className="privacy-copy"><p>NEVER is built around explicit capture, transparent account controls and the ability to manage your own stored information. Privacy is treated as product architecture, not footer copy.</p><div className="privacy-points"><span>Clear account controls</span><span>Export and deletion flows</span><span>Grounded recall from your saved content</span></div></div></div>
+      <section id="worlds" className="worlds-section">
+        <div className="worlds-intro shell reveal"><p className="kicker kicker-dark">Material Worlds</p><h2>Not wallpapers.<br />Environments.</h2><p>Each world changes light, density and atmosphere while the product remains unmistakably NEVER.</p></div>
+        <div className="world-stage">
+          {worlds.map((world) => (
+            <article className={world.className} key={world.name}>
+              <div className="world-image" aria-hidden="true" />
+              <div className="world-scrim" aria-hidden="true" />
+              <div className="world-content shell"><span>{world.index}</span><div><h3>{world.name}</h3><p>{world.label}</p></div><small>Material World</small></div>
+              <div className="world-phone" aria-hidden="true"><PhoneFrame variant={world.name.toLowerCase() as "aurora" | "monolith" | "platinum"} screen={world.name === "Monolith" ? "search" : world.name === "Platinum" ? "saved" : "home"} /></div>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section id="privacy" className="privacy-section">
+        <div className="privacy-metal" aria-hidden="true" />
+        <div className="shell privacy-grid reveal">
+          <div><p className="kicker kicker-dark">Privacy</p><h2>Your memory<br />stays yours.</h2></div>
+          <div className="privacy-copy"><p>NEVER is designed around explicit capture and clear control of what you store. You can manage your account, export your data and use deletion controls without turning privacy into a hidden settings exercise.</p><div className="privacy-points"><span><i>01</i> Clear account controls</span><span><i>02</i> Exportable data</span><span><i>03</i> Deletion controls</span><span><i>04</i> Grounded answers from saved content</span></div></div>
+        </div>
       </section>
 
       <section id="download" className="download-section">
         <div className="download-bg" aria-hidden="true" />
-        <div className="download-inner shell reveal"><NeverMark /><h2>Keep what matters.<br />Find it when it matters.</h2><p>NEVER is being prepared for iPhone.</p><div className="store-pill" aria-label="App Store coming soon"><span className="apple"></span><span><small>COMING SOON ON THE</small><b>App Store</b></span></div></div>
+        <div className="download-vignette" aria-hidden="true" />
+        <div className="download-inner shell reveal"><NeverMark /><h2>Keep what matters.</h2><p>Remember less. Keep more.</p><div className="store-pill" aria-label="App Store coming soon"><span className="apple"></span><span><small>COMING SOON ON THE</small><b>App Store</b></span></div></div>
       </section>
 
-      <footer className="footer shell"><NeverMark /><div className="footer-links"><a href="#product">Product</a><a href="#privacy">Privacy</a><span>© 2026 NEVER</span></div></footer>
+      <footer className="footer shell"><NeverMark /><div className="footer-links"><a href="#product">Product</a><a href="#worlds">Worlds</a><a href="#privacy">Privacy</a><span>© 2026 NEVER</span></div></footer>
     </main>
   );
 }
