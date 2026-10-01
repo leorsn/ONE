@@ -2,7 +2,7 @@ import { goBackOrHome } from '@/src/ui/navigation';
 import { neverType } from '@/src/theme/tokens';
 import { useState } from 'react';
 import { ActivityIndicator, Alert, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { usePlan } from '@/src/context/PlanContext';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { V5Group, V5IconButton, V5LargeHeader, useNeverV5Palette } from '@/src/ui/appleV5';
@@ -12,8 +12,20 @@ import type { RevenueCatIntroOffer } from '@/src/subscription/revenueCat';
 const PRIVACY_POLICY_URL = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL?.trim();
 const TERMS_URL = process.env.EXPO_PUBLIC_TERMS_URL?.trim();
 
-const baseFeatures = ['Capture, calendar & reminders', 'Saved & classical search', 'Share to NEVER', 'Scan to NEVER & OCR', 'Private cloud sync'];
-const aiFeatures = ['Everything in NEVER', 'Ask NEVER', 'Meaning-based semantic recall', 'AI answers grounded in your memory', 'Cross-item document & receipt analysis'];
+const baseFeatures = [
+  'Capture notes, links, images and documents',
+  'Calendar, reminders and saved memory',
+  'Search across everything you keep',
+  'Share and scan directly into NEVER',
+  'Private account sync across your devices'
+];
+const aiFeatures = [
+  'Everything in NEVER',
+  'Ask NEVER across your saved memory',
+  'Meaning-based semantic recall',
+  'Grounded answers linked to your own evidence',
+  'Cross-item document and receipt analysis'
+];
 
 type PurchasePlan = 'one' | 'one_ai';
 
@@ -45,15 +57,15 @@ export default function UpgradeScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}>
           {hardPaywall ? <View style={{ width: 44 }} /> : <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Close plans" onPress={() => goBackOrHome()} />}
           <Text style={[styles.navTitle, { color: p.label }]}>Membership</Text>
           <View style={{ width: 44 }} />
         </View>
 
-        <V5LargeHeader title="Choose your NEVER." subtitle="Organize everything with NEVER. Add grounded memory recall with NEVER AI." />
+        <V5LargeHeader title="Choose your NEVER." subtitle="Keep your memory organized with NEVER. Add grounded recall and answers with NEVER AI." />
 
         <PlanCard
           name="NEVER"
@@ -68,7 +80,7 @@ export default function UpgradeScreen() {
 
         <PlanCard
           name="NEVER AI"
-          descriptor="Ask questions across your private saved memory."
+          descriptor="Ask questions and get grounded answers from what you saved."
           price={neverAiPrice}
           period={localizedPrices.one_ai || !billingConfigured ? '/ month' : ''}
           offer={neverAiOffer}
@@ -123,7 +135,7 @@ export default function UpgradeScreen() {
           <Pressable accessibilityRole="button" onPress={() => void openLegal('Privacy Policy', PRIVACY_POLICY_URL)} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={[styles.legalLink, { color: PRIVACY_POLICY_URL ? p.chrome : p.tertiary }]}>Privacy Policy</Text></Pressable>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
   function PlanCard({ name, descriptor, price, period, offer, features, planKey, current = false, featured = false }: {
@@ -148,7 +160,7 @@ export default function UpgradeScreen() {
           <View style={styles.planTop}>
             <View style={styles.planNameRow}>
               <View style={[styles.planIcon, { backgroundColor: featured ? p.graphite : p.fillSoft }]}>
-                <OneIcon name={featured ? icons.ask : icons.saved} size={17} color={featured ? (p.onAccent) : p.chrome} />
+                <OneIcon name={featured ? icons.ask : icons.saved} size={17} color={featured ? p.onAccent : p.chrome} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[styles.planName, { color: p.label }]}>{name}</Text>
@@ -194,7 +206,7 @@ export default function UpgradeScreen() {
               ]}
             >
               {isThisPlanPurchasing ? <ActivityIndicator size="small" color={p.onAccent} /> : null}
-              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? (p.onAccent) : p.tertiary }]}>
+              <Text style={[styles.purchaseButtonText, { color: purchaseReady ? p.onAccent : p.tertiary }]}>
                 {purchaseReady
                   ? purchaseLabel(planKey, plan)
                   : !billingConfigured && isBetaAccess
@@ -241,7 +253,7 @@ const styles = StyleSheet.create({
   planIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   planName: { fontSize: 18, lineHeight: 22, fontWeight: '700', letterSpacing: -0.25 },
   descriptor: { marginTop: 2, maxWidth: 420, ...neverType.caption },
-  currentText: { fontSize: 9, lineHeight: 12, fontWeight: '700', letterSpacing: 0.6 },
+  currentText: { fontSize: 12, lineHeight: 16, fontWeight: '700', letterSpacing: 0.6 },
   priceRow: { marginTop: 17, flexWrap: 'wrap', flexDirection: 'row', alignItems: 'baseline', gap: 5 },
   price: { fontSize: 27, lineHeight: 32, fontWeight: '700', letterSpacing: -0.8 },
   period: { ...neverType.caption },
@@ -261,5 +273,5 @@ const styles = StyleSheet.create({
   legal: { textAlign: 'center', ...neverType.caption },
   legalLinks: { minHeight: 30, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   legalLink: { ...neverType.caption, fontWeight: '600' },
-  legalDivider: { fontSize: 10.5 }
+  legalDivider: { fontSize: 12 }
 });

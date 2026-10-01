@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const { pathToFileURL } = require('url');
 const { IOSConfig, withDangerousMod, withXcodeProject } = require('expo/config-plugins');
 
 const WORDMARK_ICON_NAME = 'NeverWordmark';
@@ -45,13 +46,21 @@ function withNeverAppIcons(config) {
         throw new Error(`Missing NEVER alternate icon asset: ${WORDMARK_ICON_SOURCE}`);
       }
 
+      // Fail before touching an existing catalog if a replacement is damaged.
+      const bytes = await fs.promises.readFile(source);
+      const { validatePng } = await import(pathToFileURL(path.join(__dirname, '../scripts/png-integrity.mjs')).href);
+      validatePng(bytes);
+      if (bytes.readUInt32BE(16) !== 1024 || bytes.readUInt32BE(20) !== 1024) {
+        throw new Error('NEVER alternate icon must be a 1024x1024 PNG');
+      }
+
       const assetRoot = path.join(projectRoot, 'ios', projectName, 'Images.xcassets');
       const appIconSetPath = path.join(assetRoot, `${WORDMARK_ICON_NAME}.appiconset`);
       const filename = `${WORDMARK_ICON_NAME}-1024.png`;
 
       await fs.promises.rm(appIconSetPath, { recursive: true, force: true });
       await fs.promises.mkdir(appIconSetPath, { recursive: true });
-      await fs.promises.copyFile(source, path.join(appIconSetPath, filename));
+      await fs.promises.writeFile(path.join(appIconSetPath, filename), bytes);
       await fs.promises.writeFile(
         path.join(appIconSetPath, 'Contents.json'),
         JSON.stringify(

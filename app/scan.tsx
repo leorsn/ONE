@@ -18,7 +18,7 @@ import {
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import * as ImagePicker from 'expo-image-picker';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { buildItemFromCapture } from '@/src/capture/buildItem';
 import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
 import { interpretCapture, type CaptureDraft } from '@/src/capture/core';
@@ -225,9 +225,9 @@ export default function ScanScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={4}>
-        <ScrollView contentContainerStyle={styles.content} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <NeverNavigation title="Scan" onBack={() => goBackOrHome()} />
 
           <V5LargeHeader
@@ -253,7 +253,7 @@ export default function ScanScreen() {
               </View>
 
               <View style={styles.actions}>
-                <Pressable accessibilityRole="button" onPress={takePhoto} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
+                <Pressable accessibilityRole="button" onPress={takePhoto} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: pressed ? 0.72 : 1 }]}>
                   <OneIcon name={icons.scan} size={15} color={p.onAccent} />
                   <Text style={[styles.primaryText, { color: p.onAccent }]}>Open Camera</Text>
                 </Pressable>
@@ -331,7 +331,7 @@ export default function ScanScreen() {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 }
 

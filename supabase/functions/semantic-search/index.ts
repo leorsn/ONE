@@ -7,6 +7,9 @@ const corsHeaders = {
 }
 
 function getPublicClientKey() {
+  const direct = Deno.env.get('SUPABASE_PUBLISHABLE_KEY')
+  if (direct) return direct
+
   const publishableKeys = Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')
   if (publishableKeys) {
     try {
@@ -17,7 +20,7 @@ function getPublicClientKey() {
         if (value) return value
       }
     } catch {
-      // Fall back to legacy anon key.
+      // Fall back to the runtime's legacy anon key.
     }
   }
   return Deno.env.get('SUPABASE_ANON_KEY') ?? ''
@@ -33,7 +36,6 @@ function userClient(req: Request) {
     { global: { headers: { Authorization: authorization } } }
   )
 }
-
 
 const model = new Supabase.ai.Session('gte-small')
 

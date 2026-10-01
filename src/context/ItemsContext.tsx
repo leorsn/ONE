@@ -394,9 +394,25 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       await cancelItemNotification(local.notificationId);
       return concurrent;
     }
-    itemsRef.current = [local, ...itemsRef.current];
-    setItems(itemsRef.current);
-    await saveItems(scope, itemsRef.current);
+
+    const previousItems = itemsRef.current;
+    const nextItems = [local, ...previousItems];
+    try {
+      await saveItems(scope, nextItems);
+    } catch (error) {
+      await cancelItemNotification(local.notificationId);
+      await recordLastNativeError('local-add', error);
+      throw error;
+    }
+
+    if (!canApplyScopedSyncResult(scope, activeScopeRef.current)) {
+      await cancelItemNotification(local.notificationId);
+      await saveItems(scope, previousItems).catch((error) => recordLastNativeError('local-add-rollback', error));
+      throw new Error('Your account changed. Please try again.');
+    }
+
+    itemsRef.current = nextItems;
+    setItems(nextItems);
 
     if (!userId || !shouldSyncItem(local)) return local;
 
@@ -438,15 +454,15 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     let notificationId = currentItem.notificationId;
     let notificationStatus = currentItem.notificationStatus ?? (notificationId ? 'scheduled' : 'not_scheduled');
 
-    if (transition === 'cancel' || transition === 'reschedule') {
-      await cancelItemNotification(notificationId);
-      notificationId = undefined;
-      notificationStatus = isRemindable(baseUpdated) ? 'not_scheduled' : 'not_applicable';
-    }
+    // Schedule a replacement before touching the old reminder. If local persistence
+    // fails, the replacement can be cancelled while the existing reminder remains valid.
     if (transition === 'schedule' || transition === 'reschedule') {
       const result = await scheduleItemNotification(baseUpdated, { requestPermission: true });
       notificationId = result.notificationId;
       notificationStatus = result.status;
+    } else if (transition === 'cancel') {
+      notificationId = undefined;
+      notificationStatus = isRemindable(baseUpdated) ? 'not_scheduled' : 'not_applicable';
     } else if (!isRemindable(baseUpdated)) {
       notificationStatus = 'not_applicable';
     }
@@ -456,9 +472,28 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       if (notificationId !== currentItem.notificationId) await cancelItemNotification(notificationId);
       throw new Error('This memory changed. Please open it again.');
     }
-    itemsRef.current = itemsRef.current.map((item) => (item.id === id ? updated : item));
-    setItems(itemsRef.current);
-    await saveItems(scope, itemsRef.current);
+
+    const previousItems = itemsRef.current;
+    const nextItems = previousItems.map((item) => (item.id === id ? updated : item));
+    try {
+      await saveItems(scope, nextItems);
+    } catch (error) {
+      if (notificationId !== currentItem.notificationId) await cancelItemNotification(notificationId);
+      await recordLastNativeError('local-update', error);
+      throw error;
+    }
+
+    if (!canApplyScopedSyncResult(scope, activeScopeRef.current) || itemsRef.current.find((item) => item.id === id) !== currentItem) {
+      if (notificationId !== currentItem.notificationId) await cancelItemNotification(notificationId);
+      await saveItems(scope, previousItems).catch((error) => recordLastNativeError('local-update-rollback', error));
+      throw new Error('This memory changed. Please open it again.');
+    }
+
+    itemsRef.current = nextItems;
+    setItems(nextItems);
+    if ((transition === 'cancel' || transition === 'reschedule') && currentItem.notificationId !== notificationId) {
+      await cancelItemNotification(currentItem.notificationId);
+    }
 
     if (!userId || !shouldSyncItem(updated)) return updated;
 
@@ -492,9 +527,10 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     const currentItem = itemsRef.current.find((item) => item.id === id);
     if (!currentItem) return;
 
-    await cancelItemNotification(currentItem.notificationId);
-
     const userId = session?.user.id;
+    const scope = itemStorageScope(userId);
+    if (!canApplyScopedSyncResult(scope, activeScopeRef.current)) throw new Error('Your account changed. Please try again.');
+
     const cloudAttachmentPaths = Array.from(new Set(
       [
         currentItem.attachmentUrl,
@@ -518,10 +554,25 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       await saveDeletionTombstone(tombstone);
     }
 
-    if (!canApplyScopedSyncResult(itemStorageScope(userId), activeScopeRef.current)) return;
-    itemsRef.current = itemsRef.current.filter((item) => item.id !== id);
-    setItems(itemsRef.current);
-    await saveItems(itemStorageScope(userId), itemsRef.current);
+    const previousItems = itemsRef.current;
+    const nextItems = previousItems.filter((item) => item.id !== id);
+    try {
+      await saveItems(scope, nextItems);
+    } catch (error) {
+      if (tombstone && userId) await removeDeletionTombstone(id, userId).catch(() => undefined);
+      await recordLastNativeError('local-delete', error);
+      throw error;
+    }
+
+    if (!canApplyScopedSyncResult(scope, activeScopeRef.current) || itemsRef.current.find((item) => item.id === id) !== currentItem) {
+      await saveItems(scope, previousItems).catch((error) => recordLastNativeError('local-delete-rollback', error));
+      if (tombstone && userId) await removeDeletionTombstone(id, userId).catch(() => undefined);
+      throw new Error('This memory changed. Please open it again.');
+    }
+
+    itemsRef.current = nextItems;
+    setItems(nextItems);
+    await cancelItemNotification(currentItem.notificationId);
 
     for (const path of localAttachmentPaths) {
       try {
@@ -541,7 +592,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       const failed = markDeletionFailure(tombstone);
       await saveDeletionTombstone(failed);
-      if (!canApplyScopedSyncResult(itemStorageScope(userId), activeScopeRef.current)) return;
+      if (!canApplyScopedSyncResult(scope, activeScopeRef.current)) return;
       setSyncProblem(true);
       if (canAutoRetry(failed.attemptCount ?? 0)) scheduleSyncRetry(failed.retryAt);
       if (__DEV__) console.warn('ONE cloud delete deferred until reconnect');

@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react';
-import { AccessibilityInfo, Animated, Platform, Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
+import { Animated, Platform, Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 import { GlassView, isGlassEffectAPIAvailable, isLiquidGlassAvailable } from 'expo-glass-effect';
 import * as Haptics from 'expo-haptics';
+import { resolveMaterialAppearance, type MaterialRole } from '@/src/theme/editions';
+import { useThemeContext } from '@/src/context/ThemeContext';
 import { useTheme, useThemePreference } from '@/src/theme/useTheme';
-import { neverMaterial, neverMotion, neverRadius } from '@/src/theme/tokens';
+import { neverMotion, neverRadius } from '@/src/theme/tokens';
 
 function nativeGlassAvailable() {
   try { return Platform.OS === 'ios' && isGlassEffectAPIAvailable() && isLiquidGlassAvailable(); }
@@ -15,36 +17,65 @@ export function selectionFeedback() {
 }
 
 export function useReducedMotion() {
-  const [reduced, setReduced] = useState(true);
-  useEffect(() => {
-    let alive = true;
-    void AccessibilityInfo.isReduceMotionEnabled().then((value) => { if (alive) setReduced(value); }).catch(() => undefined);
-    const listener = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduced);
-    return () => { alive = false; listener.remove(); };
-  }, []);
-  return reduced;
+  return useThemeContext().reduceMotion;
 }
 
-// Glass is reserved for controls floating over content. Lists use quiet opaque surfaces.
-export function NeverMaterial({ children, style, glass = false }: { children?: ReactNode; style?: StyleProp<ViewStyle>; glass?: boolean }) {
+// Glass is reserved for controls floating over content. Lists use quiet translucent surfaces.
+export function NeverMaterial({ children, style, glass = false, role, shape = 'standard', focused = false, tintColor }: { children?: ReactNode; style?: StyleProp<ViewStyle>; glass?: boolean; role?: MaterialRole; shape?: 'standard' | 'hero' | 'capsule'; focused?: boolean; tintColor?: string }) {
   const theme = useTheme();
-  const { resolvedMode } = useThemePreference();
-  const [reduced, setReduced] = useState(Platform.OS === 'ios');
-  useEffect(() => {
-    if (!glass || Platform.OS !== 'ios') return;
-    let alive = true;
-    void AccessibilityInfo.isReduceTransparencyEnabled().then((value) => { if (alive) setReduced(value); }).catch(() => undefined);
-    const listener = AccessibilityInfo.addEventListener('reduceTransparencyChanged', setReduced);
-    return () => { alive = false; listener.remove(); };
-  }, [glass]);
-  const nativeGlass = glass && !reduced && nativeGlassAvailable();
+  const { resolvedMode, reduceTransparency: reduced } = useThemePreference();
+  const materialRole = role ?? (glass ? 'input' : 'card');
+  const material = theme.materials[materialRole];
+  const appearance = resolveMaterialAppearance(theme, materialRole, { reduceTransparency: reduced, nativeGlass: nativeGlassAvailable(), focused });
+  const override = StyleSheet.flatten(style);
+  const shapeRadius = shape === 'capsule' ? 30 : shape === 'hero' ? 24 : material.radius;
+  const effectiveRadius = typeof override?.borderRadius === 'number' ? override.borderRadius : shapeRadius;
+
   return (
-    <View style={[styles.surface, {
-      backgroundColor: nativeGlass ? 'transparent' : glass && !reduced ? theme.glassStrong : theme.surface,
-      borderColor: glass ? theme.glassBorder : theme.border,
-      ...(glass ? { shadowColor: theme.shadow, shadowOpacity: neverMaterial.shadowOpacity, shadowRadius: neverMaterial.shadowRadius, shadowOffset: neverMaterial.shadowOffset } : {})
-    }, style]}>
-      {nativeGlass ? <GlassView pointerEvents="none" colorScheme={resolvedMode} glassEffectStyle="regular" style={StyleSheet.absoluteFill} /> : null}
+    <View style={[styles.surface, appearance.style, { borderRadius: effectiveRadius }, style]}>
+      {appearance.useGlass ? (
+        <GlassView
+          colorScheme={resolvedMode}
+          tintColor={tintColor ?? appearance.tint}
+          glassEffectStyle="regular"
+          style={[StyleSheet.absoluteFill, { pointerEvents: 'none', borderRadius: effectiveRadius, overflow: 'hidden' }]}
+        />
+      ) : null}
+      {appearance.useGlass && theme.effects.reflection ? (
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={[
+            StyleSheet.absoluteFill,
+            styles.glassEdge,
+            {
+              pointerEvents: 'none',
+              borderRadius: effectiveRadius,
+              borderTopColor: theme.reflection,
+              borderLeftColor: theme.reflection
+            }
+          ]}
+        />
+      ) : null}
+      {theme.effects.texture ? (
+        <View
+          accessibilityElementsHidden
+          importantForAccessibility="no-hide-descendants"
+          style={{
+            pointerEvents: 'none',
+            position: 'absolute',
+            top: 1,
+            left: 2,
+            right: 2,
+            bottom: 2,
+            borderRadius: Math.max(0, effectiveRadius - 1),
+            borderTopWidth: 1,
+            borderBottomWidth: 1,
+            borderTopColor: theme.glassBorder,
+            borderBottomColor: theme.border
+          }}
+        />
+      ) : null}
       {children}
     </View>
   );
@@ -53,6 +84,10 @@ export function NeverMaterial({ children, style, glass = false }: { children?: R
 export function NeverPressable({ children, style, onPress, ...props }: PressableProps) {
   const [scale] = useState(() => new Animated.Value(1));
   const reduced = useReducedMotion();
+  useEffect(() => {
+    if (reduced) { scale.stopAnimation(); scale.setValue(1); }
+    return () => scale.stopAnimation();
+  }, [reduced, scale]);
   function animate(toValue: number) {
     if (reduced) { scale.setValue(1); return; }
     Animated.spring(scale, { toValue, ...neverMotion.spring, useNativeDriver: true }).start();
@@ -70,5 +105,6 @@ export function NeverPressable({ children, style, onPress, ...props }: Pressable
 }
 
 const styles = StyleSheet.create({
-  surface: { borderRadius: neverRadius.xl, borderWidth: StyleSheet.hairlineWidth, borderCurve: 'continuous', overflow: 'hidden' }
+  surface: { borderRadius: neverRadius.xl, borderWidth: StyleSheet.hairlineWidth, borderCurve: 'continuous', overflow: 'visible' },
+  glassEdge: { borderTopWidth: StyleSheet.hairlineWidth, borderLeftWidth: StyleSheet.hairlineWidth }
 });

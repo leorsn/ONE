@@ -123,12 +123,14 @@ test('EAS distribution profiles keep development tooling out of preview and prod
   assert.notEqual(production?.extends, 'development');
 });
 
-test('consumer display name stays NEVER while technical V1 identifiers remain stable', async () => {
+test('native release identity uses the final NEVER namespace', async () => {
   const config = JSON.parse(await text('app.json'));
   assert.equal(config.expo.name, 'NEVER');
-  assert.equal(config.expo.scheme, 'one');
+  assert.equal(config.expo.slug, 'never-app');
+  assert.equal(config.expo.scheme, 'never');
   assert.equal(config.expo.orientation, 'default');
-  assert.equal(config.expo.ios.bundleIdentifier, 'app.one.mobile');
+  assert.equal(config.expo.ios.bundleIdentifier, 'app.never.mobile');
+  assert.equal(config.expo.android.package, 'app.never.mobile');
   assert.equal(config.expo.ios.supportsTablet, true);
   assert.notEqual(config.expo.ios.requireFullScreen, true);
 });

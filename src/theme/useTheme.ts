@@ -5,6 +5,6 @@ export function useTheme() {
 }
 
 export function useThemePreference() {
-  const { preference, resolvedMode, loaded, setPreference } = useThemeContext();
-  return { preference, resolvedMode, loaded, setPreference };
+  const { preference, resolvedMode, loaded, setPreference, reduceTransparency } = useThemeContext();
+  return { preference, resolvedMode, loaded, setPreference, reduceTransparency };
 }

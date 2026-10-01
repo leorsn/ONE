@@ -146,8 +146,10 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     try {
       const outcome = await purchaseRevenueCatPlan(nextPlan);
       if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
-      if (outcome.ok && outcome.plan) {
-        const url = await getSubscriptionManagementURL().catch(() => undefined);
+      if (outcome.plan) {
+        const url = outcome.plan === 'none'
+          ? undefined
+          : await getSubscriptionManagementURL().catch(() => undefined);
         if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
         setPlan(outcome.plan);
         setManagementUrl(url);
@@ -174,8 +176,10 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     try {
       const outcome = await restoreRevenueCatPurchases();
       if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
-      if (outcome.ok && outcome.plan) {
-        const url = await getSubscriptionManagementURL().catch(() => undefined);
+      if (outcome.plan) {
+        const url = outcome.plan === 'none'
+          ? undefined
+          : await getSubscriptionManagementURL().catch(() => undefined);
         if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
         setPlan(outcome.plan);
         setManagementUrl(url);

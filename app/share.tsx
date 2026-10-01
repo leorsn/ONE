@@ -2,7 +2,7 @@ import { goBackOrHome } from '@/src/ui/navigation';
 import { neverType } from '@/src/theme/tokens';
 import { NeverNavigation } from '@/src/ui/utility';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { V5Group, V5LargeHeader, useNeverV5Palette } from '@/src/ui/appleV5';
 
@@ -16,8 +16,8 @@ export default function ShareGuideScreen() {
   const p = useNeverV5Palette();
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]}>
         <NeverNavigation title="Share" onBack={() => goBackOrHome()} />
 
         <V5LargeHeader title="Save from anywhere." subtitle="Send a link, message, screenshot or document to NEVER without breaking your flow." />
@@ -65,7 +65,7 @@ export default function ShareGuideScreen() {
           <Text style={[styles.noticeText, { color: p.tertiary }]}>Supported screenshots can be read on-device before you save them.</Text>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 }
 
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
   shareVignette: { padding: 13 },
   sourceCard: { minHeight: 56, flexDirection: 'row', alignItems: 'center', gap: 10 },
   previewIcon: { width: 38, height: 38, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
-  sourceLabel: { fontSize: 8, fontWeight: '700', letterSpacing: 0.8 },
+  sourceLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.8 },
   sourceTitle: { marginTop: 3, fontSize: 14, lineHeight: 18, fontWeight: '600' },
   sourceMeta: { marginTop: 1, ...neverType.caption },
   flowLine: { height: 30, flexDirection: 'row', alignItems: 'center', paddingHorizontal: 44 },
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
   neverCard: { minHeight: 64, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 11 },
   neverHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   neverLabel: { fontSize: 8.5, fontWeight: '800', letterSpacing: 1.2 },
-  organizedLabel: { fontSize: 7.5, fontWeight: '700', letterSpacing: 0.75 },
+  organizedLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.75 },
   neverTitle: { marginTop: 8, fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   neverMeta: { marginTop: 2, ...neverType.caption },
   row: { minHeight: 64, paddingHorizontal: 13, paddingVertical: 9, flexDirection: 'row', alignItems: 'flex-start', gap: 11 },

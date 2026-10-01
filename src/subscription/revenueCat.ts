@@ -9,7 +9,11 @@ import {
   revenueCatEntitlements,
   subscriptionProducts
 } from '@/src/subscription/products';
-import type { OnePlan, PaidOnePlan } from '@/src/subscription/features';
+import {
+  planIncludesRequestedAccess,
+  type OnePlan,
+  type PaidOnePlan
+} from '@/src/subscription/features';
 
 let configured = false;
 let identifiedUserId: string | null = null;
@@ -106,9 +110,18 @@ export async function purchaseRevenueCatPlan(plan: PaidOnePlan): Promise<Purchas
     }
 
     const { customerInfo } = await Purchases.purchasePackage(rcPackage);
+    const activePlan = planFromCustomerInfo(customerInfo);
+    if (!planIncludesRequestedAccess(activePlan, plan)) {
+      return {
+        ok: false,
+        plan: activePlan,
+        error: 'Your App Store purchase completed, but NEVER has not received the expected access yet. Use Restore Purchases or reopen NEVER before purchasing again.'
+      };
+    }
+
     return {
       ok: true,
-      plan: planFromCustomerInfo(customerInfo)
+      plan: activePlan
     };
   } catch (error) {
     const cancelled = Boolean((error as { userCancelled?: boolean })?.userCancelled);
@@ -123,9 +136,18 @@ export async function purchaseRevenueCatPlan(plan: PaidOnePlan): Promise<Purchas
 export async function restoreRevenueCatPurchases(): Promise<PurchaseOutcome> {
   try {
     const customerInfo = await Purchases.restorePurchases();
+    const activePlan = planFromCustomerInfo(customerInfo);
+    if (activePlan === 'none') {
+      return {
+        ok: false,
+        plan: 'none',
+        error: 'No active NEVER subscription was found for this App Store account.'
+      };
+    }
+
     return {
       ok: true,
-      plan: planFromCustomerInfo(customerInfo)
+      plan: activePlan
     };
   } catch (error) {
     return {

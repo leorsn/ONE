@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useItems } from '@/src/context/ItemsContext';
 import {
   filterDocuments,
@@ -14,7 +14,7 @@ import {
 } from '@/src/documents/analytics';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { MemoryRow } from '@/src/ui/MemoryRow';
-import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
+import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import { neverSpacing } from '@/src/theme/tokens';
 import {
   V5Group,
@@ -86,16 +86,14 @@ export default function SavedV5() {
   }, [savedItems]);
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
-      <NeverBackdrop />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         <View style={styles.heroCopy}>
-          <NeverEyebrow>Curated memory</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>{filter === 'Documents' ? 'Documents.' : 'Saved.'}</Text>
-          <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Everything worth keeping, organized without feeling like a file manager.</Text>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.pass3Heading, p.environmentText]}>{filter === 'Documents' ? 'Documents.' : 'Saved.'}</Text>
+          <Text style={[styles.heroSubtitle, p.environmentText]}>Everything worth keeping, organized without feeling like a file manager.</Text>
         </View>
 
-        <NeverHeroSurface style={styles.libraryStage}>
+        <View style={styles.libraryStage}>
           <View style={styles.libraryTop}>
             <View style={styles.libraryMetrics}>
               <NeverMetric value={`${libraryItems.length}`} label="saved" />
@@ -119,7 +117,7 @@ export default function SavedV5() {
           />
 
           <V5Segmented options={[...filters]} selected={filter} onSelect={(value) => setFilter(value as typeof filter)} />
-        </NeverHeroSurface>
+        </View>
 
         {filter === 'Documents' ? (
           <DocumentsView
@@ -166,7 +164,7 @@ export default function SavedV5() {
           </>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 }
@@ -185,7 +183,7 @@ function LibraryTile({ label, count, icon, onPress }: { label: string; count: nu
   return (
     <Pressable accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.libraryTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
+      style={({ pressed }) => [styles.libraryTile, p.cardStyle, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.66 : 1 }]}
     >
       <View style={styles.libraryTileTop}>
         <View style={[styles.libraryTileIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icon} size={18} color={p.chrome} /></View>
@@ -276,11 +274,11 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 680, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 28, paddingBottom: 126, gap: 26 },
   heroCopy: { gap: 5 },
-  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
-  heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
-  libraryStage: { padding: 17, gap: 14 },
-  libraryTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
-  libraryMetrics: { flex: 1, flexDirection: 'row', gap: 14 },
+  heroTitle: { fontSize: 43, lineHeight: 47, fontWeight: '400', letterSpacing: -1.35 },
+  heroSubtitle: { maxWidth: 340, fontSize: 15, lineHeight: 22 },
+  libraryStage: { gap: 16 },
+  libraryTop: { flexWrap: 'wrap', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 14 },
+  libraryMetrics: { flexWrap: 'wrap', flex: 1, flexDirection: 'row', gap: 14 },
   captureButton: { width: 44, height: 44, borderRadius: 15, alignItems: 'center', justifyContent: 'center' },
   section: { gap: neverSpacing.md },
   libraryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },

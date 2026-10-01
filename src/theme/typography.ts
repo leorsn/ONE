@@ -17,15 +17,15 @@ export const neverType = {
   hero: {
     fontSize: 34,
     lineHeight: 39,
-    fontFamily: editorialFontFamily,
-    fontWeight: '400' as const,
+    fontFamily: uiFontFamily,
+    fontWeight: '600' as const,
     letterSpacing: -0.8
   },
   display: {
     fontSize: 32,
     lineHeight: 37,
-    fontFamily: editorialFontFamily,
-    fontWeight: '400' as const,
+    fontFamily: uiFontFamily,
+    fontWeight: '600' as const,
     letterSpacing: -0.7
   },
   title: {
@@ -35,8 +35,8 @@ export const neverType = {
     letterSpacing: -0.45
   },
   section: {
-    fontSize: 17,
-    lineHeight: 21,
+    fontSize: 20,
+    lineHeight: 24,
     fontWeight: '600' as const,
     letterSpacing: -0.2
   },
@@ -74,7 +74,8 @@ export const neverSpacing = {
   xl: 20,
   xxl: 24,
   section: 32,
-  hero: 40
+  hero: 40,
+  structural: 48
 } as const;
 
 export const neverRadius = {

@@ -4,7 +4,7 @@ import { useMemo, useState } from 'react';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { neverType, neverSpacing } from '@/src/theme/tokens';
 import { useItems } from '@/src/context/ItemsContext';
 import {
@@ -37,14 +37,14 @@ export default function InboxItemDetailScreen() {
 
   if (!item) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]}>
+      <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]}>
         <View style={styles.missing}>
           <View style={[styles.missingIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.inbox} size={19} color={p.chrome} /></View>
           <Text style={[styles.missingTitle, { color: p.label }]}>Inbox item not found</Text>
           <Text style={[styles.missingBody, { color: p.secondary }]}>It may have been processed or removed on another device.</Text>
           <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)')}><Text style={[styles.missingBack, { color: p.chrome }]}>Return to Home</Text></Pressable>
         </View>
-      </SafeAreaView>
+      </NeverScreen>
     );
   }
 
@@ -102,8 +102,8 @@ export default function InboxItemDetailScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive">
         <View style={styles.nav}>
           <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Back to Inbox" onPress={() => goBackOrHome()} />
           <Text style={[styles.navTitle, { color: p.label }]}>Review</Text>
@@ -118,7 +118,7 @@ export default function InboxItemDetailScreen() {
           </View>
         </View>
 
-        <Text style={[styles.title, { color: p.label }]}>{currentItem.title}</Text>
+        <Text style={[styles.title, p.heading, { color: p.label }]}>{currentItem.title}</Text>
 
         {previewUri ? (
           <View style={styles.section}>
@@ -159,7 +159,7 @@ export default function InboxItemDetailScreen() {
         ) : null}
 
         {duplicate ? (
-          <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/item/[id]', params: { id: duplicate.id } })} style={({ pressed }) => [styles.duplicate, { backgroundColor: p.surface, opacity: pressed ? 0.6 : 1 }]}>
+          <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: '/item/[id]', params: { id: duplicate.id } })} style={({ pressed }) => [styles.duplicate, p.cardStyle, { backgroundColor: p.surface, opacity: pressed ? 0.6 : 1 }]}>
             <View style={[styles.warningIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.more} size={14} color={p.warning} /></View>
             <View style={{ flex: 1 }}>
               <Text style={[styles.duplicateTitle, { color: p.label }]}>Possible Duplicate</Text>
@@ -220,7 +220,7 @@ export default function InboxItemDetailScreen() {
           <FooterAction label="Archive" onPress={() => void execute('archive')} danger />
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
   function FooterAction({ label, onPress, danger = false }: { label: string; onPress: () => void | Promise<void>; danger?: boolean }) {

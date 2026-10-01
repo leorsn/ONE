@@ -51,12 +51,12 @@ test('unreadable stored data throws instead of being replaced with an empty coll
 
 test('captured web links preserve fragments and exact host; executable and credential URLs are blocked', () => {
   assert.equal(safeMemoryUrl('https://www.example.com/path/#chapter'), 'https://www.example.com/path/#chapter');
-  for (const value of ['javascript:alert(1)', 'file:///private/data', 'one://auth/callback', 'data:text/html,test', 'https://user:password@example.com', 'not a link']) assert.equal(safeMemoryUrl(value), undefined);
+  for (const value of ['javascript:alert(1)', 'file:///private/data', 'never://auth/callback', 'one://auth/callback', 'data:text/html,test', 'https://user:password@example.com', 'not a link']) assert.equal(safeMemoryUrl(value), undefined);
 });
 
 test('native handoff rejects malformed encoding and oversized input before route parsing', () => {
-  for (const path of ['one://auth/callback?code=%E0%A4', 'one://x?value=' + '%41'.repeat(10000), '/search?x=\u0000']) assert.equal(resolveOneNativePath(path).kind, 'invalid');
-  assert.equal(resolveOneNativePath('one://auth/callback?code=valid%20code').route, '/auth/callback?code=valid%20code');
+  for (const path of ['never://auth/callback?code=%E0%A4', 'never://x?value=' + '%41'.repeat(10000), '/search?x=\u0000']) assert.equal(resolveOneNativePath(path).kind, 'invalid');
+  assert.equal(resolveOneNativePath('never://auth/callback?code=valid%20code').route, '/auth/callback?code=valid%20code');
 });
 
 test('document grouping remains usable for imported invalid dates', () => {

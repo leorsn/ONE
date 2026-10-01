@@ -12,4 +12,9 @@ export function hasPlanFeature(plan: OnePlan, feature: OneFeature) {
   return featureMatrix[plan].has(feature);
 }
 
+export function planIncludesRequestedAccess(activePlan: OnePlan, requestedPlan: PaidOnePlan) {
+  if (requestedPlan === 'one_ai') return activePlan === 'one_ai';
+  return activePlan === 'one' || activePlan === 'one_ai';
+}
+
 export const BETA_PLAN: PaidOnePlan = 'one_ai';
