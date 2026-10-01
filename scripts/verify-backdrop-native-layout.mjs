@@ -11,8 +11,16 @@ import { themes } from '../src/theme/editions.ts';
 const require = createRequire(import.meta.url);
 const root = path.resolve(import.meta.dirname, '..');
 const yoga = path.join(root, 'node_modules/react-native/ReactCommon/yoga');
-const { images, ThemePreview } = loadComponents(themes.platinum, false);
+const { images, ThemePreview, loadScreen } = loadComponents(themes.platinum, false);
 renderToStaticMarkup(React.createElement(ThemePreview, { preference: 'platinum' }));
+const { WallpaperStage } = loadScreen('src/ui/WallpaperStage.tsx');
+renderToStaticMarkup(React.createElement(WallpaperStage));
+assert.equal(images.length, 7); // preview plus the six resident full-screen sources
+for (const image of images) {
+  const geometry = require('react-native-web').StyleSheet.flatten(image.style);
+  assert.equal(geometry.width, '100%'); assert.equal(geometry.height, '100%');
+  assert.equal(image.resizeMode, 'cover');
+}
 const style = require('react-native-web').StyleSheet.flatten(images[0].style);
 assert.equal(style.width, '100%'); assert.equal(style.height, '100%');
 assert.equal(images[0].resizeMode, 'cover');

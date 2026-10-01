@@ -3,12 +3,14 @@ import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTheme } from '@/src/theme/useTheme';
 import { ThemeBackdrop } from './ThemeBackdrop';
+import { useWallpaperStage } from './WallpaperStage';
 
-/** Artwork belongs to the full route; only content observes safe-area insets. */
+/** Routes share the fixed root artwork; only content observes safe-area insets. */
 export function NeverScreen({ children, style, ...props }: ComponentProps<typeof SafeAreaView>) {
   const theme = useTheme();
-  return <View style={[styles.root, { backgroundColor: theme.background }]}>
-    <ThemeBackdrop theme={theme} />
+  const sharedWallpaper = useWallpaperStage();
+  return <View style={[styles.root, { backgroundColor: sharedWallpaper ? 'transparent' : theme.background }]}>
+    {!sharedWallpaper ? <ThemeBackdrop theme={theme} /> : null}
     <SafeAreaView {...props} style={[styles.content, style, styles.transparent]}>
       {children}
     </SafeAreaView>
