@@ -5,6 +5,7 @@ import { Icon } from "./icons";
 
 const links = [
   ["Product", "#product"],
+  ["The app", "#experience"],
   ["Worlds", "#worlds"],
   ["Pricing", "#pricing"],
   ["Privacy", "#privacy"],

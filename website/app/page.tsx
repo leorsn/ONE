@@ -1,6 +1,7 @@
 import { Icon, type IconName } from "./icons";
 import { Navigation } from "./navigation";
 import { AppTour } from "./app-tour";
+import { EverydayMemories } from "./everyday-memories";
 import { Pricing } from "./pricing";
 import { WorldGallery } from "./world-gallery";
 import { worlds, type WorldId } from "./worlds";
@@ -97,8 +98,9 @@ export default function Home() {
         <div id="main-content" tabIndex={-1} className="hero-content shell">
           <p className="eyebrow">A second memory for your life.</p>
           <h1>Your memory,<br /><span>without the maintenance.</span></h1>
-          <p className="hero-copy">Capture what matters once. NEVER keeps the context, makes it searchable and brings it back when it becomes useful again.</p>
-          <div className="hero-actions"><a className="button button-light" href="#download">Coming to iPhone</a><a className="text-link" href="#product">Enter NEVER <span>↓</span></a></div>
+          <p className="hero-copy">One place for your links, screenshots, documents and ideas. Capture what matters, keep its context and find it when you need it.</p>
+          <div className="hero-actions"><a className="button button-light" href="#experience">See how it works <span aria-hidden="true">↗</span></a><a className="text-link" href="#pricing">Explore the plans <span aria-hidden="true">↓</span></a></div>
+          <p className="hero-availability">Made for iPhone <span aria-hidden="true">·</span> App Store launch coming soon</p>
           <div className="hero-note"><span>Capture</span><i /><span>Understand</span><i /><span>Recall</span></div>
         </div>
         <div className="hero-word" aria-hidden="true">NEVER</div>
@@ -153,6 +155,8 @@ export default function Home() {
         <PhoneFrame variant="monolith" screen="search" key="ask" />,
       ]} />
 
+      <EverydayMemories />
+
       <section id="worlds" className="worlds-section">
         <div className="chapter-line shell chapter-dark"><span>03 / Material Worlds</span><span>One product. Six environments.</span></div>
         <div className="worlds-intro shell reveal"><p className="kicker kicker-dark">Material Worlds</p><h2>Not wallpapers.<br />Environments.</h2><p>Each world changes light, density and atmosphere while the product remains unmistakably NEVER.</p></div>
@@ -180,7 +184,7 @@ export default function Home() {
       <section id="download" className="download-section">
         <div className="download-bg" aria-hidden="true" />
         <div className="download-vignette" aria-hidden="true" />
-        <div className="download-inner shell reveal"><NeverMark /><h2>Keep what matters.</h2><p>Remember less. Keep more.</p><div className="store-pill" aria-label="App Store coming soon"><Icon name="phone" /><span><small>COMING SOON ON THE</small><b>App Store</b></span></div></div>
+        <div className="download-inner shell reveal"><NeverMark /><h2>Keep what matters.</h2><p>Your everyday memory. In a world of your own.</p><div className="store-pill" aria-label="App Store coming soon"><Icon name="phone" /><span><small>COMING SOON ON THE</small><b>App Store</b></span></div><p className="launch-note">NEVER is in development. The download link will appear here at launch.</p><div className="launch-actions"><a href="#experience">Explore the app <span aria-hidden="true">↗</span></a><a href="#pricing">Compare memberships <span aria-hidden="true">↗</span></a></div></div>
       </section>
 
       <footer className="footer"><div className="footer-inner shell"><a href="#top" aria-label="Back to top"><NeverMark /></a><div className="footer-links"><a href="#product">Product</a><a href="#worlds">Worlds</a><a href="#pricing">Pricing</a><a href="#privacy">Privacy</a></div><span className="copyright">© 2026 NEVER</span></div></footer>

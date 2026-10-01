@@ -989,6 +989,116 @@ h2,.product-intro h2 {
   color:#526c7c;
   margin-left:32px
 }
+.hero-availability {
+  margin-top:18px;
+  color:#9bb2c4;
+  font-size:11px;
+  line-height:1.6;
+}
+.hero-availability span { margin-inline:8px; }
+.everyday-section {
+  padding:96px 0 110px;
+  color:var(--ink);
+  color-scheme:light;
+  background:linear-gradient(140deg,#edf0f1,#d9e1e6);
+}
+.everyday-heading {
+  display:grid;
+  grid-template-columns:1.6fr 1fr;
+  gap:80px;
+  align-items:end;
+}
+.everyday-heading h2 { font-size:clamp(44px,4.8vw,70px); }
+.everyday-heading>p {
+  max-width:330px;
+  color:#627381;
+  font-size:14px;
+  line-height:1.85;
+  padding-bottom:8px;
+}
+.everyday-grid {
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:30px;
+  margin-top:60px;
+}
+.everyday-story { min-width:0; }
+.story-object {
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  height:280px;
+  margin-bottom:32px;
+  padding:30px;
+  border-radius:22px;
+  border:1px solid #fff9;
+  box-shadow:inset 0 1px #fff8,0 20px 40px #20384b0a;
+}
+.story-object small { font-size:8px; letter-spacing:.13em; line-height:1.5; }
+.story-object>strong { font-size:22px; letter-spacing:-.04em; line-height:1.25; }
+.receipt-object { background:linear-gradient(125deg,#f8f9f3,#e9ece0); color:#3e4e42; }
+.receipt-object>strong { margin-block:18px; }
+.receipt-object>div { display:flex; justify-content:space-between; gap:12px; font-size:11px; padding-block:6px; }
+.receipt-object b { font-weight:500; }
+.receipt-object .receipt-total { border-top:1px dashed #6c786344; margin-top:8px; padding-top:12px; font-weight:700; }
+.story-object>p { display:flex; align-items:center; gap:9px; font-size:10px; line-height:1.6; margin-top:18px; }
+.story-object svg { width:15px; height:15px; flex-shrink:0; }
+.travel-object { background:linear-gradient(125deg,#e0edf0,#c9dce3); color:#315162; }
+.travel-route { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-block:28px; }
+.travel-route strong { font-size:34px; font-weight:500; letter-spacing:-.06em; }
+.travel-route svg { width:22px; height:22px; color:#6b93a7; }
+.travel-details { display:flex; justify-content:space-between; gap:14px; }
+.travel-details span { font-size:7px; letter-spacing:.1em; }
+.travel-details b { display:block; margin-top:10px; font-size:11px; letter-spacing:0; font-weight:500; }
+.travel-object>p { border-top:1px solid #7296a833; padding-top:15px; }
+.idea-object { background:radial-gradient(ellipse at 90% 0%,#395469,#132431 80%); color:#e0ecf4; border-color:#7797ae33; box-shadow:inset 0 1px #a4c5da22,0 20px 40px #20384b1a; }
+.idea-object small { color:#a8c2d4; }
+.idea-object>strong { margin-top:20px; font-weight:400; }
+.idea-object>p { color:#a8c2d4; margin-top:12px; }
+.idea-object>div { display:flex; flex-wrap:wrap; gap:6px; margin-top:20px; }
+.idea-object>div span { font-size:8px; padding:7px 9px; border:1px solid #a3c1d433; border-radius:6px; background:#c8ddea08; }
+.story-number { font-size:9px; letter-spacing:.09em; text-transform:uppercase; color:#718593; }
+.everyday-story h3 { font-size:32px; font-weight:400; letter-spacing:-.05em; line-height:1.1; margin-top:18px; }
+.everyday-story>p { max-width:330px; font-size:13px; line-height:1.8; margin-top:20px; color:#637581; }
+.everyday-story>a { display:flex; justify-content:space-between; gap:15px; border-bottom:1px solid #718b9c33; padding-block:20px; margin-top:12px; font-size:11px; color:#3f5d70; }
+.everyday-story>a:hover { color:#122d40; border-color:#3f5d7088; }
+.everyday-note { margin-top:32px; color:#798b98; font-size:10px; line-height:1.7; }
+.download-inner .launch-note { max-width:390px; margin:24px auto 0; font-size:12px; line-height:1.8; color:#94afc2; }
+.launch-actions { display:flex; gap:28px; justify-content:center; margin-top:28px; }
+.launch-actions a { display:flex; gap:12px; font-size:11px; color:#bed3e1; padding-block:12px; border-bottom:1px solid #bad5e52b; }
+.launch-actions a:hover { color:#fff; border-color:#bad5e566; }
+@media (min-width:901px) { .nav-links { gap:25px; } }
+@media (max-width:1100px) {
+  .everyday-heading { gap:40px; }
+  .everyday-grid { gap:20px; }
+  .story-object { padding:24px; }
+  .everyday-story h3 { font-size:28px; }
+}
+@media (max-width:900px) {
+  .everyday-heading { grid-template-columns:1fr; gap:24px; }
+  .everyday-heading>p { max-width:480px; }
+  .everyday-grid { grid-template-columns:1fr; gap:40px; }
+  .everyday-story { display:grid; grid-template-columns:1fr 1fr; gap:0 32px; align-content:center; }
+  .story-object { grid-column:1; grid-row:1/5; margin-bottom:0; }
+  .story-number,.everyday-story h3,.everyday-story>p,.everyday-story>a { grid-column:2; }
+}
+@media (max-width:600px) {
+  .hero-availability { font-size:10px; max-width:300px; }
+  .everyday-section { padding:60px 0 70px; }
+  .everyday-heading h2 { font-size:43px; }
+  .everyday-heading>p { font-size:13px; }
+  .everyday-grid { margin-top:36px; gap:48px; }
+  .everyday-story { display:block; }
+  .story-object { height:260px; margin-bottom:26px; padding:30px; }
+  .everyday-story h3 { font-size:32px; }
+  .everyday-story>p { font-size:13px; }
+  .everyday-story>a { min-height:48px; font-size:12px; }
+  .everyday-note { font-size:10px; }
+  .launch-actions { flex-wrap:wrap; gap:8px 24px; }
+  .tour-tabs button { min-height:54px; font-size:11px; }
+  .tour-copy li,.price-card li { font-size:12px; }
+  .plan-offer,.pricing-note { font-size:11px; }
+}
 /* Shared, decorative iPhone previews. */
 .phone-frame {
   position:relative;
