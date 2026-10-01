@@ -6,6 +6,7 @@ import { Icon } from "./icons";
 const links = [
   ["Product", "#product"],
   ["Worlds", "#worlds"],
+  ["Pricing", "#pricing"],
   ["Privacy", "#privacy"],
 ] as const;
 

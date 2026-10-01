@@ -1,11 +1,9 @@
 import { Icon, type IconName } from "./icons";
 import { Navigation } from "./navigation";
-
-const worlds = [
-  { name: "Aurora", className: "world-panel world-aurora", label: "Memory as atmosphere.", index: "01" },
-  { name: "Monolith", className: "world-panel world-monolith", label: "Quiet. Focused. Reduced.", index: "02" },
-  { name: "Platinum", className: "world-panel world-platinum", label: "Light, clarity and structure.", index: "03" },
-];
+import { AppTour } from "./app-tour";
+import { Pricing } from "./pricing";
+import { WorldGallery } from "./world-gallery";
+import { worlds, type WorldId } from "./worlds";
 
 const memoryFlow = [
   ["01", "Capture", "Send NEVER a screenshot, link, thought, document or plan."],
@@ -19,11 +17,7 @@ function NeverMark() {
   return <span className="wordmark">NEVER</span>;
 }
 
-function Arrow() {
-  return <span aria-hidden="true">↗</span>;
-}
-
-function PhoneFrame({ variant = "aurora", screen = "home", className = "" }: { variant?: "aurora" | "monolith" | "platinum"; screen?: "home" | "search" | "saved"; className?: string }) {
+function PhoneFrame({ variant = "aurora", screen = "home", className = "" }: { variant?: WorldId; screen?: "home" | "search" | "saved" | "capture" | "calendar"; className?: string }) {
   return (
     <div className={`phone-frame phone-${variant} ${className}`} aria-label={`NEVER ${screen} preview`}>
       <div className="phone-metal" aria-hidden="true" />
@@ -38,7 +32,7 @@ function PhoneFrame({ variant = "aurora", screen = "home", className = "" }: { v
               <>
                 <div className="phone-brand">NEVER</div>
                 <div className="phone-greeting"><small>YOUR MEMORY</small><h4>Good morning.</h4><p>What do you want to remember?</p></div>
-                <div className="phone-ask"><small>ASK NEVER</small><strong>Ask anything you saved.</strong><span>Search your memory →</span></div>
+                <div className="phone-ask"><small>NEVER AI · ASK</small><strong>Ask anything you saved.</strong><span>Search your memory →</span></div>
                 <div className="phone-capture">Capture something <b>＋</b></div>
                 <div className="phone-shortcuts"><span>Scan</span><span>Link</span><span>Share</span></div>
                 <div className="phone-list"><small>TODAY</small><div><b>Flight confirmation</b><span>Tomorrow · 08:10</span></div><div><b>Gift idea for Dad</b><span>Saved from Safari</span></div></div>
@@ -58,6 +52,23 @@ function PhoneFrame({ variant = "aurora", screen = "home", className = "" }: { v
                 <div className="phone-title">Saved</div>
                 <div className="phone-filters"><span>All</span><span>Ideas</span><span>Travel</span></div>
                 <div className="saved-grid"><div><span>TRAVEL</span><b>Lisbon weekend</b></div><div><span>IDEA</span><b>Dad’s birthday</b></div><div><span>DOC</span><b>Contract notes</b></div><div><span>LINK</span><b>Restaurant list</b></div></div>
+              </>
+            )}
+            {screen === "capture" && (
+              <>
+                <div className="phone-title">Capture.</div>
+                <p className="phone-subtitle">One small thing. All its context.</p>
+                <div className="phone-capture-types"><span><Icon name="capture" />Scan</span><span><Icon name="phone" />Share</span><span><Icon name="plus" />Note</span></div>
+                <div className="phone-review"><small>SCANNED DOCUMENT</small><div className="receipt-preview"><span>NEVER EXAMPLE</span><b>Café receipt</b><i /><p>2 × Coffee <span>€7.00</span></p><p>1 × Croissant <span>€3.50</span></p><strong>Total <span>€10.50</span></strong></div><div className="review-field"><span>Category</span><b>Food & drink</b></div><div className="review-field"><span>Source</span><b>Document scan</b></div><div className="phone-save">Review & save <Icon name="check" /></div></div>
+              </>
+            )}
+            {screen === "calendar" && (
+              <>
+                <div className="phone-title">Calendar.</div>
+                <p className="phone-subtitle">Dates, reminders and plans.</p>
+                <div className="phone-calendar"><div className="calendar-date"><strong>9</strong><div><small>FRIDAY</small><b>October</b><span>2026</span></div></div><div className="calendar-days">{["T 8", "F 9", "S 10", "S 11", "M 12", "T 13", "W 14"].map((day, index) => <span className={index === 1 ? "selected" : ""} key={day}><small>{day.split(" ")[0]}</small><b>{day.split(" ")[1]}</b></span>)}</div><div className="calendar-modes"><span>Day</span><span>Week</span><span>Month</span></div></div>
+                <div className="phone-list calendar-agenda"><small>TODAY</small><div><b>Flight confirmation</b><span>08:10 · Airport</span></div><div><b>Book Dad’s dinner</b><span>18:00 · Reminder</span></div></div>
+                <div className="calendar-note"><Icon name="calendar" /><p>Your plans, connected to<br />the memories behind them.</p></div>
               </>
             )}
             <div className="phone-tabs"><span><Icon name="home" /><small>Today</small></span><span><Icon name="recall" /><small>Ask</small></span><span><Icon name="organize" /><small>Saved</small></span><span><Icon name="calendar" /><small>Calendar</small></span><span><Icon name="settings" /><small>More</small></span></div>
@@ -134,20 +145,25 @@ export default function Home() {
         </div>
       </section>
 
+      <AppTour screens={[
+        <PhoneFrame variant="aurora" screen="capture" key="capture" />,
+        <PhoneFrame variant="aurora" screen="home" key="today" />,
+        <PhoneFrame variant="platinum" screen="saved" key="saved" />,
+        <PhoneFrame variant="tidal" screen="calendar" key="calendar" />,
+        <PhoneFrame variant="monolith" screen="search" key="ask" />,
+      ]} />
+
       <section id="worlds" className="worlds-section">
-        <div className="chapter-line shell chapter-dark"><span>03 / Material Worlds</span><span>One product. Three environments.</span></div>
+        <div className="chapter-line shell chapter-dark"><span>03 / Material Worlds</span><span>One product. Six environments.</span></div>
         <div className="worlds-intro shell reveal"><p className="kicker kicker-dark">Material Worlds</p><h2>Not wallpapers.<br />Environments.</h2><p>Each world changes light, density and atmosphere while the product remains unmistakably NEVER.</p></div>
-        <nav className="world-selector shell" aria-label="Explore Material Worlds">{worlds.map((world) => <a className={`world-choice choice-${world.name.toLowerCase()}`} key={world.name} href={`#world-${world.name.toLowerCase()}`}><i aria-hidden="true" /><span>{world.name}</span><small>{world.index}</small><Arrow /></a>)}</nav>
-        <div className="world-stage">
-          {worlds.map((world) => (
-            <article id={`world-${world.name.toLowerCase()}`} className={world.className} key={world.name}>
+        <WorldGallery panels={worlds.map((world) => (
+            <article className={`world-panel world-${world.id}`} key={world.id} aria-label={`${world.name} Material World`}>
               <div className="world-image" aria-hidden="true" />
               <div className="world-scrim" aria-hidden="true" />
-              <div className="world-content shell"><span>{world.index}</span><div><h3>{world.name}</h3><p>{world.label}</p></div><small>Material World</small></div>
-              <div className="world-phone" aria-hidden="true"><PhoneFrame variant={world.name.toLowerCase() as "aurora" | "monolith" | "platinum"} screen={world.name === "Monolith" ? "search" : world.name === "Platinum" ? "saved" : "home"} /></div>
+              <div className="world-content shell"><span>{world.index} / 06</span><div><h3>{world.name}</h3><p>{world.label}</p></div><small>{world.descriptor}</small></div>
+              <div className="world-phone" aria-hidden="true"><PhoneFrame variant={world.id} screen={world.screen} /></div>
             </article>
-          ))}
-        </div>
+          ))} />
       </section>
 
       <section id="privacy" className="privacy-section">
@@ -159,13 +175,15 @@ export default function Home() {
         </div>
       </section>
 
+      <Pricing />
+
       <section id="download" className="download-section">
         <div className="download-bg" aria-hidden="true" />
         <div className="download-vignette" aria-hidden="true" />
         <div className="download-inner shell reveal"><NeverMark /><h2>Keep what matters.</h2><p>Remember less. Keep more.</p><div className="store-pill" aria-label="App Store coming soon"><Icon name="phone" /><span><small>COMING SOON ON THE</small><b>App Store</b></span></div></div>
       </section>
 
-      <footer className="footer"><div className="footer-inner shell"><a href="#top" aria-label="Back to top"><NeverMark /></a><div className="footer-links"><a href="#product">Product</a><a href="#worlds">Worlds</a><a href="#privacy">Privacy</a></div><span className="copyright">© 2026 NEVER</span></div></footer>
+      <footer className="footer"><div className="footer-inner shell"><a href="#top" aria-label="Back to top"><NeverMark /></a><div className="footer-links"><a href="#product">Product</a><a href="#worlds">Worlds</a><a href="#pricing">Pricing</a><a href="#privacy">Privacy</a></div><span className="copyright">© 2026 NEVER</span></div></footer>
     </main>
   );
 }

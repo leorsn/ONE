@@ -1,6 +1,8 @@
-export type IconName = "capture" | "understand" | "organize" | "recall" | "resurface" | "home" | "calendar" | "settings" | "menu" | "close" | "phone";
+export type IconName = "capture" | "understand" | "organize" | "recall" | "resurface" | "home" | "calendar" | "settings" | "menu" | "close" | "phone" | "check" | "plus";
 
 const paths: Record<IconName, React.ReactNode> = {
+  check: <path d="m5 12 4 4L19 6" />,
+  plus: <path d="M12 5v14M5 12h14" />,
   capture: <><path d="M8 4H5a1 1 0 0 0-1 1v3m12-4h3a1 1 0 0 1 1 1v3M4 16v3a1 1 0 0 0 1 1h3m12-4v3a1 1 0 0 1-1 1h-3" /><path d="M12 8v8m-4-4h8" /></>,
   understand: <><path d="m12 3 1.8 6.2L20 11l-6.2 1.8L12 19l-1.8-6.2L4 11l6.2-1.8Z" /><path d="m19 16 .8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8Z" /></>,
   organize: <><rect x="4" y="4" width="6" height="6" rx="1.5" /><rect x="14" y="4" width="6" height="6" rx="1.5" /><rect x="4" y="14" width="6" height="6" rx="1.5" /><rect x="14" y="14" width="6" height="6" rx="1.5" /></>,
