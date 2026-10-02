@@ -1,74 +1,42 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { PhoneFrame, type NeverScreen } from "./phone-frame";
-import type { WorldId } from "./worlds";
 import styles from "./scroll-story.module.css";
 
-const steps: Array<{
-  id: string;
-  index: string;
-  title: string;
-  body: string;
-  tags: string[];
-  screen: NeverScreen;
-  world: WorldId;
-}> = [
+const steps = [
+  {
+    id: "recall",
+    index: "01 / Recall",
+    title: "Your memory, ready when you need it.",
+    body: "NEVER starts where your memory usually fails: not with folders, but with the thing you remember. Ask naturally, capture quickly, and come back to the context later.",
+    tags: ["Ask NEVER", "Today", "Quick capture"],
+    sprite: 0,
+  },
   {
     id: "capture",
-    index: "01 / Capture",
-    title: "Save it before it disappears.",
-    body: "Share a link, screenshot, document or thought into NEVER. The original item stays attached to the context that makes it useful.",
-    tags: ["Share", "Scan", "Quick capture"],
-    screen: "capture",
-    world: "aurora",
+    index: "02 / Capture",
+    title: "Capture it in the moment.",
+    body: "Type a thought, paste a link or share something into NEVER. The capture flow stays deliberately light so saving never becomes another task.",
+    tags: ["Note", "Link", "Share"],
+    sprite: 1,
   },
   {
-    id: "understand",
-    index: "02 / Understand",
-    title: "NEVER keeps the context.",
-    body: "Dates, subjects, source information and useful details stay connected to what you saved, so you do not have to rebuild the meaning later.",
-    tags: ["Context", "Source", "Details"],
-    screen: "home",
-    world: "aurora",
-  },
-  {
-    id: "organize",
-    index: "03 / Organize",
-    title: "No folder maintenance required.",
-    body: "Saved gives your links, images, documents and ideas a usable structure. Browse by type, search by text or return through the context around a memory.",
-    tags: ["Saved", "Filters", "Library"],
-    screen: "saved",
-    world: "platinum",
+    id: "scan",
+    index: "03 / Scan",
+    title: "Turn documents into usable memory.",
+    body: "Scan a page or choose a photo. NEVER keeps the original and extracts the useful information around it so the memory stays understandable later.",
+    tags: ["Documents", "Context", "Review"],
+    sprite: 2,
   },
   {
     id: "calendar",
     index: "04 / Calendar",
-    title: "Plans stay connected to why they matter.",
-    body: "Dates and reminders live beside the memories behind them. Move between day, week and month without losing the original source.",
+    title: "Dates stay connected to what created them.",
+    body: "Plans, reminders and extracted dates live in one calm calendar view, while the original memory remains connected underneath.",
     tags: ["Day", "Week", "Month"],
-    screen: "calendar",
-    world: "tidal",
+    sprite: 3,
   },
-  {
-    id: "recall",
-    index: "05 / Ask NEVER",
-    title: "Ask the way you remember.",
-    body: "Instead of remembering where something was saved, ask naturally. NEVER finds the relevant memories and points back to the items used in the answer.",
-    tags: ["Semantic search", "Sources", "NEVER AI"],
-    screen: "search",
-    world: "monolith",
-  },
-  {
-    id: "resurface",
-    index: "06 / Resurface",
-    title: "The right memory comes back.",
-    body: "Today brings recent captures, plans and reminders back into view. The system is designed around usefulness, not accumulation.",
-    tags: ["Today", "Recall", "Relevant again"],
-    screen: "home",
-    world: "aurora",
-  },
-];
+] as const;
 
 function clamp(value: number, min = 0, max = 1) {
   return Math.min(max, Math.max(min, value));
@@ -143,8 +111,8 @@ export function ScrollStory() {
               const visibility = clamp(1 - Math.abs(delta));
               const copyStyle = {
                 opacity: visibility,
-                transform: `translate3d(0, ${delta * 42}px, 0) scale(${.97 + visibility * .03})`,
-                filter: `blur(${(1 - visibility) * 6}px)`,
+                transform: `translate3d(0, ${delta * 48}px, 0) scale(${.965 + visibility * .035})`,
+                filter: `blur(${(1 - visibility) * 7}px)`,
                 pointerEvents: visibility > .7 ? "auto" : "none",
               } as CSSProperties;
 
@@ -161,20 +129,30 @@ export function ScrollStory() {
 
           <div className={styles.phoneStage}>
             <div className={styles.depthHalo} aria-hidden="true" />
+            <div className={styles.deviceShadow} aria-hidden="true" />
+
             {steps.map((step, index) => {
               const delta = index - position;
               const visibility = clamp(1 - Math.abs(delta));
               const signed = Math.max(-1, Math.min(1, delta));
-              const phoneStyle = {
+              const frameStyle = {
                 opacity: visibility,
-                transform: `translate3d(${signed * 34}px, ${Math.abs(delta) * 28}px, ${-Math.abs(delta) * 130}px) scale(${.9 + visibility * .1}) rotateY(${signed * -7}deg) rotateX(${signed * 1.5}deg)`,
-                filter: `blur(${(1 - visibility) * 4}px) saturate(${.75 + visibility * .25})`,
-                zIndex: 10 - Math.round(Math.abs(delta) * 2),
+                transform: `translate3d(${signed * 44}px, ${Math.abs(delta) * 34}px, ${-Math.abs(delta) * 150}px) scale(${.91 + visibility * .09}) rotateY(${signed * -8}deg) rotateX(${signed * 1.8}deg)`,
+                filter: `blur(${(1 - visibility) * 5}px) saturate(${.72 + visibility * .28}) brightness(${.82 + visibility * .18})`,
+                zIndex: 20 - Math.round(Math.abs(delta) * 4),
+              } as CSSProperties;
+
+              const screenStyle = {
+                backgroundPosition: `center ${step.sprite * (100 / (steps.length - 1))}%`,
               } as CSSProperties;
 
               return (
-                <div key={step.id} className={styles.phoneWrap} style={phoneStyle} aria-hidden={visibility < .5}>
-                  <PhoneFrame variant={step.world} screen={step.screen} />
+                <div key={step.id} className={styles.phoneWrap} style={frameStyle} aria-hidden={visibility < .5}>
+                  <div className={styles.realDevice}>
+                    <div className={styles.deviceEdge} aria-hidden="true" />
+                    <div className={styles.screenViewport} style={screenStyle} role="img" aria-label={`NEVER ${step.id} screen`} />
+                    <div className={styles.screenGlass} aria-hidden="true" />
+                  </div>
                 </div>
               );
             })}
@@ -187,7 +165,7 @@ export function ScrollStory() {
           <span>{String(steps.length).padStart(2, "0")}</span>
         </div>
 
-        <span className={styles.endHint}>{progress > .92 ? "Continue to Explore" : "Scroll to move through NEVER"}</span>
+        <span className={styles.endHint}>{progress > .9 ? "Continue to Explore" : "Scroll to move through NEVER"}</span>
       </div>
     </section>
   );
