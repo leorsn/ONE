@@ -1,0 +1,241 @@
+.story {
+  position: relative;
+  min-height: 600vh;
+  background:
+    radial-gradient(circle at 50% 35%, rgba(255,255,255,.08), transparent 28%),
+    linear-gradient(180deg, #080808 0%, #111 45%, #080808 100%);
+  color: #fff;
+}
+
+.sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+  display: grid;
+  place-items: center;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 70% 25%, rgba(118, 173, 255, .16), transparent 25%),
+    radial-gradient(circle at 25% 70%, rgba(143, 255, 206, .1), transparent 30%);
+  filter: blur(8px);
+  opacity: .8;
+  transform: scale(1.08);
+}
+
+.grid {
+  position: absolute;
+  inset: 0;
+  opacity: .12;
+  background-image:
+    linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
+  background-size: 64px 64px;
+  mask-image: radial-gradient(circle at center, #000, transparent 72%);
+}
+
+.shell {
+  width: min(1240px, calc(100% - 48px));
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 520px);
+  align-items: center;
+  gap: clamp(40px, 8vw, 120px);
+}
+
+.copyStack {
+  position: relative;
+  min-height: 430px;
+}
+
+.copy {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  opacity: 0;
+  transform: translateY(26px);
+  transition: opacity .6s ease, transform .8s cubic-bezier(.2,.8,.2,1);
+  pointer-events: none;
+}
+
+.copyActive {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.index {
+  font-size: 12px;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  opacity: .5;
+  margin-bottom: 20px;
+}
+
+.copy h2 {
+  margin: 0;
+  max-width: 700px;
+  font-size: clamp(46px, 6vw, 88px);
+  line-height: .96;
+  letter-spacing: -.055em;
+  font-weight: 560;
+}
+
+.copy p {
+  max-width: 590px;
+  margin: 28px 0 0;
+  color: rgba(255,255,255,.64);
+  font-size: clamp(17px, 1.4vw, 21px);
+  line-height: 1.55;
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.meta span {
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.05);
+  backdrop-filter: blur(18px);
+  padding: 9px 13px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: rgba(255,255,255,.72);
+}
+
+.phoneStage {
+  position: relative;
+  height: min(78vh, 820px);
+  min-height: 600px;
+  display: grid;
+  place-items: center;
+  perspective: 1200px;
+}
+
+.phoneWrap {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: translate3d(0, 28px, -80px) scale(.9) rotateY(-5deg);
+  transition: opacity .5s ease, transform .8s cubic-bezier(.2,.8,.2,1);
+}
+
+.phoneActive {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1) rotateY(0deg);
+}
+
+.phoneWrap > div {
+  width: min(300px, 64vw);
+}
+
+.progressRail {
+  position: absolute;
+  left: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 2px;
+  height: 34vh;
+  background: rgba(255,255,255,.1);
+  z-index: 3;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.progressFill {
+  width: 100%;
+  background: rgba(255,255,255,.75);
+  transform-origin: top;
+  height: 100%;
+}
+
+.stepDots {
+  position: absolute;
+  right: 24px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  gap: 12px;
+  z-index: 3;
+}
+
+.stepDots span {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.22);
+  transition: transform .3s ease, background .3s ease;
+}
+
+.stepDots .dotActive {
+  background: rgba(255,255,255,.95);
+  transform: scale(1.6);
+}
+
+.higgsfieldSlot {
+  position: absolute;
+  inset: 8% 6%;
+  border-radius: 48px;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.higgsfieldSlot video,
+.higgsfieldSlot canvas,
+.higgsfieldSlot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.endHint {
+  position: absolute;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 3;
+  text-transform: uppercase;
+  letter-spacing: .18em;
+  font-size: 10px;
+  color: rgba(255,255,255,.38);
+}
+
+@media (max-width: 820px) {
+  .story { min-height: 650vh; }
+  .shell {
+    width: min(100% - 28px, 680px);
+    grid-template-columns: 1fr;
+    gap: 12px;
+    align-content: center;
+  }
+  .copyStack { min-height: 260px; }
+  .copy { justify-content: flex-end; text-align: left; }
+  .copy h2 { font-size: clamp(38px, 12vw, 62px); }
+  .copy p { margin-top: 16px; font-size: 15px; }
+  .meta { margin-top: 16px; }
+  .phoneStage { min-height: 410px; height: 48vh; }
+  .phoneWrap > div { width: min(230px, 58vw); }
+  .progressRail { left: 8px; }
+  .stepDots { right: 8px; }
+  .endHint { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .copy,
+  .phoneWrap,
+  .stepDots span { transition: none; }
+}
