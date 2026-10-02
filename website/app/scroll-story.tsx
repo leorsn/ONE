@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { PhoneFrame, type NeverScreen } from "./phone-frame";
 import type { WorldId } from "./worlds";
 import styles from "./scroll-story.module.css";
@@ -70,9 +70,12 @@ const steps: Array<{
   },
 ];
 
+function clamp(value: number, min = 0, max = 1) {
+  return Math.min(max, Math.max(min, value));
+}
+
 export function ScrollStory() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [active, setActive] = useState(0);
   const [progress, setProgress] = useState(0);
 
   useEffect(() => {
@@ -84,11 +87,7 @@ export function ScrollStory() {
 
       const rect = section.getBoundingClientRect();
       const scrollable = Math.max(1, section.offsetHeight - window.innerHeight);
-      const raw = Math.min(1, Math.max(0, -rect.top / scrollable));
-      const next = Math.min(steps.length - 1, Math.floor(raw * steps.length));
-
-      setProgress(raw);
-      setActive(next);
+      setProgress(clamp(-rect.top / scrollable));
     };
 
     const onScroll = () => {
@@ -107,43 +106,88 @@ export function ScrollStory() {
     };
   }, []);
 
+  const position = progress * (steps.length - 1);
+  const active = Math.min(steps.length - 1, Math.max(0, Math.round(position)));
+  const local = position - Math.floor(position);
+
+  const storyStyle = {
+    "--story-progress": progress,
+    "--local-progress": local,
+  } as CSSProperties;
+
   return (
-    <section ref={sectionRef} id="experience" className={styles.story} aria-label="How NEVER works">
+    <section ref={sectionRef} id="experience" className={styles.story} style={storyStyle} aria-label="How NEVER works">
       <div className={styles.sticky}>
         <div className={styles.backdrop} aria-hidden="true" />
         <div className={styles.grid} aria-hidden="true" />
+        <div className={styles.lightSweep} aria-hidden="true" />
 
         <div className={styles.progressRail} aria-hidden="true">
           <div className={styles.progressFill} style={{ transform: `scaleY(${Math.max(.015, progress)})` }} />
         </div>
 
         <div className={styles.stepDots} aria-hidden="true">
-          {steps.map((step, index) => <span key={step.id} className={index === active ? styles.dotActive : ""} />)}
+          {steps.map((step, index) => (
+            <span
+              key={step.id}
+              className={index === active ? styles.dotActive : ""}
+              style={{ opacity: .22 + .78 * clamp(1 - Math.abs(position - index)) }}
+            />
+          ))}
         </div>
 
         <div className={styles.shell}>
           <div className={styles.copyStack}>
-            {steps.map((step, index) => (
-              <article key={step.id} className={`${styles.copy} ${index === active ? styles.copyActive : ""}`} aria-hidden={index !== active}>
-                <span className={styles.index}>{step.index}</span>
-                <h2>{step.title}</h2>
-                <p>{step.body}</p>
-                <div className={styles.meta}>{step.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
-              </article>
-            ))}
+            {steps.map((step, index) => {
+              const delta = index - position;
+              const visibility = clamp(1 - Math.abs(delta));
+              const copyStyle = {
+                opacity: visibility,
+                transform: `translate3d(0, ${delta * 42}px, 0) scale(${.97 + visibility * .03})`,
+                filter: `blur(${(1 - visibility) * 6}px)`,
+                pointerEvents: visibility > .7 ? "auto" : "none",
+              } as CSSProperties;
+
+              return (
+                <article key={step.id} className={styles.copy} style={copyStyle} aria-hidden={visibility < .5}>
+                  <span className={styles.index}>{step.index}</span>
+                  <h2>{step.title}</h2>
+                  <p>{step.body}</p>
+                  <div className={styles.meta}>{step.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
+                </article>
+              );
+            })}
           </div>
 
           <div className={styles.phoneStage}>
-            <div className={styles.higgsfieldSlot} data-higgsfield-layer="product-cinematic" aria-hidden="true" />
-            {steps.map((step, index) => (
-              <div key={step.id} className={`${styles.phoneWrap} ${index === active ? styles.phoneActive : ""}`} aria-hidden={index !== active}>
-                <PhoneFrame variant={step.world} screen={step.screen} />
-              </div>
-            ))}
+            <div className={styles.depthHalo} aria-hidden="true" />
+            {steps.map((step, index) => {
+              const delta = index - position;
+              const visibility = clamp(1 - Math.abs(delta));
+              const signed = Math.max(-1, Math.min(1, delta));
+              const phoneStyle = {
+                opacity: visibility,
+                transform: `translate3d(${signed * 34}px, ${Math.abs(delta) * 28}px, ${-Math.abs(delta) * 130}px) scale(${.9 + visibility * .1}) rotateY(${signed * -7}deg) rotateX(${signed * 1.5}deg)`,
+                filter: `blur(${(1 - visibility) * 4}px) saturate(${.75 + visibility * .25})`,
+                zIndex: 10 - Math.round(Math.abs(delta) * 2),
+              } as CSSProperties;
+
+              return (
+                <div key={step.id} className={styles.phoneWrap} style={phoneStyle} aria-hidden={visibility < .5}>
+                  <PhoneFrame variant={step.world} screen={step.screen} />
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        <span className={styles.endHint}>Scroll to move through NEVER</span>
+        <div className={styles.chapterIndicator} aria-hidden="true">
+          <span>{String(active + 1).padStart(2, "0")}</span>
+          <i />
+          <span>{String(steps.length).padStart(2, "0")}</span>
+        </div>
+
+        <span className={styles.endHint}>{progress > .92 ? "Continue to Explore" : "Scroll to move through NEVER"}</span>
       </div>
     </section>
   );
