@@ -1,6 +1,6 @@
 .story {
   position: relative;
-  min-height: 600vh;
+  min-height: 650vh;
   background:
     radial-gradient(circle at 50% 35%, rgba(255,255,255,.08), transparent 28%),
     linear-gradient(180deg, #080808 0%, #111 45%, #080808 100%);
@@ -14,28 +14,45 @@
   overflow: hidden;
   display: grid;
   place-items: center;
+  isolation: isolate;
 }
 
 .backdrop {
   position: absolute;
-  inset: 0;
+  inset: -6%;
   background:
-    radial-gradient(circle at 70% 25%, rgba(118, 173, 255, .16), transparent 25%),
-    radial-gradient(circle at 25% 70%, rgba(143, 255, 206, .1), transparent 30%);
-  filter: blur(8px);
-  opacity: .8;
-  transform: scale(1.08);
+    radial-gradient(circle at calc(64% + var(--story-progress, 0) * 10%) 24%, rgba(118, 173, 255, .18), transparent 25%),
+    radial-gradient(circle at calc(28% - var(--story-progress, 0) * 8%) 72%, rgba(143, 255, 206, .1), transparent 30%),
+    radial-gradient(circle at 50% 50%, rgba(255,255,255,.045), transparent 46%);
+  filter: blur(10px);
+  opacity: .86;
+  transform: scale(calc(1.06 + var(--story-progress, 0) * .04));
+  transition: background-position .2s linear;
+  z-index: -4;
 }
 
 .grid {
   position: absolute;
   inset: 0;
-  opacity: .12;
+  opacity: calc(.13 - var(--story-progress, 0) * .045);
   background-image:
     linear-gradient(rgba(255,255,255,.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,.08) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(circle at center, #000, transparent 72%);
+  transform: translateY(calc(var(--story-progress, 0) * -24px));
+  z-index: -3;
+}
+
+.lightSweep {
+  position: absolute;
+  inset: -30% -20%;
+  z-index: -2;
+  pointer-events: none;
+  opacity: .34;
+  background: linear-gradient(110deg, transparent 38%, rgba(255,255,255,.08) 48%, rgba(189,215,255,.08) 53%, transparent 63%);
+  transform: translateX(calc(-35% + var(--story-progress, 0) * 70%)) rotate(-4deg);
+  filter: blur(24px);
 }
 
 .shell {
@@ -51,7 +68,7 @@
 
 .copyStack {
   position: relative;
-  min-height: 430px;
+  min-height: 460px;
 }
 
 .copy {
@@ -60,16 +77,7 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  opacity: 0;
-  transform: translateY(26px);
-  transition: opacity .6s ease, transform .8s cubic-bezier(.2,.8,.2,1);
-  pointer-events: none;
-}
-
-.copyActive {
-  opacity: 1;
-  transform: translateY(0);
-  pointer-events: auto;
+  will-change: transform, opacity, filter;
 }
 
 .index {
@@ -87,6 +95,7 @@
   line-height: .96;
   letter-spacing: -.055em;
   font-weight: 560;
+  text-wrap: balance;
 }
 
 .copy p {
@@ -120,7 +129,21 @@
   min-height: 600px;
   display: grid;
   place-items: center;
-  perspective: 1200px;
+  perspective: 1400px;
+  transform-style: preserve-3d;
+}
+
+.depthHalo {
+  position: absolute;
+  width: min(72vw, 620px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(255,255,255,.1) 0%, rgba(133,180,255,.06) 28%, transparent 68%);
+  filter: blur(32px);
+  transform: scale(calc(.88 + var(--local-progress, 0) * .12));
+  opacity: calc(.48 + var(--local-progress, 0) * .15);
+  pointer-events: none;
 }
 
 .phoneWrap {
@@ -128,18 +151,13 @@
   inset: 0;
   display: grid;
   place-items: center;
-  opacity: 0;
-  transform: translate3d(0, 28px, -80px) scale(.9) rotateY(-5deg);
-  transition: opacity .5s ease, transform .8s cubic-bezier(.2,.8,.2,1);
-}
-
-.phoneActive {
-  opacity: 1;
-  transform: translate3d(0, 0, 0) scale(1) rotateY(0deg);
+  will-change: transform, opacity, filter;
+  transform-style: preserve-3d;
 }
 
 .phoneWrap > div {
   width: min(300px, 64vw);
+  filter: drop-shadow(0 28px 54px rgba(0,0,0,.42));
 }
 
 .progressRail {
@@ -157,9 +175,10 @@
 
 .progressFill {
   width: 100%;
-  background: rgba(255,255,255,.75);
+  background: rgba(255,255,255,.78);
   transform-origin: top;
   height: 100%;
+  box-shadow: 0 0 18px rgba(255,255,255,.28);
 }
 
 .stepDots {
@@ -176,30 +195,34 @@
   width: 6px;
   height: 6px;
   border-radius: 50%;
-  background: rgba(255,255,255,.22);
-  transition: transform .3s ease, background .3s ease;
+  background: rgba(255,255,255,.38);
+  transition: transform .2s ease, background .2s ease;
 }
 
 .stepDots .dotActive {
-  background: rgba(255,255,255,.95);
-  transform: scale(1.6);
+  background: rgba(255,255,255,.98);
+  transform: scale(1.65);
+  box-shadow: 0 0 14px rgba(255,255,255,.28);
 }
 
-.higgsfieldSlot {
+.chapterIndicator {
   position: absolute;
-  inset: 8% 6%;
-  border-radius: 48px;
-  overflow: hidden;
-  pointer-events: none;
-  opacity: 0;
+  right: 36px;
+  bottom: 38px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 10px;
+  letter-spacing: .16em;
+  color: rgba(255,255,255,.44);
 }
 
-.higgsfieldSlot video,
-.higgsfieldSlot canvas,
-.higgsfieldSlot img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
+.chapterIndicator i {
+  display: block;
+  width: 34px;
+  height: 1px;
+  background: rgba(255,255,255,.22);
 }
 
 .endHint {
@@ -212,30 +235,32 @@
   letter-spacing: .18em;
   font-size: 10px;
   color: rgba(255,255,255,.38);
+  white-space: nowrap;
 }
 
 @media (max-width: 820px) {
-  .story { min-height: 650vh; }
+  .story { min-height: 700vh; }
   .shell {
     width: min(100% - 28px, 680px);
     grid-template-columns: 1fr;
-    gap: 12px;
+    gap: 8px;
     align-content: center;
   }
-  .copyStack { min-height: 260px; }
+  .copyStack { min-height: 245px; }
   .copy { justify-content: flex-end; text-align: left; }
   .copy h2 { font-size: clamp(38px, 12vw, 62px); }
   .copy p { margin-top: 16px; font-size: 15px; }
   .meta { margin-top: 16px; }
-  .phoneStage { min-height: 410px; height: 48vh; }
+  .phoneStage { min-height: 410px; height: 49vh; }
   .phoneWrap > div { width: min(230px, 58vw); }
   .progressRail { left: 8px; }
   .stepDots { right: 8px; }
+  .chapterIndicator { display: none; }
   .endHint { display: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .copy,
-  .phoneWrap,
-  .stepDots span { transition: none; }
+  .lightSweep { display: none; }
+  .grid,
+  .backdrop { transform: none; }
 }
