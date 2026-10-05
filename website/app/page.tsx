@@ -42,8 +42,8 @@ export default function Home() {
         <div className="chapter-line shell"><span>01 / Product</span><span>One continuous memory system.</span></div>
         <div className="shell product-intro reveal">
           <p className="kicker">How NEVER works</p>
-          <h2>One scroll.<br />The whole product.</h2>
-          <p className="lede">Move through the app as a story. Each section explains one part of the system while the interface changes with you.</p>
+          <h2>Keep the moment.<br />Find it again.</h2>
+          <p className="lede">An idea today. A question weeks later. NEVER keeps what matters close, with the context that makes it useful.</p>
         </div>
       </section>
 
@@ -54,9 +54,9 @@ export default function Home() {
         <div className="download-vignette" aria-hidden="true" />
         <div className="download-inner shell reveal">
           <span className="wordmark">NEVER</span>
-          <p className="kicker kicker-dark">The product story ends here.</p>
-          <h2>Now explore the world around it.</h2>
-          <p>Material Worlds, memberships, privacy and the deeper product details live in a separate NEVER hub.</p>
+          <p className="kicker kicker-dark">Explore NEVER</p>
+          <h2>Make room for<br />your own world.</h2>
+          <p>Six environments. Two memberships. One personal memory. Find the NEVER that feels like yours.</p>
           <div className="hero-actions" style={{ justifyContent: "center", marginTop: "34px" }}>
             <Link className="button button-light" href="/explore">Explore NEVER <span aria-hidden="true">↗</span></Link>
           </div>
@@ -78,3 +78,4 @@ export default function Home() {
     </main>
   );
 }
+

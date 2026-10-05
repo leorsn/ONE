@@ -6,7 +6,7 @@ const aiIncluded = ["Ask NEVER in natural language", "Semantic search across you
 export function Pricing() {
   return (
     <section id="pricing" className="pricing-section" aria-labelledby="pricing-heading">
-      <div className="chapter-line shell"><span>05 / Membership</span><span>NEVER · NEVER AI</span></div>
+      <div className="chapter-line shell"><span>02 / Membership</span><span>NEVER · NEVER AI</span></div>
       <div className="pricing-intro shell"><div><p className="kicker">Planned launch pricing</p><h2 id="pricing-heading">One memory.<br />Choose how you use it.</h2></div><p>Keep everything organized with NEVER. Add natural-language recall and deeper understanding with NEVER AI.</p></div>
       <div className="pricing-grid shell">
         <article className="price-card" aria-labelledby="plan-never"><span className="plan-label">Your everyday memory</span><h3 id="plan-never">NEVER</h3><p className="plan-description">Save, organize and find what matters.</p><p className="plan-price"><strong>€2.99</strong><span>/ month</span></p><p className="plan-offer">7-day free trial for eligible new subscribers.<br />Then €2.99 per month.</p><a className="button price-button" href="#download">Coming to iPhone <span aria-hidden="true">↗</span></a><span className="included-label">Included</span><ul>{included.map((feature) => <li key={feature}><Icon name="check" />{feature}</li>)}</ul><p className="plan-boundary">Classical search is included. Ask NEVER and AI features are available with NEVER AI.</p></article>
@@ -23,3 +23,4 @@ export function Pricing() {
     </section>
   );
 }
+

@@ -1,31 +1,27 @@
 import Link from "next/link";
+import type { Metadata } from "next";
+import { Navigation } from "../navigation";
 import { Icon } from "../icons";
 import { PhoneFrame } from "../phone-frame";
 import { Pricing } from "../pricing";
 import { WorldGallery } from "../world-gallery";
 import { worlds } from "../worlds";
 
+export const metadata: Metadata = { title: "Explore NEVER — Worlds & Membership", alternates: { canonical: "/explore" }, openGraph: { url: "/explore", title: "Explore NEVER — Worlds & Membership" } };
+
 export default function ExplorePage() {
   return (
     <main>
-      <header className="nav shell">
-        <Link className="brand" href="/" aria-label="NEVER home"><span className="wordmark">NEVER</span></Link>
-        <nav className="nav-links" aria-label="Explore navigation">
-          <a href="#worlds">Material Worlds</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#privacy">Privacy</a>
-        </nav>
-        <div className="nav-actions"><Link className="nav-cta" href="/">Back to story <span aria-hidden="true">↗</span></Link></div>
-      </header>
+      <Navigation explore />
 
       <section className="section product-section" style={{ paddingTop: "180px", minHeight: "72vh" }}>
-        <div className="shell product-intro reveal">
+        <div id="main-content" tabIndex={-1} className="shell product-intro reveal">
           <p className="kicker">Explore NEVER</p>
-          <h1 style={{ fontSize: "clamp(64px, 9vw, 136px)", lineHeight: ".9", letterSpacing: "-.065em", margin: 0 }}>
+          <h1 style={{ fontSize: "clamp(44px, 9vw, 128px)", lineHeight: ".9", letterSpacing: "-.065em", margin: 0 }}>
             One memory.<br /><span style={{ opacity: .45 }}>Your environment.</span>
           </h1>
           <p className="lede" style={{ marginTop: "32px" }}>
-            Go deeper into the visual worlds, memberships, privacy model and the details behind NEVER.
+            Choose your environment. Compare memberships. Get to know the controls behind your personal memory.
           </p>
           <div className="hero-actions" style={{ marginTop: "36px" }}>
             <a className="button button-light" href="#worlds">Explore Material Worlds <span aria-hidden="true">↓</span></a>
@@ -75,3 +71,4 @@ export default function ExplorePage() {
     </main>
   );
 }
+

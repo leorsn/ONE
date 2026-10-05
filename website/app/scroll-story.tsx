@@ -1,171 +1,87 @@
 "use client";
 
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import styles from "./scroll-story.module.css";
 
 const steps = [
-  {
-    id: "recall",
-    index: "01 / Recall",
-    title: "Your memory, ready when you need it.",
-    body: "NEVER starts where your memory usually fails: not with folders, but with the thing you remember. Ask naturally, capture quickly, and come back to the context later.",
-    tags: ["Ask NEVER", "Today", "Quick capture"],
-    sprite: 0,
-  },
-  {
-    id: "capture",
-    index: "02 / Capture",
-    title: "Capture it in the moment.",
-    body: "Type a thought, paste a link or share something into NEVER. The capture flow stays deliberately light so saving never becomes another task.",
-    tags: ["Note", "Link", "Share"],
-    sprite: 1,
-  },
-  {
-    id: "scan",
-    index: "03 / Scan",
-    title: "Turn documents into usable memory.",
-    body: "Scan a page or choose a photo. NEVER keeps the original and extracts the useful information around it so the memory stays understandable later.",
-    tags: ["Documents", "Context", "Review"],
-    sprite: 2,
-  },
-  {
-    id: "calendar",
-    index: "04 / Calendar",
-    title: "Dates stay connected to what created them.",
-    body: "Plans, reminders and extracted dates live in one calm calendar view, while the original memory remains connected underneath.",
-    tags: ["Day", "Week", "Month"],
-    sprite: 3,
-  },
+  { id: "recall", name: "Recall", title: "Remember a little. Find the rest.", body: "A gift idea. A place someone mentioned. Start with the part you remember. Ask NEVER connects your question to what you saved.", detail: "Natural-language recall with NEVER AI" },
+  { id: "capture", name: "Capture", title: "Keep it before the moment passes.", body: "Save a thought, paste a link or share from another app. A small capture now keeps the idea and its source together for later.", detail: "Notes · Links · Share" },
+  { id: "scan", name: "Scan", title: "The page. And the context behind it.", body: "Scan a document or choose a photo. Keep the original, review the extracted details and save a memory you can return to.", detail: "Original document · Recognized text · Review" },
+  { id: "calendar", name: "Calendar", title: "Remember when it matters.", body: "A reservation becomes a plan. A saved date becomes a reminder. Your calendar keeps the day connected to the memory behind it.", detail: "Dates · Plans · Reminders" },
 ] as const;
-
-function clamp(value: number, min = 0, max = 1) {
-  return Math.min(max, Math.max(min, value));
-}
+const clamp = (value: number) => Math.max(0, Math.min(1, value));
 
 export function ScrollStory() {
   const sectionRef = useRef<HTMLElement>(null);
-  const [progress, setProgress] = useState(0);
-
+  const [active, setActive] = useState(0);
   useEffect(() => {
+    const section = sectionRef.current;
+    if (!section) return;
+    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const copies = section.querySelectorAll<HTMLElement>("[data-copy]");
+    const screens = section.querySelectorAll<HTMLElement>("[data-screen]");
     let frame = 0;
-
+    let visible = true;
+    let chapter = -1;
     const update = () => {
-      const section = sectionRef.current;
-      if (!section) return;
-
-      const rect = section.getBoundingClientRect();
-      const scrollable = Math.max(1, section.offsetHeight - window.innerHeight);
-      setProgress(clamp(-rect.top / scrollable));
+      frame = 0;
+      if (motion.matches || !visible) return;
+      const bounds = section.getBoundingClientRect();
+      const progress = clamp(-bounds.top / Math.max(1, bounds.height - window.innerHeight));
+      // Short holds keep the first and final chapters readable.
+      const position = Math.max(0, Math.min(3, progress * 4 - .5));
+      section.style.setProperty("--story-progress", String(progress));
+      copies.forEach((copy, index) => {
+        const delta = index - position;
+        copy.style.opacity = String(clamp((.49 - Math.abs(delta)) / .22));
+        copy.style.transform = `translate3d(0,${Math.max(-1, Math.min(1, delta)) * 18}px,0)`;
+      });
+      screens.forEach((screen, index) => { screen.style.opacity = String(clamp(1 - Math.abs(index - position))); });
+      const next = Math.round(position);
+      if (next !== chapter) { chapter = next; setActive(next); }
     };
-
-    const onScroll = () => {
-      cancelAnimationFrame(frame);
-      frame = requestAnimationFrame(update);
-    };
-
-    update();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
-
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const configure = () => { section.dataset.enhanced = String(!motion.matches); schedule(); };
+    const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; if (visible) schedule(); }, { rootMargin: "150px" });
+    observer.observe(section);
+    configure();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    motion.addEventListener("change", configure);
     return () => {
-      cancelAnimationFrame(frame);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
+      cancelAnimationFrame(frame); observer.disconnect();
+      window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule); motion.removeEventListener("change", configure);
     };
   }, []);
 
-  const position = progress * (steps.length - 1);
-  const active = Math.min(steps.length - 1, Math.max(0, Math.round(position)));
-  const local = position - Math.floor(position);
-
-  const storyStyle = {
-    "--story-progress": progress,
-    "--local-progress": local,
-  } as CSSProperties;
-
+  function goToChapter(index: number) {
+    const section = sectionRef.current;
+    if (!section) return;
+    if (section.dataset.enhanced !== "true") { section.querySelectorAll("[data-copy]")[index]?.scrollIntoView(); return; }
+    const top = window.scrollY + section.getBoundingClientRect().top;
+    window.scrollTo({ top: top + ((index + .5) / 4) * (section.offsetHeight - window.innerHeight), behavior: "smooth" });
+  }
   return (
-    <section ref={sectionRef} id="experience" className={styles.story} style={storyStyle} aria-label="How NEVER works">
+    <section ref={sectionRef} id="experience" className={styles.story} aria-label="How NEVER works">
       <div className={styles.sticky}>
         <div className={styles.backdrop} aria-hidden="true" />
-        <div className={styles.grid} aria-hidden="true" />
-        <div className={styles.lightSweep} aria-hidden="true" />
-
-        <div className={styles.progressRail} aria-hidden="true">
-          <div className={styles.progressFill} style={{ transform: `scaleY(${Math.max(.015, progress)})` }} />
-        </div>
-
-        <div className={styles.stepDots} aria-hidden="true">
-          {steps.map((step, index) => (
-            <span
-              key={step.id}
-              className={index === active ? styles.dotActive : ""}
-              style={{ opacity: .22 + .78 * clamp(1 - Math.abs(position - index)) }}
-            />
-          ))}
-        </div>
-
         <div className={styles.shell}>
           <div className={styles.copyStack}>
-            {steps.map((step, index) => {
-              const delta = index - position;
-              const visibility = clamp(1 - Math.abs(delta));
-              const copyStyle = {
-                opacity: visibility,
-                transform: `translate3d(0, ${delta * 48}px, 0) scale(${.965 + visibility * .035})`,
-                filter: `blur(${(1 - visibility) * 7}px)`,
-                pointerEvents: visibility > .7 ? "auto" : "none",
-              } as CSSProperties;
-
-              return (
-                <article key={step.id} className={styles.copy} style={copyStyle} aria-hidden={visibility < .5}>
-                  <span className={styles.index}>{step.index}</span>
-                  <h2>{step.title}</h2>
-                  <p>{step.body}</p>
-                  <div className={styles.meta}>{step.tags.map((tag) => <span key={tag}>{tag}</span>)}</div>
-                </article>
-              );
-            })}
+            {steps.map((step, index) => <article key={step.id} data-copy className={styles.copy}>
+              <div className={styles.words}><p className={styles.index}>{String(index + 1).padStart(2, "0")} / {step.name}</p><h2>{step.title}</h2><p className={styles.body}>{step.body}</p><p className={styles.detail}>{step.detail}</p></div>
+              <div className={styles.staticPhone} aria-hidden="true"><Image src={`/screens/${step.id}.webp`} alt="" width={780} height={1688} sizes="260px" /></div>
+            </article>)}
           </div>
-
-          <div className={styles.phoneStage}>
-            <div className={styles.depthHalo} aria-hidden="true" />
-            <div className={styles.deviceShadow} aria-hidden="true" />
-
-            {steps.map((step, index) => {
-              const delta = index - position;
-              const visibility = clamp(1 - Math.abs(delta));
-              const signed = Math.max(-1, Math.min(1, delta));
-              const frameStyle = {
-                opacity: visibility,
-                transform: `translate3d(${signed * 44}px, ${Math.abs(delta) * 34}px, ${-Math.abs(delta) * 150}px) scale(${.91 + visibility * .09}) rotateY(${signed * -8}deg) rotateX(${signed * 1.8}deg)`,
-                filter: `blur(${(1 - visibility) * 5}px) saturate(${.72 + visibility * .28}) brightness(${.82 + visibility * .18})`,
-                zIndex: 20 - Math.round(Math.abs(delta) * 4),
-              } as CSSProperties;
-
-              const screenStyle = {
-                backgroundPosition: `center ${step.sprite * (100 / (steps.length - 1))}%`,
-              } as CSSProperties;
-
-              return (
-                <div key={step.id} className={styles.phoneWrap} style={frameStyle} aria-hidden={visibility < .5}>
-                  <div className={styles.realDevice}>
-                    <div className={styles.deviceEdge} aria-hidden="true" />
-                    <div className={styles.screenViewport} style={screenStyle} role="img" aria-label={`NEVER ${step.id} screen`} />
-                    <div className={styles.screenGlass} aria-hidden="true" />
-                  </div>
-                </div>
-              );
-            })}
+          <div className={styles.phoneStage} aria-hidden="true">
+            <div className={styles.halo} />
+            <div className={styles.device}><div className={styles.screenViewport}>
+              {steps.map((step, index) => <Image data-screen key={step.id} src={`/screens/${step.id}.webp`} alt="" width={780} height={1688} sizes="(max-width: 820px) 230px, 310px" className={styles.screen} style={{ opacity: index === 0 ? 1 : 0 }} />)}
+            </div><div className={styles.island} /><div className={styles.glass} /></div>
           </div>
         </div>
-
-        <div className={styles.chapterIndicator} aria-hidden="true">
-          <span>{String(active + 1).padStart(2, "0")}</span>
-          <i />
-          <span>{String(steps.length).padStart(2, "0")}</span>
-        </div>
-
-        <span className={styles.endHint}>{progress > .9 ? "Continue to Explore" : "Scroll to move through NEVER"}</span>
+        <nav className={styles.chapters} aria-label="Product story chapters">{steps.map((step, index) => <button type="button" key={step.id} onClick={() => goToChapter(index)} aria-current={active === index ? "step" : undefined}><span>{String(index + 1).padStart(2, "0")}</span>{step.name}</button>)}</nav>
+        <div className={styles.rail} aria-hidden="true"><i /></div>
       </div>
     </section>
   );

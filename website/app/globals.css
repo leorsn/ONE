@@ -3,12 +3,12 @@
   --paper:#e9edef;
   --muted:#626e78;
   --line:rgba(22,32,42,.13);
-  --aurora:url('/worlds/aurora.png');
-  --monolith:url('/worlds/monolith.png');
-  --platinum:url('/worlds/platinum.png');
-  --archive:url('/worlds/archive.png');
-  --canyon:url('/worlds/canyon.png');
-  --tidal:url('/worlds/tidal.png');
+  --aurora:url('/worlds/aurora.webp');
+  --monolith:url('/worlds/monolith.webp');
+  --platinum:url('/worlds/platinum.webp');
+  --archive:url('/worlds/archive.webp');
+  --canyon:url('/worlds/canyon.webp');
+  --tidal:url('/worlds/tidal.webp');
   color-scheme:dark
 }
 * {
@@ -23,7 +23,7 @@ body {
   margin:0;
   background:#080c11;
   color:#f1f4f6;
-  font-family:Arial,Helvetica,sans-serif;
+  font-family:-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
   -webkit-font-smoothing:antialiased
 }
 main {
@@ -3236,3 +3236,42 @@ no speculative annual tiers. */
     padding-right:0;
   }
 }
+
+
+/* Launch polish: quiet device materials and editorial membership columns. */
+.hero-orbit,.hero-grid { display:none; }
+.hero h1 { font-weight:450; }
+.hero-phone-stage { transform:translateY(-46%) rotate(-3deg); }
+.phone-frame { padding:5px; border-radius:48px; }
+.phone-bezel { padding:4px; border-radius:43px; }
+.phone-screen { border-radius:39px; }
+.phone-metal { border-radius:47px; }
+.phone-glass { opacity:.28; }
+.cursor { animation:none; }
+.pricing-grid { gap:0; border-block:1px solid #343b402a; }
+.price-card { border:0; border-radius:0; background:transparent; box-shadow:none; padding:48px 48px 48px 0; }
+.price-card-ai { border-left:1px solid #343b402a; background:#dfe4e6; color:var(--ink); padding:48px; }
+.price-card-ai :is(.plan-label,.plan-description,.plan-offer),.price-card-ai .plan-price>span,.price-card-ai .included-label { color:#566670; }
+.price-card-ai li { color:#344650; }
+.price-card-ai li>svg { color:#536d7b; }
+.price-card-ai .price-button { color:#eff3f5; background:#1c252c; }
+.price-card-ai h3>span { color:#445964; border-color:#45596540; }
+.price-card-ai .ai-question { background:transparent; border-color:#5269752a; color:#334650; }
+.price-card-ai .ai-question>span,.price-card-ai .ai-question>small { color:#536875; }
+.world-stage { display:grid; }
+.world-pane { grid-area:1/1; opacity:0; visibility:hidden; pointer-events:none; transition:opacity .38s ease; }
+.world-pane[data-current="true"] { opacity:1; visibility:visible; pointer-events:auto; z-index:2; }
+.world-pane[data-previous="true"] { opacity:1; visibility:visible; z-index:1; }
+.world-panel:hover .world-image { transform:none; }
+@media(min-width:1600px) { .hero-phone-stage { transform:translateY(-46%) rotate(-3deg); } }
+@media(max-width:1150px) and (min-width:901px) { .hero-phone-stage { transform:translateY(-44%) rotate(-3deg) scale(.86); } }
+@media(max-width:900px) { .hero-phone-stage { transform:translate(-50%,-50%) rotate(3deg) scale(.88); } }
+@media(max-width:600px) {
+  .hero-phone-stage { transform:translate(-50%,-50%) rotate(3deg) scale(.77); }
+  .hero h1 { font-size:clamp(44px,12.5vw,64px); }
+  .pricing-grid { grid-template-columns:1fr; }
+  .price-card { padding:36px 0; }
+  .price-card-ai { padding:36px 22px; margin-inline:-22px; border-left:0; border-top:1px solid #343b402a; }
+  .launch-actions { gap:18px; flex-wrap:wrap; }
+}
+@media(prefers-reduced-motion:reduce) { .world-pane { transition:none; } }
