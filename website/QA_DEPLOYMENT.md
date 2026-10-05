@@ -8,7 +8,7 @@ Production domain: https://never-ruddy.vercel.app
 
 ## Verified on 2026-10-05
 
-- Retrieved the complete website source from GitHub commit `5c516b1a8144c96c31d694957c7c5ff75de2548d`.
+- Retrieved the website source from GitHub commit `5c516b1a8144c96c31d694957c7c5ff75de2548d`.
 - Matched all six original PNG files against their Git blob hashes.
 - Confirmed that `never-scroll-sprite.jpg` matches its Git blob hash but is not a decodable image. Replaced its use with four actual app screenshots encoded as WebP.
 - `npm run build` passes compilation, TypeScript and static generation for Home, Explore, metadata, sitemap and robots.
@@ -16,22 +16,33 @@ Production domain: https://never-ruddy.vercel.app
 - Inspected generated HTML for the four story chapters, six Material Worlds, two existing planned memberships, navigation, main-content targets and route metadata.
 - App Store availability remains marked as coming soon. Existing planned prices and trial conditions remain unchanged. No free plan or unlimited quota was added.
 
-## Deployment diagnosis
+## Production replacement
 
-The current production deployment is `dpl_9U6auG3Zrqd9b4NTn4dcBifHVC5s` with source `drop`, empty Git metadata and the old Product / Worlds / Privacy architecture. Vercel's Git deployment context reports no linked projects for the team. The live site does not show the current GitHub branch.
+The former production deployment `dpl_9U6auG3Zrqd9b4NTn4dcBifHVC5s` had source `drop`, empty Git metadata and the old Product / Worlds / Privacy architecture.
 
-The existing production domain must stay on this project. Root directory and Next.js build configuration have been set on the existing project. Git repository connection and the production branch still require dashboard access: the available connector can create a Git-linked project but explicitly cannot reconnect an existing unlinked project of the same name.
+The existing project is now connected to `leorsn/ONE`. Dashboard settings confirm production branch `web/never-launch-site`, root `website`, framework Next.js, build command `npm run build`, and automatic production domain assignment.
 
-## Still required before release approval
+Git commit `f10583486c3b6360364b8b03a576a43eb9631634` was built in preview, then rebuilt in the production environment as `dpl_GL7nRdWeSkY2ohcoXZ78Jcr3sAGM`. Vercel marks this production build as `redeploy`; its GitHub repository, branch and commit metadata are populated, and its build log explicitly records cloning GitHub at that branch and commit. No files were manually uploaded. Both stable aliases point to this Git-based deployment:
+- `never-ruddy.vercel.app`
+- `never-info-71269986.vercel.app`
 
-1. Connect the existing `never` project to `leorsn/ONE` and select production branch `web/never-launch-site`.
-2. Deploy that branch, then verify the SHA, target and production alias.
-3. Browser-check Home and Explore at widths 1440, 1280, 1024, 768, 430 and 390; include short mobile viewports.
-4. Exercise forward/reverse/fast scroll, chapter buttons, refresh halfway through the story, mobile navigation, all six world selections, pricing and privacy anchors.
-5. Exercise reduced motion, JavaScript-disabled reading and keyboard navigation. Check console/hydration errors, decoded images, viewport overflow and failed network requests.
-6. Confirm the actual public production URL serves this commit, including ScrollStory and Explore. A successful build alone is not release verification.
+This report update also checks that a push to the configured branch triggers a new automatic Git production deployment.
 
-Local browser QA was attempted but could not run: agent-browser cannot bind its daemon socket in this runtime, and no Chromium executable is installed. Local HTTP access also failed. No responsive or runtime browser pass is claimed.
+## Public production checks
+
+Checked the actual stable production URL, rather than relying on the preview URL or a successful build:
+- Unauthenticated HTTP requests to Home and `/explore` both return 200.
+- Home shows the new title and ScrollStory architecture. The old “Your memory, organized” title is absent.
+- Browser check at 1363 × 936 confirms enhanced ScrollStory, loaded real app screens, chapter controls and reverse scrolling. Scan and Calendar switch to their corresponding visible screen and text.
+- `/explore` opens through Home navigation and has its own page title.
+- All six world controls work: Aurora, Monolith, Platinum, Archive, Canyon and Tidal. Their thumbnails load and the active heading changes on selection.
+- Pricing anchor opens both planned memberships, €2.99 NEVER and €4.99 NEVER AI, with the existing trial conditions.
+- No horizontal overflow was observed on either route at this viewport.
+- Captured browser warnings/errors were from the browser extension, not application or hydration errors.
+
+## Remaining broader QA
+
+A full responsive test matrix at 1440, 1280, 1024, 768, 430 and 390, short mobile viewports, reduced motion, JavaScript-disabled reading and keyboard navigation is not claimed by this deployment check. Local browser QA was attempted but could not run: agent-browser could not bind its daemon socket and no Chromium executable was installed. The production checks above used the cloud browser.
 
 ## Scope
 
