@@ -431,6 +431,9 @@ a:focus-visible,button:focus-visible {
 .product-intro .kicker {
   grid-column:1/-1
 }
+.product-intro .text-link {
+  color:#415b6d;
+}
 h2,.product-intro h2 {
   font-size:clamp(50px,5.7vw,84px);
   font-weight:400;

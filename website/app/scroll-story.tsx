@@ -24,6 +24,7 @@ export function ScrollStory() {
     let frame = 0;
     let visible = true;
     let chapter = -1;
+    let transitionTimer: ReturnType<typeof setTimeout> | undefined;
     const update = () => {
       frame = 0;
       if (motion.matches || !visible) return;
@@ -32,14 +33,29 @@ export function ScrollStory() {
       // Short holds keep the first and final chapters readable.
       const position = Math.max(0, Math.min(3, progress * 4 - .5));
       section.style.setProperty("--story-progress", String(progress));
-      copies.forEach((copy, index) => {
-        const delta = index - position;
-        copy.style.opacity = String(clamp((.49 - Math.abs(delta)) / .22));
-        copy.style.transform = `translate3d(0,${Math.max(-1, Math.min(1, delta)) * 18}px,0)`;
-      });
-      screens.forEach((screen, index) => { screen.style.opacity = String(clamp(1 - Math.abs(index - position))); });
       const next = Math.round(position);
-      if (next !== chapter) { chapter = next; setActive(next); }
+      if (next !== chapter) {
+        const previous = chapter;
+        clearTimeout(transitionTimer);
+        // Finish each transition even if scrolling stops exactly at a chapter boundary.
+        copies.forEach((copy, index) => {
+          copy.style.opacity = index === next ? "1" : "0";
+          copy.dataset.entering = String(index === next && previous >= 0);
+        });
+        screens.forEach((screen, index) => {
+          screen.style.opacity = index === next || index === previous ? "1" : "0";
+          screen.style.zIndex = index === next ? "2" : "1";
+          screen.dataset.entering = String(index === next && previous >= 0);
+        });
+        chapter = next;
+        setActive(next);
+        transitionTimer = setTimeout(() => {
+          screens.forEach((screen, index) => {
+            screen.style.opacity = index === chapter ? "1" : "0";
+            screen.dataset.entering = "false";
+          });
+        }, 200);
+      }
     };
     const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
     const configure = () => { section.dataset.enhanced = String(!motion.matches); schedule(); };
@@ -51,6 +67,7 @@ export function ScrollStory() {
     motion.addEventListener("change", configure);
     return () => {
       cancelAnimationFrame(frame); observer.disconnect();
+      clearTimeout(transitionTimer);
       window.removeEventListener("scroll", schedule); window.removeEventListener("resize", schedule); motion.removeEventListener("change", configure);
     };
   }, []);
