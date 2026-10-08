@@ -16,7 +16,6 @@ import {
 } from '@/src/subscription/features';
 
 let configured = false;
-let identifiedUserId: string | null = null;
 let identitySyncQueue: Promise<void> = Promise.resolve();
 
 export type PurchaseOutcome = {
@@ -197,7 +196,6 @@ async function syncRevenueCatIdentity(appUserId?: string) {
     const isAnonymous = currentId.startsWith('$RCAnonymousID:');
 
     if (nextUserId === currentId || (!nextUserId && isAnonymous)) {
-      identifiedUserId = nextUserId;
       return;
     }
 
@@ -206,12 +204,10 @@ async function syncRevenueCatIdentity(appUserId?: string) {
     // without aliasing their purchase histories.
     if (!nextUserId) {
       if (!isAnonymous) await Purchases.logOut();
-      identifiedUserId = null;
       return;
     }
 
     await Purchases.logIn(nextUserId);
-    identifiedUserId = nextUserId;
   });
 
   // Recover the queue from a failed transition but propagate this failure
