@@ -201,17 +201,17 @@ async function syncRevenueCatIdentity(appUserId?: string) {
       return;
     }
 
-    // An identified A -> B transition must never directly logIn(B).
-    // Log out first to avoid attaching different NEVER accounts together.
-    if (!isAnonymous) {
-      await Purchases.logOut();
+    // Signing out removes the identified customer from this device.
+    // Direct A -> B logIn is safe: RevenueCat switches identified IDs
+    // without aliasing their purchase histories.
+    if (!nextUserId) {
+      if (!isAnonymous) await Purchases.logOut();
       identifiedUserId = null;
+      return;
     }
 
-    if (nextUserId) {
-      await Purchases.logIn(nextUserId);
-      identifiedUserId = nextUserId;
-    }
+    await Purchases.logIn(nextUserId);
+    identifiedUserId = nextUserId;
   });
 
   // Recover the queue from a failed transition but propagate this failure
