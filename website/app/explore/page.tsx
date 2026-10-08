@@ -15,7 +15,7 @@ export default function ExplorePage() {
       <Navigation explore />
 
       <section className="section product-section" style={{ paddingTop: "180px", minHeight: "72vh" }}>
-        <div id="main-content" tabIndex={-1} className="shell product-intro reveal">
+        <div id="main-content" tabIndex={-1} className="shell product-intro explore-intro reveal">
           <p className="kicker">Explore NEVER</p>
           <h1 style={{ fontSize: "clamp(44px, 9vw, 128px)", lineHeight: ".9", letterSpacing: "-.065em", margin: 0 }}>
             One memory.<br /><span style={{ opacity: .45 }}>Your environment.</span>
