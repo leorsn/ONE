@@ -14,6 +14,12 @@ if (releaseScope === 'appstore' || process.env.NEVER_REQUIRE_BILLING === '1') {
 const failures = [];
 const warnings = [];
 
+const billingRelease = releaseScope === 'appstore' || process.env.NEVER_REQUIRE_BILLING === '1';
+const iosRevenueCatKey = process.env.EXPO_PUBLIC_REVENUECAT_IOS_KEY?.trim();
+if (billingRelease && iosRevenueCatKey && !iosRevenueCatKey.startsWith('appl_')) {
+  failures.push('App Store/TestFlight billing requires an appl_ RevenueCat iOS key; test_ keys are development-only');
+}
+
 for (const name of required) {
   const value = process.env[name]?.trim();
   if (!value) {
