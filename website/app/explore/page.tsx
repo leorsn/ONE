@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { Navigation } from "../navigation";
 import { Icon } from "../icons";
-import { PhoneFrame } from "../phone-frame";
+import { MaterialWorldPhone } from "../material-world-phone";
 import { Pricing } from "../pricing";
 import { WorldGallery } from "../world-gallery";
 import { worlds } from "../worlds";
@@ -38,7 +38,7 @@ export default function ExplorePage() {
             <div className="world-image" aria-hidden="true" />
             <div className="world-scrim" aria-hidden="true" />
             <div className="world-content shell"><span>{world.index} / 06</span><div><h3>{world.name}</h3><p>{world.label}</p></div><small>{world.descriptor}</small></div>
-            <div className="world-phone" aria-hidden="true"><PhoneFrame variant={world.id} screen={world.screen} /></div>
+            <div className="world-phone" aria-hidden="true"><MaterialWorldPhone world={world.id} /></div>
           </article>
         ))} />
       </section>
