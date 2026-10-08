@@ -3285,3 +3285,9 @@ no speculative annual tiers. */
   .explore-intro > .hero-actions { grid-column:1; grid-row:3; justify-self:start; align-self:start; }
   .explore-intro > .lede { grid-column:2; grid-row:3; align-self:start; }
 }
+
+/* Explore sits on a light backdrop; keep glass navigation text legible. */
+.nav.nav-explore {
+  background:linear-gradient(110deg,rgba(11,19,27,.96),rgba(24,37,49,.9));
+  border-color:#ffffff30;
+}
