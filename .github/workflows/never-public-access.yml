@@ -1,0 +1,42 @@
+name: NEVER Public Access Check
+
+on:
+  push:
+    branches:
+      - web/never-launch-site
+    paths:
+      - '.github/workflows/never-public-access.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  anonymous-access:
+    name: Verify public domain without authentication
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Verify Home and Explore from an external runner
+        shell: bash
+        run: |
+          set -euo pipefail
+          for route in / /explore; do
+            url="https://never-ruddy.vercel.app${route}"
+            echo "Testing anonymous request to ${url}"
+            code=""
+            for attempt in 1 2 3 4 5; do
+              if code=$(curl --silent --show-error --location --max-time 15 \
+                  --output "$RUNNER_TEMP/never-public.html" \
+                  --write-out '%{http_code}' \
+                  "${url}"); then
+                [ "${code}" = "200" ] && break
+              fi
+              echo "Attempt ${attempt}: HTTP ${code:-unavailable}"
+              sleep 3
+            done
+            echo "Final status for ${route}: ${code:-unavailable}"
+            test "${code}" = "200"
+            grep -qi 'NEVER' "$RUNNER_TEMP/never-public.html"
+            echo "PASS: ${route} loads anonymously and contains NEVER"
+          done
