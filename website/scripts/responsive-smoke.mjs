@@ -1,0 +1,50 @@
+// Browser smoke tests for NEVER's production build.
+// Run from website/: node scripts/responsive-smoke.mjs
+import { chromium } from "playwright";
+
+const browser = await chromium.launch({ headless: true });
+const viewports = [
+  { width: 390, height: 844 },
+  { width: 430, height: 932 },
+  { width: 768, height: 1024 },
+  { width: 1024, height: 768 },
+  { width: 1440, height: 900 },
+];
+let failures = 0;
+try {
+  for (const viewport of viewports) {
+    const page = await browser.newPage({ viewport, reducedMotion: "reduce" });
+    for (const route of ["/", "/explore"]) {
+      const errors = [];
+      page.on("pageerror", (error) => errors.push(error.message));
+      const response = await page.goto(`http://127.0.0.1:3000${route}`, { waitUntil: "networkidle" });
+      const report = await page.evaluate(() => ({
+        scrollWidth: document.documentElement.scrollWidth,
+        clientWidth: document.documentElement.clientWidth,
+        heading: !!document.querySelector("h1"),
+        mainTarget: !!document.querySelector("#main-content"),
+      }));
+      const valid = response?.status() === 200 && report.heading && report.mainTarget &&
+        report.scrollWidth <= report.clientWidth + 1 && errors.length === 0;
+      console.log(`${valid ? "PASS" : "FAIL"} ${viewport.width}x${viewport.height} ${route}: ${JSON.stringify({ status: response?.status(), ...report, errors })}`);
+      if (!valid) failures++;
+      if (route === "/explore") {
+        const choice = page.getByRole("button", { name: /Monolith/ });
+        await choice.click();
+        await page.waitForTimeout(550);
+        const selected = await choice.getAttribute("aria-pressed");
+        console.log(`${selected === "true" ? "PASS" : "FAIL"} material world selection at ${viewport.width}px`);
+        if (selected !== "true") failures++;
+      }
+    }
+    await page.close();
+  }
+} finally {
+  await browser.close();
+}
+if (failures) {
+  console.error(`FAILED: ${failures} responsive smoke assertions`);
+  process.exitCode = 1;
+} else {
+  console.log("All responsive smoke assertions passed.");
+}
