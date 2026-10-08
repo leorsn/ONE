@@ -52,7 +52,8 @@ try {
       const motionPage = await browser.newPage({ viewport, reducedMotion: "no-preference" });
       const motionErrors = [];
       motionPage.on("pageerror", (error) => motionErrors.push(error.message));
-      await motionPage.goto("http://127.0.0.1:3000/", { waitUntil: "networkidle" });
+      await motionPage.goto("http://127.0.0.1:3000/", { waitUntil: "domcontentloaded", timeout: 15000 });
+      await motionPage.locator("#experience[data-enhanced=\"true\"]").waitFor({ state: "attached", timeout: 15000 });
       const story = motionPage.locator("#experience");
       await story.scrollIntoViewIfNeeded();
       await motionPage.waitForTimeout(450);
