@@ -50,12 +50,13 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const resolvedUserRef = useRef<string | null>(null);
+  const [resolvedIdentity, setResolvedIdentity] = useState<string | null>(null);
   const refreshVersionRef = useRef(0);
   const purchaseLockRef = useRef(false);
   const identityRef = useRef(userId);
   const currentIdentity = userId ?? 'anonymous';
-  const identityReady = resolvedUserRef.current === currentIdentity;
-  const visiblePlan = planForCurrentIdentity(plan, resolvedUserRef.current, currentIdentity);
+  const identityReady = resolvedIdentity === currentIdentity;
+  const visiblePlan = planForCurrentIdentity(plan, resolvedIdentity, currentIdentity);
   useLayoutEffect(() => { identityRef.current = userId; }, [userId]);
 
   const refresh = useCallback(async () => {
@@ -113,6 +114,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     } finally {
       if (version === refreshVersionRef.current) {
         resolvedUserRef.current = identity;
+        setResolvedIdentity(identity);
         setLoading(false);
       }
     }
