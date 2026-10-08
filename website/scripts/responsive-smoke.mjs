@@ -44,6 +44,38 @@ try {
         console.log(`${selected === "true" ? "PASS" : "FAIL"} material world selection at ${viewport.width}px`);
         if (selected !== "true") failures++;
         if (viewport.width === 390 || viewport.width === 1440) {
+          // Confirm the same native HomeV5 hierarchy and that the complete phone
+          // remains inside its world panel (including the bottom tab bar).
+          for (const [id, name] of [["monolith", "Monolith"], ["platinum", "Platinum"], ["archive", "Archive"], ["canyon", "Canyon"], ["tidal", "Tidal"], ["aurora", "Aurora"]]) {
+            const button = page.getByRole("button", { name: new RegExp(name) });
+            await button.click();
+            await page.waitForFunction(
+              (world) => [...document.querySelectorAll(".world-choice")].some(
+                (element) => element.textContent?.includes(world) && element.getAttribute("aria-pressed") === "true"
+              ), name, { timeout: 10000 }
+            );
+            const panel = page.locator(`#world-preview-${id} .world-panel`);
+            const phone = panel.locator(".world-phone > div");
+            const geometry = await phone.evaluate((element) => {
+              const frame = element.getBoundingClientRect();
+              const outer = element.closest(".world-panel")?.getBoundingClientRect();
+              return {
+                inside: !!outer && frame.left >= outer.left + 2 &&
+                  frame.right <= outer.right - 2 && frame.top >= outer.top + 2 &&
+                  frame.bottom <= outer.bottom - 2,
+                appLabels: element.textContent?.includes("Good evening.") &&
+                  element.textContent?.includes("RECALL WITH NEVER") &&
+                  element.textContent?.includes("Capture something") &&
+                  element.textContent?.includes("Settings"),
+              };
+            });
+            const authentic = geometry.inside && geometry.appLabels;
+            console.log(`${authentic ? "PASS" : "FAIL"} ${name} native UI and complete phone at ${viewport.width}px: ${JSON.stringify(geometry)}`);
+            if (!authentic) failures++;
+            await panel.screenshot({ path: `artifacts/visual-qa/${viewport.width}-world-${id}.png` });
+          }
+        }
+        if (viewport.width === 390 || viewport.width === 1440) {
           // Validate every Material World, not only the initial switch.
           for (const name of ["Platinum", "Archive", "Canyon", "Tidal", "Aurora"]) {
             const button = page.getByRole("button", { name: new RegExp(name) });
