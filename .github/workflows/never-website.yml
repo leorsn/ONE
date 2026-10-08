@@ -41,3 +41,18 @@ jobs:
         run: npx tsc --noEmit
       - name: Production build and route generation
         run: npm run build
+      - name: Install browser smoke tooling
+        run: npm install --no-save --no-audit --no-fund --package-lock=false playwright
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: Start production server
+        run: |
+          npm run start -- --hostname 127.0.0.1 > /tmp/never-next.log 2>&1 &
+          for i in $(seq 1 40); do
+            if curl -fsS http://127.0.0.1:3000/ > /dev/null; then exit 0; fi
+            sleep 2
+          done
+          cat /tmp/never-next.log
+          exit 1
+      - name: Responsive browser smoke tests
+        run: node scripts/responsive-smoke.mjs
