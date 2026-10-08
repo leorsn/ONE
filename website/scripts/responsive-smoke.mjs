@@ -37,6 +37,32 @@ try {
         if (selected !== "true") failures++;
       }
     }
+    if (viewport.width <= 430) {
+      await page.goto("http://127.0.0.1:3000/", { waitUntil: "networkidle" });
+      const toggle = page.getByRole("button", { name: "Open navigation" });
+      await toggle.click();
+      const menuOpened = await page.getByRole("button", { name: "Close navigation" }).getAttribute("aria-expanded") === "true"
+        && await page.getByRole("navigation", { name: "Mobile navigation" }).isVisible();
+      await page.keyboard.press("Escape");
+      const menuClosed = await page.getByRole("button", { name: "Open navigation" }).getAttribute("aria-expanded") === "false";
+      console.log(`${menuOpened && menuClosed ? "PASS" : "FAIL"} mobile navigation and Escape at ${viewport.width}px`);
+      if (!menuOpened || !menuClosed) failures++;
+    }
+    if (viewport.width === 390 || viewport.width === 1440) {
+      const motionPage = await browser.newPage({ viewport, reducedMotion: "no-preference" });
+      const motionErrors = [];
+      motionPage.on("pageerror", (error) => motionErrors.push(error.message));
+      await motionPage.goto("http://127.0.0.1:3000/", { waitUntil: "networkidle" });
+      const story = motionPage.locator("#experience");
+      await story.scrollIntoViewIfNeeded();
+      await motionPage.waitForTimeout(450);
+      const enhanced = await story.getAttribute("data-enhanced") === "true";
+      const chapters = await story.getByRole("button").count();
+      const normalMotionWorks = enhanced && chapters === 4 && motionErrors.length === 0;
+      console.log(`${normalMotionWorks ? "PASS" : "FAIL"} animated ScrollStory initialization at ${viewport.width}px: ${JSON.stringify({ enhanced, chapters, motionErrors })}`);
+      if (!normalMotionWorks) failures++;
+      await motionPage.close();
+    }
     await page.close();
   }
 } finally {
