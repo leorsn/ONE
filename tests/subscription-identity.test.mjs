@@ -8,9 +8,9 @@ test('RevenueCat identity follows NEVER account login/logout explicitly', async 
   const revenueCat = await text('src/subscription/revenueCat.ts');
 
   assert.match(revenueCat, /Purchases\.logIn\(nextUserId\)/);
-  assert.match(revenueCat, /identifiedUserId = nextUserId/);
+  assert.match(revenueCat, /Purchases\.getAppUserID\(\)/);
   assert.match(revenueCat, /Purchases\.logOut\(\)/);
-  assert.match(revenueCat, /identifiedUserId = null/);
+  assert.match(revenueCat, /if \(!nextUserId\)/);
 });
 
 test('purchase and restore results cannot apply after NEVER account identity changes', async () => {
@@ -32,7 +32,7 @@ test('RevenueCat serializes auth transitions and separates identified accounts',
   assert.match(revenueCat, /if \(!nextUserId\)\s*\{\s*if \(!isAnonymous\) await Purchases\.logOut\(\)/);
   assert.match(revenueCat, /await Purchases\.logIn\(nextUserId\)/);
   assert.match(revenueCat, /identitySyncQueue = transition\.catch\(\(\) => \{\}\)/);
-  assert.match(context, /planForCurrentIdentity\(plan, resolvedUserRef\.current, currentIdentity\)/);
+  assert.match(context, /planForCurrentIdentity\(plan, resolvedIdentity, currentIdentity\)/);
   assert.match(context, /!billingConfigured \|\| !identityReady \|\| loading \|\| !userId/);
   assert.match(context, /managementUrl: identityReady \? managementUrl : undefined/);
   assert.match(context, /loading: loading \|\| !identityReady/);
