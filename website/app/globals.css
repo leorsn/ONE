@@ -3278,3 +3278,10 @@ no speculative annual tiers. */
   .launch-actions { gap:18px; flex-wrap:wrap; }
 }
 @media(prefers-reduced-motion:reduce) { .world-pane { transition:none; } }
+
+/* Explore hero: keep the editorial two-line headline intact on desktop. */
+@media (min-width:901px) {
+  .explore-intro > h1 { grid-column:1 / -1; }
+  .explore-intro > .hero-actions { grid-column:1; grid-row:3; justify-self:start; align-self:start; }
+  .explore-intro > .lede { grid-column:2; grid-row:3; align-self:start; }
+}
