@@ -17,6 +17,7 @@ import {
 
 let configured = false;
 let identifiedUserId: string | null = null;
+let identitySyncQueue: Promise<void> = Promise.resolve();
 
 export type PurchaseOutcome = {
   ok: boolean;
@@ -188,16 +189,35 @@ function packageFromAvailablePackages(
 async function syncRevenueCatIdentity(appUserId?: string) {
   const nextUserId = appUserId || null;
 
-  if (nextUserId && nextUserId !== identifiedUserId) {
-    await Purchases.logIn(nextUserId);
-    identifiedUserId = nextUserId;
-    return;
-  }
+  // Serialize identity transitions: an older async auth refresh must not
+  // leave the native SDK identified as a different account.
+  const transition = identitySyncQueue.then(async () => {
+    // Re-check native identity even after JS hot reload or app restoration.
+    const currentId = await Purchases.getAppUserID();
+    const isAnonymous = currentId.startsWith('$RCAnonymousID:');
 
-  if (!nextUserId && identifiedUserId) {
-    await Purchases.logOut();
-    identifiedUserId = null;
-  }
+    if (nextUserId === currentId || (!nextUserId && isAnonymous)) {
+      identifiedUserId = nextUserId;
+      return;
+    }
+
+    // An identified A -> B transition must never directly logIn(B).
+    // Log out first to avoid attaching different NEVER accounts together.
+    if (!isAnonymous) {
+      await Purchases.logOut();
+      identifiedUserId = null;
+    }
+
+    if (nextUserId) {
+      await Purchases.logIn(nextUserId);
+      identifiedUserId = nextUserId;
+    }
+  });
+
+  // Recover the queue from a failed transition but propagate this failure
+  // to the caller so paid access is not granted speculatively.
+  identitySyncQueue = transition.catch(() => {});
+  await transition;
 }
 
 function apiKeyForPlatform() {
