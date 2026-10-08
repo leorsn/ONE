@@ -3291,3 +3291,38 @@ no speculative annual tiers. */
   background:linear-gradient(110deg,rgba(11,19,27,.96),rgba(24,37,49,.9));
   border-color:#ffffff30;
 }
+
+/* Native Material World alignment pass (2026-10-08):
+   show the complete device and canonical HomeV5 UI in each of six worlds. 
+   This overrides legacy phone transforms only in the Explore gallery. */
+.world-panel .world-phone {
+  right:10%;
+  left:auto;
+  top:50%;
+  transform:translateY(-50%) rotate(3deg) scale(.96);
+  transform-origin:center;
+  filter:drop-shadow(0 22px 45px rgba(0,0,0,.16));
+}
+.world-monolith .world-phone { transform:translateY(-50%) rotate(-3deg) scale(.96); }
+@media (max-width:1100px) and (min-width:901px) {
+  .world-panel .world-phone { right:7%; transform:translateY(-50%) rotate(3deg) scale(.86); }
+  .world-monolith .world-phone { transform:translateY(-50%) rotate(-3deg) scale(.86); }
+}
+@media (max-width:900px) and (min-width:601px) {
+  .world-panel .world-phone { right:5%; left:auto; top:50%; transform:translateY(-50%) rotate(3deg) scale(.78); }
+  .world-monolith .world-phone { transform:translateY(-50%) rotate(-3deg) scale(.78); }
+}
+@media (max-width:600px) {
+  .world-panel .world-phone {
+    left:50%;
+    right:auto;
+    top:59%;
+    transform:translate(-50%,-50%) rotate(3deg) scale(.79);
+  }
+  .world-monolith .world-phone { transform:translate(-50%,-50%) rotate(-3deg) scale(.79); }
+  .world-panel .world-content > small { position:relative; z-index:6; }
+}
+@media (max-width:360px) {
+  .world-panel .world-phone { transform:translate(-50%,-50%) rotate(3deg) scale(.7); }
+  .world-monolith .world-phone { transform:translate(-50%,-50%) rotate(-3deg) scale(.7); }
+}
