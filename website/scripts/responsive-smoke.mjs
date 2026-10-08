@@ -1,6 +1,9 @@
 // Browser smoke tests for NEVER's production build.
 // Run from website/: node scripts/responsive-smoke.mjs
 import { chromium } from "playwright";
+import { mkdir } from "node:fs/promises";
+
+await mkdir("artifacts/visual-qa", { recursive: true });
 
 const browser = await chromium.launch({ headless: true });
 const viewports = [
@@ -28,6 +31,11 @@ try {
         report.scrollWidth <= report.clientWidth + 1 && errors.length === 0;
       console.log(`${valid ? "PASS" : "FAIL"} ${viewport.width}x${viewport.height} ${route}: ${JSON.stringify({ status: response?.status(), ...report, errors })}`);
       if (!valid) failures++;
+      if (viewport.width === 390 || viewport.width === 1440) {
+        await page.screenshot({
+          path: `artifacts/visual-qa/${viewport.width}-${route === "/" ? "home" : "explore"}.png`,
+        });
+      }
       if (route === "/explore") {
         const choice = page.getByRole("button", { name: /Monolith/ });
         await choice.click();
@@ -62,6 +70,7 @@ try {
       const normalMotionWorks = enhanced && chapters === 4 && motionErrors.length === 0;
       console.log(`${normalMotionWorks ? "PASS" : "FAIL"} animated ScrollStory initialization at ${viewport.width}px: ${JSON.stringify({ enhanced, chapters, motionErrors })}`);
       if (!normalMotionWorks) failures++;
+      await motionPage.screenshot({ path: `artifacts/visual-qa/${viewport.width}-scrollstory.png` });
       await motionPage.close();
     }
     await page.close();
