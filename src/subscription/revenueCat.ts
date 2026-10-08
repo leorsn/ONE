@@ -180,7 +180,7 @@ function packageFromAvailablePackages(
 
   return availablePackages.find(
     (rcPackage) =>
-      rcPackage.identifier === product.revenueCatPackageId ||
+      rcPackage.identifier === product.revenueCatPackageId &&
       rcPackage.product.identifier === product.id
   );
 }
