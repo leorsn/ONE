@@ -1,0 +1,43 @@
+name: NEVER Website QA
+
+on:
+  push:
+    branches:
+      - web/never-launch-site
+    paths:
+      - 'website/**'
+      - '.github/workflows/never-website.yml'
+  pull_request:
+    paths:
+      - 'website/**'
+      - '.github/workflows/never-website.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: never-website-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Website typecheck and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: website
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Install website dependencies without changing repository
+        run: npm install --no-audit --no-fund --package-lock=false
+      - name: TypeScript check
+        run: npx tsc --noEmit
+      - name: Production build and route generation
+        run: npm run build
