@@ -34,6 +34,8 @@ test('account changes clear the old RevenueCat user before login and serialize i
   assert.match(revenueCat, /identitySyncQueue = transition\.catch\(\(\) => \{\}\)/);
   assert.match(context, /planForCurrentIdentity\(plan, resolvedUserRef\.current, currentIdentity\)/);
   assert.match(context, /!billingConfigured \|\| !identityReady \|\| loading \|\| !userId/);
+  assert.match(context, /managementUrl: identityReady \? managementUrl : undefined/);
+  assert.match(context, /loading: loading \|\| !identityReady/);
 });
 
 test('paid access is resolved from active RevenueCat entitlements instead of purchase intent', async () => {
