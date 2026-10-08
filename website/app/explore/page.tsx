@@ -18,7 +18,7 @@ export default function ExplorePage() {
         <div id="main-content" tabIndex={-1} className="shell product-intro explore-intro reveal">
           <p className="kicker">Explore NEVER</p>
           <h1 style={{ fontSize: "clamp(44px, 9vw, 128px)", lineHeight: ".9", letterSpacing: "-.065em", margin: 0 }}>
-            One memory.<br /><span style={{ opacity: .45 }}>Your environment.</span>
+            One memory.<br /><span style={{ opacity: .55 }}>Your environment.</span>
           </h1>
           <p className="lede" style={{ marginTop: "32px" }}>
             Choose your environment. Compare memberships. Get to know the controls behind your personal memory.
