@@ -43,6 +43,31 @@ try {
         const selected = await choice.getAttribute("aria-pressed");
         console.log(`${selected === "true" ? "PASS" : "FAIL"} material world selection at ${viewport.width}px`);
         if (selected !== "true") failures++;
+        if (viewport.width === 390 || viewport.width === 1440) {
+          // Validate every Material World, not only the initial switch.
+          for (const name of ["Platinum", "Archive", "Canyon", "Tidal", "Aurora"]) {
+            const button = page.getByRole("button", { name: new RegExp(name) });
+            await button.click();
+            await page.waitForFunction(
+              (world) => [...document.querySelectorAll(".world-choice")].some(
+                (element) => element.textContent?.includes(world) && element.getAttribute("aria-pressed") === "true"
+              ),
+              name,
+              { timeout: 10000 },
+            );
+            const controls = await button.getAttribute("aria-controls");
+            const visible = controls ? await page.locator(`#${controls}`).getAttribute("aria-hidden") === "false" : false;
+            console.log(`${visible ? "PASS" : "FAIL"} ${name} preview at ${viewport.width}px`);
+            if (!visible) failures++;
+          }
+          await page.evaluate(() => {
+            const panel = document.querySelector(".world-pane[data-current='true'] .world-panel");
+            if (panel) window.scrollTo({ top: window.scrollY + panel.getBoundingClientRect().top - 20, behavior: "instant" });
+          });
+          await page.screenshot({ path: `artifacts/visual-qa/${viewport.width}-worlds.png` });
+          await page.evaluate(() => document.getElementById("pricing")?.scrollIntoView({ block: "start", behavior: "instant" }));
+          await page.screenshot({ path: `artifacts/visual-qa/${viewport.width}-pricing.png` });
+        }
       }
     }
     if (viewport.width <= 430) {
