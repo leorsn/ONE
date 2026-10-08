@@ -1,0 +1,114 @@
+/* A website-only, proportional representation of the current native NEVER
+   HomeV5 (Pass 3). Artwork comes from the six bundled app worlds. */
+.device {
+  --ink: #19212a;
+  --muted: #36424e;
+  --recall: #36577d;
+  --recall-ink: #fff;
+  --recall-secondary: #d3dfeb;
+  --glyph: #d7e6f7;
+  --composer: rgba(241,246,249,.88);
+  --composer-ink: #1d2830;
+  --action: rgba(240,245,247,.85);
+  --action-ink: #27343e;
+  --nav: rgba(240,245,247,.88);
+  --border: rgba(255,255,255,.34);
+  position:relative;
+  width:316px;
+  aspect-ratio:390 / 844;
+  border-radius:47px;
+  padding:5px;
+  background:linear-gradient(125deg,#e5e9eb,#60656a 15%,#161a1e 42%,#4a5055 65%,#dde1e4 100%);
+  box-shadow:0 28px 65px #0006,0 0 0 1px #ffffff3d,inset 0 1px 0 #ffffffa6;
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  font-family:Arial,Helvetica,sans-serif;
+  flex-shrink:0;
+}
+.rim { width:100%;height:100%;padding:4px;border-radius:42px;background:#050608;box-shadow:inset 0 0 0 1px #ffffff18; }
+.screen { position:relative; height:100%;width:100%; overflow:hidden; border-radius:38px;background:#c9d4db;isolation:isolate; }
+.wallpaper, .wallpaperShade {position:absolute;inset:0;pointer-events:none;}
+.wallpaper {background-size:cover;background-position:center;transform:scale(1.015);}
+.wallpaperShade {background:linear-gradient(180deg,#ffffff16,#ffffff08 36%,#ffffff0b 74%,#ffffff1e);}
+.aurora .wallpaper {background-image:url('/worlds/aurora.webp');}
+.monolith .wallpaper {background-image:url('/worlds/monolith.webp');}
+.platinum .wallpaper {background-image:url('/worlds/platinum.webp');}
+.archive .wallpaper {background-image:url('/worlds/archive.webp');}
+.canyon .wallpaper {background-image:url('/worlds/canyon.webp');}
+.tidal .wallpaper {background-image:url('/worlds/tidal.webp');}
+.monolith, .canyon {
+  --ink:#fcfdfd; --muted:#f0f1f1;
+  --composer:rgba(39,43,47,.88); --composer-ink:#fafbfc;
+  --action:rgba(38,43,46,.8); --action-ink:#f6f7f8;
+  --nav:rgba(28,33,38,.78); --border:rgba(255,255,255,.15);
+}
+.monolith .wallpaperShade {background:linear-gradient(180deg,#02040618,#03060822 45%,#050a0b2b);}
+.canyon .wallpaperShade {background:linear-gradient(180deg,#2f130613,#3e1e0930 54%,#150b0630);}
+.archive {
+  --ink:#fcfdfd; --muted:#f2efe7;
+  --recall:#4e6a57; --recall-ink:#f7f5f0; --recall-secondary:#eee7dc;
+  --glyph:#c8d1c2;
+  --composer:rgba(63,86,72,.88); --composer-ink:#f7f5f0;
+  --action:#5b4638; --action-ink:#f7f5f0;
+  --nav:rgba(52,69,56,.82); --border:rgba(247,245,240,.2);
+}
+.archive .wallpaperShade {background:linear-gradient(180deg,#142a1a9e 0%,#182b1870 37%,#11201918 66%,#11201940);}
+.tidal {
+  --ink:#fcfdfd; --muted:#f5fbfb;
+  --recall:#b7dce3; --recall-ink:#1f2b30; --recall-secondary:#31464e;
+  --glyph:#31464e;
+  --composer:rgba(140,184,194,.96); --composer-ink:#1f2b30;
+  --action:#45636b; --action-ink:#f8fcfd;
+  --nav:rgba(140,184,194,.90); --border:rgba(79,110,120,.65);
+}
+.tidal .wallpaperShade {background:linear-gradient(180deg,#082c419b 0%,#06334973 37%,#0057701a 65%,#06334940);}
+.status {position:absolute;z-index:4;top:13px;left:21px;right:19px;display:flex;align-items:center;justify-content:space-between;font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--ink);text-shadow:0 1px 7px #fff5;}
+.statusMarks {font-size:10px;letter-spacing:1px;}
+.island {position:absolute;top:11px;left:50%;transform:translateX(-50%);width:89px;height:24px;z-index:5;border-radius:18px;background:#050607;box-shadow:0 0 0 1px #ffffff18;}
+.page {position:absolute;z-index:2;top:49px;left:17px;right:17px;bottom:66px;}
+.topBar {display:flex;align-items:center;justify-content:space-between;min-height:27px;}
+.wordmark {font-size:10px;font-weight:650;letter-spacing:.3em;display:flex;align-items:center;gap:5px;}
+.wordmark i {display:block;width:9px;height:7px;border-top:1px solid currentColor;border-bottom:1px solid currentColor;opacity:.66;}
+.settings {display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:rgba(255,255,255,.19);color:var(--ink);}
+.settings svg {width:12px;height:12px;}
+.intro {margin-top:23px;max-width:268px;text-shadow:0 1px 11px #ffffff1c;}
+.eyebrow {display:block;font-size:8px;font-weight:700;letter-spacing:1.1px;}
+.intro strong {display:block;margin-top:6px;font-size:29px;font-weight:400;line-height:1.05;letter-spacing:-1.3px;white-space:nowrap;}
+.intro p {margin-top:7px;max-width:220px;font-size:10.3px;line-height:1.4; color:var(--muted);}
+.ask {margin-top:23px;border-radius:21px;padding:16px 16px 14px;min-height:166px;background:var(--recall);color:var(--recall-ink);box-shadow:0 10px 23px #00000018;display:flex;flex-direction:column;justify-content:space-between;}
+.askMeta {display:flex;gap:8px;align-items:center;font-size:8px;font-weight:700;letter-spacing:.065em;color:var(--recall-secondary);}
+.askGlyph {display:grid;place-items:center;width:25px;height:25px;border-radius:50%;background:var(--glyph);color:var(--recall);}
+.askGlyph svg {width:13px;height:13px;}
+.tidal .askGlyph {color:#b7dce3;}
+.ask strong {font-size:19px;line-height:1.12;font-weight:600;letter-spacing:-.5px;max-width:225px;margin-top:11px;}
+.ask p {font-size:9px;line-height:1.35;margin-top:7px;color:var(--recall-secondary);max-width:237px;}
+.askFooter {display:flex;align-items:center;justify-content:space-between;font-size:10px;font-weight:600;margin-top:12px;}
+.askFooter span {color:var(--recall-secondary);font-size:15px;}
+.capture {margin-top:14px;min-height:41px;border-radius:22px;border:1px solid var(--border);background:var(--composer);display:flex;align-items:center;gap:10px;padding:5px 9px 5px 5px;color:var(--composer-ink);font-size:11px;backdrop-filter:blur(10px);}
+.capturePlus {display:grid;place-items:center;width:31px;height:31px;flex:none;border-radius:50%;background:#252b31;color:#fff;}
+.capturePlus svg {width:18px;height:18px;}
+.shortcuts {display:flex;gap:21px;margin-top:15px;padding-left:3px;}
+.shortcuts>div {display:flex;flex-direction:column;align-items:center;gap:5px;min-width:34px;}
+.shortcuts>div>span {width:32px;height:32px;display:grid;place-items:center;border-radius:50%;background:var(--action);color:var(--action-ink);backdrop-filter:blur(7px);}
+.shortcuts svg {width:15px;height:15px;}
+.shortcuts small {font-size:8px;color:var(--ink);font-weight:600;text-shadow:0 1px 7px #00000023;}
+.recent {margin-top:17px;}
+.recentHeading {display:flex;align-items:center;justify-content:space-between;font-size:12px;font-weight:600;}
+.recentHeading span {font-size:9px;font-weight:500;}
+.memoryRow {display:flex;gap:10px;align-items:center;margin-top:9px;padding:8px 10px;border-radius:12px;background:rgba(245,248,249,.26);backdrop-filter:blur(7px);}
+.memoryIcon {display:grid;place-items:center;width:28px;height:28px;flex:none;border-radius:8px;background:var(--action);color:var(--action-ink);}
+.memoryIcon svg {width:14px;height:14px;}
+.memoryRow>span:nth-child(2) {display:flex;flex-direction:column;gap:3px;}
+.memoryRow b {font-size:9px;font-weight:650;}
+.memoryRow small {font-size:8px;color:var(--muted);}
+.memoryRow>i {margin-left:auto;font-size:15px;font-style:normal;}
+.tabs {position:absolute;z-index:6;bottom:16px;left:9px;right:9px;min-height:44px;padding:6px 9px;display:flex;align-items:center;justify-content:space-between;border-radius:16px;background:var(--nav);color:var(--composer-ink);border:1px solid var(--border);box-shadow:0 3px 14px #00000020;backdrop-filter:blur(15px);}
+.tabs>div {width:48px;display:flex;align-items:center;flex-direction:column;gap:3px;opacity:.82;}
+.tabs .current {opacity:1;font-weight:700;}
+.tabs svg {width:14px;height:14px;}
+.tabs small {font-size:7px;line-height:1;}
+.homeIndicator {position:absolute;bottom:4px;left:50%;transform:translateX(-50%);background:var(--ink);height:3px;width:74px;border-radius:4px;z-index:7;opacity:.75;}
+@media(prefers-reduced-motion:reduce) { .device * {transition:none!important;animation:none!important;} }
+
+/* Native light-on-artwork legibility for the approved Archive/Tidal exceptions. */
+:is(.archive,.tidal) .intro { text-shadow:0 1px 10px rgba(0,0,0,.76); }
