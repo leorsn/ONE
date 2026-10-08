@@ -17,7 +17,7 @@ export function Navigation({ explore = false }: { explore?: boolean }) {
   const menuButton = useRef<HTMLButtonElement>(null);
 
   return (
-    <header className="nav shell" data-open={open} onKeyDown={(event) => {
+    <header className={`nav shell${explore ? " nav-explore" : ""}`} data-open={open} onKeyDown={(event) => {
       if (event.key === "Escape" && open) {
         setOpen(false);
         menuButton.current?.focus();
