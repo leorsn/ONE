@@ -140,7 +140,7 @@ Keep the final NEVER bundle IDs, URL scheme, App Group and approved StoreKit/Rev
 
 Not V1 release blockers:
 
-- HTTPS Universal Links/Associated Domains replacing or complementing the current compatibility `one://` auth callbacks.
+- HTTPS Universal Links/Associated Domains replacing or complementing the current `never://` auth callbacks.
 - optional migration of remaining legacy internal `one` identifiers after V1 stability.
 - broader collaboration, shared accounts, desktop/browser clients or new automation systems.
 - speculative vector/search redesigns without a measured V1 defect.
