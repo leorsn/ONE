@@ -52,7 +52,7 @@
   --action:#5b4638; --action-ink:#f7f5f0;
   --nav:rgba(52,69,56,.82); --border:rgba(247,245,240,.2);
 }
-.archive .wallpaperShade {background:linear-gradient(180deg,#21392036,#182b182e 48%,#1120193d);}
+.archive .wallpaperShade {background:linear-gradient(180deg,#142a1a9e 0%,#182b1870 37%,#11201918 66%,#11201940);}
 .tidal {
   --ink:#fcfdfd; --muted:#f5fbfb;
   --recall:#b7dce3; --recall-ink:#1f2b30; --recall-secondary:#31464e;
@@ -61,7 +61,7 @@
   --action:#45636b; --action-ink:#f8fcfd;
   --nav:rgba(140,184,194,.90); --border:rgba(79,110,120,.65);
 }
-.tidal .wallpaperShade {background:linear-gradient(180deg,#00334a4d,#00577025 55%,#0633493b);}
+.tidal .wallpaperShade {background:linear-gradient(180deg,#082c419b 0%,#06334973 37%,#0057701a 65%,#06334940);}
 .status {position:absolute;z-index:4;top:13px;left:21px;right:19px;display:flex;align-items:center;justify-content:space-between;font-size:10px;font-weight:700;letter-spacing:.04em;color:var(--ink);text-shadow:0 1px 7px #fff5;}
 .statusMarks {font-size:10px;letter-spacing:1px;}
 .island {position:absolute;top:11px;left:50%;transform:translateX(-50%);width:89px;height:24px;z-index:5;border-radius:18px;background:#050607;box-shadow:0 0 0 1px #ffffff18;}
@@ -109,3 +109,6 @@
 .tabs small {font-size:7px;line-height:1;}
 .homeIndicator {position:absolute;bottom:4px;left:50%;transform:translateX(-50%);background:var(--ink);height:3px;width:74px;border-radius:4px;z-index:7;opacity:.75;}
 @media(prefers-reduced-motion:reduce) { .device * {transition:none!important;animation:none!important;} }
+
+/* Native light-on-artwork legibility for the approved Archive/Tidal exceptions. */
+:is(.archive,.tidal) .intro { text-shadow:0 1px 10px rgba(0,0,0,.76); }
