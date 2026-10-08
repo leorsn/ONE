@@ -203,14 +203,14 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       billingConfigured,
       localizedPrices,
       introOffers,
-      managementUrl,
-      loading,
+      managementUrl: identityReady ? managementUrl : undefined,
+      loading: loading || !identityReady,
       purchasing,
       purchase,
       restore,
       refresh
     }),
-    [visiblePlan, billingConfigured, localizedPrices, introOffers, managementUrl, loading, purchasing, purchase, restore, refresh]
+    [visiblePlan, identityReady, billingConfigured, localizedPrices, introOffers, managementUrl, loading, purchasing, purchase, restore, refresh]
   );
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;
