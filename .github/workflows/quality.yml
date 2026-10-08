@@ -6,9 +6,11 @@ on:
       - main
       - dev/foundation
       - 'design/**'
+      - 'fix/never-*'
   pull_request:
     branches:
       - main
+      - 'design/**'
   workflow_dispatch:
 
 permissions:

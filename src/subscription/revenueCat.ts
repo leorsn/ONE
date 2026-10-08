@@ -16,7 +16,7 @@ import {
 } from '@/src/subscription/features';
 
 let configured = false;
-let identifiedUserId: string | null = null;
+let identitySyncQueue: Promise<void> = Promise.resolve();
 
 export type PurchaseOutcome = {
   ok: boolean;
@@ -180,7 +180,7 @@ function packageFromAvailablePackages(
 
   return availablePackages.find(
     (rcPackage) =>
-      rcPackage.identifier === product.revenueCatPackageId ||
+      rcPackage.identifier === product.revenueCatPackageId &&
       rcPackage.product.identifier === product.id
   );
 }
@@ -188,16 +188,32 @@ function packageFromAvailablePackages(
 async function syncRevenueCatIdentity(appUserId?: string) {
   const nextUserId = appUserId || null;
 
-  if (nextUserId && nextUserId !== identifiedUserId) {
-    await Purchases.logIn(nextUserId);
-    identifiedUserId = nextUserId;
-    return;
-  }
+  // Serialize identity transitions: an older async auth refresh must not
+  // leave the native SDK identified as a different account.
+  const transition = identitySyncQueue.then(async () => {
+    // Re-check native identity even after JS hot reload or app restoration.
+    const currentId = await Purchases.getAppUserID();
+    const isAnonymous = currentId.startsWith('$RCAnonymousID:');
 
-  if (!nextUserId && identifiedUserId) {
-    await Purchases.logOut();
-    identifiedUserId = null;
-  }
+    if (nextUserId === currentId || (!nextUserId && isAnonymous)) {
+      return;
+    }
+
+    // Signing out removes the identified customer from this device.
+    // Direct A -> B logIn is safe: RevenueCat switches identified IDs
+    // without aliasing their purchase histories.
+    if (!nextUserId) {
+      if (!isAnonymous) await Purchases.logOut();
+      return;
+    }
+
+    await Purchases.logIn(nextUserId);
+  });
+
+  // Recover the queue from a failed transition but propagate this failure
+  // to the caller so paid access is not granted speculatively.
+  identitySyncQueue = transition.catch(() => {});
+  await transition;
 }
 
 function apiKeyForPlatform() {

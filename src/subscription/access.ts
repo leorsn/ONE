@@ -9,6 +9,15 @@ export function fallbackPlanForRuntime(isDevelopment: boolean): OnePlan {
   return isDevelopment ? BETA_PLAN : 'none';
 }
 
+/** Never show an entitlement resolved for a different authentication identity. */
+export function planForCurrentIdentity(
+  plan: OnePlan,
+  resolvedIdentity: string | null,
+  currentIdentity: string
+): OnePlan {
+  return resolvedIdentity === currentIdentity ? plan : 'none';
+}
+
 export function isDevelopmentBetaAccess(
   isDevelopment: boolean,
   billingConfigured: boolean

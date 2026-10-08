@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useAuth } from '@/src/context/AuthContext';
-import { fallbackPlanForRuntime, isDevelopmentBetaAccess } from '@/src/subscription/access';
+import { fallbackPlanForRuntime, isDevelopmentBetaAccess, planForCurrentIdentity } from '@/src/subscription/access';
 import {
   hasPlanFeature,
   type OnePlan,
@@ -50,9 +50,13 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const resolvedUserRef = useRef<string | null>(null);
+  const [resolvedIdentity, setResolvedIdentity] = useState<string | null>(null);
   const refreshVersionRef = useRef(0);
   const purchaseLockRef = useRef(false);
   const identityRef = useRef(userId);
+  const currentIdentity = userId ?? 'anonymous';
+  const identityReady = resolvedIdentity === currentIdentity;
+  const visiblePlan = planForCurrentIdentity(plan, resolvedIdentity, currentIdentity);
   useLayoutEffect(() => { identityRef.current = userId; }, [userId]);
 
   const refresh = useCallback(async () => {
@@ -110,6 +114,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     } finally {
       if (version === refreshVersionRef.current) {
         resolvedUserRef.current = identity;
+        setResolvedIdentity(identity);
         setLoading(false);
       }
     }
@@ -132,7 +137,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   }, [refresh]);
 
   const purchase = useCallback(async (nextPlan: PaidOnePlan) => {
-    if (!billingConfigured) {
+    if (!billingConfigured || !identityReady || loading || !userId) {
       return {
         ok: false,
         error: 'App Store billing is not configured in this build.'
@@ -159,10 +164,10 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       purchaseLockRef.current = false;
       setPurchasing(false);
     }
-  }, [billingConfigured, userId]);
+  }, [billingConfigured, identityReady, loading, userId]);
 
   const restore = useCallback(async () => {
-    if (!billingConfigured) {
+    if (!billingConfigured || !identityReady || loading || !userId) {
       return {
         ok: false,
         error: 'App Store billing is not configured in this build.'
@@ -189,25 +194,25 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       purchaseLockRef.current = false;
       setPurchasing(false);
     }
-  }, [billingConfigured, userId]);
+  }, [billingConfigured, identityReady, loading, userId]);
 
   const value = useMemo<PlanContextValue>(
     () => ({
-      plan,
-      hasBaseAccess: plan === 'one' || plan === 'one_ai',
-      hasAi: hasPlanFeature(plan, 'ask_one'),
+      plan: visiblePlan,
+      hasBaseAccess: visiblePlan === 'one' || visiblePlan === 'one_ai',
+      hasAi: hasPlanFeature(visiblePlan, 'ask_one'),
       isBetaAccess: isDevelopmentBetaAccess(__DEV__, billingConfigured),
       billingConfigured,
       localizedPrices,
       introOffers,
-      managementUrl,
-      loading,
+      managementUrl: identityReady ? managementUrl : undefined,
+      loading: loading || !identityReady,
       purchasing,
       purchase,
       restore,
       refresh
     }),
-    [plan, billingConfigured, localizedPrices, introOffers, managementUrl, loading, purchasing, purchase, restore, refresh]
+    [visiblePlan, identityReady, billingConfigured, localizedPrices, introOffers, managementUrl, loading, purchasing, purchase, restore, refresh]
   );
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;

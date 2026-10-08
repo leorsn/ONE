@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { fallbackPlanForRuntime, isDevelopmentBetaAccess } from '../src/subscription/access.ts';
+import { fallbackPlanForRuntime, isDevelopmentBetaAccess, planForCurrentIdentity } from '../src/subscription/access.ts';
 import { hasPlanFeature, planIncludesRequestedAccess } from '../src/subscription/features.ts';
 
 test('development may use NEVER AI beta access without configured billing', () => {
@@ -19,6 +19,14 @@ test('preview and production never receive paid access from missing billing conf
 test('configured billing disables development beta labeling and defers access to RevenueCat state', () => {
   assert.equal(isDevelopmentBetaAccess(true, true), false);
   assert.equal(isDevelopmentBetaAccess(false, true), false);
+});
+
+test('paid access is blocked until the current account identity has been resolved', () => {
+  assert.equal(planForCurrentIdentity('one_ai', 'account-A', 'account-B'), 'none');
+  assert.equal(planForCurrentIdentity('one', 'account-A', 'anonymous'), 'none');
+  assert.equal(planForCurrentIdentity('one_ai', null, 'account-B'), 'none');
+  assert.equal(planForCurrentIdentity('one_ai', 'account-B', 'account-B'), 'one_ai');
+  assert.equal(planForCurrentIdentity('one', 'account-B', 'account-B'), 'one');
 });
 
 test('active entitlement must satisfy the purchased NEVER tier', () => {
