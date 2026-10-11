@@ -68,11 +68,12 @@ const CLOUD_SELECT = [
   'document_kind,merchant,amount,currency,tags,entities,created_at,updated_at'
 ].join(',');
 
-export async function pullCloudItems(): Promise<OneItem[]> {
+export async function pullCloudItems(userId: string): Promise<OneItem[]> {
   const rows = await collectPagedRows<CloudItemRow>(async (from, to) => {
     const { data, error } = await supabase
       .from('items')
       .select(CLOUD_SELECT)
+      .eq('user_id', userId)
       .order('updated_at', { ascending: false })
       .order('id', { ascending: true })
       .range(from, to);
@@ -104,8 +105,8 @@ export async function upsertCloudItem(
   }
 }
 
-export async function deleteCloudItem(id: string) {
-  const { error } = await supabase.from('items').delete().eq('id', id);
+export async function deleteCloudItem(id: string, userId: string) {
+  const { error } = await supabase.from('items').delete().eq('id', id).eq('user_id', userId);
   if (error) throw error;
 }
 

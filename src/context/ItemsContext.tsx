@@ -230,7 +230,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
       try {
         const pullSnapshot = itemsRef.current;
         const [cloud, activeTombstones, migrationState] = await Promise.all([
-          pullCloudItems(),
+          pullCloudItems(syncUserId),
           loadDeletionTombstones(syncUserId),
           loadLocalMigrationState()
         ]);
@@ -288,7 +288,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
           const tombstone = activeTombstones.find((entry) => entry.id === operation.itemId);
           if (!tombstone) continue;
           try {
-            await deleteCloudItem(tombstone.id);
+            await deleteCloudItem(tombstone.id, syncUserId);
             await removeCloudAttachments(tombstone.attachmentPaths, syncUserId);
             await removeDeletionTombstone(tombstone.id, syncUserId);
           } catch (error) {
@@ -586,7 +586,7 @@ export function ItemsProvider({ children }: { children: React.ReactNode }) {
     if (!userId || !tombstone) return;
 
     try {
-      await deleteCloudItem(id);
+      await deleteCloudItem(id, userId);
       await removeCloudAttachments(cloudAttachmentPaths, userId);
       await removeDeletionTombstone(id, userId);
     } catch (error) {
