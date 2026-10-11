@@ -18,12 +18,16 @@ for (const theme of Object.values(themes)) test(`${theme.id} production preview,
     assert.match(markup, /aria-label="Capture"/);
     assert.doesNotMatch(markup, /NaN/);
     const asset = { tactile: 'canyon', orbit: 'tidal' }[theme.id] ?? theme.id;
-    assert.equal(images.length, 1);
-    assert.equal(images[0].source.uri, `/assets/material-worlds/${asset}.png`);
-    assert.equal(images[0].resizeMode, 'cover');
-    const style = StyleSheet.flatten(images[0].style);
-    assert.equal(style.width, '100%');
-    assert.equal(style.height, '100%');
+    if (theme.id === 'platinum' || theme.id === 'monolith') {
+      assert.equal(images.length, 0, 'Clean Light/Dark must not render old material-world imagery');
+    } else {
+      assert.equal(images.length, 1);
+      assert.equal(images[0].source.uri, `/assets/material-worlds/${asset}.png`);
+      assert.equal(images[0].resizeMode, 'cover');
+      const style = StyleSheet.flatten(images[0].style);
+      assert.equal(style.width, '100%');
+      assert.equal(style.height, '100%');
+    }
   }
 });
 test('System preview uses plain light and dark without premium artwork', () => {
