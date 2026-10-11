@@ -35,6 +35,7 @@ export default function UpgradeScreen() {
   const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('year');
   const [purchasingPlan, setPurchasingPlan] = useState<PurchasePlan | null>(null);
   const hardPaywall = plan === 'none' && !isBetaAccess;
+  const showPlannedSavings = !billingConfigured;
   const annual = billingPeriod === 'year';
   const selectedPrices = annual ? yearlyPrices : localizedPrices;
   const neverProduct = annual ? subscriptionProducts.oneYearly : subscriptionProducts.oneMonthly;
@@ -42,10 +43,10 @@ export default function UpgradeScreen() {
   const neverPrice = storefrontPrice(selectedPrices.one, billingConfigured, neverProduct.priceEUR);
   const neverAiPrice = storefrontPrice(selectedPrices.one_ai, billingConfigured, neverAiProduct.priceEUR);
   const neverOffer = annual
-    ? (billingConfigured ? (selectedPrices.one ? 'Billed annually · auto-renews' : 'Unavailable in the current App Store offering') : 'Planned annual price · save 30%')
+    ? (billingConfigured ? (selectedPrices.one ? 'Billed annually · auto-renews' : 'Unavailable in the current App Store offering') : 'Planned annual price · billed once per year')
     : storefrontOffer(introOffers.one, localizedPrices.one, billingConfigured, `Planned pricing · ${formatEUR(subscriptionProducts.oneMonthly.priceEUR)}/month`);
   const neverAiOffer = annual
-    ? (billingConfigured ? (selectedPrices.one_ai ? 'Billed annually · auto-renews' : 'Unavailable in the current App Store offering') : 'Planned annual price · save 25%')
+    ? (billingConfigured ? (selectedPrices.one_ai ? 'Billed annually · auto-renews' : 'Unavailable in the current App Store offering') : 'Planned annual price · billed once per year')
     : storefrontOffer(introOffers.one_ai, localizedPrices.one_ai, billingConfigured, `Planned pricing · ${formatEUR(subscriptionProducts.oneAiMonthly.priceEUR)}/month`);
 
   async function openLegal(label: string, url?: string) {
@@ -97,6 +98,8 @@ export default function UpgradeScreen() {
           features={baseFeatures}
           planKey="one"
           current={plan === 'one'}
+          savings={annual && showPlannedSavings ? 'SAVE 30%' : undefined}
+          monthlyEquivalent={annual && showPlannedSavings ? `${formatEUR(subscriptionProducts.oneYearly.priceEUR / 12)} / month equivalent` : undefined}
         />
 
         <PlanCard
@@ -108,6 +111,8 @@ export default function UpgradeScreen() {
           features={aiFeatures}
           planKey="one_ai"
           current={plan === 'one_ai'}
+          savings={annual && showPlannedSavings ? 'SAVE 25%' : undefined}
+          monthlyEquivalent={annual && showPlannedSavings ? `${formatEUR(subscriptionProducts.oneAiYearly.priceEUR / 12)} / month equivalent` : undefined}
           featured
         />
 
@@ -159,7 +164,7 @@ export default function UpgradeScreen() {
     </NeverScreen>
   );
 
-  function PlanCard({ name, descriptor, price, period, offer, features, planKey, current = false, featured = false }: {
+  function PlanCard({ name, descriptor, price, period, offer, features, planKey, savings, monthlyEquivalent, current = false, featured = false }: {
     name: string;
     descriptor: string;
     price: string;
@@ -167,6 +172,8 @@ export default function UpgradeScreen() {
     offer: string;
     features: string[];
     planKey: PurchasePlan;
+    savings?: string;
+    monthlyEquivalent?: string;
     current?: boolean;
     featured?: boolean;
   }) {
@@ -177,8 +184,9 @@ export default function UpgradeScreen() {
 
     return (
       <View style={styles.planSection}>
-        <V5Group style={styles.planCard}>
+        <V5Group style={[styles.planCard, featured ? { borderWidth: 1, borderColor: p.chrome } : undefined]}>
           <View style={styles.planTop}>
+            {featured ? <View style={styles.featuredRow}><Text style={[styles.featuredLabel, { color: p.chrome }]}>THE COMPLETE NEVER EXPERIENCE</Text></View> : null}
             <View style={styles.planNameRow}>
               <View style={[styles.planIcon, { backgroundColor: featured ? p.graphite : p.fillSoft }]}>
                 <OneIcon name={featured ? icons.ask : icons.saved} size={17} color={featured ? p.onAccent : p.chrome} />
@@ -194,6 +202,8 @@ export default function UpgradeScreen() {
               <Text style={[styles.price, { color: p.label }]}>{price}</Text>
               {period ? <Text style={[styles.period, { color: p.tertiary }]}>{period}</Text> : null}
             </View>
+            {savings ? <View style={[styles.savingsBadge, { backgroundColor: p.fillSoft }]}><Text style={[styles.savingsText, { color: p.chrome }]}>{savings}</Text></View> : null}
+            {monthlyEquivalent ? <Text style={[styles.equivalent, { color: p.secondary }]}>{monthlyEquivalent}</Text> : null}
             <Text style={[styles.offer, { color: p.tertiary }]}>{offer}</Text>
           </View>
 
@@ -272,6 +282,11 @@ const styles = StyleSheet.create({
   navTitle: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
   planSection: { gap: 6 },
   planCard: { padding: 15 },
+  featuredRow: { flexDirection: 'row', marginBottom: 14 },
+  featuredLabel: { fontSize: 10, lineHeight: 14, fontWeight: '700', letterSpacing: 1.2 },
+  savingsBadge: { alignSelf: 'flex-start', marginTop: 10, borderRadius: 8, paddingVertical: 6, paddingHorizontal: 9 },
+  savingsText: { fontSize: 11, lineHeight: 14, fontWeight: '700', letterSpacing: 0.55 },
+  equivalent: { marginTop: 8, fontSize: 13, lineHeight: 18, fontWeight: '600' },
   planTop: { gap: 0 },
   planNameRow: { flexDirection: 'row', alignItems: 'center', gap: 11 },
   planIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
