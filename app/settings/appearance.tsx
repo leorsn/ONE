@@ -1,7 +1,7 @@
 import { NeverNotice } from '@/src/ui/NeverNotice';
 import { goBackOrHome } from '@/src/ui/navigation';
 import { NeverSettingsSection, NeverNavigation } from '@/src/ui/utility';
-import { themeIds, themes, appearanceLabel } from '@/src/theme/editions';
+import { themes, appearanceLabel } from '@/src/theme/editions';
 import { ThemePreview } from '@/src/ui/ThemePreview';
 import { neverType } from '@/src/theme/tokens';
 import { useRef, useState } from 'react';
@@ -62,10 +62,10 @@ export default function AppearanceScreen() {
 
         <View style={styles.collectionHeading}>
           <Text style={[styles.collectionTitle, p.environmentText]}>Choose your perspective.</Text>
-          <Text style={[styles.rowBody, p.environmentText]}>Six material worlds. One NEVER.</Text>
+          <Text style={[styles.rowBody, p.environmentText]}>Two essential appearances. One NEVER.</Text>
         </View>
         <View accessibilityRole="radiogroup" accessibilityLabel="Interface theme" style={styles.themeGrid}>
-          {[...themeIds, 'system' as const].map((value) => {
+          {(['platinum', 'monolith', 'system'] as const).map((value) => {
             const active = preference === value;
             const name = appearanceLabel(value);
             const descriptor = value === 'system' ? 'Adapts automatically.' : themes[value].descriptor;
