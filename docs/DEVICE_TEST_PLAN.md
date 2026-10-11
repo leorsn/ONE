@@ -5,17 +5,17 @@ This is the sequential physical-device acceptance package for NEVER V1. CI, web 
 ## Test target
 
 - Repository: `leorsn/ONE`
-- Branch: `dev/foundation`
+- Branch: `design/never-material-worlds`
 - Test SHA: record the exact accepted SHA before building.
 - Consumer display name: `NEVER`
-- Bundle identifier: `app.one.mobile`
-- Share Extension: `app.one.mobile.ShareExtension`
-- App Group: `group.app.one.mobile`
-- URL scheme: `one`
+- Bundle identifier: `app.never.mobile`
+- Share Extension: `app.never.mobile.ShareExtension`
+- App Group: `group.app.never.mobile`
+- URL scheme: `never`
 - Primary orientation: portrait
 - First target: physical iPhone; iPad follows the critical iPhone smoke test.
 
-The technical `one` identifiers are intentionally retained for native compatibility. They are not the consumer-facing brand.
+The final NEVER identifiers must match `app.json` and `docs/EXTERNAL_CONFIGURATION_CHECKLIST.md`. Legacy `one` internal data names are not the consumer-facing brand.
 
 Record for every run: device model, iOS/iPadOS version, build profile, build number, Git SHA, account used, network state and tester.
 
@@ -56,7 +56,7 @@ npx expo start --dev-client
 
 Open:
 
-`one://dev-native?probe=1`
+`never://dev-native?probe=1`
 
 **Expected:** only a development build shows Native Acceptance. Platform is iOS; local persistence passes; auth state is truthful; permission states are truthful; sync is not permanently stuck. No captured memory text, passwords, auth codes or credentials appear in the event log.
 
@@ -80,7 +80,7 @@ Fresh-install NEVER and complete/skip onboarding as offered.
 
 Create a new test account and open its confirmation email on the same iPhone.
 
-**Expected:** `one://auth/callback` opens NEVER, PKCE exchange completes, authenticated state appears, and no auth code is logged.
+**Expected:** `never://auth/callback` opens NEVER, PKCE exchange completes, authenticated state appears, and no auth code is logged.
 
 **Failure:** browser dead-end, wrong route, raw code displayed/logged, indefinite spinner, or wrong account appears.
 
@@ -98,7 +98,7 @@ Sign in, force-quit, reopen, sign out, force-quit again and reopen.
 
 ### 2.4 Password reset
 
-Request reset, open the email, return through `one://auth/reset-password`, set a new password, then sign in with it.
+Request reset, open the email, return through `never://auth/reset-password`, set a new password, then sign in with it.
 
 **Expected:** reset route opens as NEVER, password update succeeds, new password works.
 
