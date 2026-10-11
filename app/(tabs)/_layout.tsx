@@ -4,7 +4,7 @@ import { Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-nat
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { NeverMaterial, selectionFeedback } from '@/src/ui/material';
-import { neverControl } from '@/src/theme/tokens';
+import { neverControl, pass3 } from '@/src/theme/tokens';
 import { useNeverV5Palette } from '@/src/ui/appleV5';
 
 const tabIcon = {
@@ -58,8 +58,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
 
   return (
     <View pointerEvents="box-none" style={[styles.wrap, { bottom: Math.max(7, insets.bottom - 7), left: Math.max(18, insets.left), right: Math.max(18, insets.right) }]}>
-      <NeverMaterial glass style={styles.bar}>
-        <View pointerEvents="none" style={[styles.highlight, { backgroundColor: p.reflection }]} />
+      <NeverMaterial role="navigation" shape="capsule" style={styles.bar}>
         {state.routes.map((route, index) => {
           const focused = state.index === index;
           const routeName = route.name as keyof typeof tabIcon;
@@ -75,7 +74,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
           return (
             <Pressable
               key={route.key}
-              accessibilityRole="button"
+              accessibilityRole="tab"
               accessibilityState={focused ? { selected: true } : {}}
               accessibilityLabel={options?.tabBarAccessibilityLabel ?? label}
               testID={options?.tabBarButtonTestID}
@@ -83,11 +82,11 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
               onLongPress={onLongPress}
               style={({ pressed }) => [styles.tab, { opacity: pressed ? 0.54 : 1 }]}
             >
-              <View style={[styles.iconWell, focused && { backgroundColor: p.graphite, borderColor: p.dark ? p.glassBorder : p.graphite }]}>
+              <View style={[styles.iconWell, focused && { backgroundColor: p.archiveControls?.recall ?? pass3.recall }]}>
                 <OneIcon
                   name={tabIcon[routeName]}
-                  size={focused ? 19 : 20}
-                  color={focused ? p.onAccent : p.secondary}
+                  size={21}
+                  color={focused ? (p.archiveControls?.onRecall ?? pass3.onRecall) : p.secondary}
                 />
               </View>
               <Text
@@ -95,7 +94,7 @@ function NeverTabBar({ state, descriptors, navigation }: NeverTabBarProps) {
                   styles.label,
                   { color: focused ? p.label : p.secondary, fontWeight: focused ? '600' : '500' }
                 ]}
-                numberOfLines={1} maxFontSizeMultiplier={1.3}
+                numberOfLines={2} maxFontSizeMultiplier={1.5}
               >
                 {label}
               </Text>
@@ -113,29 +112,28 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 648,
     alignSelf: 'center',
-    minHeight: neverControl.tabBar + 4,
+    minHeight: neverControl.tabBar,
     borderRadius: 28,
     borderWidth: StyleSheet.hairlineWidth,
-    paddingHorizontal: 6,
+    paddingHorizontal: 4,
     paddingVertical: 5,
     flexDirection: 'row',
     alignItems: 'center',
     overflow: 'hidden',
-    shadowOpacity: 0.11,
-    shadowRadius: 20,
-    shadowOffset: { width: 0, height: 9 },
-    elevation: 6
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2
   },
-  highlight: { position: 'absolute', left: 24, right: 24, top: 0, height: StyleSheet.hairlineWidth, opacity: 0.9 },
-  tab: { flex: 1, minHeight: 56, alignItems: 'center', justifyContent: 'center', gap: 3 },
+  tab: { flex: 1, minHeight: 52, alignItems: 'center', justifyContent: 'center', gap: 3 },
   iconWell: {
     width: 42,
     height: 30,
-    borderRadius: 11,
+    borderRadius: 15,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'transparent',
     alignItems: 'center',
     justifyContent: 'center'
   },
-  label: { fontSize: 9.5, lineHeight: 12, letterSpacing: 0.02 }
+  label: { maxWidth: '100%', fontSize: 11, lineHeight: 14, textAlign: 'center', letterSpacing: 0 }
 });

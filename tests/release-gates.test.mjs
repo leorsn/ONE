@@ -25,7 +25,6 @@ const baseReleaseEnv = {
   EXPO_PUBLIC_REVENUECAT_IOS_KEY: ''
 };
 
-
 function writeAssetFixture(directory, { icon, configureIcon = true } = {}) {
   const expo = {
     name: 'NEVER',
@@ -46,6 +45,44 @@ test('TestFlight environment may stay billing-disabled while required privacy/su
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /NEVER testflight environment check passed\./);
   assert.match(result.stderr, /RevenueCat iOS key is absent/);
+});
+
+test('billing-enabled TestFlight fails closed without RevenueCat and Terms configuration', () => {
+  const result = runScript('scripts/verify-release-env.mjs', [], {
+    ...baseReleaseEnv,
+    NEVER_RELEASE_SCOPE: 'testflight',
+    NEVER_REQUIRE_BILLING: '1'
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /EXPO_PUBLIC_REVENUECAT_IOS_KEY is missing/);
+  assert.match(result.stderr, /EXPO_PUBLIC_TERMS_URL is missing/);
+});
+
+test('billing-enabled TestFlight passes when RevenueCat and Terms are configured', () => {
+  const env = {
+    ...baseReleaseEnv,
+    NEVER_RELEASE_SCOPE: 'testflight',
+    NEVER_REQUIRE_BILLING: '1',
+    EXPO_PUBLIC_TERMS_URL: 'https://never.test/terms',
+    EXPO_PUBLIC_REVENUECAT_IOS_KEY: 'appl_release_test_key'
+  };
+  const environment = runScript('scripts/verify-release-env.mjs', [], env);
+  const monetization = runScript('scripts/verify-monetization-release.mjs', [], env);
+
+  assert.equal(environment.status, 0, environment.stderr);
+  assert.equal(monetization.status, 0, monetization.stderr);
+});
+
+test('monetization gate requires RevenueCat when TestFlight explicitly requires billing', () => {
+  const result = runScript('scripts/verify-monetization-release.mjs', [], {
+    ...baseReleaseEnv,
+    NEVER_RELEASE_SCOPE: 'testflight',
+    NEVER_REQUIRE_BILLING: '1'
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /EXPO_PUBLIC_REVENUECAT_IOS_KEY is missing for a billing-enabled release/);
 });
 
 test('App Store environment fails closed without RevenueCat and Terms configuration', () => {

@@ -8,6 +8,9 @@ export async function deleteOneAccount(): Promise<string | null> {
   if (error) return error.message;
   if (!data?.deleted) return data?.error || 'Account deletion could not be confirmed.';
 
-  const { error: signOutError } = await supabase.auth.signOut({ scope: 'local' });
-  return signOutError?.message ?? null;
+  // Once the server confirms deletion, the irreversible operation has
+  // succeeded. Local sign-out is cleanup only and must not turn that success
+  // into a false deletion failure that prevents on-device data cleanup.
+  await supabase.auth.signOut({ scope: 'local' }).catch(() => undefined);
+  return null;
 }

@@ -1,8 +1,8 @@
 import type { AuthChangeEvent, Session } from '@supabase/supabase-js';
 import {
   isSupabaseConfigured,
-  ONE_AUTH_CALLBACK_URL,
-  ONE_PASSWORD_RESET_URL,
+  NEVER_AUTH_CALLBACK_URL,
+  NEVER_PASSWORD_RESET_URL,
   supabase
 } from '@/src/supabase/client';
 
@@ -30,7 +30,7 @@ export async function signUpWithEmail(email: string, password: string) {
   const { error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: ONE_AUTH_CALLBACK_URL }
+    options: { emailRedirectTo: NEVER_AUTH_CALLBACK_URL }
   });
   return error?.message ?? null;
 }
@@ -38,7 +38,7 @@ export async function signUpWithEmail(email: string, password: string) {
 export async function requestEmailPasswordReset(email: string) {
   if (!isSupabaseConfigured) return 'Cloud sync is not configured yet.';
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: ONE_PASSWORD_RESET_URL
+    redirectTo: NEVER_PASSWORD_RESET_URL
   });
   return error?.message ?? null;
 }

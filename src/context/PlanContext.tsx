@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { useAuth } from '@/src/context/AuthContext';
-import { fallbackPlanForRuntime, isDevelopmentBetaAccess } from '@/src/subscription/access';
+import { fallbackPlanForRuntime, isDevelopmentBetaAccess, planForCurrentIdentity } from '@/src/subscription/access';
 import {
   hasPlanFeature,
   type OnePlan,
@@ -15,6 +15,7 @@ import {
   isRevenueCatConfigured,
   purchaseRevenueCatPlan,
   restoreRevenueCatPurchases,
+  type BillingPeriod,
   type PurchaseOutcome,
   type RevenueCatIntroOffer,
   type RevenueCatPriceStrings
@@ -27,11 +28,12 @@ type PlanContextValue = {
   isBetaAccess: boolean;
   billingConfigured: boolean;
   localizedPrices: RevenueCatPriceStrings;
+  yearlyPrices: RevenueCatPriceStrings;
   introOffers: Partial<Record<PaidOnePlan, RevenueCatIntroOffer>>;
   managementUrl?: string;
   loading: boolean;
   purchasing: boolean;
-  purchase: (plan: PaidOnePlan) => Promise<PurchaseOutcome>;
+  purchase: (plan: PaidOnePlan, period?: BillingPeriod) => Promise<PurchaseOutcome>;
   restore: () => Promise<PurchaseOutcome>;
   refresh: () => Promise<void>;
 };
@@ -45,14 +47,19 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [plan, setPlan] = useState<OnePlan>(runtimeFallbackPlan);
   const [billingConfigured, setBillingConfigured] = useState(false);
   const [localizedPrices, setLocalizedPrices] = useState<RevenueCatPriceStrings>({});
+  const [yearlyPrices, setYearlyPrices] = useState<RevenueCatPriceStrings>({});
   const [introOffers, setIntroOffers] = useState<Partial<Record<PaidOnePlan, RevenueCatIntroOffer>>>({});
   const [managementUrl, setManagementUrl] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const resolvedUserRef = useRef<string | null>(null);
+  const [resolvedIdentity, setResolvedIdentity] = useState<string | null>(null);
   const refreshVersionRef = useRef(0);
   const purchaseLockRef = useRef(false);
   const identityRef = useRef(userId);
+  const currentIdentity = userId ?? 'anonymous';
+  const identityReady = resolvedIdentity === currentIdentity;
+  const visiblePlan = planForCurrentIdentity(plan, resolvedIdentity, currentIdentity);
   useLayoutEffect(() => { identityRef.current = userId; }, [userId]);
 
   const refresh = useCallback(async () => {
@@ -69,6 +76,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         setBillingConfigured(false);
         setPlan(runtimeFallbackPlan);
         setLocalizedPrices({});
+        setYearlyPrices({});
         setIntroOffers({});
         setManagementUrl(undefined);
         return;
@@ -79,13 +87,14 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         getSubscriptionManagementURL(),
         getRevenueCatStorefront().catch((error) => {
           if (__DEV__) console.warn('NEVER subscription storefront refresh failed');
-          return { prices: {}, introOffers: {} };
+          return { prices: {}, yearlyPrices: {}, introOffers: {} };
         })
       ]);
       if (version !== refreshVersionRef.current) return;
       setBillingConfigured(true);
       setPlan(nextPlan);
       setLocalizedPrices(storefront.prices);
+      setYearlyPrices(storefront.yearlyPrices);
       setIntroOffers(storefront.introOffers);
       setManagementUrl(nextManagementUrl);
     } catch {
@@ -98,18 +107,21 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         setBillingConfigured(true);
         setPlan('none');
         setLocalizedPrices({});
+        setYearlyPrices({});
         setIntroOffers({});
         setManagementUrl(undefined);
       } else {
         setBillingConfigured(false);
         setPlan(runtimeFallbackPlan);
         setLocalizedPrices({});
+        setYearlyPrices({});
         setIntroOffers({});
         setManagementUrl(undefined);
       }
     } finally {
       if (version === refreshVersionRef.current) {
         resolvedUserRef.current = identity;
+        setResolvedIdentity(identity);
         setLoading(false);
       }
     }
@@ -131,8 +143,8 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.remove();
   }, [refresh]);
 
-  const purchase = useCallback(async (nextPlan: PaidOnePlan) => {
-    if (!billingConfigured) {
+  const purchase = useCallback(async (nextPlan: PaidOnePlan, period: BillingPeriod = 'month') => {
+    if (!billingConfigured || !identityReady || loading || !userId) {
       return {
         ok: false,
         error: 'App Store billing is not configured in this build.'
@@ -144,10 +156,12 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     const purchaseIdentity = userId;
     setPurchasing(true);
     try {
-      const outcome = await purchaseRevenueCatPlan(nextPlan);
+      const outcome = await purchaseRevenueCatPlan(nextPlan, period);
       if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
-      if (outcome.ok && outcome.plan) {
-        const url = await getSubscriptionManagementURL().catch(() => undefined);
+      if (outcome.plan) {
+        const url = outcome.plan === 'none'
+          ? undefined
+          : await getSubscriptionManagementURL().catch(() => undefined);
         if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
         setPlan(outcome.plan);
         setManagementUrl(url);
@@ -157,10 +171,10 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       purchaseLockRef.current = false;
       setPurchasing(false);
     }
-  }, [billingConfigured, userId]);
+  }, [billingConfigured, identityReady, loading, userId]);
 
   const restore = useCallback(async () => {
-    if (!billingConfigured) {
+    if (!billingConfigured || !identityReady || loading || !userId) {
       return {
         ok: false,
         error: 'App Store billing is not configured in this build.'
@@ -174,8 +188,10 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     try {
       const outcome = await restoreRevenueCatPurchases();
       if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
-      if (outcome.ok && outcome.plan) {
-        const url = await getSubscriptionManagementURL().catch(() => undefined);
+      if (outcome.plan) {
+        const url = outcome.plan === 'none'
+          ? undefined
+          : await getSubscriptionManagementURL().catch(() => undefined);
         if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
         setPlan(outcome.plan);
         setManagementUrl(url);
@@ -185,25 +201,26 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       purchaseLockRef.current = false;
       setPurchasing(false);
     }
-  }, [billingConfigured, userId]);
+  }, [billingConfigured, identityReady, loading, userId]);
 
   const value = useMemo<PlanContextValue>(
     () => ({
-      plan,
-      hasBaseAccess: plan === 'one' || plan === 'one_ai',
-      hasAi: hasPlanFeature(plan, 'ask_one'),
+      plan: visiblePlan,
+      hasBaseAccess: visiblePlan === 'one' || visiblePlan === 'one_ai',
+      hasAi: hasPlanFeature(visiblePlan, 'ask_one'),
       isBetaAccess: isDevelopmentBetaAccess(__DEV__, billingConfigured),
       billingConfigured,
       localizedPrices,
+      yearlyPrices,
       introOffers,
-      managementUrl,
-      loading,
+      managementUrl: identityReady ? managementUrl : undefined,
+      loading: loading || !identityReady,
       purchasing,
       purchase,
       restore,
       refresh
     }),
-    [plan, billingConfigured, localizedPrices, introOffers, managementUrl, loading, purchasing, purchase, restore, refresh]
+    [visiblePlan, identityReady, billingConfigured, localizedPrices, yearlyPrices, introOffers, managementUrl, loading, purchasing, purchase, restore, refresh]
   );
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;

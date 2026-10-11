@@ -1,17 +1,16 @@
 import { useLocalDay } from '@/src/ui/useLocalDay';
 import { getReminderDate } from '@/src/notifications/reminderDate';
 import { shiftCalendarMonth } from '@/src/ui/calendarPresentation';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { router } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useItems } from '@/src/context/ItemsContext';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
+import { MemoryRow } from '@/src/ui/MemoryRow';
+import { NeverEyebrow, NeverMetric } from '@/src/ui/neverVisual';
+import { NeverMaterial } from '@/src/ui/material';
 import {
-  V5Chevron,
-  V5Group,
   V5SectionHeader,
   V5Segmented,
   useNeverV5Palette
@@ -24,7 +23,9 @@ export default function CalendarV5() {
   const p = useNeverV5Palette();
   const { items } = useItems();
   const today = useLocalDay();
+  const stripRef = useRef<ScrollView>(null);
   const [chosenDate, setSelectedDate] = useState<string | null>(null);
+
   const selectedDate = chosenDate ?? today;
   const [mode, setMode] = useState<CalendarMode>('Day');
 
@@ -54,16 +55,14 @@ export default function CalendarV5() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
-      <NeverBackdrop />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCopy}>
-          <NeverEyebrow>Time intelligence</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>Calendar.</Text>
-          <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Dates, reminders and plans extracted from what you save.</Text>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.pass3Heading, p.environmentText]}>Calendar.</Text>
+          <Text style={[styles.heroSubtitle, p.environmentText]}>Dates, reminders and plans extracted from what you save.</Text>
         </View>
 
-        <NeverHeroSurface style={styles.calendarStage}>
+        <NeverMaterial role="card" shape="hero" style={styles.calendarStage}>
           <View style={styles.dateHero}>
             <View style={styles.dateNumberBlock}>
               <Text style={[styles.dateNumber, { color: p.label }]}>{selected.getDate()}</Text>
@@ -75,35 +74,36 @@ export default function CalendarV5() {
               <Text style={[styles.yearText, { color: p.tertiary }]}>{selected.getFullYear()}</Text>
             </View>
             <View style={styles.dateActions}>
-              <NeverMetric value={`${selectedItems.length}`} label="today" />
-              <Pressable accessibilityRole="button" onPress={jumpToday} style={({ pressed }) => [styles.todayButton, { backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
-                <Text style={[styles.todayText, { color: p.chrome }]}>Now</Text>
+              <NeverMetric value={`${selectedItems.length}`} label={selectedDate === today ? 'today' : 'on date'} />
+              <Pressable accessibilityRole="button" onPress={jumpToday} style={({ pressed }) => [styles.todayButton, { borderRadius: p.radius.chip, backgroundColor: p.fillSoft, opacity: pressed ? 0.62 : 1 }]}>
+                <Text style={[styles.todayText, { color: p.chrome }]}>Today</Text>
               </Pressable>
             </View>
           </View>
 
           <View style={styles.monthControls}>
-            <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.dark ? '#FFFFFF0B' : '#FFFFFF70', opacity: pressed ? 0.5 : 1 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Previous month" onPress={() => moveMonth(-1)} style={({ pressed }) => [styles.monthArrow, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, opacity: pressed ? 0.5 : 1 }]}>
               <OneIcon name={icons.chevronLeft} size={13.5} color={p.chrome} />
             </Pressable>
             <Text style={[styles.monthControlLabel, { color: p.secondary }]}>{monthName} {selected.getFullYear()}</Text>
-            <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { backgroundColor: p.dark ? '#FFFFFF0B' : '#FFFFFF70', opacity: pressed ? 0.5 : 1 }]}>
+            <Pressable accessibilityRole="button" accessibilityLabel="Next month" onPress={() => moveMonth(1)} style={({ pressed }) => [styles.monthArrow, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft, opacity: pressed ? 0.5 : 1 }]}>
               <OneIcon name={icons.chevron} size={13.5} color={p.chrome} />
             </Pressable>
           </View>
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayStrip}>
+          <ScrollView ref={stripRef} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dayStrip}>
             {strip.map((day) => {
               const active = day.iso === selectedDate;
               const hasItems = datedItems.some((item) => item.date === day.iso);
               return (
                 <Pressable accessibilityRole="button"
-                  accessibilityLabel={prettyGroupDate(day.iso)} accessibilityState={{ selected: active }} key={day.iso}
+                  onLayout={active ? (event) => stripRef.current?.scrollTo({ x: Math.max(0, event.nativeEvent.layout.x - 96), animated: false }) : undefined}
+                  accessibilityLabel={`${prettyGroupDate(day.iso)}${hasItems ? ', has plans' : ''}`} accessibilityState={{ selected: active }} key={day.iso}
                   onPress={async () => { void Haptics.selectionAsync().catch(() => undefined); setSelectedDate(day.iso); }}
                   style={({ pressed }) => [styles.day, { opacity: pressed ? 0.55 : 1 }]}
                 >
                   <Text style={[styles.weekday, { color: active ? p.label : p.tertiary }]}>{day.weekday}</Text>
-                  <View style={[styles.dayNumberWrap, { backgroundColor: active ? p.graphite : p.dark ? '#FFFFFF08' : '#FFFFFF55', borderColor: active ? p.graphite : p.glassBorder }]}>
+                  <View style={[styles.dayNumberWrap, { borderRadius: p.radius.chip, backgroundColor: active ? p.graphite : p.fillSoft, borderColor: active ? p.graphite : p.glassBorder }]}>
                     <Text style={[styles.dayNumberSmall, { color: active ? p.onAccent : p.label }]}>{day.number}</Text>
                   </View>
                   <View style={[styles.dot, { backgroundColor: hasItems ? p.chrome : 'transparent' }]} />
@@ -113,9 +113,9 @@ export default function CalendarV5() {
           </ScrollView>
 
           <View style={[styles.segmentWrap, { borderTopColor: p.separator }]}>
-            <V5Segmented options={['Day', 'Week', 'Month']} selected={mode} onSelect={(value) => setMode(value as CalendarMode)} />
+            <V5Segmented contained options={['Day', 'Week', 'Month']} selected={mode} onSelect={(value) => setMode(value as CalendarMode)} />
           </View>
-        </NeverHeroSurface>
+        </NeverMaterial>
 
         {mode === 'Day' ? (
           <>
@@ -134,21 +134,21 @@ export default function CalendarV5() {
           </>
         ) : (
           <View style={styles.section}>
-            <V5SectionHeader title={mode === 'Week' ? 'This Week' : monthName} meta={`${visibleItems.length}`} />
+            <V5SectionHeader title={mode === 'Week' ? 'Selected week' : monthName} meta={`${visibleItems.length}`} />
             {grouped.length ? grouped.map((group) => (
               <View key={group.date} style={styles.groupBlock}>
-                <Text style={[styles.dateLabel, { color: p.tertiary }]}>{prettyGroupDate(group.date)}</Text>
+                <Text style={[styles.dateLabel, p.environmentText]}>{prettyGroupDate(group.date)}</Text>
                 <View style={styles.agendaStack}>
                   {group.items.map((item) => <AgendaCard key={item.id} item={item} />)}
                 </View>
               </View>
             )) : (
-              <V5Group><EmptyAgenda title="Nothing scheduled" body="Your schedule is clear for this view." /></V5Group>
+              <EmptyAgenda title="Nothing scheduled" body="Your schedule is clear for this view." />
             )}
           </View>
         )}
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 }
@@ -208,41 +208,26 @@ function AgendaSection({ title, items: sectionItems, emptyTitle, emptyBody }: { 
           {sectionItems.map((item) => <AgendaCard key={item.id} item={item} />)}
         </View>
       ) : (
-        <V5Group><EmptyAgenda title={emptyTitle} body={emptyBody} /></V5Group>
+        <EmptyAgenda title={emptyTitle} body={emptyBody} />
       )}
     </View>
   );
 }
 
 function AgendaCard({ item }: { item: OneItem }) {
-  const p = useNeverV5Palette();
-  return (
-    <Pressable accessibilityRole="button"
-      onPress={() => router.push({ pathname: '/item/[id]', params: { id: item.id } })}
-      style={({ pressed }) => [styles.agendaCard, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}
-    >
-      <View style={[styles.timeBadge, { backgroundColor: p.fillSoft }]}>
-        <Text style={[styles.time, { color: p.chrome }]}>{item.time || 'Any'}</Text>
-      </View>
-      <View style={styles.agendaCopy}>
-        <Text style={[styles.itemTitle, { color: p.label }]} numberOfLines={2}>{item.title}</Text>
-        <Text style={[styles.itemMeta, { color: p.secondary }]} numberOfLines={1}>{[item.location, item.summary, item.category].filter(Boolean).join(' · ') || item.type}</Text>
-      </View>
-      <V5Chevron />
-    </Pressable>
-  );
+  return <MemoryRow floating item={item} status={item.time || 'Any time'} subtitle={[item.location, item.summary !== item.title ? item.summary : undefined].filter(Boolean).join(' · ') || undefined} />;
 }
 
 function EmptyAgenda({ title, body }: { title: string; body: string }) {
   const p = useNeverV5Palette();
   return (
-    <View style={styles.emptyRow}>
-      <View style={[styles.emptyIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.calendar} size={16} color={p.chrome} /></View>
+    <NeverMaterial role="card" style={styles.emptyRow}>
+      <View style={[styles.emptyIcon, { borderRadius: p.radius.icon, backgroundColor: p.fillSoft }]}><OneIcon name={icons.calendar} size={16} color={p.chrome} /></View>
       <View style={{ flex: 1 }}>
         <Text style={[styles.emptyTitle, { color: p.label }]}>{title}</Text>
         <Text style={[styles.emptyBody, { color: p.secondary }]}>{body}</Text>
       </View>
-    </View>
+    </NeverMaterial>
   );
 }
 
@@ -250,22 +235,23 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 26, paddingBottom: 126, gap: 26 },
   heroCopy: { gap: 5 },
-  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
-  heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
+  heroTitle: { fontSize: 43, lineHeight: 47, fontWeight: '400', letterSpacing: -1.35 },
+  heroSubtitle: { maxWidth: 340, fontSize: 15, lineHeight: 22 },
   calendarStage: { padding: 16, gap: 14 },
-  dateHero: { minHeight: 104, flexDirection: 'row', alignItems: 'center', gap: 14 },
+  dateHero: { minHeight: 104, flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 14 },
   dateNumberBlock: { minWidth: 88 },
   dateNumber: { fontSize: 56, lineHeight: 60, fontWeight: '300', letterSpacing: -2.5 },
   dateWeekday: { marginTop: -2, fontSize: 12, lineHeight: 16, fontWeight: '600' },
-  dateMeta: { flex: 1, minWidth: 0 },
+  dateMeta: { flex: 1, minWidth: 100 },
   monthTitle: { marginTop: 4, fontSize: 21, lineHeight: 25, fontWeight: '600', letterSpacing: -0.45 },
   yearText: { marginTop: 1, fontSize: 11.5, lineHeight: 15 },
   dateActions: { alignItems: 'flex-end', gap: 8 },
+
   todayButton: { minHeight: 44, paddingHorizontal: 13, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   todayText: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
   monthControls: { minHeight: 38, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   monthArrow: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  monthControlLabel: { fontSize: 11.5, lineHeight: 15, fontWeight: '600' },
+  monthControlLabel: { flex: 1, textAlign: 'center', paddingHorizontal: 6, fontSize: 15, lineHeight: 20, fontWeight: '600' },
   dayStrip: { flexGrow: 1, flexDirection: 'row', justifyContent: 'space-between', gap: 4 },
   day: { minWidth: 44, alignItems: 'center' },
   weekday: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.25 },
@@ -277,12 +263,6 @@ const styles = StyleSheet.create({
   groupBlock: { gap: 7 },
   dateLabel: { paddingHorizontal: 4, fontSize: 11.5, lineHeight: 14, fontWeight: '600' },
   agendaStack: { gap: 8 },
-  agendaCard: { minHeight: 72, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 11 },
-  timeBadge: { width: 50, minHeight: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  time: { fontSize: 11, lineHeight: 14, fontWeight: '700' },
-  agendaCopy: { flex: 1, minWidth: 0 },
-  itemTitle: { fontSize: 15.5, lineHeight: 19, fontWeight: '600' },
-  itemMeta: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
   emptyRow: { minHeight: 86, padding: 14, flexDirection: 'row', alignItems: 'center', gap: 11 },
   emptyIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   emptyTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },

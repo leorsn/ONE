@@ -1,3 +1,4 @@
+import { primaryAction } from '@/src/theme/editions';
 import { neverControl, neverRadius, neverType } from '@/src/theme/tokens';
 import { NeverMaterial, selectionFeedback } from '@/src/ui/material';
 import type { ReactNode } from 'react';
@@ -106,13 +107,15 @@ export function NeverChromeButton({
         styles.primaryButton,
         compact && styles.primaryButtonCompact,
         {
-          backgroundColor: theme.accent,
-          opacity: disabled || busy ? 0.32 : pressed ? 0.72 : 1
+          backgroundColor: primaryAction.background,
+          borderColor: primaryAction.border, borderWidth: StyleSheet.hairlineWidth,
+          borderRadius: theme.radius.button,
+          opacity: disabled && !busy ? 0.45 : pressed ? 0.82 : 1
         }
       ]}
     >
-      {busy ? <ActivityIndicator color={theme.onAccent} /> : icon ? <OneIcon name={icon} size={20} color={theme.onAccent} /> : null}
-      <Text style={[styles.primaryButtonText, { color: theme.onAccent }]}>{label}</Text>
+      {busy ? <ActivityIndicator color={primaryAction.foreground} /> : icon ? <OneIcon name={icon} size={20} color={primaryAction.foreground} /> : null}
+      <Text style={[styles.primaryButtonText, { color: primaryAction.foreground }]}>{label}</Text>
     </Pressable>
   );
 }
@@ -139,7 +142,7 @@ export function NeverIconButton({
       }}
       style={({ pressed }) => [
         styles.iconButton,
-        {
+        { borderRadius: theme.radius.icon,
           backgroundColor: filled ? theme.text : theme.surface,
           opacity: pressed ? 0.58 : 1
         }
@@ -159,7 +162,7 @@ export function NeverWordmark({ compact = false }: { compact?: boolean }) {
   const theme = useTheme();
   return (
     <View style={styles.wordmarkRow}>
-      <Text style={[compact ? styles.wordmarkCompact : styles.wordmark, { color: theme.text }]}>NEVER</Text>
+      <Text style={[compact ? styles.wordmarkCompact : styles.wordmark, theme.typography.wordmark, { color: theme.text }]}>NEVER</Text>
       <View style={styles.signal}>
         <View style={[styles.signalLong, { backgroundColor: theme.chrome }]} />
         <View style={[styles.signalShort, { backgroundColor: theme.textTertiary }]} />
@@ -178,12 +181,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12
   },
-  sectionLabel: {
-    fontSize: 20,
-    lineHeight: 24,
-    fontWeight: '700',
-    letterSpacing: -0.35
-  },
+  sectionLabel: { ...neverType.section, flexShrink: 1 },
   sectionMeta: {
     fontSize: 13,
     lineHeight: 16,
@@ -231,7 +229,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 12
   },
-  primaryButtonText: { ...neverType.bodyStrong, flexShrink: 1, textAlign: 'center' },
+  primaryButtonText: { ...neverType.bodyStrong, fontSize: 16, lineHeight: 22, flexShrink: 1, textAlign: 'center' },
   iconButton: {
     width: 44,
     height: 44,

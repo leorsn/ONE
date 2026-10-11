@@ -6,156 +6,148 @@ Status vocabulary:
 
 - **CODE COMPLETE** — repository contract/config exists.
 - **EXTERNALLY CONFIGURED** — verify in the named external service; do not infer from code.
-- **PHYSICALLY TESTED** — verify only on an appropriate signed physical-device build.
+- **PHYSICALLY TESTED** — verify only on an appropriately signed physical-device/TestFlight build.
+
+## Final public identity
+
+The retired ONE namespace is not part of the launch candidate.
+
+- App name: `NEVER`
+- Expo slug: `never-app`
+- Deep-link scheme: `never`
+- iOS bundle ID: `app.never.mobile`
+- Android package: `app.never.mobile`
+- Share Extension: `app.never.mobile.ShareExtension`
+- App Group: `group.app.never.mobile`
 
 ## Apple Developer / iOS
 
 | Requirement | Code state | External action | Physical acceptance |
 | --- | --- | --- | --- |
 | Display name `NEVER` | CODE COMPLETE | Verify final App Store Connect name | Installed app/system surfaces show NEVER |
-| Main bundle ID `app.one.mobile` | CODE COMPLETE | Register/verify identifier and signing team | Install signed build |
-| Share Extension `app.one.mobile.ShareExtension` | CODE COMPLETE | Register/verify extension target credentials | Share Sheet must show NEVER |
-| App Group `group.app.one.mobile` | CODE COMPLETE | Verify capability assignment to required targets/profiles | Share payload handoff |
-| Camera permission copy | CODE COMPLETE | Generated through Expo image-picker config | Camera allow/deny/recovery shows NEVER copy |
-| Photos permission copy | CODE COMPLETE | Generated through Expo image-picker config | Photos allow/deny/recovery shows NEVER copy |
-| Notifications integration | CODE COMPLETE | Verify signed native build configuration | Local delivery/tap/cancel |
-| URL scheme `one` | CODE COMPLETE | Included in signed binary | Auth/reset/native diagnostic links |
-| iPad support | CODE COMPLETE | Keep App Store device support aligned with `supportsTablet` | Critical flows + resize/layout pass |
-| Privacy manifest | VERIFY GENERATED ARCHIVE | Inspect `PrivacyInfo.xcprivacy` aggregation and Required-Reason API warnings; add only verified approved reasons when necessary | No unresolved archive/App Store privacy-manifest warning |
+| Main bundle ID `app.never.mobile` | CODE COMPLETE | Register identifier and signing team | Install signed build |
+| Share Extension `app.never.mobile.ShareExtension` | CODE COMPLETE | Register extension identifier/credentials | Share Sheet shows NEVER |
+| App Group `group.app.never.mobile` | CODE COMPLETE | Assign group to required targets/profiles | Share payload handoff succeeds |
+| URL scheme `never` | CODE COMPLETE | Included in signed binary | Auth/reset links open NEVER |
+| Notifications integration | CODE COMPLETE | Enable required production capability/signing | Local delivery/tap/cancel |
+| Camera/Photos permission copy | CODE COMPLETE | Generated through Expo config | Permission flows show NEVER copy |
+| iPad support | CODE COMPLETE | Keep App Store device support aligned | Critical flows + resize/layout pass |
+| Privacy manifest | CODE COMPLETE | Inspect final archive aggregation | No unresolved privacy-manifest warning |
 
-The current V1 auth flow uses the legacy technical custom `one://` scheme. Associated Domains/Universal Links are not required by the current repository contract and must not be treated as configured merely because a web domain exists. If Universal Links are adopted later, add the entitlement and hosted AASA deliberately and test them separately.
-
-The repository does not currently invent an app-level `ios.privacyManifests` declaration. Verify the actual generated/archive manifests first. If Expo/React Native/CocoaPods aggregation is incomplete for APIs that the shipped binary uses, add only the Apple-approved reasons that accurately describe that use.
-
-EAS can synchronize supported iOS capabilities during signing, but the Apple account must still have authority and valid credentials. Static config introspection is not proof that Apple accepted capability assignment.
+The repository now declares `ios.privacyManifests` explicitly and the CI privacy contract keeps it aligned with the App Store privacy inventory. Do not add tracking, analytics, ads or crash SDKs without intentionally revisiting those disclosures.
 
 ## Expo / EAS
 
-- [ ] Link the repository to the intended Expo/EAS project and verify the project owner.
+- [ ] Link the repository to the intended Expo/EAS project and verify project owner.
 - [ ] Verify EAS credentials for the Apple Developer Team.
-- [ ] Development profile uses the `development` EAS environment and a development client.
-- [ ] Preview profile uses the `preview` EAS environment and does not include development-client tooling.
-- [ ] Production profile uses the `production` EAS environment and does not include development-client tooling.
-- [ ] Verify environment variables separately for development, preview and production.
-- [ ] Set public release URLs in the intended TestFlight/production EAS environments:
+- [ ] Development profile uses the `development` environment and a development client.
+- [ ] Preview profile uses `preview` and no development-client tooling.
+- [ ] Production profile uses `production`, no development-client tooling, and auto-increments the build number.
+- [ ] Set production values for:
+  - `EXPO_PUBLIC_SUPABASE_URL`
+  - `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
   - `EXPO_PUBLIC_PRIVACY_POLICY_URL`
   - `EXPO_PUBLIC_TERMS_URL`
   - `EXPO_PUBLIC_SUPPORT_URL`
-- [ ] Produce a signed iOS development build for physical acceptance.
-- [ ] After acceptance, produce a production/TestFlight build from the accepted SHA.
-- [ ] Inspect the generated iOS archive for privacy manifests and Required-Reason API diagnostics before TestFlight promotion.
+  - `EXPO_PUBLIC_REVENUECAT_IOS_KEY`
+- [ ] Run `npm run release:testflight-check` before a billing-capable TestFlight build.
+- [ ] Run `npm run release:appstore-check` before App Store submission.
+- [ ] Build from the exact accepted SHA.
 
-Recommended verification commands from a clean checkout:
-
-```bash
-npm ci --no-audit --no-fund
-npm run quality
-npm run release:env-check
-npm run release:asset-check
-npx eas-cli@latest env:list --environment development
-npx eas-cli@latest env:list --environment preview
-npx eas-cli@latest env:list --environment production
-npx eas-cli@latest build --platform ios --profile development
-```
-
-For an App Store billing release, run the environment gate with:
-
-```bash
-NEVER_RELEASE_SCOPE=appstore npm run release:env-check
-```
-
-Do not print secret values into CI logs or tickets.
+Do not print secret values into CI logs or tickets. Server-side secrets do not belong in `EXPO_PUBLIC_*` values.
 
 ## Supabase
 
-### Code / live backend already revalidated
+### Repository contract
 
-- `public.items`: RLS enabled.
-- `public.profiles`: RLS enabled.
-- authenticated CRUD grants exist; `anon` has no table grants on these private tables.
-- ownership policies use `auth.uid() = user_id`; UPDATE has both `USING` and `WITH CHECK`.
-- `one-attachments` is private.
-- Storage SELECT/INSERT/UPDATE/DELETE policies scope the first path segment to the authenticated user ID.
-- `embed-one-item`, `semantic-search`, `delete-account`, and `answer-one-recall` are active with JWT verification enabled.
-- Security Advisor: zero security findings at the Master Release audit.
+- private user data is protected by RLS;
+- ownership policies scope records to `auth.uid()`;
+- attachment Storage is private and user-path scoped;
+- account deletion, semantic search, embedding, capture intelligence and grounded recall functions are represented in the production deployment manifest;
+- client auth uses PKCE.
 
-### External verification still required
+### External configuration still required
 
-- [ ] Auth → URL Configuration allows `one://auth/callback`.
-- [ ] Auth → URL Configuration allows `one://auth/reset-password`.
-- [ ] Production email confirmation/password-reset delivery works with the intended SMTP configuration.
-- [ ] Production email sender name/subject/body use NEVER branding.
-- [ ] Customized email templates preserve the supplied redirect target.
-- [ ] Production project ownership/backups/retention settings are reviewed.
-- [ ] If development and production use different Supabase projects, set the matching `EXPO_PUBLIC_SUPABASE_URL` and `EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in each EAS environment.
-- [ ] Never place a service-role key in an Expo public environment.
-
-The committed publishable key is a public client credential; authorization relies on RLS, not secrecy of that key.
+- [ ] Auth → URL Configuration allows `never://auth/callback`.
+- [ ] Auth → URL Configuration allows `never://auth/reset-password`.
+- [ ] Remove/review obsolete `one://` redirect entries once no migration bridge is needed.
+- [ ] Production confirmation/password-reset email delivery works.
+- [ ] Sender name/subject/body use NEVER branding.
+- [ ] Customized templates preserve the supplied redirect target.
+- [ ] Deploy SQL/functions in `docs/SUPABASE_DEPLOYMENT_MANIFEST_2026-09-30.md` to the dedicated NEVER project.
+- [ ] Verify RLS and Storage isolation with two separate test accounts.
+- [ ] Verify account deletion removes cloud data and auth user.
+- [ ] Keep `OPENAI_API_KEY` server-side only.
 
 ## RevenueCat / App Store billing
 
-Visible plan names:
+Launch contract:
 
-- NEVER — target €2.99/month — 7-day eligible introductory trial.
-- NEVER AI — target €4.99/month — no trial.
+### NEVER
+- Product: `app.never.mobile.monthly`
+- RevenueCat package: `never_monthly`
+- Entitlement: `never`
+- Target price: €2.99/month
+- Level 2
+- 7-day introductory trial target
 
-Legacy technical product identifiers intentionally remain:
-
-- `app.one.mobile.one.monthly`
-- `app.one.mobile.oneai.monthly`
+### NEVER AI
+- Product: `app.never.mobile.ai.monthly`
+- RevenueCat package: `never_ai_monthly`
+- Entitlement: `never_ai`
+- Target price: €4.99/month
+- Level 1
+- no planned launch trial
 
 External actions:
 
-- [ ] Create/verify the iOS app in RevenueCat.
-- [ ] Set `EXPO_PUBLIC_REVENUECAT_IOS_KEY` for the appropriate EAS environments.
-- [ ] Create/verify App Store Connect subscription products with the exact legacy identifiers above.
-- [ ] Use NEVER / NEVER AI as the visible localized product names.
-- [ ] Configure the NEVER introductory trial in App Store Connect; do not encode trial eligibility as a client assumption.
-- [ ] Map RevenueCat entitlements `one` and `one_ai` to the correct products.
-- [ ] Configure the current offering/package mapping used by the app.
-- [ ] Sandbox-test purchase, cancellation, restore, upgrade/downgrade and offline/error behavior.
-- [ ] Confirm preview/production builds do not receive development beta entitlement when RevenueCat configuration is absent.
+- [ ] Create the RevenueCat iOS app with bundle ID `app.never.mobile`.
+- [ ] Create/import both exact Apple product IDs.
+- [ ] Create entitlements `never` and `never_ai`.
+- [ ] Create offering `default`.
+- [ ] Map packages `never_monthly` and `never_ai_monthly` to the correct products.
+- [ ] Configure NEVER's introductory trial in App Store Connect.
+- [ ] Set the RevenueCat public iOS SDK key in the EAS production environment.
+- [ ] Sandbox/TestFlight-test purchase, cancellation, restore, upgrade/downgrade, network failure and account switching.
+- [ ] Confirm no release build receives development beta access when billing is unavailable.
+
+See `docs/APP_STORE_REVENUECAT_PRODUCTION.md` for the exact setup contract.
 
 ## NEVER AI / OpenAI server boundary
 
-- [ ] Store `OPENAI_API_KEY` only as a server-side Supabase Edge Function secret.
-- [ ] Optionally set legacy technical env `ONE_RECALL_MODEL`; repository default is `gpt-5.6-luna`.
+- [ ] Store `OPENAI_API_KEY` only as a Supabase Edge Function secret.
 - [ ] Never create `EXPO_PUBLIC_OPENAI_*` secrets.
-- [ ] Run an authenticated end-to-end Ask NEVER test against real user-scoped test memories.
-- [ ] Verify model failure returns the existing safe/local fallback rather than a fabricated success.
-- [ ] Verify model-generated consumer copy never identifies itself as ONE.
+- [ ] Run authenticated end-to-end Ask NEVER against real user-scoped test memories.
+- [ ] Verify model failure returns a safe fallback rather than fabricated success.
+- [ ] Verify grounded answers cite only saved evidence supplied through the authenticated path.
 
-The Recall Edge Function reloads only the bounded item IDs under the caller's authenticated RLS scope and does not send the user's full database to the model.
+## App Store Connect / policy
 
-## Public policy / App Store Connect
+Before submission:
 
-Before TestFlight/App Store release:
+- [ ] App record bundle identifier is exactly `app.never.mobile`.
+- [ ] Privacy Policy URL is final/public HTTPS.
+- [ ] Support URL is final/public HTTPS.
+- [ ] Terms URL is final/public HTTPS.
+- [ ] App Privacy answers match `docs/APP_STORE_PRIVACY_DATA_INVENTORY.md` and the final production vendor configuration.
+- [ ] Subscription metadata, localizations, prices and reviewer screenshots are complete.
+- [ ] App description, keywords, age rating, review information and screenshots are complete.
+- [ ] Final icon passes `npm run release:asset-check`.
+- [ ] Required iPhone and iPad screenshot sets are complete because iPad support remains enabled.
+- [ ] Account deletion is physically tested; active subscribers are warned that Apple subscription cancellation is separate.
 
-- [ ] `EXPO_PUBLIC_PRIVACY_POLICY_URL` points to the final public privacy policy.
-- [ ] `EXPO_PUBLIC_SUPPORT_URL` points to a real support/contact page.
-- [ ] `EXPO_PUBLIC_TERMS_URL` points to final terms if used in this release.
-- [ ] The same Privacy/Support URLs are entered in App Store Connect.
-- [ ] Settings → Privacy opens the production URLs on a physical device.
-- [ ] App Store privacy disclosures match actual production data handling and third-party SDK/service behavior.
-- [ ] Generated/archive privacy manifests satisfy Apple Required-Reason API requirements with accurate reasons only.
-- [ ] Subscription metadata and required legal text are complete.
-- [ ] Screenshots, description, age rating, review information and release metadata are complete.
-- [ ] Final app icon is configured and `npm run release:asset-check` passes.
-- [ ] Because iPad support is enabled, the accepted iPad layout and required iPad screenshot set are complete before submission.
+See `docs/APP_STORE_METADATA_DRAFT.md`, `docs/APP_STORE_SUBMISSION.md`, and `docs/TESTFLIGHT_ACCEPTANCE_2026-09-30.md`.
 
-See `docs/APP_STORE_SUBMISSION.md` for the working metadata/review/screenshot dossier.
-
-## Technical data inventory for disclosures
+## Technical data inventory
 
 NEVER may process, depending on user behavior and enabled features:
 
-- account email/authentication identifiers through Supabase Auth;
-- user-created memory text, dates, times, URLs, tags, people/entities and structured metadata;
-- images/documents captured or shared into NEVER;
-- OCR/extracted text derived from user-supplied images/documents;
-- private cloud item rows and private Storage attachments when signed in/syncing;
-- local notification content and identifiers for reminders;
-- subscription/customer state through RevenueCat when configured;
-- a bounded subset of relevant saved-memory fields sent through the authenticated Recall Edge Function to the configured model provider for NEVER AI answers.
+- account email/authentication identifiers;
+- user-created memory text and structured metadata;
+- images/documents and OCR-derived text;
+- private cloud records and Storage attachments;
+- local notification/reminder data;
+- subscription/customer state through RevenueCat;
+- bounded saved-memory context and user recall queries through the authenticated NEVER AI server path.
 
-This is an engineering inventory, not a legal representation. Final disclosures must be reviewed against the production configuration and actual vendor contracts/settings.
+The launch disclosure baseline is maintained in `docs/APP_STORE_PRIVACY_DATA_INVENTORY.md` and enforced by the repository privacy gate.

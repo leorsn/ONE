@@ -22,3 +22,11 @@ test('NEVER account deletion removes attachments, items and the authenticated us
   assert.match(cloud, /user_id uuid primary key references auth\.users\(id\) on delete cascade/);
   assert.match(attachments, /const path = `\$\{userId\}\/\$\{cleanName\}`/);
 });
+
+test('confirmed server deletion is not reported as failed when local sign-out cleanup fails', async () => {
+  const client = await text('src/supabase/account.ts');
+  assert.match(client, /if \(!data\?\.deleted\) return/);
+  assert.match(client, /signOut\(\{ scope: 'local' \}\)\.catch\(\(\) => undefined\)/);
+  assert.match(client, /return null;/);
+  assert.doesNotMatch(client, /signOutError/);
+});

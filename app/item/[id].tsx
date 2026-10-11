@@ -8,7 +8,7 @@ import CommunityDateTimePicker from '@expo/ui/community/datetime-picker';
 import { router, useLocalSearchParams } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import * as Sharing from 'expo-sharing';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useItems } from '@/src/context/ItemsContext';
 import type { OneItem } from '@/src/types/item';
 import { neverType, neverSpacing } from '@/src/theme/tokens';
@@ -30,14 +30,14 @@ export default function ItemDetailScreen() {
 
   if (!item) {
     return (
-      <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]}>
-        <View style={styles.missing}>
+      <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]}>
+        <View style={[styles.missing, p.textSurface]}>
           <View style={[styles.missingIcon, { backgroundColor: p.fillSoft }]}><OneIcon name={icons.note} size={19} color={p.chrome} /></View>
           <Text style={[styles.missingTitle, { color: p.label }]}>Memory not found</Text>
           <Text style={[styles.missingBody, { color: p.secondary }]}>This memory may have been removed.</Text>
           <Pressable accessibilityRole="button" onPress={() => goBackOrHome()}><Text style={[styles.missingBack, { color: p.chrome }]}>Go Back</Text></Pressable>
         </View>
-      </SafeAreaView>
+      </NeverScreen>
     );
   }
 
@@ -144,15 +144,15 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
-        <View style={styles.nav}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} keyboardShouldPersistTaps="handled" automaticallyAdjustKeyboardInsets keyboardDismissMode="interactive" showsVerticalScrollIndicator={false}>
+        <View style={[styles.nav, p.textSurface]}>
           <V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => goBackOrHome()} />
           <Text style={[styles.navTitle, { color: p.label }]}>Memory</Text>
           <Pressable accessibilityRole="button" accessibilityLabel="Save changes" accessibilityState={{ disabled: saving || !title.trim(), busy: saving }} disabled={saving || !title.trim()} onPress={saveChanges} style={styles.navSave}><Text style={{ color: p.chrome, fontWeight: '600', opacity: saving || !title.trim() ? 0.4 : 1 }}>{saving ? 'Saving…' : 'Done'}</Text></Pressable>
         </View>
 
-        <View style={styles.identity}>
+        <View style={[styles.identity, p.textSurface, { padding: 8 }]}>
           <View style={[styles.identityGlyph, { backgroundColor: p.fillSoft }]}>
             <OneIcon name={iconForType(currentItem.type)} size={17} color={p.chrome} />
           </View>
@@ -165,7 +165,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
         <NeverInput
           value={title}
           onChangeText={setTitle}
-          style={[styles.titleInput, { color: p.label }]}
+          style={[styles.titleInput, p.textSurface, p.heading, { color: p.label }]}
           placeholder="Title"
           placeholderTextColor={p.tertiary}
           accessibilityLabel="Item title"
@@ -179,7 +179,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
               accessibilityRole="button"
               accessibilityLabel={sourceIsImage ? (sourceExpanded ? 'Close original image' : 'Open original image') : 'Open original file'}
               onPress={() => void openOriginal()}
-              style={({ pressed }) => [styles.sourceCard, { backgroundColor: p.surface, opacity: pressed ? 0.74 : 1 }]}
+              style={({ pressed }) => [styles.sourceCard, p.cardStyle, { backgroundColor: p.surface, opacity: pressed ? 0.74 : 1 }]}
             >
               {sourceIsImage ? (
                 <Image source={{ uri: sourceUri }} style={[styles.sourceImage, sourceExpanded && styles.sourceImageExpanded, { backgroundColor: p.fill }]} resizeMode="contain" />
@@ -269,7 +269,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
         ) : null}
 
         {currentItem.url && !savedLinks.length ? (
-          <Pressable accessibilityRole="button" onPress={() => openMemoryLink(currentItem.url!)} style={({ pressed }) => [styles.linkCard, { backgroundColor: p.surface, opacity: pressed ? 0.62 : 1 }]}>
+          <Pressable accessibilityRole="button" onPress={() => openMemoryLink(currentItem.url!)} style={({ pressed }) => [styles.linkCard, p.cardStyle, { backgroundColor: p.surface, opacity: pressed ? 0.62 : 1 }]}>
             <MemoryGlyph icon={icons.link} />
             <View style={{ flex: 1 }}>
               <Text style={[styles.linkLabel, { color: p.tertiary }]}>SAVED LINK</Text>
@@ -287,7 +287,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
           </V5Group>
         </View>
 
-        <Pressable accessibilityRole="button" accessibilityState={{ disabled: saving || !title.trim(), busy: saving }} disabled={saving || !title.trim()} onPress={saveChanges} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || !title.trim() ? 0.38 : pressed ? 0.72 : 1 }]}>
+        <Pressable accessibilityRole="button" accessibilityState={{ disabled: saving || !title.trim(), busy: saving }} disabled={saving || !title.trim()} onPress={saveChanges} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: saving || !title.trim() ? 0.38 : pressed ? 0.72 : 1 }]}>
           <OneIcon name={icons.check} size={15} color={p.onAccent} />
           <Text style={[styles.primaryButtonText, { color: p.onAccent }]}>{saving ? 'Saving…' : 'Save Changes'}</Text>
         </Pressable>
@@ -297,7 +297,7 @@ function MemoryDetailForm({ item }: { item: OneItem }) {
           <Text style={[styles.deleteText, { color: p.danger }]}>Delete Memory</Text>
         </Pressable>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 }
@@ -438,14 +438,14 @@ const styles = StyleSheet.create({
   nav: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navTitle: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
   navSave: { minWidth: 52, minHeight: 44, justifyContent: 'center', alignItems: 'flex-end' },
-  inputLabel: { paddingHorizontal: 16, paddingTop: 16, fontSize: 10, letterSpacing: 1.2, fontWeight: '600' },
+  inputLabel: { paddingHorizontal: 16, paddingTop: 16, fontSize: 12, letterSpacing: 1.2, fontWeight: '600' },
   inputDivider: { height: StyleSheet.hairlineWidth, marginHorizontal: 16 },
   disclosure: { minHeight: 44, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   identity: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   identityGlyph: { width: 36, height: 36, borderRadius: 11, alignItems: 'center', justifyContent: 'center' },
   memoryGlyph: { width: 34, height: 34, borderRadius: 10, alignItems: 'center', justifyContent: 'center' },
-  type: { fontSize: 9.5, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.9 },
-  source: { marginTop: 2, fontSize: 11.5, lineHeight: 14 },
+  type: { fontSize: 12, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.9 },
+  source: { marginTop: 2, fontSize: 12, lineHeight: 16 },
   titleInput: { ...neverType.display, minHeight: 54, paddingVertical: 1, textAlignVertical: 'top' },
   section: { gap: neverSpacing.md },
   sourceCard: { borderRadius: 16, overflow: 'hidden', padding: 8 },
@@ -453,17 +453,17 @@ const styles = StyleSheet.create({
   sourceImageExpanded: { height: undefined, aspectRatio: 0.7 },
   sourceFile: { minHeight: 64, flexDirection: 'row', alignItems: 'center', gap: 10, padding: 6 },
   sourceFileTitle: { fontSize: 14, lineHeight: 18, fontWeight: '600' },
-  sourceFileMeta: { marginTop: 2, fontSize: 11.5, lineHeight: 14 },
+  sourceFileMeta: { marginTop: 2, fontSize: 12, lineHeight: 16 },
   sourceActionRow: { minHeight: 34, marginTop: 3, paddingTop: 6, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 4 },
-  sourceAction: { fontSize: 11.5, lineHeight: 14, fontWeight: '600' },
+  sourceAction: { fontSize: 12, lineHeight: 16, fontWeight: '600' },
   documentGroup: { padding: 14 },
   documentHeader: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   documentTitle: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
-  documentMeta: { marginTop: 2, fontSize: 11.5, lineHeight: 14 },
+  documentMeta: { marginTop: 2, fontSize: 12, lineHeight: 16 },
   documentAmount: { fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
   documentDetails: { marginTop: 12, paddingTop: 9, borderTopWidth: StyleSheet.hairlineWidth, gap: 7 },
   infoLine: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  infoLabel: { width: 74, fontSize: 10.5, fontWeight: '600' },
+  infoLabel: { width: 74, fontSize: 12, fontWeight: '600' },
   infoValue: { flex: 1, textAlign: 'right', fontSize: 12, fontWeight: '500' },
   stackedField: { flexWrap: 'wrap', paddingVertical: 12 },
   stackedInput: { flexBasis: '100%', textAlign: 'left' },
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
   extractedLink: { minHeight: 54, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
   extractedLinkText: { flex: 1, fontSize: 12.5, lineHeight: 17, fontWeight: '500' },
   linkCard: { minHeight: 58, borderRadius: 16, paddingHorizontal: 12, flexDirection: 'row', alignItems: 'center', gap: 9 },
-  linkLabel: { fontSize: 8, fontWeight: '700', letterSpacing: 0.8 },
+  linkLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.8 },
   linkText: { marginTop: 2, fontSize: 12.5, lineHeight: 16, fontWeight: '500' },
   primaryButton: { minHeight: 52, padding: 12, borderRadius: 14, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 },
   primaryButtonText: { flexShrink: 1, textAlign: 'center', fontSize: 14.5, lineHeight: 18, fontWeight: '600' },

@@ -2,14 +2,14 @@ export const SUBSCRIPTION_GROUP = 'NEVER Membership';
 export const REVENUECAT_OFFERING_ID = 'default';
 
 export const revenueCatEntitlements = {
-  one: 'one',
-  oneAi: 'one_ai'
+  one: 'never',
+  oneAi: 'never_ai'
 } as const;
 
 export const subscriptionProducts = {
   oneMonthly: {
-    id: 'app.one.mobile.one.monthly',
-    revenueCatPackageId: 'one_monthly',
+    id: 'app.never.mobile.monthly',
+    revenueCatPackageId: 'never_monthly',
     entitlementId: revenueCatEntitlements.one,
     plan: 'one' as const,
     displayName: 'NEVER',
@@ -19,9 +19,33 @@ export const subscriptionProducts = {
     autoRenews: true,
     subscriptionLevel: 2
   },
+  oneYearly: {
+    id: 'app.never.mobile.yearly',
+    revenueCatPackageId: 'never_yearly',
+    entitlementId: revenueCatEntitlements.one,
+    plan: 'one' as const,
+    displayName: 'NEVER',
+    priceEUR: 24.99,
+    period: 'year' as const,
+    trialDays: 0,
+    autoRenews: true,
+    subscriptionLevel: 2
+  },
+  oneAiYearly: {
+    id: 'app.never.mobile.ai.yearly',
+    revenueCatPackageId: 'never_ai_yearly',
+    entitlementId: revenueCatEntitlements.oneAi,
+    plan: 'one_ai' as const,
+    displayName: 'NEVER AI',
+    priceEUR: 44.99,
+    period: 'year' as const,
+    trialDays: 0,
+    autoRenews: true,
+    subscriptionLevel: 1
+  },
   oneAiMonthly: {
-    id: 'app.one.mobile.oneai.monthly',
-    revenueCatPackageId: 'one_ai_monthly',
+    id: 'app.never.mobile.ai.monthly',
+    revenueCatPackageId: 'never_ai_monthly',
     entitlementId: revenueCatEntitlements.oneAi,
     plan: 'one_ai' as const,
     displayName: 'NEVER AI',

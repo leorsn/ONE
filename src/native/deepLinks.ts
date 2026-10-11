@@ -25,7 +25,7 @@ export function resolveOneNativePath(path: string): NativeRouteResolution {
       return { route: '/handle-share', kind: 'share' };
     }
 
-    if (url.protocol === 'one:') {
+    if (url.protocol === 'never:') {
       const target = `${url.hostname}${url.pathname}`.replace(/^\/+/, '');
       const suffix = `${url.search}${url.hash}`;
 
@@ -38,9 +38,13 @@ export function resolveOneNativePath(path: string): NativeRouteResolution {
       if (target === 'dev-native') {
         return { route: `/dev-native${suffix}`, kind: 'acceptance' };
       }
+
+      return { route: '/', kind: 'invalid' };
     }
 
-    return { route: path, kind: 'app' };
+    // NEVER does not currently register universal-link domains or any other
+    // external scheme. Do not hand arbitrary absolute URLs to Expo Router.
+    return { route: '/', kind: 'invalid' };
   } catch {
     return { route: '/', kind: 'invalid' };
   }

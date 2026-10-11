@@ -38,8 +38,10 @@ test('subscription surfaces use RevenueCat storefront price and introductory-off
   assert.match(planContext, /getRevenueCatStorefront/);
   assert.match(planContext, /introOffers/);
   assert.match(planContext, /localizedPrices/);
-  assert.match(upgrade, /storefrontPrice\(localizedPrices\.one, billingConfigured/);
-  assert.match(upgrade, /storefrontPrice\(localizedPrices\.one_ai, billingConfigured/);
+  assert.match(planContext, /yearlyPrices/);
+  assert.match(upgrade, /annual \? yearlyPrices : localizedPrices/);
+  assert.match(upgrade, /storefrontPrice\(selectedPrices\.one, billingConfigured/);
+  assert.match(upgrade, /storefrontPrice\(selectedPrices\.one_ai, billingConfigured/);
   assert.match(upgrade, /storefrontOffer\(\s*introOffers\.one/);
   assert.match(upgrade, /storefrontOffer\(\s*introOffers\.one_ai/);
   assert.match(upgrade, /if \(!introOffer\) return `Monthly subscription/);
@@ -52,7 +54,7 @@ test('subscription surfaces use RevenueCat storefront price and introductory-off
 
 test('subscription purchase buttons fail closed when the current RevenueCat offering does not expose the plan', async () => {
   const upgrade = await text('app/upgrade.tsx');
-  assert.match(upgrade, /const availableInStorefront = Boolean\(localizedPrices\[planKey\]\)/);
+  assert.match(upgrade, /const availableInStorefront = Boolean\(selectedPrices\[planKey\]\)/);
   assert.match(upgrade, /const purchaseReady = billingConfigured && availableInStorefront/);
   assert.match(upgrade, /const canPurchase = purchaseReady && !purchasing/);
   assert.match(upgrade, /disabled=\{!canPurchase\}/);
@@ -123,12 +125,14 @@ test('EAS distribution profiles keep development tooling out of preview and prod
   assert.notEqual(production?.extends, 'development');
 });
 
-test('consumer display name stays NEVER while technical V1 identifiers remain stable', async () => {
+test('native release identity uses the final NEVER namespace', async () => {
   const config = JSON.parse(await text('app.json'));
   assert.equal(config.expo.name, 'NEVER');
-  assert.equal(config.expo.scheme, 'one');
+  assert.equal(config.expo.slug, 'never-app');
+  assert.equal(config.expo.scheme, 'never');
   assert.equal(config.expo.orientation, 'default');
-  assert.equal(config.expo.ios.bundleIdentifier, 'app.one.mobile');
+  assert.equal(config.expo.ios.bundleIdentifier, 'app.never.mobile');
+  assert.equal(config.expo.android.package, 'app.never.mobile');
   assert.equal(config.expo.ios.supportsTablet, true);
   assert.notEqual(config.expo.ios.requireFullScreen, true);
 });

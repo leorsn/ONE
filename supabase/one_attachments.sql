@@ -6,7 +6,16 @@ values (
   'one-attachments',
   false,
   10485760,
-  array['image/jpeg','image/png','image/webp','application/pdf']::text[]
+  array[
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'image/heic',
+    'image/heif',
+    'image/gif',
+    'image/tiff',
+    'application/pdf'
+  ]::text[]
 )
 on conflict (id) do update
 set public = excluded.public,

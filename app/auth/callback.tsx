@@ -2,7 +2,7 @@ import { neverType } from '@/src/theme/tokens';
 import { useEffect, useState } from 'react';
 import { ScrollView, ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { supabase } from '@/src/supabase/client';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { V5Group, V5Wordmark, useNeverV5Palette } from '@/src/ui/appleV5';
@@ -16,17 +16,17 @@ export default function AuthCallbackScreen() {
     let cancelled = false;
     async function completeAuth() {
       if (params.error || params.error_description) {
-        if (!cancelled) setErrorMessage(params.error_description || params.error || 'Authentication failed.');
+        if (!cancelled) setErrorMessage('This link could not be used. Return to sign-in and request a new email link.');
         return;
       }
       if (!params.code) {
-        if (!cancelled) setErrorMessage('The confirmation link is missing its authorization code.');
+        if (!cancelled) setErrorMessage('This link could not be used. Return to sign-in and request a new email link.');
         return;
       }
       const { error } = await supabase.auth.exchangeCodeForSession(params.code);
       if (cancelled) return;
       if (error) {
-        setErrorMessage(error.message);
+        setErrorMessage('This link could not be used. Return to sign-in and request a new email link.');
         return;
       }
       router.replace('/(tabs)/settings');
@@ -36,13 +36,13 @@ export default function AuthCallbackScreen() {
   }, [params.code, params.error, params.error_description]);
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <ScrollView contentContainerStyle={styles.shell}>
         <V5Wordmark />
 
-        <View style={styles.hero}>
+        <View style={[styles.hero, p.textSurface, { padding: 8 }]}>
           <Text style={[styles.eyebrow, { color: errorMessage ? p.danger : p.chrome }]}>{errorMessage ? 'ACCOUNT' : 'SECURE SIGN-IN'}</Text>
-          <Text style={[styles.title, { color: p.label }]}>{errorMessage ? 'We could not confirm this account.' : 'Connecting your memory.'}</Text>
+          <Text style={[styles.title, p.heading, { color: p.label }]}>{errorMessage ? 'We could not confirm this account.' : 'Connecting your memory.'}</Text>
           <Text style={[styles.body, { color: p.secondary }]}>{errorMessage || 'NEVER is securely completing sign-in on this device.'}</Text>
         </View>
 
@@ -56,7 +56,7 @@ export default function AuthCallbackScreen() {
 
         <View style={styles.trustRow}><OneIcon name={icons.lock} size={12.5} color={p.chrome} /><Text style={[styles.trustText, { color: p.tertiary }]}>The link is exchanged for your authenticated NEVER session on this device.</Text></View>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 }
 
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   body: { marginTop: 8, maxWidth: 405, ...neverType.body },
   statusRow: { minHeight: 62, paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 10 },
   statusTitle: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
-  statusBody: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
+  statusBody: { marginTop: 2, fontSize: 12, lineHeight: 16 },
   button: { minHeight: 52, paddingVertical: 12, paddingHorizontal: 16, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   buttonText: { fontSize: 16, lineHeight: 22, fontWeight: '600' },
   trustRow: { marginTop: 17, flexDirection: 'row', alignItems: 'flex-start', gap: 7 },

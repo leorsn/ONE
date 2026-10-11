@@ -1,6 +1,27 @@
 # NEVER — Design foundation, pass 1
 
-Status: canonical implementation specification, 21 September 2026.
+Status: implementation notes from 21 September 2026, amended 29 September 2026.
+
+Latest annotated iPhone feedback preserves the Pass 3 Home hero and Saved grid,
+repairs lower onboarding copy and shared rows/filters, and restores a central
+Calendar surface. Its final Calendar reference supersedes earlier sparse-calendar
+guidance. See `VISUAL_SYSTEM_REPAIR.md`, including the open Retina asset target.
+
+The user-supplied `NEVER_UI_Design_Bible(1).pdf` takes precedence over older
+specifications below. The approved Image A Material Worlds supersede the older
+background restrictions and theme explorations. See `APPROVED_MATERIAL_WORLDS.md`.
+The latest user instruction supersedes the rejected foreground pass: the physical
+IMG_2826 reference and HomePass3 at `3e1294311dd38dba9a06011ebd8191792759aee6`
+are the foreground canon. See `PASS3_VISUAL_RESTORATION.md`. Restore the large
+blue/graphite Ask hero, standalone capture capsule, three shortcuts and negative
+space while retaining current functionality and the approved six Material Worlds.
+The Pass 3 blue recall hero and selected navigation well are intentional exceptions
+to older neutral-only guidance; routine primary actions remain graphite.
+Home, Search and Calendar use native regular editorial headings (42/44 pt, 34/39
+on compact layouts). Other shared controls retain the current design-bible tokens.
+Backgrounds belong outside content safe areas and fill both axes explicitly.
+The historical palette table below describes the original base tokens; active
+material/contrast overrides live in `src/theme/editions.ts`.
 Replaces the V5.3 palette and typography specification. The V5 screen/component
 names remain compatibility entry points; they do not define a second design system.
 
@@ -65,9 +86,9 @@ surfaces and the primary-action label. Translucent compositing still needs devic
 
 ## Typography and density
 
-Large titles and the Home greeting use the device's Georgia face (serif fallback
-on Android/web), following the supplied concept. Utility text uses the native
-system font. No downloaded font or font-loading gate is added.
+Current large titles and the Home greeting use the native system font. The older
+Georgia exploration is superseded by the Pass 3 restoration. Utility text also
+uses the native system font. No downloaded font or font-loading gate is added.
 
 | Role | Size / line height | Weight |
 | --- | --- | --- |
@@ -86,9 +107,9 @@ Tab icons are 21 points; text remains visible. Font scaling remains enabled.
 
 ## Core composition
 
-- **Home:** wordmark/profile access, real greeting, capture composer and four
-  existing capture actions, existing Ask entry, relevant Today entries, recent
-  memories and real review items. Capture has pending, success and failure copy,
+- **Home:** wordmark/profile access, YOUR MEMORY eyebrow, real greeting and
+  subtitle, large Ask hero, standalone capture bar, Scan / Link / Share, relevant
+  Today entries, recent memories and conditional review items. Capture has pending, success and failure copy,
   with an immediate duplicate-submission guard. No invented suggestions.
 - **Search:** editorial heading, material input, persistent type filters, category
   suggestions, real recent searches from this mounted session, results and the

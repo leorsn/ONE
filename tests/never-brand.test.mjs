@@ -72,23 +72,33 @@ const bannedLegacyCopy = [
   'ONE items'
 ];
 
-test('consumer app metadata exposes NEVER while compatibility identifiers remain stable', async () => {
+test('consumer and native app metadata use the final NEVER identity', async () => {
   const config = JSON.parse(await text('app.json'));
   const pluginConfig = JSON.stringify(config.expo.plugins);
   assert.equal(config.expo.name, 'NEVER');
-  assert.equal(config.expo.scheme, 'one');
-  assert.equal(config.expo.ios.bundleIdentifier, 'app.one.mobile');
+  assert.equal(config.expo.slug, 'never-app');
+  assert.equal(config.expo.scheme, 'never');
+  assert.equal(config.expo.ios.bundleIdentifier, 'app.never.mobile');
+  assert.equal(config.expo.android.package, 'app.never.mobile');
+  assert.match(pluginConfig, /app\.never\.mobile\.ShareExtension/);
+  assert.match(pluginConfig, /group\.app\.never\.mobile/);
   assert.match(pluginConfig, /Allow NEVER to scan receipts and documents\./);
   assert.match(pluginConfig, /Allow NEVER to import receipts and documents/);
+  assert.doesNotMatch(JSON.stringify(config.expo), /app\.one\.mobile|group\.app\.one\.mobile|"scheme":"one"|"slug":"one-app"/);
 });
 
-test('visible subscription names use NEVER without changing compatibility product identifiers', async () => {
+test('subscription identifiers use the final NEVER namespace', async () => {
   const products = await text('src/subscription/products.ts');
   assert.match(products, /SUBSCRIPTION_GROUP = 'NEVER Membership'/);
   assert.match(products, /displayName: 'NEVER'/);
   assert.match(products, /displayName: 'NEVER AI'/);
-  assert.match(products, /id: 'app\.one\.mobile\.one\.monthly'/);
-  assert.match(products, /id: 'app\.one\.mobile\.oneai\.monthly'/);
+  assert.match(products, /one: 'never'/);
+  assert.match(products, /oneAi: 'never_ai'/);
+  assert.match(products, /id: 'app\.never\.mobile\.monthly'/);
+  assert.match(products, /id: 'app\.never\.mobile\.ai\.monthly'/);
+  assert.match(products, /revenueCatPackageId: 'never_monthly'/);
+  assert.match(products, /revenueCatPackageId: 'never_ai_monthly'/);
+  assert.doesNotMatch(products, /app\.one\.mobile|revenueCatPackageId: 'one_|one: 'one'|oneAi: 'one_ai'/);
 });
 
 test('grounded recall model identifies the consumer product as NEVER', async () => {

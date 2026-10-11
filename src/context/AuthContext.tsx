@@ -49,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
           await ensureOneProfile(result.session.user.id);
         } catch {
-          if (__DEV__) console.warn('ONE profile bootstrap deferred');
+          if (__DEV__) console.warn('NEVER profile bootstrap deferred');
         }
       }
     }).catch(() => {
@@ -65,8 +65,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null);
       setLoading(false);
       if (nextSession?.user.id) {
-        void ensureOneProfile(nextSession.user.id).catch((profileError) => {
-          if (__DEV__) console.warn('ONE profile bootstrap deferred');
+        void ensureOneProfile(nextSession.user.id).catch(() => {
+          if (__DEV__) console.warn('NEVER profile bootstrap deferred');
         });
       }
     });

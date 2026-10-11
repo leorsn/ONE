@@ -134,14 +134,14 @@ test('account storage scopes do not overlap and stale sync cannot apply after ac
   assert.equal(canApplyScopedSyncResult(accountB, accountB), true);
 });
 
-test('Ask ONE returns grounded appointment location and supporting item id', () => {
+test('Ask NEVER returns grounded appointment location and supporting item id', () => {
   const dentist = makeItem({ id: 'dentist', title: 'Dentist appointment', type: 'appointment', date: '2026-09-18', time: '15:00', location: '123 Health Clinic' });
   const answer = buildGroundedRecallAnswer('Where was my dentist appointment?', [dentist], dentist);
   assert.equal(answer?.title, '123 Health Clinic');
   assert.deepEqual(answer?.itemIds, ['dentist']);
 });
 
-test('Ask ONE returns only Dad gift memories for Dad gift query', () => {
+test('Ask NEVER returns only Dad gift memories for Dad gift query', () => {
   const dad = makeItem({ id: 'dad', title: 'Rolex book', type: 'idea', userContext: 'Gift Dad', tags: ['gift', 'dad'] });
   const mom = makeItem({ id: 'mom', title: 'Flowers', type: 'idea', userContext: 'Gift Mom', tags: ['gift', 'mom'] });
   const answer = buildGroundedRecallAnswer("What gift ideas did I save for Dad's birthday?", [dad, mom], dad);
@@ -150,7 +150,7 @@ test('Ask ONE returns only Dad gift memories for Dad gift query', () => {
   assert.doesNotMatch(answer?.body || '', /Flowers/);
 });
 
-test('Ask ONE unknown/no-result path returns no fabricated answer', () => {
+test('Ask NEVER unknown/no-result path returns no fabricated answer', () => {
   const answer = buildGroundedRecallAnswer('Where was the unknown appointment?', [], undefined);
   assert.equal(answer, undefined);
 });
@@ -182,10 +182,10 @@ test('duplicate native share protection blocks only the same recent fingerprint'
   assert.equal(shouldPreventDuplicateShare({ previousFingerprint: 'share-a', previousHandledAt: 1000, nextFingerprint: 'share-a', now: 200000 }), false);
 });
 
-test('ONE native deep links route auth, reset, acceptance and share intents', () => {
-  assert.deepEqual(resolveOneNativePath('one://auth/callback?code=abc123'), { route: '/auth/callback?code=abc123', kind: 'auth_callback' });
-  assert.deepEqual(resolveOneNativePath('one://auth/reset-password?code=xyz456'), { route: '/auth/reset-password?code=xyz456', kind: 'password_reset' });
-  assert.deepEqual(resolveOneNativePath('one://dev-native?probe=1'), { route: '/dev-native?probe=1', kind: 'acceptance' });
+test('NEVER native deep links route auth, reset, acceptance and share intents', () => {
+  assert.deepEqual(resolveOneNativePath('never://auth/callback?code=abc123'), { route: '/auth/callback?code=abc123', kind: 'auth_callback' });
+  assert.deepEqual(resolveOneNativePath('never://auth/reset-password?code=xyz456'), { route: '/auth/reset-password?code=xyz456', kind: 'password_reset' });
+  assert.deepEqual(resolveOneNativePath('never://dev-native?probe=1'), { route: '/dev-native?probe=1', kind: 'acceptance' });
   assert.deepEqual(resolveOneNativePath('expo-sharing://incoming'), { route: '/handle-share', kind: 'share' });
   assert.equal(resolveOneNativePath('%%%').kind, 'invalid');
 });

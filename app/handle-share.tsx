@@ -4,7 +4,7 @@ import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressa
 import { router } from 'expo-router';
 import { useIncomingShare } from 'expo-sharing';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { CaptureReviewEditor } from '@/src/capture/CaptureReviewEditor';
 import type { CaptureDraft } from '@/src/capture/core';
 import { useAuth } from '@/src/context/AuthContext';
@@ -15,13 +15,14 @@ import { selectPendingShareCandidate } from '@/src/native/sharePayload';
 import { notificationSaveWarning } from '@/src/notifications/status';
 import { extractTextFromImage } from '@/src/ocr/extractText';
 import { mergeLateOcrDraft } from '@/src/ocr/mergeLateOcr';
+import { isSupportedNeverAttachment, NEVER_ATTACHMENT_SUPPORT_COPY } from '@/src/sharing/attachmentPolicy';
 import { createItemFromShare, createShareDraft } from '@/src/sharing/ingest';
 import { persistLocalAttachment, removeLocalAttachment } from '@/src/storage/attachments';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { V5Group, V5IconButton, V5LargeHeader, V5SectionHeader, useNeverV5Palette } from '@/src/ui/appleV5';
 
 type OcrState = 'idle' | 'reading' | 'ready' | 'empty' | 'failed';
-type AttachmentState = 'idle' | 'securing' | 'ready' | 'failed';
+type AttachmentState = 'idle' | 'securing' | 'ready' | 'failed' | 'unsupported';
 
 export default function HandleShareScreen() {
   const p = useNeverV5Palette();
@@ -54,6 +55,7 @@ export default function HandleShareScreen() {
   const contentUri = resolved && 'contentUri' in resolved ? resolved.contentUri : null;
   const isImage = resolved?.contentType === 'image' || primary?.shareType === 'image';
   const isAttachment = Boolean(primary && (['image', 'file', 'video', 'audio'].includes(primary.shareType || '') || ['image', 'file', 'video', 'audio'].includes(resolved?.contentType || '')));
+  const attachmentSupported = !isAttachment || isSupportedNeverAttachment(resolved?.contentMimeType, resolved?.originalName);
   const imageUri = isImage ? localAttachmentUri : null;
 
   const automaticDraft = useMemo(() => primary ? createShareDraft({ payload: primary, resolved, extractedText }) : null, [primary, resolved, extractedText]);
@@ -94,6 +96,10 @@ export default function HandleShareScreen() {
       if (attachmentRef.current === previous) attachmentRef.current = null;
       if (cancelled || revision !== attachmentRevisionRef.current) return;
       setLocalAttachmentUri(null);
+      if (isAttachment && !attachmentSupported) {
+        setAttachmentState('unsupported');
+        return;
+      }
       if (!isAttachment || !contentUri) {
         setAttachmentState(isAttachment ? 'failed' : 'idle');
         return;
@@ -119,7 +125,7 @@ export default function HandleShareScreen() {
 
     void secureAttachment();
     return () => { cancelled = true; };
-  }, [selectedFingerprint, isAttachment, contentUri, resolved?.originalName, resolved?.contentType, primary?.shareType]);
+  }, [selectedFingerprint, isAttachment, attachmentSupported, contentUri, resolved?.originalName, resolved?.contentType, resolved?.contentMimeType, primary?.shareType]);
 
   useEffect(() => () => {
     attachmentRevisionRef.current += 1;
@@ -171,6 +177,10 @@ export default function HandleShareScreen() {
 
   async function handleSave() {
     if (!primary || !draft?.title.trim() || !selected || savingRef.current || isResolving) return;
+    if (isAttachment && attachmentState === 'unsupported') {
+      Alert.alert('File type not supported', NEVER_ATTACHMENT_SUPPORT_COPY);
+      return;
+    }
     if (isAttachment && attachmentState !== 'ready') {
       Alert.alert(
         attachmentState === 'failed' ? 'Attachment not secured' : 'Securing attachment',
@@ -242,9 +252,9 @@ export default function HandleShareScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
       <KeyboardAvoidingView style={styles.safe} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={4}>
-        <ScrollView contentContainerStyle={styles.content} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} keyboardDismissMode="interactive" keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
           <View style={styles.nav}>
             <V5IconButton disabled={saving} icon={icons.close} accessibilityLabel="Cancel share" onPress={() => void handleCancel()} />
             <Text style={[styles.navTitle, { color: p.label }]}>Save to NEVER</Text>
@@ -271,7 +281,7 @@ export default function HandleShareScreen() {
                 </V5Group>
               </View>
 
-              {isAttachment ? <StatusLine icon={attachmentState === 'failed' ? icons.more : icons.lock} tone={attachmentState === 'failed' ? 'warning' : 'chrome'} title={attachmentState === 'ready' ? 'Original secured' : attachmentState === 'securing' ? 'Securing original' : attachmentState === 'failed' ? 'Original not secured' : 'Preparing original'} body={attachmentMessage(attachmentState)} loading={attachmentState === 'securing'} /> : null}
+              {isAttachment ? <StatusLine icon={attachmentState === 'failed' || attachmentState === 'unsupported' ? icons.more : icons.lock} tone={attachmentState === 'failed' || attachmentState === 'unsupported' ? 'warning' : 'chrome'} title={attachmentState === 'ready' ? 'Original secured' : attachmentState === 'securing' ? 'Securing original' : attachmentState === 'unsupported' ? 'File type not supported' : attachmentState === 'failed' ? 'Original not secured' : 'Preparing original'} body={attachmentMessage(attachmentState)} loading={attachmentState === 'securing'} /> : null}
               {isImage ? <StatusLine icon={visibleOcrState === 'ready' ? icons.check : icons.screenshot} tone={visibleOcrState === 'ready' ? 'success' : ['failed', 'empty'].includes(visibleOcrState) ? 'warning' : 'chrome'} title={ocrHeadline(visibleOcrState)} body={ocrMeta(visibleOcrState)} loading={visibleOcrState === 'reading'} /> : null}
 
               {draft ? (
@@ -283,7 +293,7 @@ export default function HandleShareScreen() {
 
               <View style={styles.storageLine}><OneIcon name={icons.cloud} size={12.5} color={p.chrome} /><Text style={[styles.storageText, { color: p.tertiary }]}>{session ? 'NEVER saves locally first. Account sync can retry when the network is available.' : 'This capture stays on this device until you sign in.'}</Text></View>
 
-              <Pressable accessibilityRole="button" disabled={saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')} onPress={handleSave} style={({ pressed }) => [styles.primaryButton, { backgroundColor: p.graphite, opacity: saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready') ? 0.38 : pressed ? 0.72 : 1 }]}>
+              <Pressable accessibilityRole="button" disabled={saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready')} onPress={handleSave} style={({ pressed }) => [styles.primaryButton, { borderRadius: p.radius.button, backgroundColor: p.graphite, opacity: saving || isResolving || !draft?.title.trim() || (isAttachment && attachmentState !== 'ready') ? 0.38 : pressed ? 0.72 : 1 }]}>
                 <OneIcon name={icons.check} size={14.5} color={p.onAccent} />
                 <Text style={[styles.primaryText, { color: p.onAccent }]}>{saving ? 'Saving…' : allowDuplicate ? 'Save Again' : sharedPayloads.length - completedIndices.length > 1 ? 'Save & review next' : 'Save to NEVER'}</Text>
               </Pressable>
@@ -293,7 +303,7 @@ export default function HandleShareScreen() {
           ) : null}
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
   function StatusLine({ icon, tone, title, body, loading = false }: { icon: (typeof icons)[keyof typeof icons]; tone: 'chrome' | 'success' | 'warning'; title: string; body: string; loading?: boolean }) {
@@ -319,6 +329,7 @@ function labelFor(type?: string) {
 function attachmentMessage(state: AttachmentState) {
   if (state === 'securing') return 'Creating a private local copy before NEVER treats the attachment as saved.';
   if (state === 'ready') return 'The original is safely available locally before recognition or cloud sync.';
+  if (state === 'unsupported') return NEVER_ATTACHMENT_SUPPORT_COPY;
   if (state === 'failed') return 'NEVER will not claim this attachment as saved because the local copy could not be created.';
   return 'Preparing the attachment…';
 }
@@ -346,7 +357,7 @@ const styles = StyleSheet.create({
   originalCard: { minHeight: 86, padding: 11, flexDirection: 'row', alignItems: 'center', gap: 11 },
   originalIcon: { width: 62, height: 62, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
   image: { width: 62, height: 62, borderRadius: 14 },
-  kind: { fontSize: 8, lineHeight: 10, fontWeight: '700', letterSpacing: 1 },
+  kind: { fontSize: 12, lineHeight: 16, fontWeight: '700', letterSpacing: 1 },
   previewTitle: { marginTop: 4, fontSize: 14, lineHeight: 18, fontWeight: '600' },
   notice: { minHeight: 50, borderRadius: 13, paddingHorizontal: 12, paddingVertical: 9, flexDirection: 'row', alignItems: 'center', gap: 8 },
   noticeText: { flex: 1, ...neverType.caption },

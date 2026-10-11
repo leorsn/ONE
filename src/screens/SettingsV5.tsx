@@ -1,17 +1,18 @@
+import { appearanceLabel } from '@/src/theme/editions';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { router } from 'expo-router';
 import Constants from 'expo-constants';
 import { ActivityIndicator, Alert, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { useAuth } from '@/src/context/AuthContext';
 import { useItems } from '@/src/context/ItemsContext';
 import { useOnboarding } from '@/src/context/OnboardingContext';
 import { usePlan } from '@/src/context/PlanContext';
 import { deleteOneAccount } from '@/src/supabase/account';
 import { OneIcon, icons } from '@/src/ui/icons';
-import { NeverBackdrop, NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
+import { NeverEyebrow, NeverHeroSurface, NeverMetric } from '@/src/ui/neverVisual';
 import {
   V5Chevron,
   V5Group,
@@ -94,8 +95,8 @@ export default function SettingsV5() {
       await clearAll();
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       Alert.alert('NEVER Account Deleted', 'Your NEVER account and synced data have been deleted.');
-    } catch (error) {
-      Alert.alert('Could not delete account', error instanceof Error ? error.message : 'Please try again.');
+    } catch {
+      Alert.alert('Could not delete account', 'Check your connection and try again. If this continues, sign in again before retrying.');
     } finally {
       setDeletingAccount(false);
     }
@@ -116,13 +117,11 @@ export default function SettingsV5() {
         : 'Up to date';
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
-      <NeverBackdrop />
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
         <View style={styles.heroCopy}>
-          <NeverEyebrow>Control center</NeverEyebrow>
-          <Text accessibilityRole="header" style={[styles.heroTitle, { color: p.label }]}>Settings.</Text>
-          <Text style={[styles.heroSubtitle, { color: p.secondary }]}>Your account, memory preferences and NEVER membership.</Text>
+          <Text accessibilityRole="header" style={[styles.heroTitle, p.pass3Heading, p.environmentText]}>Settings.</Text>
+          <Text style={[styles.heroSubtitle, p.environmentText]}>Your account, memory preferences and NEVER membership.</Text>
         </View>
 
         {session ? (
@@ -151,21 +150,21 @@ export default function SettingsV5() {
 
         <View style={styles.section}>
           <View style={styles.sectionHeading}>
-            <Text style={[styles.sectionTitle, { color: p.label }]}>Preferences</Text>
-            <Text style={[styles.sectionMeta, { color: p.tertiary }]}>DEVICE & MEMORY</Text>
+            <Text style={[styles.sectionTitle, p.environmentText]}>Preferences</Text>
+            <Text style={[styles.sectionMeta, p.environmentText]}>DEVICE & MEMORY</Text>
           </View>
-          <View style={styles.preferenceGrid}>
-            <PreferenceTile icon={icons.appearance} label="Appearance" value={appearanceLabel(preference)} onPress={() => router.push('/settings/appearance')} />
-            <PreferenceTile icon={icons.bell} label="Notifications" value="Reminders & alerts" onPress={() => router.push('/settings/notifications')} />
-            <PreferenceTile icon={icons.cloud} label="Cloud Sync" value={syncLabel} tone={syncStatus === 'problem' ? 'warning' : 'neutral'} onPress={syncStatus === 'problem' ? retrySync : undefined} />
-            <PreferenceTile icon={icons.shield} label="Privacy" value="Export & controls" onPress={() => router.push('/settings/privacy')} />
-          </View>
+          <V5Group>
+            <SettingsRow icon={icons.appearance} label="Appearance" value={appearanceLabel(preference)} onPress={() => router.push('/settings/appearance')} />
+            <SettingsRow icon={icons.bell} label="Notifications" value="Reminders & alerts" onPress={() => router.push('/settings/notifications')} />
+            <SettingsRow icon={icons.cloud} label="Cloud sync" value={syncStatus === 'problem' ? `${syncLabel} · Tap to retry` : syncLabel} tone={syncStatus === 'problem' ? 'warning' : 'neutral'} onPress={syncStatus === 'problem' ? retrySync : undefined} />
+            <SettingsRow icon={icons.shield} label="Privacy" value="Export & controls" onPress={() => router.push('/settings/privacy')} last />
+          </V5Group>
         </View>
 
         <View style={styles.section}>
           <View style={styles.sectionHeading}>
-            <Text style={[styles.sectionTitle, { color: p.label }]}>Membership</Text>
-            <Text style={[styles.sectionMeta, { color: p.tertiary }]}>{isBetaAccess ? 'BETA' : 'NEVER'}</Text>
+            <Text style={[styles.sectionTitle, p.environmentText]}>Membership</Text>
+            <Text style={[styles.sectionMeta, p.environmentText]}>{isBetaAccess ? 'BETA' : 'NEVER'}</Text>
           </View>
           <NeverHeroSurface compact>
             <Pressable accessibilityRole="button" onPress={() => router.push('/upgrade')} style={({ pressed }) => [styles.membershipRow, { opacity: pressed ? 0.65 : 1 }]}>
@@ -227,9 +226,9 @@ export default function SettingsV5() {
           </SettingsSection>
         ) : null}
 
-        <Text style={[styles.footer, { color: p.tertiary }]}>NEVER · {hasAi ? 'AI enabled' : 'Core'} · {APP_VERSION}</Text>
+        <Text style={[styles.footer, p.environmentText]}>NEVER · {hasAi ? 'AI enabled' : 'Core'} · {APP_VERSION}</Text>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 }
@@ -261,52 +260,12 @@ function membershipValue(plan: 'none' | 'one' | 'one_ai', localizedPrices: Parti
   if (plan === 'one') return localizedPrices.one ? `${localizedPrices.one} / month · Active` : billingConfigured ? 'Active · App Store' : '€2.99 / month';
   return 'Compare NEVER plans';
 }
-function appearanceLabel(value: 'system' | 'light' | 'dark') {
-  if (value === 'light') return 'Light';
-  if (value === 'dark') return 'Dark';
-  return 'Auto';
-}
-
-function PreferenceTile({
-  icon,
-  label,
-  value,
-  tone = 'neutral',
-  onPress
-}: {
-  icon: IconName;
-  label: string;
-  value: string;
-  tone?: RowTone;
-  onPress?: () => void | Promise<void>;
-}) {
-  const p = useNeverV5Palette();
-  const tint = rowTint(tone, p);
-  const body = (
-    <>
-      <View style={styles.preferenceTop}>
-        <View style={[styles.preferenceIcon, { backgroundColor: tone === 'neutral' ? p.fillSoft : tint + '18' }]}>
-          <OneIcon name={icon} size={17} color={tint} />
-        </View>
-        {onPress ? <V5Chevron /> : null}
-      </View>
-      <Text style={[styles.preferenceLabel, { color: p.label }]}>{label}</Text>
-      <Text style={[styles.preferenceValue, { color: p.secondary }]} numberOfLines={2}>{value}</Text>
-    </>
-  );
-  if (!onPress) return <View style={[styles.preferenceTile, { backgroundColor: p.surface, borderColor: p.border }]}>{body}</View>;
-  return (
-    <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.preferenceTile, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.65 : 1 }]}>
-      {body}
-    </Pressable>
-  );
-}
 
 function SettingsSection({ title, children }: { title: string; children: ReactNode }) {
   const p = useNeverV5Palette();
   return (
     <View style={styles.section}>
-      <Text style={[styles.groupTitle, { color: p.secondary }]}>{title}</Text>
+      <Text style={[styles.groupTitle, p.environmentText]}>{title}</Text>
       <V5Group>{children}</V5Group>
     </View>
   );
@@ -356,8 +315,8 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 760, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 26, paddingBottom: 126, gap: 26 },
   heroCopy: { gap: 5 },
-  heroTitle: { fontSize: 43, lineHeight: 47, fontFamily: 'Georgia', fontWeight: '400', letterSpacing: -1.35 },
-  heroSubtitle: { maxWidth: 430, fontSize: 14.5, lineHeight: 20 },
+  heroTitle: { fontSize: 43, lineHeight: 47, fontWeight: '400', letterSpacing: -1.35 },
+  heroSubtitle: { maxWidth: 340, fontSize: 15, lineHeight: 22 },
   profileStage: { padding: 16 },
   profileTop: { minHeight: 92, flexDirection: 'row', alignItems: 'center', gap: 13 },
   avatar: { width: 58, height: 58, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
@@ -366,18 +325,12 @@ const styles = StyleSheet.create({
   profileTitle: { marginTop: 4, fontSize: 19, lineHeight: 23, fontWeight: '600', letterSpacing: -0.3 },
   profileEmail: { marginTop: 2, fontSize: 12.5, lineHeight: 16 },
   profileArrow: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
-  profileMetrics: { minHeight: 66, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 9 },
+  profileMetrics: { flexWrap: 'wrap', minHeight: 66, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 9 },
   profileMetric: { flex: 1 },
   section: { gap: 9 },
-  sectionHeading: { paddingHorizontal: 4, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
+  sectionHeading: { flexWrap: 'wrap', paddingHorizontal: 4, flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between' },
   sectionTitle: { fontSize: 17, lineHeight: 21, fontWeight: '600', letterSpacing: -0.2 },
-  sectionMeta: { fontSize: 9.5, lineHeight: 12, fontWeight: '700', letterSpacing: 0.8 },
-  preferenceGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 9 },
-  preferenceTile: { flexBasis: '47%', flexGrow: 1, minWidth: 130, minHeight: 128, borderRadius: 20, borderWidth: StyleSheet.hairlineWidth, padding: 13 },
-  preferenceTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  preferenceIcon: { width: 38, height: 38, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  preferenceLabel: { marginTop: 16, fontSize: 14.5, lineHeight: 18, fontWeight: '600' },
-  preferenceValue: { marginTop: 2, fontSize: 11.5, lineHeight: 15 },
+  sectionMeta: { fontSize: 12, lineHeight: 16, fontWeight: '700', letterSpacing: 0.8 },
   membershipRow: { minHeight: 102, paddingHorizontal: 15, flexDirection: 'row', alignItems: 'center', gap: 13 },
   membershipIcon: { width: 50, height: 50, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   membershipCopy: { flex: 1, minWidth: 0 },

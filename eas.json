@@ -19,6 +19,10 @@
       "distribution": "internal",
       "environment": "preview"
     },
+    "partner-preview": {
+      "distribution": "internal",
+      "environment": "preview"
+    },
     "production": {
       "environment": "production",
       "autoIncrement": true

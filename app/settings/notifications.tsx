@@ -5,7 +5,7 @@ import { neverType } from '@/src/theme/tokens';
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, AppState, Linking, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import { ensureNotificationPermissions, getNotificationPermissionStatus } from '@/src/notifications/localNotifications';
 import { loadNotificationPreferences, saveNotificationPreferences, type ReminderLeadMinutes } from '@/src/storage/preferences';
 import { OneIcon, icons } from '@/src/ui/icons';
@@ -71,8 +71,8 @@ export default function NotificationSettingsScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'bottom', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
         <NeverNavigation title="Notifications" onBack={() => goBackOrHome()} />
 
         <V5LargeHeader title="Notifications" subtitle="Useful reminders, without the noise." />
@@ -118,7 +118,7 @@ export default function NotificationSettingsScreen() {
 
         <View style={styles.note}><OneIcon name={icons.bell} size={12.5} color={p.chrome} /><Text style={[styles.noteText, { color: p.tertiary }]}>This timing is applied when a reminder is newly scheduled or edited. Individual items can still use their own reminder details.</Text></View>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 
 

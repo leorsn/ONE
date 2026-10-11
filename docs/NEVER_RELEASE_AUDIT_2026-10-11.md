@@ -1,0 +1,41 @@
+# NEVER — Release integration audit (2026-10-11)
+
+## Scope
+Repository: `leorsn/ONE`. This document records GitHub branch-history and source inspection only; it is **not** a claim that tests or physical-device checks have passed.
+
+## Verified comparisons
+- `design/never-material-worlds` -> `fix/never-revenuecat-package-safety-2026-10-08`: latter is 18 commits ahead, 0 behind.
+- `design/never-material-worlds` -> `fix/never-release-docs-2026-10-08`: latter is 4 commits ahead, 0 behind.
+- Release-docs branch vs RevenueCat branch: diverged (RevenueCat branch 18 commits ahead / 4 behind).
+- `quality/never-pre-device` is 169 commits behind design branch.
+- `feat/never-intelligence-v1` is 122 commits behind design branch.
+These figures are directional GitHub compare results as of this audit, not equivalent to independent missing features.
+
+## Selected integration baseline
+`audit/never-release-2026-10-11` starts from `fix/never-revenuecat-package-safety-2026-10-08`, preserving the 18 RevenueCat-related commits. **Do not merge this audit branch into the production app solely on this report.** Before promotion, reconcile the 4 later release-documentation commits and verify no conflicting modifications.
+
+## Findings and remaining acceptance gates
+1. RevenueCat SDK package `react-native-purchases@10.9.0` is declared and `src/subscription/revenueCat.ts` implements configuration, purchase, restore and identity synchronization. Actual App Store Connect products/RevenueCat offering/entitlements and real StoreKit purchase flows remain externally unverified.
+2. `package.json` contains `quality`, `release:testflight-check`, `release:appstore-check`, asset/privacy/subscription/native configuration checks. These checks were **not executed** in this connector audit; a successful GitHub source read is not a passing CI run.
+3. Release blocker document specifies `app.never.mobile`, `app.never.mobile.ShareExtension`, `group.app.never.mobile`, and `never://` as intended external signing/link contracts. Confirm production native config and registrations before signed distribution.
+4. Physical iPhone smoke tests, Share Sheet, OCR, auth deep links, notifications, account isolation, offline reconnect, visual QA and iPad acceptance are outstanding unless supported by signed-build test evidence.
+5. Production Supabase settings, security policies, credentials, EAS, Apple Developer, App Store Connect, privacy manifests and public legal URLs are **not proven** by repository inspection.
+
+## Immediate execution order
+1. **COMPLETED (2026-10-11):** reconciled the release-docs versions of `docs/DEVICE_TEST_PLAN.md` and `docs/V1_RELEASE_BLOCKERS.md` into this audit branch. Retained the RevenueCat branch CI additions and expanded CI push triggers to include `audit/never-*`. Confirmed both compared branches use matching `app.json` iOS identifiers. GitHub source writes do not prove CI results.
+2. On a clean checkout run `npm ci --no-audit --no-fund`, `npm run quality`, `npm run release:testflight-check` with appropriate protected staging credentials. Collect exit codes and CI SHA. Do not commit secrets.
+3. Compare `app.json` / `app.config.js` to Apple bundle IDs, App Group, entitlements and Supabase redirect URLs.
+4. Configure/verify RevenueCat products and App Store Connect subscriptions, then run real sandbox purchase/restore/cancel/account-switch testing.
+5. Obtain signed physical iPhone build and record evidence against `docs/DEVICE_TEST_PLAN.md` and `docs/NEVER_VISUAL_QA.md`.
+6. Close all P0/P1 issues and finally run App Store release gate.
+
+## Safety constraints
+Do not change the approved material-world design, consumer-facing NEVER branding or compatibility identifiers speculatively. Do not infer external configuration from local templates. Do not ship on passing unit tests alone.
+
+## Connected service verification — 2026-10-11
+- GitHub Actions NEVER Quality run 38137119714 (job 114463159062): **success**, including clean checkout. This establishes repository CI, not physical-device/App Store readiness.
+- RevenueCat project `proj159f3991` (NEVER): entitlements `never` and `never_ai` active; offering `default` current; packages `never_monthly` / `never_ai_monthly` map to `app.never.mobile.monthly` / `app.never.mobile.ai.monthly`. **Only a Test Store app** (`app6aea01a884`) is registered. Real App Store app and subscription association remain release blockers. Test Store product records do not prove prices/trials are configured in App Store Connect.
+- Supabase project `uuehozwygopldwcbkfci`: `public.items` and `public.profiles` both have RLS enabled. Policies for SELECT/INSERT/UPDATE/DELETE are limited to authenticated users and `auth.uid() = user_id`; update includes `WITH CHECK` for the owner. These are static policy results, not a two-account penetration test.
+- Supabase Edge Functions: `embed-one-item`, `semantic-search`, `delete-account`, `answer-one-recall`, `interpret-one-capture` active, `verify_jwt=true`.
+- Supabase Security Advisor reports `auth_leaked_password_protection` **WARN**: leaked-password protection is disabled. Enable via the Auth security settings before launch and rerun advisor; docs: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection .
+- No external configuration was mutated during this inspection. Do not mark App Store billing or actual Supabase cross-account isolation as accepted before device/sandbox tests.

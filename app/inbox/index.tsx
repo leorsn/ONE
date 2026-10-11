@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { NeverScreen } from '@/src/ui/NeverScreen';
 import * as Haptics from 'expo-haptics';
 import { useItems } from '@/src/context/ItemsContext';
 import { isInboxActive, triageActionChanges, triagePriority } from '@/src/inbox/triage';
@@ -25,8 +25,8 @@ export default function InboxIndexScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
-      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <NeverScreen style={[styles.safe, { backgroundColor: p.canvas }]} edges={['top', 'left', 'right']}>
+      <ScrollView contentContainerStyle={[styles.content, p.pageStyle]} showsVerticalScrollIndicator={false}>
         <View style={styles.nav}><V5IconButton icon={icons.chevronLeft} accessibilityLabel="Go back" onPress={() => router.canGoBack() ? router.back() : router.replace('/(tabs)')} /><Text style={[styles.navLabel, { color: p.secondary }]}>CAPTURE & ORGANIZE</Text></View>
         <V5LargeHeader title="Inbox" subtitle="A little clarity. Everything in its place." action={<V5IconButton icon={icons.plus} accessibilityLabel="Capture a memory" onPress={() => router.push('/(tabs)')} />} />
 
@@ -53,7 +53,7 @@ export default function InboxIndexScreen() {
           </V5Group>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </NeverScreen>
   );
 }
 
