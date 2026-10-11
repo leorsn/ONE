@@ -10,8 +10,8 @@ test('System follows device mode without using premium material-world artwork', 
 
   assert.equal(light.mode, 'light');
   assert.equal(dark.mode, 'dark');
-  assert.equal(light.background, '#E6E9EC');
-  assert.equal(dark.background, '#101418');
+  assert.equal(light.background, '#F5F3F0');
+  assert.equal(dark.background, '#050505');
   assert.equal(light.artwork, false);
   assert.equal(dark.artwork, false);
 
