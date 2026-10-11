@@ -7,7 +7,7 @@ import { usePlan } from '@/src/context/PlanContext';
 import { OneIcon, icons } from '@/src/ui/icons';
 import { V5Group, V5IconButton, V5LargeHeader, useNeverV5Palette } from '@/src/ui/appleV5';
 import { subscriptionProducts } from '@/src/subscription/products';
-import type { RevenueCatIntroOffer } from '@/src/subscription/revenueCat';
+import type { RevenueCatIntroOffer, BillingPeriod } from '@/src/subscription/revenueCat';
 
 const PRIVACY_POLICY_URL = process.env.EXPO_PUBLIC_PRIVACY_POLICY_URL?.trim();
 const TERMS_URL = process.env.EXPO_PUBLIC_TERMS_URL?.trim();
@@ -31,13 +31,22 @@ type PurchasePlan = 'one' | 'one_ai';
 
 export default function UpgradeScreen() {
   const p = useNeverV5Palette();
-  const { plan, isBetaAccess, billingConfigured, localizedPrices, introOffers, purchasing, purchase, restore } = usePlan();
+  const { plan, isBetaAccess, billingConfigured, localizedPrices, yearlyPrices, introOffers, purchasing, purchase, restore } = usePlan();
+  const [billingPeriod, setBillingPeriod] = useState<BillingPeriod>('year');
   const [purchasingPlan, setPurchasingPlan] = useState<PurchasePlan | null>(null);
   const hardPaywall = plan === 'none' && !isBetaAccess;
-  const neverPrice = storefrontPrice(localizedPrices.one, billingConfigured, subscriptionProducts.oneMonthly.priceEUR);
-  const neverAiPrice = storefrontPrice(localizedPrices.one_ai, billingConfigured, subscriptionProducts.oneAiMonthly.priceEUR);
-  const neverOffer = storefrontOffer(introOffers.one, localizedPrices.one, billingConfigured, `Planned pricing · ${formatEUR(subscriptionProducts.oneMonthly.priceEUR)}/month`);
-  const neverAiOffer = storefrontOffer(introOffers.one_ai, localizedPrices.one_ai, billingConfigured, `Planned pricing · ${formatEUR(subscriptionProducts.oneAiMonthly.priceEUR)}/month`);
+  const annual = billingPeriod === 'year';
+  const selectedPrices = annual ? yearlyPrices : localizedPrices;
+  const neverProduct = annual ? subscriptionProducts.oneYearly : subscriptionProducts.oneMonthly;
+  const neverAiProduct = annual ? subscriptionProducts.oneAiYearly : subscriptionProducts.oneAiMonthly;
+  const neverPrice = storefrontPrice(selectedPrices.one, billingConfigured, neverProduct.priceEUR);
+  const neverAiPrice = storefrontPrice(selectedPrices.one_ai, billingConfigured, neverAiProduct.priceEUR);
+  const neverOffer = annual
+    ? (billingConfigured ? (selectedPrices.one ? 'Billed annually · auto-renews' : 'Unavailable in the current App Store offering') : 'Planned annual price · save 30%')
+    : storefrontOffer(introOffers.one, localizedPrices.one, billingConfigured, `Planned pricing · ${formatEUR(subscriptionProducts.oneMonthly.priceEUR)}/month`);
+  const neverAiOffer = annual
+    ? (billingConfigured ? (selectedPrices.one_ai ? 'Billed annually · auto-renews' : 'Unavailable in the current App Store offering') : 'Planned annual price · save 25%')
+    : storefrontOffer(introOffers.one_ai, localizedPrices.one_ai, billingConfigured, `Planned pricing · ${formatEUR(subscriptionProducts.oneAiMonthly.priceEUR)}/month`);
 
   async function openLegal(label: string, url?: string) {
     if (!url) {
@@ -67,11 +76,23 @@ export default function UpgradeScreen() {
 
         <V5LargeHeader title="Choose your NEVER." subtitle="Keep your memory organized with NEVER. Add grounded recall and answers with NEVER AI." />
 
+        <View style={[styles.billingToggle, { backgroundColor: p.fillSoft }]}>
+          {(['year', 'month'] as const).map((period) => (
+            <Pressable key={period} accessibilityRole="button" accessibilityState={{ selected: billingPeriod === period }}
+              onPress={() => setBillingPeriod(period)}
+              style={[styles.billingOption, { backgroundColor: billingPeriod === period ? p.graphite : 'transparent' }]}>
+              <Text style={[styles.billingOptionText, { color: billingPeriod === period ? p.onAccent : p.secondary }]}>
+                {period === 'year' ? 'Yearly' : 'Monthly'}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+
         <PlanCard
           name="NEVER"
           descriptor="Capture, organize and find what matters."
           price={neverPrice}
-          period={localizedPrices.one || !billingConfigured ? '/ month' : ''}
+          period={selectedPrices.one || !billingConfigured ? (annual ? '/ year' : '/ month') : ''}
           offer={neverOffer}
           features={baseFeatures}
           planKey="one"
@@ -82,7 +103,7 @@ export default function UpgradeScreen() {
           name="NEVER AI"
           descriptor="Ask questions and get grounded answers from what you saved."
           price={neverAiPrice}
-          period={localizedPrices.one_ai || !billingConfigured ? '/ month' : ''}
+          period={selectedPrices.one_ai || !billingConfigured ? (annual ? '/ year' : '/ month') : ''}
           offer={neverAiOffer}
           features={aiFeatures}
           planKey="one_ai"
@@ -149,7 +170,7 @@ export default function UpgradeScreen() {
     current?: boolean;
     featured?: boolean;
   }) {
-    const availableInStorefront = Boolean(localizedPrices[planKey]);
+    const availableInStorefront = Boolean(selectedPrices[planKey]);
     const purchaseReady = billingConfigured && availableInStorefront;
     const canPurchase = purchaseReady && !purchasing;
     const isThisPlanPurchasing = purchasing && purchasingPlan === planKey;
@@ -191,7 +212,7 @@ export default function UpgradeScreen() {
               onPress={async () => {
                 setPurchasingPlan(planKey);
                 try {
-                  const outcome = await purchase(planKey);
+                  const outcome = await purchase(planKey, billingPeriod);
                   if (!outcome.ok && !outcome.cancelled && outcome.error) Alert.alert('NEVER subscription', outcome.error);
                 } finally {
                   setPurchasingPlan(null);
@@ -244,6 +265,9 @@ function formatEUR(value: number) { return '€' + value.toFixed(2); }
 const styles = StyleSheet.create({
   safe: { flex: 1 },
   content: { width: '100%', maxWidth: 660, alignSelf: 'center', paddingHorizontal: 20, paddingTop: 8, paddingBottom: 36, gap: 16 },
+  billingToggle: { flexDirection: 'row', borderRadius: 14, padding: 4, gap: 4 },
+  billingOption: { flex: 1, minHeight: 44, borderRadius: 11, justifyContent: 'center', alignItems: 'center' },
+  billingOptionText: { fontSize: 14, fontWeight: '600' },
   nav: { minHeight: 52, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   navTitle: { fontSize: 16.5, lineHeight: 20, fontWeight: '600', letterSpacing: -0.18 },
   planSection: { gap: 6 },
