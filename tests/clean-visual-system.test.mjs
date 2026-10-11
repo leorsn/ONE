@@ -38,4 +38,6 @@ test('core Light and Dark draw clean silk backdrop instead of legacy artwork', a
   assert.match(source, /clean \? <CleanSilkBackdrop/);
   assert.match(source, /!clean \? visibleTheme : null/);
   assert.match(source, /function CleanSilkBackdrop/);
+  assert.match(source, /require\('\.\.\/\.\.\/assets\/clean\/never-dark\.jpg'\)/);
+  assert.match(source, /require\('\.\.\/\.\.\/assets\/clean\/never-light\.jpg'\)/);
 });
