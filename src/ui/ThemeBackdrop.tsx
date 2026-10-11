@@ -15,17 +15,18 @@ export const ThemeBackdrop = memo(function ThemeBackdrop({
   theme: NeverTheme;
   preview?: boolean;
 }) {
+  const clean = theme.id === 'platinum' || theme.id === 'monolith';
   const [visibleTheme, setVisibleTheme] = useState<NeverTheme | null>(() =>
-    theme.artwork === false ? null : theme,
+    theme.artwork === false || theme.id === 'platinum' || theme.id === 'monolith' ? null : theme,
   );
 
   const incomingTheme = useMemo(() => {
-    if (theme.artwork === false) return null;
+    if (theme.artwork === false || clean) return null;
     if (visibleTheme?.id === theme.id) return null;
     return theme;
-  }, [theme, visibleTheme?.id]);
+  }, [theme, visibleTheme?.id, clean]);
 
-  const showVisible = theme.artwork !== false ? visibleTheme : null;
+  const showVisible = theme.artwork !== false && !clean ? visibleTheme : null;
 
   return (
     <View
@@ -35,6 +36,7 @@ export const ThemeBackdrop = memo(function ThemeBackdrop({
       importantForAccessibility="no-hide-descendants"
       style={[StyleSheet.absoluteFill, styles.clip, { backgroundColor: theme.background }]}
     >
+      {clean ? <CleanSilkBackdrop dark={theme.mode === 'dark'} /> : null}
       {showVisible ? <Artwork theme={showVisible} preview={preview} /> : null}
 
       {incomingTheme ? (
@@ -43,7 +45,7 @@ export const ThemeBackdrop = memo(function ThemeBackdrop({
           theme={incomingTheme}
           preview={preview}
           onReady={(loadedTheme) => {
-            if (theme.artwork !== false && theme.id === loadedTheme.id) {
+            if (!clean && theme.artwork !== false && theme.id === loadedTheme.id) {
               setVisibleTheme(loadedTheme);
             }
           }}
@@ -133,7 +135,31 @@ function Artwork({ theme, preview }: { theme: NeverTheme; preview: boolean }) {
 
 const styles = StyleSheet.create({
   clip: { overflow: 'hidden' },
+  silkGlow: { position: 'absolute', right: '-34%', top: '-11%', width: '105%', height: '87%', borderRadius: 999, transform: [{ rotate: '-21deg' }] },
+  silkCurve: { position: 'absolute', right: '-78%', top: '-25%', width: '125%', height: '120%', borderRadius: 999, borderRightWidth: 28, borderTopWidth: 1, transform: [{ rotate: '-24deg' }] },
+  silkEdge: { position: 'absolute', right: '-78%', top: '-25%', width: '125%', height: '120%', borderRadius: 999, borderRightWidth: 1, transform: [{ rotate: '-24deg' }] },
   // iOS Image prepends the bundled source dimensions. Insets alone
   // do not override those explicit dimensions in Yoga; size to the container.
   image: { width: '100%', height: '100%' },
 });
+
+/** Clean V1 backdrop: deterministic native geometry, no old Material Worlds wallpaper.
+ * Deliberately modest until approved bespoke silk/chrome assets ship. */
+function CleanSilkBackdrop({ dark }: { dark: boolean }) {
+  return (
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
+      <View style={[styles.silkGlow, {
+        backgroundColor: dark ? '#28282A' : '#FFFFFF',
+        opacity: dark ? 0.32 : 0.72,
+      }]} />
+      <View style={[styles.silkCurve, {
+        borderRightColor: dark ? '#77777C' : '#BEB9B3',
+        borderTopColor: dark ? '#242426' : '#EEEAE5',
+      }]} />
+      <View style={[styles.silkEdge, {
+        borderRightColor: dark ? '#D2D0D0' : '#E3DFDA',
+      }]} />
+    </View>
+  );
+}
+
