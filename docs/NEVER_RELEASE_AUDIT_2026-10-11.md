@@ -31,3 +31,11 @@ These figures are directional GitHub compare results as of this audit, not equiv
 
 ## Safety constraints
 Do not change the approved material-world design, consumer-facing NEVER branding or compatibility identifiers speculatively. Do not infer external configuration from local templates. Do not ship on passing unit tests alone.
+
+## Connected service verification — 2026-10-11
+- GitHub Actions NEVER Quality run 38137119714 (job 114463159062): **success**, including clean checkout. This establishes repository CI, not physical-device/App Store readiness.
+- RevenueCat project `proj159f3991` (NEVER): entitlements `never` and `never_ai` active; offering `default` current; packages `never_monthly` / `never_ai_monthly` map to `app.never.mobile.monthly` / `app.never.mobile.ai.monthly`. **Only a Test Store app** (`app6aea01a884`) is registered. Real App Store app and subscription association remain release blockers. Test Store product records do not prove prices/trials are configured in App Store Connect.
+- Supabase project `uuehozwygopldwcbkfci`: `public.items` and `public.profiles` both have RLS enabled. Policies for SELECT/INSERT/UPDATE/DELETE are limited to authenticated users and `auth.uid() = user_id`; update includes `WITH CHECK` for the owner. These are static policy results, not a two-account penetration test.
+- Supabase Edge Functions: `embed-one-item`, `semantic-search`, `delete-account`, `answer-one-recall`, `interpret-one-capture` active, `verify_jwt=true`.
+- Supabase Security Advisor reports `auth_leaked_password_protection` **WARN**: leaked-password protection is disabled. Enable via the Auth security settings before launch and rerun advisor; docs: https://supabase.com/docs/guides/auth/password-security#password-strength-and-leaked-password-protection .
+- No external configuration was mutated during this inspection. Do not mark App Store billing or actual Supabase cross-account isolation as accepted before device/sandbox tests.
