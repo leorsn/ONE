@@ -38,6 +38,8 @@ test('core Light and Dark draw clean silk backdrop instead of legacy artwork', a
   assert.match(source, /clean \? <CleanSilkBackdrop/);
   assert.match(source, /!clean \? visibleTheme : null/);
   assert.match(source, /function CleanSilkBackdrop/);
-  assert.match(source, /require\('\.\.\/\.\.\/assets\/clean\/never-dark\.jpg'\)/);
-  assert.match(source, /require\('\.\.\/\.\.\/assets\/clean\/never-light\.jpg'\)/);
+  assert.match(source, /useWindowDimensions\(\)/);
+  assert.match(source, /styles\.cleanMain/);
+  assert.match(source, /styles\.cleanRim/);
+  assert.doesNotMatch(source, /require\('\.\.\/\.\.\/assets\/clean\/never-(light|dark)\.jpg'\)/);
 });
