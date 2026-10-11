@@ -16,7 +16,7 @@ import {
 } from '@/src/subscription/features';
 
 let configured = false;
-let identifiedUserId: string | null = null;
+let identitySyncQueue: Promise<void> = Promise.resolve();
 
 export type PurchaseOutcome = {
   ok: boolean;
@@ -25,6 +25,7 @@ export type PurchaseOutcome = {
   plan?: OnePlan;
 };
 
+export type BillingPeriod = 'month' | 'year';
 export type RevenueCatPriceStrings = Partial<Record<PaidOnePlan, string>>;
 
 export type RevenueCatIntroOffer = {
@@ -38,6 +39,7 @@ export type RevenueCatIntroOffer = {
 
 export type RevenueCatStorefront = {
   prices: RevenueCatPriceStrings;
+  yearlyPrices: RevenueCatPriceStrings;
   introOffers: Partial<Record<PaidOnePlan, RevenueCatIntroOffer>>;
 };
 
@@ -72,13 +74,17 @@ export async function getSubscriptionManagementURL(): Promise<string | undefined
 export async function getRevenueCatStorefront(): Promise<RevenueCatStorefront> {
   const offerings = await Purchases.getOfferings();
   const offering = offerings.all[REVENUECAT_OFFERING_ID] || offerings.current;
-  if (!offering) return { prices: {}, introOffers: {} };
+  if (!offering) return { prices: {}, yearlyPrices: {}, introOffers: {} };
 
   const prices: RevenueCatPriceStrings = {};
+  const yearlyPrices: RevenueCatPriceStrings = {};
   const introOffers: RevenueCatStorefront['introOffers'] = {};
 
   for (const plan of ['one', 'one_ai'] as const) {
-    const rcPackage = packageFromAvailablePackages(offering.availablePackages, plan);
+    const rcPackage = packageFromAvailablePackages(offering.availablePackages, plan, 'month');
+    const annualPackage = packageFromAvailablePackages(offering.availablePackages, plan, 'year');
+    const annualPrice = annualPackage?.product.priceString?.trim();
+    if (annualPrice) yearlyPrices[plan] = annualPrice;
     const priceString = rcPackage?.product.priceString?.trim();
     if (priceString) prices[plan] = priceString;
 
@@ -95,12 +101,12 @@ export async function getRevenueCatStorefront(): Promise<RevenueCatStorefront> {
     }
   }
 
-  return { prices, introOffers };
+  return { prices, yearlyPrices, introOffers };
 }
 
-export async function purchaseRevenueCatPlan(plan: PaidOnePlan): Promise<PurchaseOutcome> {
+export async function purchaseRevenueCatPlan(plan: PaidOnePlan, period: BillingPeriod = 'month'): Promise<PurchaseOutcome> {
   try {
-    const rcPackage = await packageForPlan(plan);
+    const rcPackage = await packageForPlan(plan, period);
 
     if (!rcPackage) {
       return {
@@ -163,24 +169,25 @@ export function planFromCustomerInfo(customerInfo: CustomerInfo): OnePlan {
   return 'none';
 }
 
-async function packageForPlan(plan: PaidOnePlan): Promise<PurchasesPackage | undefined> {
+async function packageForPlan(plan: PaidOnePlan, period: BillingPeriod): Promise<PurchasesPackage | undefined> {
   const offerings = await Purchases.getOfferings();
   const offering = offerings.all[REVENUECAT_OFFERING_ID] || offerings.current;
   if (!offering) return undefined;
-  return packageFromAvailablePackages(offering.availablePackages, plan);
+  return packageFromAvailablePackages(offering.availablePackages, plan, period);
 }
 
 function packageFromAvailablePackages(
   availablePackages: PurchasesPackage[],
-  plan: PaidOnePlan
+  plan: PaidOnePlan,
+  period: BillingPeriod
 ): PurchasesPackage | undefined {
-  const product = plan === 'one_ai'
-    ? subscriptionProducts.oneAiMonthly
-    : subscriptionProducts.oneMonthly;
+  const product = period === 'year'
+    ? (plan === 'one_ai' ? subscriptionProducts.oneAiYearly : subscriptionProducts.oneYearly)
+    : (plan === 'one_ai' ? subscriptionProducts.oneAiMonthly : subscriptionProducts.oneMonthly);
 
   return availablePackages.find(
     (rcPackage) =>
-      rcPackage.identifier === product.revenueCatPackageId ||
+      rcPackage.identifier === product.revenueCatPackageId &&
       rcPackage.product.identifier === product.id
   );
 }
@@ -188,16 +195,32 @@ function packageFromAvailablePackages(
 async function syncRevenueCatIdentity(appUserId?: string) {
   const nextUserId = appUserId || null;
 
-  if (nextUserId && nextUserId !== identifiedUserId) {
-    await Purchases.logIn(nextUserId);
-    identifiedUserId = nextUserId;
-    return;
-  }
+  // Serialize identity transitions: an older async auth refresh must not
+  // leave the native SDK identified as a different account.
+  const transition = identitySyncQueue.then(async () => {
+    // Re-check native identity even after JS hot reload or app restoration.
+    const currentId = await Purchases.getAppUserID();
+    const isAnonymous = currentId.startsWith('$RCAnonymousID:');
 
-  if (!nextUserId && identifiedUserId) {
-    await Purchases.logOut();
-    identifiedUserId = null;
-  }
+    if (nextUserId === currentId || (!nextUserId && isAnonymous)) {
+      return;
+    }
+
+    // Signing out removes the identified customer from this device.
+    // Direct A -> B logIn is safe: RevenueCat switches identified IDs
+    // without aliasing their purchase histories.
+    if (!nextUserId) {
+      if (!isAnonymous) await Purchases.logOut();
+      return;
+    }
+
+    await Purchases.logIn(nextUserId);
+  });
+
+  // Recover the queue from a failed transition but propagate this failure
+  // to the caller so paid access is not granted speculatively.
+  identitySyncQueue = transition.catch(() => {});
+  await transition;
 }
 
 function apiKeyForPlatform() {

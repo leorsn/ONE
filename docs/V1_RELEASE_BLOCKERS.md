@@ -2,7 +2,7 @@
 
 Status is intentionally conservative. A green repository does not count as physical iOS acceptance, visual acceptance, signing acceptance or external-service acceptance.
 
-Technical compatibility identifiers such as `app.one.mobile`, `one://`, `one_ai`, existing RevenueCat product IDs and Supabase function names may remain legacy-named until a deliberate migration is planned. Consumer-facing product identity is NEVER / NEVER AI.
+The release candidate uses `app.never.mobile`, `never://`, `app.never.mobile.ShareExtension` and `group.app.never.mobile`. Selected internal data/function names may still use `one` for compatibility. Consumer-facing identity is NEVER / NEVER AI.
 
 ## BLOCKER
 
@@ -23,9 +23,9 @@ The next device pass must use both:
 - **VISUAL ACCEPTANCE:** complete the NEVER visual QA matrix on a real iPhone in light and dark mode; resolve all P0/P1 defects before TestFlight distribution.
 - **BRAND ASSETS:** configure and verify final NEVER App Icon and launch/splash presentation in the production iOS build. No generic Expo/default asset may ship. `npm run release:asset-check` must pass.
 - **PRIVACY MANIFEST:** inspect the generated production-like iOS archive for `PrivacyInfo.xcprivacy` coverage and Apple Required-Reason-API warnings. Do not invent reason codes. If the linked Expo/React Native/CocoaPods manifests are not sufficiently aggregated, add the verified approved reasons via `expo.ios.privacyManifests` or the native target before promotion.
-- **EXTERNAL CONFIGURATION:** create/verify the Apple application and signing configuration for `app.one.mobile`, the Share Extension `app.one.mobile.ShareExtension`, App Group `group.app.one.mobile`, and required provisioning/capability assignments.
+- **EXTERNAL CONFIGURATION:** create/verify the Apple application and signing configuration for `app.never.mobile`, the Share Extension `app.never.mobile.ShareExtension`, App Group `group.app.never.mobile`, and required provisioning/capability assignments.
 - **EXTERNAL CONFIGURATION:** link/configure the EAS project and produce a signed production/TestFlight build.
-- **EXTERNAL CONFIGURATION:** verify Supabase Auth redirect URLs and production email delivery/templates for `one://auth/callback` and `one://auth/reset-password`.
+- **EXTERNAL CONFIGURATION:** verify Supabase Auth redirect URLs and production email delivery/templates for `never://auth/callback` and `never://auth/reset-password`.
 - **EXTERNAL CONFIGURATION:** verify that auth email templates, sender identity and any hosted confirmation pages show NEVER rather than the legacy product name.
 - **EXTERNAL CONFIGURATION:** configure production RevenueCat/App Store products and entitlement mapping before distributing a build that requires paid access. Consumer product names must be NEVER and NEVER AI even where compatibility IDs remain `one` / `one_ai`.
 - **EXTERNAL CONFIGURATION:** configure the production NEVER AI server secret/model if AI recall is included in the TestFlight acceptance scope. The existing env key `ONE_RECALL_MODEL` may remain for compatibility.
@@ -127,7 +127,7 @@ The repository includes a NEVER consumer-brand regression test. It intentionally
 - **consumer-facing identity:** MUST use NEVER / NEVER AI;
 - **compatibility identifiers:** may retain internal `one` naming to avoid unnecessary migrations.
 
-Do not rename bundle IDs, URL schemes, Supabase RPC/function identifiers, database objects, entitlement IDs or StoreKit/RevenueCat product IDs merely for cosmetic consistency. Migrate them only as a separately planned compatibility change.
+Keep the final NEVER bundle IDs, URL scheme, App Group and approved StoreKit/RevenueCat IDs aligned with `app.json` and `docs/EXTERNAL_CONFIGURATION_CHECKLIST.md`. Do not rename internal Supabase RPC/function identifiers or database objects for cosmetic reasons.
 
 ## NON-BLOCKING
 
@@ -140,8 +140,8 @@ Do not rename bundle IDs, URL schemes, Supabase RPC/function identifiers, databa
 
 Not V1 release blockers:
 
-- HTTPS Universal Links/Associated Domains replacing or complementing the current compatibility `one://` auth callbacks.
-- optional migration from legacy technical `one` identifiers to NEVER-named identifiers after V1 stability.
+- HTTPS Universal Links/Associated Domains replacing or complementing the current `never://` auth callbacks.
+- optional migration of remaining legacy internal `one` identifiers after V1 stability.
 - broader collaboration, shared accounts, desktop/browser clients or new automation systems.
 - speculative vector/search redesigns without a measured V1 defect.
 

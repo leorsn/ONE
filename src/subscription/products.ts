@@ -19,6 +19,30 @@ export const subscriptionProducts = {
     autoRenews: true,
     subscriptionLevel: 2
   },
+  oneYearly: {
+    id: 'app.never.mobile.yearly',
+    revenueCatPackageId: 'never_yearly',
+    entitlementId: revenueCatEntitlements.one,
+    plan: 'one' as const,
+    displayName: 'NEVER',
+    priceEUR: 24.99,
+    period: 'year' as const,
+    trialDays: 0,
+    autoRenews: true,
+    subscriptionLevel: 2
+  },
+  oneAiYearly: {
+    id: 'app.never.mobile.ai.yearly',
+    revenueCatPackageId: 'never_ai_yearly',
+    entitlementId: revenueCatEntitlements.oneAi,
+    plan: 'one_ai' as const,
+    displayName: 'NEVER AI',
+    priceEUR: 44.99,
+    period: 'year' as const,
+    trialDays: 0,
+    autoRenews: true,
+    subscriptionLevel: 1
+  },
   oneAiMonthly: {
     id: 'app.never.mobile.ai.monthly',
     revenueCatPackageId: 'never_ai_monthly',
