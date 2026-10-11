@@ -34,3 +34,13 @@ test('paywall displays billing period switch and forwards it into purchase', () 
   assert.match(paywall, /purchase\(planKey, billingPeriod\)/);
   assert.match(paywall, /annual \? yearlyPrices : localizedPrices/);
 });
+
+test('annual paywall offers honest preview-only savings and a premium AI treatment', () => {
+  assert.match(paywall, /showPlannedSavings = !billingConfigured/);
+  assert.match(paywall, /SAVE 30%/);
+  assert.match(paywall, /SAVE 25%/);
+  assert.match(paywall, /subscriptionProducts\.oneYearly\.priceEUR \/ 12/);
+  assert.match(paywall, /subscriptionProducts\.oneAiYearly\.priceEUR \/ 12/);
+  assert.match(paywall, /THE COMPLETE NEVER EXPERIENCE/);
+  assert.match(paywall, /featured \? \{ borderWidth: 1, borderColor: p\.chrome \}/);
+});
