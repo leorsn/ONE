@@ -64,8 +64,8 @@ function edition(id: ThemeId, name: string, descriptor: string, mode: 'light' | 
 }
 
 export const themes: Record<ThemeId, NeverTheme> = {
-  platinum: edition('platinum', 'Platinum', 'Ivory dunes · soft metallic light', 'light'),
-  monolith: edition('monolith', 'Monolith', 'Graphite stone · mist and depth', 'dark'),
+  platinum: edition('platinum', 'Light', 'Pearl · quiet editorial light', 'light'),
+  monolith: edition('monolith', 'Dark', 'Graphite · restrained chrome', 'dark'),
   archive: edition('archive', 'Archive', 'Sage garden · quiet natural light', 'light'),
   aurora: edition('aurora', 'Aurora', 'Pastel sky · a glass horizon', 'light'),
   tactile: edition('tactile', 'Canyon', 'Copper stone · warm sculptural light', 'dark'),
