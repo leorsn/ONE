@@ -19,9 +19,7 @@ for (const theme of Object.values(themes)) test(`${theme.id} production preview,
     assert.doesNotMatch(markup, /NaN/);
     const asset = { tactile: 'canyon', orbit: 'tidal' }[theme.id] ?? theme.id;
     if (theme.id === 'platinum' || theme.id === 'monolith') {
-      assert.equal(images.length, 1, 'Clean Light/Dark must render their bundled JPEG backgrounds');
-      assert.equal(images[0].source.uri, `/assets/clean/never-${theme.id === 'monolith' ? 'dark' : 'light'}.jpg`);
-      assert.equal(images[0].resizeMode, 'cover');
+      assert.equal(images.length, 0, 'Clean Light/Dark must render native contours, not JPEG images');
     } else {
       assert.equal(images.length, 1);
       assert.equal(images[0].source.uri, `/assets/material-worlds/${asset}.png`);
