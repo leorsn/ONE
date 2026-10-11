@@ -22,7 +22,7 @@ These figures are directional GitHub compare results as of this audit, not equiv
 5. Production Supabase settings, security policies, credentials, EAS, Apple Developer, App Store Connect, privacy manifests and public legal URLs are **not proven** by repository inspection.
 
 ## Immediate execution order
-1. Reconcile `fix/never-release-docs-2026-10-08` into this integration branch (pay particular attention to `.github/workflows/quality.yml`, `docs/DEVICE_TEST_PLAN.md` and `docs/V1_RELEASE_BLOCKERS.md`).
+1. **COMPLETED (2026-10-11):** reconciled the release-docs versions of `docs/DEVICE_TEST_PLAN.md` and `docs/V1_RELEASE_BLOCKERS.md` into this audit branch. Retained the RevenueCat branch CI additions and expanded CI push triggers to include `audit/never-*`. Confirmed both compared branches use matching `app.json` iOS identifiers. GitHub source writes do not prove CI results.
 2. On a clean checkout run `npm ci --no-audit --no-fund`, `npm run quality`, `npm run release:testflight-check` with appropriate protected staging credentials. Collect exit codes and CI SHA. Do not commit secrets.
 3. Compare `app.json` / `app.config.js` to Apple bundle IDs, App Group, entitlements and Supabase redirect URLs.
 4. Configure/verify RevenueCat products and App Store Connect subscriptions, then run real sandbox purchase/restore/cancel/account-switch testing.
