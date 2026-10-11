@@ -28,6 +28,31 @@ const expected = {
   }
 };
 
+// All four StoreKit products must be declared before release. Prior versions
+// checked monthly products only, allowing annual purchase routes to regress.
+const yearly = {
+  base: { key: 'oneYearly', id: 'app.never.mobile.yearly', pkg: 'never_yearly', price: 24.99, entitlement: 'one', level: 2 },
+  ai: { key: 'oneAiYearly', id: 'app.never.mobile.ai.yearly', pkg: 'never_ai_yearly', price: 44.99, entitlement: 'oneAi', level: 1 }
+};
+
+for (const [tier, product] of Object.entries(yearly)) {
+  const start = source.indexOf(`  ${product.key}: {`);
+  const end = start >= 0 ? source.indexOf('\n  },', start) : -1;
+  const block = start >= 0 ? source.slice(start, end < 0 ? undefined : end + 5) : '';
+  for (const [label, value] of [
+    ['product ID', `id: '${product.id}'`],
+    ['RevenueCat package', `revenueCatPackageId: '${product.pkg}'`],
+    ['entitlement', `entitlementId: revenueCatEntitlements.${product.entitlement}`],
+    ['annual EUR price', `priceEUR: ${product.price}`],
+    ['annual period', "period: 'year'"],
+    ['no trial', 'trialDays: 0'],
+    ['auto-renewal', 'autoRenews: true'],
+    ['subscription tier', `subscriptionLevel: ${product.level}`]
+  ]) {
+    if (!block.includes(value)) failures.push(`${tier} yearly ${label} is missing or mismatched`);
+  }
+}
+
 const required = [
   ['subscription group', `SUBSCRIPTION_GROUP = '${expected.group}'`],
   ['RevenueCat offering', `REVENUECAT_OFFERING_ID = '${expected.offering}'`],
