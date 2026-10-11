@@ -1,5 +1,5 @@
 import { memo, useEffect, useMemo, useState } from 'react';
-import { Animated, Easing, Image, StyleSheet, View } from 'react-native';
+import { Animated, Easing, Image, StyleSheet, useWindowDimensions, View } from 'react-native';
 import type { NeverTheme } from '@/src/theme/editions';
 import { materialWorldAssets } from '@/src/theme/materialWorlds';
 
@@ -135,22 +135,55 @@ function Artwork({ theme, preview }: { theme: NeverTheme; preview: boolean }) {
 
 const styles = StyleSheet.create({
   clip: { overflow: 'hidden' },
+  cleanAmbient: { position: 'absolute' },
+  cleanMain: { position: 'absolute' },
+  cleanRim: { position: 'absolute' },
   // iOS Image prepends the bundled source dimensions. Insets alone
   // do not override those explicit dimensions in Yoga; size to the container.
   image: { width: '100%', height: '100%' },
 });
 
-/** Bundled, offline-ready final Pearl Light and Graphite Dark artwork.
- * Render a single image with no animated blank frame when switching themes.
+/**
+ * Resolution-independent clean backgrounds. These are native rounded surfaces,
+ * not raster images: the contours are rendered at device pixel density.
+ * Keep geometry outside the content column and do not animate asset loading.
  */
 function CleanSilkBackdrop({ dark }: { dark: boolean }) {
+  const { width, height } = useWindowDimensions();
+  const scale = Math.max(width / 390, height / 844);
+  const dimension = 1080 * scale;
+  const left = width * 0.14;
+  const top = height * -0.31;
   return (
-    <Image
-      source={dark ? require('../../assets/clean/never-dark.jpg') : require('../../assets/clean/never-light.jpg')}
-      resizeMode="cover"
-      fadeDuration={0}
-      accessible={false}
-      style={[StyleSheet.absoluteFill, styles.image]}
-    />
+    <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+      <View style={[styles.cleanAmbient, {
+        backgroundColor: dark ? '#111113' : '#E8E3DD',
+        width: dimension * 0.95,
+        height: dimension * 0.95,
+        left: -dimension * 0.48,
+        top: height * 0.33,
+        borderRadius: dimension,
+      }]} />
+      <View style={[styles.cleanMain, {
+        backgroundColor: dark ? '#28282B' : '#FDFBF8',
+        borderColor: dark ? '#6D6D70' : '#D4CDC5',
+        width: dimension,
+        height: dimension,
+        left,
+        top,
+        borderRadius: dimension / 2,
+        borderWidth: dark ? 1.5 : 1,
+      }]} />
+      <View style={[styles.cleanRim, {
+        borderColor: dark ? '#D3D1CF' : '#FFFFFF',
+        width: dimension + 4 * scale,
+        height: dimension + 4 * scale,
+        left: left - 2 * scale,
+        top: top - 2 * scale,
+        borderRadius: (dimension + 4 * scale) / 2,
+        borderWidth: dark ? 0.7 : 0.8,
+        opacity: dark ? 0.65 : 0.7,
+      }]} />
+    </View>
   );
 }
