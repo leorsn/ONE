@@ -19,13 +19,25 @@ export type NeverTheme = OneTheme & {
 };
 
 // The artwork changes; controls retain one neutral light/dark design system.
+// Clean V1: tonal pearl and monolithic graphite. Legacy editions remain available
+// for compatibility, but the primary Light/Dark foundation uses these neutral surfaces.
 const neutralLight: OneTheme = {
-  ...lightTheme, textSecondary: '#343D45', textTertiary: '#39434C', chrome: '#505B65',
-  accent: '#252B31', onAccent: '#FCFDFD', glassBorder: '#FFFFFF70'
+  ...lightTheme,
+  background: '#F5F3F0', surface: '#FBFAF8', surfaceElevated: '#FFFFFF',
+  fill: '#ECE9E5', fillStrong: '#DDD8D2', text: '#111111',
+  textSecondary: '#6E6A66', textTertiary: '#817C77', border: '#DCD8D2',
+  accent: '#252525', accentSoft: '#E8E4DF', onAccent: '#FFFFFF',
+  chrome: '#6D6965', chromeSoft: '#E8E4DF', glassBorder: '#FFFFFFC0',
+  shadow: '#312A24'
 };
 const neutralDark: OneTheme = {
-  ...darkTheme, background: '#101418', textSecondary: '#E0E5E9', textTertiary: '#D0D6DB',
-  chrome: '#C6CDD3', accent: '#E3E8EC', onAccent: '#172028', glassBorder: '#FFFFFF30'
+  ...darkTheme,
+  background: '#050505', surface: '#141416', surfaceElevated: '#1B1B1E',
+  fill: '#242426', fillStrong: '#333336', text: '#F3F2F0',
+  textSecondary: '#B6B1AC', textTertiary: '#918B86', border: '#353537',
+  accent: '#E1DFDC', accentSoft: '#252527', onAccent: '#111113',
+  chrome: '#C8C4BF', chromeSoft: '#2A2A2C', glassBorder: '#FFFFFF24',
+  shadow: '#000000'
 };
 
 function edition(id: ThemeId, name: string, descriptor: string, mode: 'light' | 'dark'): NeverTheme {
@@ -38,14 +50,14 @@ function edition(id: ThemeId, name: string, descriptor: string, mode: 'light' | 
   return {
     ...colors, id, name, descriptor, mode, artwork: true, colors,
     materials: {
-      card: material(colors.surface + 'C7', 20, false),
-      hero: material(colors.surface + 'D1', 24, false),
-      input: material(colors.surfaceElevated + 'D9', 15, true),
-      navigation: material(colors.surface + (mode === 'dark' ? 'CC' : 'B8'), 20, true, { ...elevated, shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 2 } }),
+      card: material(colors.surface + 'EF', 24, false),
+      hero: material(colors.surface + 'F0', 26, false),
+      input: material(colors.surfaceElevated + 'ED', 24, true),
+      navigation: material(colors.surface + (mode === 'dark' ? 'E8' : 'EA'), 28, true, { ...elevated, shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 2 } }),
       modal: material(colors.surfaceElevated + 'F5', 24, false, elevated)
     },
-    radius: { card: 20, button: 15, icon: 10, chip: 10, sheet: 24 },
-    spacing: { page: 20, section: 24, row: 56 },
+    radius: { card: 24, button: 18, icon: 12, chip: 12, sheet: 28 },
+    spacing: { page: 24, section: 32, row: 56 },
     typography: { heading: { fontWeight: '600', letterSpacing: -0.8 }, wordmark: { letterSpacing: 4.5, fontWeight: '600' } },
     effects: { kind: id, light: '#FFFFFF08', shade: '#00000008', edge: colors.glassBorder, texture: false, reflection: true }
   };
