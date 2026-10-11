@@ -135,31 +135,22 @@ function Artwork({ theme, preview }: { theme: NeverTheme; preview: boolean }) {
 
 const styles = StyleSheet.create({
   clip: { overflow: 'hidden' },
-  silkGlow: { position: 'absolute', right: '-34%', top: '-11%', width: '105%', height: '87%', borderRadius: 999, transform: [{ rotate: '-21deg' }] },
-  silkCurve: { position: 'absolute', right: '-78%', top: '-25%', width: '125%', height: '120%', borderRadius: 999, borderRightWidth: 28, borderTopWidth: 1, transform: [{ rotate: '-24deg' }] },
-  silkEdge: { position: 'absolute', right: '-78%', top: '-25%', width: '125%', height: '120%', borderRadius: 999, borderRightWidth: 1, transform: [{ rotate: '-24deg' }] },
   // iOS Image prepends the bundled source dimensions. Insets alone
   // do not override those explicit dimensions in Yoga; size to the container.
   image: { width: '100%', height: '100%' },
 });
 
-/** Clean V1 backdrop: deterministic native geometry, no old Material Worlds wallpaper.
- * Deliberately modest until approved bespoke silk/chrome assets ship. */
+/** Bundled, offline-ready final Pearl Light and Graphite Dark artwork.
+ * Render a single image with no animated blank frame when switching themes.
+ */
 function CleanSilkBackdrop({ dark }: { dark: boolean }) {
   return (
-    <View style={StyleSheet.absoluteFill} pointerEvents="none">
-      <View style={[styles.silkGlow, {
-        backgroundColor: dark ? '#28282A' : '#FFFFFF',
-        opacity: dark ? 0.32 : 0.72,
-      }]} />
-      <View style={[styles.silkCurve, {
-        borderRightColor: dark ? '#77777C' : '#BEB9B3',
-        borderTopColor: dark ? '#242426' : '#EEEAE5',
-      }]} />
-      <View style={[styles.silkEdge, {
-        borderRightColor: dark ? '#D2D0D0' : '#E3DFDA',
-      }]} />
-    </View>
+    <Image
+      source={dark ? require('../../assets/clean/never-dark.jpg') : require('../../assets/clean/never-light.jpg')}
+      resizeMode="cover"
+      fadeDuration={0}
+      accessible={false}
+      style={[StyleSheet.absoluteFill, styles.image]}
+    />
   );
 }
-
