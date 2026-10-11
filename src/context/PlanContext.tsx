@@ -15,6 +15,7 @@ import {
   isRevenueCatConfigured,
   purchaseRevenueCatPlan,
   restoreRevenueCatPurchases,
+  type BillingPeriod,
   type PurchaseOutcome,
   type RevenueCatIntroOffer,
   type RevenueCatPriceStrings
@@ -27,11 +28,12 @@ type PlanContextValue = {
   isBetaAccess: boolean;
   billingConfigured: boolean;
   localizedPrices: RevenueCatPriceStrings;
+  yearlyPrices: RevenueCatPriceStrings;
   introOffers: Partial<Record<PaidOnePlan, RevenueCatIntroOffer>>;
   managementUrl?: string;
   loading: boolean;
   purchasing: boolean;
-  purchase: (plan: PaidOnePlan) => Promise<PurchaseOutcome>;
+  purchase: (plan: PaidOnePlan, period?: BillingPeriod) => Promise<PurchaseOutcome>;
   restore: () => Promise<PurchaseOutcome>;
   refresh: () => Promise<void>;
 };
@@ -45,6 +47,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
   const [plan, setPlan] = useState<OnePlan>(runtimeFallbackPlan);
   const [billingConfigured, setBillingConfigured] = useState(false);
   const [localizedPrices, setLocalizedPrices] = useState<RevenueCatPriceStrings>({});
+  const [yearlyPrices, setYearlyPrices] = useState<RevenueCatPriceStrings>({});
   const [introOffers, setIntroOffers] = useState<Partial<Record<PaidOnePlan, RevenueCatIntroOffer>>>({});
   const [managementUrl, setManagementUrl] = useState<string | undefined>();
   const [loading, setLoading] = useState(true);
@@ -73,6 +76,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         setBillingConfigured(false);
         setPlan(runtimeFallbackPlan);
         setLocalizedPrices({});
+        setYearlyPrices({});
         setIntroOffers({});
         setManagementUrl(undefined);
         return;
@@ -83,13 +87,14 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         getSubscriptionManagementURL(),
         getRevenueCatStorefront().catch((error) => {
           if (__DEV__) console.warn('NEVER subscription storefront refresh failed');
-          return { prices: {}, introOffers: {} };
+          return { prices: {}, yearlyPrices: {}, introOffers: {} };
         })
       ]);
       if (version !== refreshVersionRef.current) return;
       setBillingConfigured(true);
       setPlan(nextPlan);
       setLocalizedPrices(storefront.prices);
+      setYearlyPrices(storefront.yearlyPrices);
       setIntroOffers(storefront.introOffers);
       setManagementUrl(nextManagementUrl);
     } catch {
@@ -102,12 +107,14 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
         setBillingConfigured(true);
         setPlan('none');
         setLocalizedPrices({});
+        setYearlyPrices({});
         setIntroOffers({});
         setManagementUrl(undefined);
       } else {
         setBillingConfigured(false);
         setPlan(runtimeFallbackPlan);
         setLocalizedPrices({});
+        setYearlyPrices({});
         setIntroOffers({});
         setManagementUrl(undefined);
       }
@@ -136,7 +143,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     return () => subscription.remove();
   }, [refresh]);
 
-  const purchase = useCallback(async (nextPlan: PaidOnePlan) => {
+  const purchase = useCallback(async (nextPlan: PaidOnePlan, period: BillingPeriod = 'month') => {
     if (!billingConfigured || !identityReady || loading || !userId) {
       return {
         ok: false,
@@ -149,7 +156,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
     const purchaseIdentity = userId;
     setPurchasing(true);
     try {
-      const outcome = await purchaseRevenueCatPlan(nextPlan);
+      const outcome = await purchaseRevenueCatPlan(nextPlan, period);
       if (identityRef.current !== purchaseIdentity) return { ok: false, cancelled: true };
       if (outcome.plan) {
         const url = outcome.plan === 'none'
@@ -204,6 +211,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       isBetaAccess: isDevelopmentBetaAccess(__DEV__, billingConfigured),
       billingConfigured,
       localizedPrices,
+      yearlyPrices,
       introOffers,
       managementUrl: identityReady ? managementUrl : undefined,
       loading: loading || !identityReady,
@@ -212,7 +220,7 @@ export function PlanProvider({ children }: { children: React.ReactNode }) {
       restore,
       refresh
     }),
-    [visiblePlan, identityReady, billingConfigured, localizedPrices, introOffers, managementUrl, loading, purchasing, purchase, restore, refresh]
+    [visiblePlan, identityReady, billingConfigured, localizedPrices, yearlyPrices, introOffers, managementUrl, loading, purchasing, purchase, restore, refresh]
   );
 
   return <PlanContext.Provider value={value}>{children}</PlanContext.Provider>;
