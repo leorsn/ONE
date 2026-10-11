@@ -25,7 +25,7 @@ const neutralLight: OneTheme = {
   ...lightTheme,
   background: '#F5F3F0', surface: '#FBFAF8', surfaceElevated: '#FFFFFF',
   fill: '#ECE9E5', fillStrong: '#DDD8D2', text: '#111111',
-  textSecondary: '#6E6A66', textTertiary: '#817C77', border: '#DCD8D2',
+  textSecondary: '#6E6A66', textTertiary: '#67615C', border: '#DCD8D2',
   accent: '#252525', accentSoft: '#E8E4DF', onAccent: '#FFFFFF',
   chrome: '#6D6965', chromeSoft: '#E8E4DF', glassBorder: '#FFFFFFC0',
   shadow: '#312A24'
@@ -34,7 +34,7 @@ const neutralDark: OneTheme = {
   ...darkTheme,
   background: '#050505', surface: '#141416', surfaceElevated: '#1B1B1E',
   fill: '#242426', fillStrong: '#333336', text: '#F3F2F0',
-  textSecondary: '#B6B1AC', textTertiary: '#918B86', border: '#353537',
+  textSecondary: '#B6B1AC', textTertiary: '#AAA49E', border: '#353537',
   accent: '#E1DFDC', accentSoft: '#252527', onAccent: '#111113',
   chrome: '#C8C4BF', chromeSoft: '#2A2A2C', glassBorder: '#FFFFFF24',
   shadow: '#000000'
@@ -50,11 +50,11 @@ function edition(id: ThemeId, name: string, descriptor: string, mode: 'light' | 
   return {
     ...colors, id, name, descriptor, mode, artwork: true, colors,
     materials: {
-      card: material(colors.surface + 'EF', 24, false),
-      hero: material(colors.surface + 'F0', 26, false),
-      input: material(colors.surfaceElevated + 'ED', 24, true),
-      navigation: material(colors.surface + (mode === 'dark' ? 'E8' : 'EA'), 28, true, { ...elevated, shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 2 } }),
-      modal: material(colors.surfaceElevated + 'F5', 24, false, elevated)
+      card: material(colors.surface + 'FF', 24, false),
+      hero: material(colors.surface + 'FF', 26, false),
+      input: material(colors.surfaceElevated + 'FF', 24, true),
+      navigation: material(colors.surface + 'FF', 28, true, { ...elevated, shadowOpacity: 0.04, shadowRadius: 10, shadowOffset: { width: 0, height: 2 } }),
+      modal: material(colors.surfaceElevated + 'FF', 24, false, elevated)
     },
     radius: { card: 24, button: 18, icon: 12, chip: 12, sheet: 28 },
     spacing: { page: 24, section: 32, row: 56 },
