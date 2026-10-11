@@ -13,7 +13,7 @@ function contrast(a, b) { const [hi, lo] = [luminance(a), luminance(b)].sort((a,
 test('all six selections resolve independently of OS appearance', () => {
   assert.equal(themeIds.length, 6);
   for (const id of themeIds) for (const os of ['light', 'dark']) assert.equal(resolveTheme(id, os), themes[id]);
-  assert.equal(themes.platinum.accent, '#252B31');
+  assert.equal(themes.platinum.accent, '#252525');
 });
 test('System follows changes in OS appearance without changing stored preference', () => {
   assert.equal(resolveTheme('system', 'light').id, 'platinum');
@@ -41,7 +41,7 @@ for (const id of themeIds) test(`${id} has complete semantic tokens and readable
   }
 });
 test('six worlds retain one control geometry and preserve stored identities', () => {
-  assert.deepEqual(themeIds.map(id => themes[id].name), ['Platinum', 'Monolith', 'Archive', 'Aurora', 'Canyon', 'Tidal']);
+  assert.deepEqual(themeIds.map(id => themes[id].name), ['Light', 'Dark', 'Archive', 'Aurora', 'Canyon', 'Tidal']);
   for (const id of themeIds) {
     assert.deepEqual(themes[id].radius, themes.platinum.radius);
     assert.deepEqual(themes[id].spacing, themes.platinum.spacing);
