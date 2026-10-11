@@ -30,3 +30,12 @@ test('appearance picker features two primary designs plus system', async () => {
   assert.match(appearance, /\['platinum', 'monolith', 'system'\] as const/);
   assert.match(appearance, /Two essential appearances/);
 });
+
+
+test('core Light and Dark draw clean silk backdrop instead of legacy artwork', async () => {
+  const source = await read('src/ui/ThemeBackdrop.tsx');
+  assert.match(source, /theme\.id === 'platinum' \|\| theme\.id === 'monolith'/);
+  assert.match(source, /clean \? <CleanSilkBackdrop/);
+  assert.match(source, /!clean \? visibleTheme : null/);
+  assert.match(source, /function CleanSilkBackdrop/);
+});
