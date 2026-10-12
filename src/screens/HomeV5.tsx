@@ -32,7 +32,9 @@ import type { OneInboxAction, OneItem } from '@/src/types/item';
 export default function HomeV5() {
   const p = useNeverV5Palette();
   const controls = p.archiveControls ?? p.tidalControls;
-  const recall = controls ?? pass3;
+  const recall = controls ?? (p.dark
+    ? { recall: '#19191B', onRecall: '#F3F2F0', recallSecondary: '#BBB6B0', glyph: '#2D2D30' }
+    : { recall: '#292929', onRecall: '#FFFFFF', recallSecondary: '#D8D3CE', glyph: '#484848' });
   const { session } = useAuth();
   const captureRef = useRef<TextInput>(null);
   const [input, setInput] = useState('');
@@ -299,7 +301,7 @@ function QuickAction({ label, icon, onPress }: { label: string; icon: (typeof ic
       accessibilityRole="button"
       accessibilityLabel={label}
       onPress={() => { selectionFeedback(); onPress(); }}
-      style={({ pressed }) => [styles.quickAction, { opacity: pressed ? 0.58 : 1 }]}
+      style={({ pressed }) => [styles.quickAction, { backgroundColor: p.surface, borderColor: p.border, opacity: pressed ? 0.58 : 1 }]}
     >
       <View style={[styles.actionIcon, { backgroundColor: controls?.action ?? p.inputStyle.backgroundColor }]}>
         <OneIcon name={icon} size={16} color={controls?.actionInk ?? p.chrome} />
@@ -329,7 +331,7 @@ const styles = StyleSheet.create({
     gap: 20
   },
   brandBar: { minHeight: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  heroCopy: { paddingTop: 30, paddingBottom: 28, maxWidth: 355 },
+  heroCopy: { paddingTop: 28, paddingBottom: 18, maxWidth: 355 },
   eyebrow: { fontSize: 11, lineHeight: 16, fontWeight: '600', letterSpacing: 1.5 },
   heroTitle: { marginTop: 8, fontFamily: neverType.hero.fontFamily },
   heroSubtitle: { maxWidth: 320, fontSize: 16, lineHeight: 23, letterSpacing: -0.15, marginTop: 12 },
@@ -348,10 +350,10 @@ const styles = StyleSheet.create({
   capturePlus: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
   captureInput: { flex: 1, minHeight: 46, fontSize: 15.5, lineHeight: 20, paddingVertical: 0 },
   captureSave: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  quickActions: { flexWrap: 'wrap', flexDirection: 'row', gap: 26, paddingHorizontal: 6, paddingTop: 14, paddingBottom: 8 },
-  quickAction: { width: 44, minHeight: 44, alignItems: 'center', gap: 6 },
-  actionIcon: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
-  quickActionLabel: { maxWidth: '100%', textAlign: 'center', fontSize: 12, lineHeight: 17, fontWeight: '600' },
+  quickActions: { flexDirection: 'row', gap: 9, paddingTop: 8, paddingBottom: 4 },
+  quickAction: { flex: 1, minWidth: 0, minHeight: 48, flexDirection: 'row', justifyContent: 'center', paddingHorizontal: 8, alignItems: 'center', gap: 6, borderRadius: 24, borderWidth: StyleSheet.hairlineWidth },
+  actionIcon: { width: 23, height: 23, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
+  quickActionLabel: { flexShrink: 1, textAlign: 'center', fontSize: 13, lineHeight: 18, fontWeight: '600' },
   captureStatus: { ...neverType.caption },
   section: { marginTop: 32, gap: neverSpacing.md },
   draftGroup: { padding: 13 },
@@ -361,13 +363,13 @@ const styles = StyleSheet.create({
   draftMeta: { marginTop: 1, fontSize: 12.5, lineHeight: 16 },
   draftButton: { marginTop: 12 },
   reviewEditor: { gap: 10 },
-  askHero: { backgroundColor: pass3.recall, borderRadius: pass3.heroRadius, padding: 22, minHeight: 224, justifyContent: 'space-between' },
+  askHero: { borderRadius: 26, padding: 21, minHeight: 183, justifyContent: 'space-between' },
   askTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   askGlyph: { width: 38, height: 38, borderRadius: 19, backgroundColor: pass3.glyph, alignItems: 'center', justifyContent: 'center' },
   askMeta: { color: pass3.recallSecondary, fontSize: 11, letterSpacing: 1.15, fontWeight: '700', flexShrink: 1 },
-  askTitle: { color: pass3.onRecall, fontSize: 28, lineHeight: 31, letterSpacing: -0.8, fontWeight: '600', marginTop: 26, maxWidth: 280 },
+  askTitle: { fontSize: 26, lineHeight: 30, letterSpacing: -0.65, fontWeight: '500', marginTop: 16, maxWidth: 320 },
   askBody: { color: pass3.recallSecondary, fontSize: 14, lineHeight: 20, maxWidth: 290, marginTop: 8 },
-  askAction: { marginTop: 22, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  askAction: { marginTop: 15, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   askActionText: { color: pass3.onRecall, fontSize: 15, fontWeight: '600' },
   seeAllTarget: { minWidth: 44, minHeight: 44, justifyContent: 'center', alignItems: 'flex-end' },
   seeAll: { fontSize: 13, lineHeight: 17, fontWeight: '600' },

@@ -29,6 +29,7 @@ export function loadComponents(theme, reduced, mocks = {}, dimensions) {
       const resolved = [base, `${base}.ts`, `${base}.tsx`].find(existsSync);
       if (!resolved) throw Error(`Unresolved test import ${name}`);
       if (resolved.endsWith('.png')) return { uri: `/assets/material-worlds/${path.basename(resolved)}` };
+      if (resolved.endsWith('.jpg')) return { uri: `/assets/clean/${path.basename(resolved)}` };
       return load(resolved);
     }
     new Function('require', 'module', 'exports', compiled)(localRequire, module, module.exports);
