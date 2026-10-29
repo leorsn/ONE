@@ -1,4 +1,7 @@
 const releaseScope = process.env.NEVER_RELEASE_SCOPE || 'testflight';
+// Fail closed if stale EAS environments still target the retired ONE backend.
+// Update this only as part of an explicitly reviewed Supabase migration.
+const expectedSupabaseHost = 'nywfoprcwbnsxybdqpma.supabase.co';
 
 const required = [
   'EXPO_PUBLIC_SUPABASE_URL',
@@ -39,6 +42,19 @@ for (const name of ['EXPO_PUBLIC_SUPABASE_URL', 'EXPO_PUBLIC_PRIVACY_POLICY_URL'
     if (url.protocol !== 'https:') failures.push(`${name} must use https`);
   } catch {
     failures.push(`${name} is not a valid URL`);
+  }
+}
+
+const configuredSupabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL?.trim();
+if (configuredSupabaseUrl) {
+  try {
+    const url = new URL(configuredSupabaseUrl);
+    if (url.protocol === 'https:' &&
+        (url.hostname !== expectedSupabaseHost || url.pathname !== '/' || url.search || url.hash || url.username || url.password || url.port)) {
+      failures.push(`EXPO_PUBLIC_SUPABASE_URL must target the dedicated NEVER project (${expectedSupabaseHost}); check EAS environment overrides`);
+    }
+  } catch {
+    // The general URL validation above already reports malformed values.
   }
 }
 
