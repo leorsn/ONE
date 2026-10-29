@@ -4,9 +4,11 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { createRequire } from 'node:module';
 import test from 'node:test';
 
 const root = path.resolve(new URL('..', import.meta.url).pathname);
+const appConfig = createRequire(import.meta.url)('../app.config.js');
 
 function runScript(script, args = [], env = {}, cwd = root) {
   return spawnSync(process.execPath, [path.join(root, script), ...args], {
@@ -17,7 +19,7 @@ function runScript(script, args = [], env = {}, cwd = root) {
 }
 
 const baseReleaseEnv = {
-  EXPO_PUBLIC_SUPABASE_URL: 'https://never-release-test.supabase.co',
+  EXPO_PUBLIC_SUPABASE_URL: 'https://nywfoprcwbnsxybdqpma.supabase.co',
   EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_release_test',
   EXPO_PUBLIC_PRIVACY_POLICY_URL: 'https://never.test/privacy',
   EXPO_PUBLIC_SUPPORT_URL: 'https://never.test/support',
@@ -117,6 +119,51 @@ test('release environment rejects insecure public legal URLs', () => {
 
   assert.equal(result.status, 1);
   assert.match(result.stderr, /EXPO_PUBLIC_PRIVACY_POLICY_URL must use https/);
+});
+
+test('release environment rejects a stale EAS Supabase project override', () => {
+  const result = runScript('scripts/verify-release-env.mjs', [], {
+    ...baseReleaseEnv,
+    NEVER_RELEASE_SCOPE: 'testflight',
+    EXPO_PUBLIC_SUPABASE_URL: 'https://uuehozwygopldwcbkfci.supabase.co'
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /must target the dedicated NEVER project/);
+  assert.match(result.stderr, /check EAS environment overrides/);
+});
+
+test('release environment rejects an unrelated Supabase project', () => {
+  const result = runScript('scripts/verify-release-env.mjs', [], {
+    ...baseReleaseEnv,
+    NEVER_RELEASE_SCOPE: 'testflight',
+    EXPO_PUBLIC_SUPABASE_URL: 'https://other-project.supabase.co'
+  });
+
+  assert.equal(result.status, 1);
+  assert.match(result.stderr, /must target the dedicated NEVER project/);
+});
+
+test('EAS config blocks stale backend credentials in release profiles', () => {
+  const envNames = ['NEVER_REQUIRE_TARGET_SUPABASE', 'EXPO_PUBLIC_SUPABASE_URL', 'EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY'];
+  const originals = Object.fromEntries(envNames.map((name) => [name, process.env[name]]));
+  try {
+    process.env.NEVER_REQUIRE_TARGET_SUPABASE = '1';
+    process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://uuehozwygopldwcbkfci.supabase.co';
+    process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_previous_project';
+    assert.throws(() => appConfig({ config: { name: 'NEVER' } }), /NEVER release blocked/);
+
+    process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://nywfoprcwbnsxybdqpma.supabase.co';
+    assert.throws(() => appConfig({ config: { name: 'NEVER' } }), /NEVER release blocked/);
+
+    process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_FoG2PKUsPg55YaGoq_uSEg_ZPITmLaf';
+    assert.deepEqual(appConfig({ config: { name: 'NEVER' } }), { name: 'NEVER' });
+  } finally {
+    for (const name of envNames) {
+      if (originals[name] === undefined) delete process.env[name];
+      else process.env[name] = originals[name];
+    }
+  }
 });
 
 test('iOS privacy archive gate fails when no PrivacyInfo manifest is present', () => {

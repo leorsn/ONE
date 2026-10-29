@@ -9,7 +9,7 @@ function checkRevenueCatKey(key) {
       ...process.env,
       NEVER_RELEASE_SCOPE: 'appstore',
       NEVER_REQUIRE_BILLING: '1',
-      EXPO_PUBLIC_SUPABASE_URL: 'https://never-testing.supabase.co',
+      EXPO_PUBLIC_SUPABASE_URL: 'https://nywfoprcwbnsxybdqpma.supabase.co',
       EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'sb_publishable_unit_test',
       EXPO_PUBLIC_PRIVACY_POLICY_URL: 'https://never.invalid/privacy',
       EXPO_PUBLIC_SUPPORT_URL: 'https://never.invalid/support',

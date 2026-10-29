@@ -115,6 +115,9 @@ test('EAS distribution profiles keep development tooling out of preview and prod
 
   assert.equal(preview?.environment, 'preview');
   assert.equal(preview?.distribution, 'internal');
+  assert.equal(preview?.env?.NEVER_REQUIRE_TARGET_SUPABASE, '1');
+  assert.equal(eas.build?.['partner-preview']?.env?.NEVER_REQUIRE_TARGET_SUPABASE, '1');
+  assert.equal(production?.env?.NEVER_REQUIRE_TARGET_SUPABASE, '1');
   assert.notEqual(preview?.developmentClient, true);
   assert.notEqual(preview?.extends, 'development');
 
