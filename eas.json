@@ -17,14 +17,17 @@
     },
     "preview": {
       "distribution": "internal",
-      "environment": "preview"
+      "environment": "preview",
+      "env": { "NEVER_REQUIRE_TARGET_SUPABASE": "1" }
     },
     "partner-preview": {
       "distribution": "internal",
-      "environment": "preview"
+      "environment": "preview",
+      "env": { "NEVER_REQUIRE_TARGET_SUPABASE": "1" }
     },
     "production": {
       "environment": "production",
+      "env": { "NEVER_REQUIRE_TARGET_SUPABASE": "1" },
       "autoIncrement": true
     }
   },
