@@ -1,6 +1,6 @@
 # NEVER migration readiness — 29 October 2026
 
-**Status: PREPARED, NOT CUT OVER.** Do not point production clients to the target until every acceptance check passes.
+**Status: SCHEMA + AUTH + DATABASE ROWS MIGRATED, STORAGE/APP CUTOVER PENDING.** Do not point production clients to the target until every acceptance check passes.
 
 ## Scope and identity
 
@@ -33,3 +33,9 @@ Apply to the empty target only after explicit action-time owner approval for per
 ## KENTON separation
 
 KENTON should continue in its Pro organization, with AI agents primary and AI telephony a separately paid optional module. Its `office-identity` target function is presently guarded (private POST returns HTTP 503) pending full contemporary V20C authentication, membership, MFA, and Groq environment verification. No production KENTON traffic should be redirected yet. Outbound Groq execution is user-approved in principle, but `GROQ_API_KEY` must be configured directly in KENTON's secret manager; never paste it into a chat or commit it.
+
+## Storage preparation and current blocker
+
+Target currently has no `one-attachments` bucket or custom Storage policies. Original bucket was private (`public=false`), 10 MB/file, MIME allowlist JPEG/PNG/WebP/PDF, and four ownership-scoped policies. All 4 compressed ZIP blobs were matched to source storage metadata and validated by decompressed byte sizes (11,911,578 bytes total). All four belong to the account owning seven items; file paths have been staged privately with destination UUID prefixes and correct MIME file extensions. Migration SQL without private files is in `ops/never-private-storage-policy.sql`. Await explicit action-time confirmation to create this private bucket and alter Storage access rules. Then upload 4 files, rewrite 4 item attachment/image paths atomically, test Storage read isolation, and finalize app redirect/password recovery configuration.
+
+Do not place personal backups, ID mappings, or extracted attachment files in GitHub. Source projects remain untouched.
