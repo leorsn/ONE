@@ -40,3 +40,19 @@ Storage migration completed: the private target bucket contains 4 objects with b
 ### Update 29 October 2026 — redirect acceptance
 
 Confirmed two allowed native Auth redirects saved in new NEVER project. This is an authorization allowlist change, not proof that email deliveries or iPhone deep links work. No recovery mails have been sent to the three migrated accounts. Existing EAS environment variables can override the new default client URL/key; do not deploy before checking EAS production/preview values and testing the new Supabase key. All prior accounts, rows, and attachments remain in target.
+
+### Source-validation evidence — 29 October 2026
+
+The isolated release-derived branch `ops/never-backend-cutover-20261029` was fetched to a clean verification worktree; dependencies installed with `npm ci --ignore-scripts` and exact lockfile. On that branch:
+
+- `npm test` — **261 passing, 0 failing** (the restricted sandbox initially prevented child-process tests with EPERM; full suite passed in authorized execution).
+- `npm run typecheck` — passed.
+- `EXPO_NO_TELEMETRY=1 npm run lint` — passed.
+- `npm run release:script-check` — passed.
+- All five Supabase Edge Function imports pinned to `@supabase/supabase-js@2.115.0`.
+
+The project has **0 deployed Edge Functions and 0 custom function secrets**. Functions may not yet be activated without reviewing auth/security and configuring server-only `OPENAI_API_KEY` where required. Do not send private memories to OpenAI without explicit owner authorization. Deploying deletion functionality additionally requires a disposable-account deletion acceptance test.
+
+NEVER Supabase Advisor: 0 security errors, 1 warning (`Leaked Password Protection Disabled`); performance: 0 errors/warnings and 8 informational unused-index notices on the new database. No index deletion performed.
+
+Device/TestFlight tests and EAS-production-environment verification are still **pending**; these local test results do not establish live product release readiness.
