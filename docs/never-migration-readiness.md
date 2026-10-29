@@ -9,22 +9,22 @@
 - Separate system: KENTON Pro's `FOUNDER'S MANUAL` (`yvosncmtxdwksoxhksgw`). Do **not** merge NEVER user data into that project.
 - Source backup verified locally: compressed PostgreSQL cluster export and storage archive. **Never commit either archive or personal row data to GitHub.**
 - Source inventory: 3 Auth users (2 confirmed, 1 not confirmed), 3 email identities, 2 profiles, 8 items owned by 2 users, 1 bucket, 4 objects and 4 file blobs.
-- Destination as last inspected: 0 Auth users, 0 app tables, no pgvector.
-- Source app repository `leorsn/ONE` currently only contains README; production app code was not found there. Do not infer app client credentials from the database backup.
+- Destination after migration: 3 Auth users (2 confirmed, 1 unconfirmed), 2 app tables, pgvector, 2 profiles, 8 items and 4 private Storage files. Old passwords, sessions and MFA were intentionally not copied.
+- GitHub `leorsn/ONE` default `main` contains only README; full app code was recovered on `audit/never-final-release-gates-2026-10-11` and copied to the isolated migration branch.
 
 ## Verified schema
 
-`ops/never-schema-tested.sql` was reconstructed from the source cluster backup and successfully dry-run in the destination SQL Editor inside an explicit `BEGIN … ROLLBACK` transaction. It contains original `items` and `profiles` tables, 4 constraints, 9 indexes, pgvector extension, 8 owner-only RLS policies, explicit grants and `match_one_items` function. **Dry run does not imply migration was applied.**
+`ops/never-schema-tested.sql` was reconstructed from the source cluster backup, tested, and then applied to the approved, initially empty destination. The schema contains `items` and `profiles`, 4 constraints, 9 indexes, pgvector, 8 owner-only RLS policies, explicit grants and `match_one_items`. Four additional owner-scoped Storage policies were verified. This is backend verification, **not signed iPhone acceptance**.
 
-Apply to the empty target only after explicit action-time owner approval for permissions and access-policy changes. Verify no target schema collision before executing the committed SQL and retest RLS with separate authenticated sessions.
+The owner authorized the target access policies. Anonymous read denial and cross-user table/Storage isolation were tested with independent Auth contexts.
 
 ## Safe ordered cutover checklist
 
-1. [ ] Owner approves target schema/RLS/grants application. Save SQL run result and confirm 2 tables + 8 policies, no anon item/profile access.
-2. [ ] Owner approves creating the three destination Auth accounts. Do not copy old password hashes, refresh tokens, MFA state or old active sessions. Use official managed Auth user creation/invite flow; preserve the unconfirmed account's verification posture.
-3. [ ] Privately build and validate mapping of every source Auth UUID to its matching new destination Auth UUID. Never disclose names/emails/mapping in public documentation.
-4. [ ] Restore 2 `profiles` and 8 `items` with remapped `user_id`. Preserve original item IDs and content. Verify per-user row counts, foreign keys and read/write isolation; never use service-role secrets in mobile client.
-5. [ ] Restore the source Storage bucket with its access controls, 4 object metadata entries and 4 file blobs. Validate size, key, MIME type, checksums where possible, download authorization and bucket policy. Do not make private buckets public.
+1. [x] Schema/RLS/grants applied; 2 tables + 8 policies, no anonymous item/profile read.
+2. [x] Three Auth accounts recreated, matching confirmed/unconfirmed posture without original passwords/sessions.
+3. [x] Auth UUID mapping verified privately, never committed.
+4. [x] Restored 2 profiles and 8 items with remapped owners; verified cross-user read isolation.
+5. [x] Restored 4 private Storage objects with owner policies, corrected attachment paths and total 11,911,578 bytes.
 6. [ ] Inspect edge functions, triggers, third-party integrations, cron jobs, URL configurations, OAuth providers, redirect allowlists, email templates and any required secrets; restore only intentionally needed services with minimal privileges.
 7. [ ] Test authentication and account recovery on iPhone; test each user's own list/search, item attachment retrieval and denial of cross-user access.
 8. [ ] Only after all checks pass, change application API URL and publishable key to NEVER project; build, test and deploy app. Preserve old source/backup until owner signs off; do not delete source.
@@ -36,7 +36,14 @@ KENTON should continue in its Pro organization, with AI agents primary and AI te
 
 ## Storage migration evidence and remaining blockers
 
-Storage migration completed: the private target bucket contains 4 objects with byte total matching the archive, four owner-scoped rules and corrected item paths. The old source and backups are unchanged. Post-migration test verified owner access to 4 objects and unrelated user's access to 0 objects. No anonymous public access.\n\nThe mobile source was recovered from branch `audit/never-final-release-gates-2026-10-11` (GitHub default `main` contained only README). New isolated branch `ops/never-backend-cutover-20261029` uses that full release source and updates the app's **default** Supabase URL and publishable key to NEVER (`nywfoprcwbnsxybdqpma`). **No build or app release has been deployed.** External `EXPO_PUBLIC_SUPABASE_URL` / key variables in EAS can still override code defaults; validate/change those at build time before shipping.\n\nAuth redirects `never://auth/callback` and `never://auth/reset-password` were added in NEVER Auth URL Configuration and verified in dashboard (2 saved URLs). The default Site URL remains `http://localhost:3000` and needs a deliberate production setting when the public app/website URL is decided. Default Supabase recovery email subject is `Reset your password`; editing templates currently requires custom SMTP, which was not configured. Required next steps: verify password reset/confirmation emails and deep links on a signed iPhone build, deploy and test required Edge Functions using server-only secrets, reconfigure EAS credentials, perform two-account sync and document physical acceptance. The source app's original passwords cannot be reused after new Auth accounts were provisioned; make users reset them only after redirect URLs are correct.\n\nNever commit personal backups, Auth UUID maps or extracted attachments to GitHub.\n
+Storage migration completed: the private target bucket contains 4 objects with byte total matching the archive, four owner-scoped rules and corrected item paths. The old source and backups are unchanged. Post-migration test verified owner access to 4 objects and unrelated user's access to 0 objects. No anonymous public access.
+
+The mobile source was recovered from branch `audit/never-final-release-gates-2026-10-11` (GitHub default `main` contained only README). New isolated branch `ops/never-backend-cutover-20261029` uses that full release source and updates the app's **default** Supabase URL and publishable key to NEVER (`nywfoprcwbnsxybdqpma`). **No build or app release has been deployed.** External `EXPO_PUBLIC_SUPABASE_URL` / key variables in EAS can still override code defaults; the new release guards block builds until both values match the destination.
+
+Auth redirects `never://auth/callback` and `never://auth/reset-password` were added in NEVER Auth URL Configuration and verified in dashboard (2 saved URLs). The default Site URL remains `http://localhost:3000` and needs a deliberate production setting when the public app/website URL is decided. Default Supabase recovery email subject is `Reset your password`; editing templates currently requires custom SMTP, which was not configured. Required next steps: verify password reset/confirmation emails and deep links on a signed iPhone build, deploy and test required Edge Functions using server-only secrets, reconfigure EAS credentials, perform two-account sync and document physical acceptance. The source app's original passwords cannot be reused after new Auth accounts were provisioned; make users reset them only after redirect URLs are correct.
+
+Never commit personal backups, Auth UUID maps or extracted attachments to GitHub.
+
 ### Update 29 October 2026 — redirect acceptance
 
 Confirmed two allowed native Auth redirects saved in new NEVER project. This is an authorization allowlist change, not proof that email deliveries or iPhone deep links work. No recovery mails have been sent to the three migrated accounts. Existing EAS environment variables can override the new default client URL/key; do not deploy before checking EAS production/preview values and testing the new Supabase key. All prior accounts, rows, and attachments remain in target.
@@ -56,3 +63,7 @@ The project has **0 deployed Edge Functions and 0 custom function secrets**. Fun
 NEVER Supabase Advisor: 0 security errors, 1 warning (`Leaked Password Protection Disabled`); performance: 0 errors/warnings and 8 informational unused-index notices on the new database. No index deletion performed.
 
 Device/TestFlight tests and EAS-production-environment verification are still **pending**; these local test results do not establish live product release readiness.
+
+### Update 29 October 2026 — EAS build guard
+
+`app.config.js` now rejects preview/partner-preview/production builds unless EAS provides the approved NEVER project URL **and** corresponding publishable key. `eas.json` explicitly enables this guard for all three profiles. `scripts/verify-release-env.mjs` independently detects stale or unrelated target URLs. The source suite passed **264/264** including deliberate wrong-project and wrong-key checks (superseding the prior 261-test run). No EAS variables were changed and no signed build was deployed. Coordinate public-key rotation with both guards. The mobile app still requires real-device login, reset, cross-user and attachment acceptance.
