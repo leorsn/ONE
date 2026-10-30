@@ -23,7 +23,14 @@ Target NEVER Supabase project: `nywfoprcwbnsxybdqpma` (NEVER organization, eu-we
 - Targeted security tests: **PASS**.
 - `npm run typecheck`: **PASS**.
 - `EXPO_NO_TELEMETRY=1 npm run lint`: **PASS**. Telemetry must be disabled in restricted workspaces where `/root/.expo` is not writable.
-- Full `npm test`: **36 test files passed, 3 failed** in this workspace (`alternate-app-icon`, `release-gates`, `release-revenuecat-env`). These tests exercise release scripts, not the five modified Edge Functions; the failures were not fixed or classified as hosted acceptance. Investigate the subprocess output expectations/environment separately before claiming a green release suite.
+- Full `EXPO_NO_TELEMETRY=1 npm test`: **279/279 tests passed** when run with permission to launch child processes. An initial restricted run reported 36 passing and 3 failed test files because the release-script child processes were denied with `spawnSync ... EPERM`, not because an assertion failed in the source. The controlled rerun with child-process execution permitted passed all tests; no application code changes were required to resolve these environmental failures.
+
+## P04 EAS preflight (read-only, 30 October 2026)
+
+- `eas.json`: `preview` and `partner-preview` use the preview environment; `production` uses the production environment. All three require `NEVER_REQUIRE_TARGET_SUPABASE=1`.
+- `app.config.js`: those build profiles reject a Supabase URL or publishable key that does not exactly match the new NEVER destination. `scripts/verify-release-env.mjs` separately rejects stale/foreign Supabase hostnames and missing legal/billing release variables.
+- The runner has no `eas` CLI binary or EAS/Expo environment variables configured. The Expo web dashboard opened in signed-out state; no hosted EAS variable values were read or changed. Owner sign-in or a properly scoped authenticated EAS CLI session is required to verify actual preview/production variable names and values.
+- No signed iOS build or hosted function execution has occurred. **P04 hosted acceptance remains blocked.**
 
 ## Remaining gates (not authorized by P03)
 
