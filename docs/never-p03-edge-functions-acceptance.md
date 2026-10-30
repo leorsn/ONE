@@ -32,6 +32,10 @@ Target NEVER Supabase project: `nywfoprcwbnsxybdqpma` (NEVER organization, eu-we
 - The runner has no `eas` CLI binary or EAS/Expo environment variables configured. The Expo web dashboard opened in signed-out state; no hosted EAS variable values were read or changed. Owner sign-in or a properly scoped authenticated EAS CLI session is required to verify actual preview/production variable names and values.
 - No signed iOS build or hosted function execution has occurred. **P04 hosted acceptance remains blocked.**
 
+## P04 no-Expo alternative
+
+The owner confirmed that no Expo account exists and does not want one created. Local macOS/Xcode device builds are the chosen alternative; existing `NEVER_LOCAL_DEVICE_TEST=1` now also rejects stale explicit Supabase overrides. The account-free device procedure and evidence limits are documented in `docs/never-p04-no-expo-local-device.md`. Hosted EAS variable validation is deferred, not secretly assumed to pass. KENTON HQ web acceptance does not depend on EAS.
+
 ## Remaining gates (not authorized by P03)
 
 1. Review processing of personal memories by third-party AI services and provide the appropriate user-facing transparency/consent and privacy documentation before activating the two outbound OpenAI functions.
