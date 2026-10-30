@@ -19,7 +19,7 @@ Deno.serve(async (req: Request) => {
 
   try {
     const authorization = req.headers.get('Authorization');
-    if (!authorization?.startsWith('Bearer ')) {
+    if (!authorization || !/^Bearer \S+$/.test(authorization)) {
       return new Response(JSON.stringify({ error: 'Missing authorization' }), {
         status: 401,
         headers: corsHeaders
@@ -60,35 +60,53 @@ Deno.serve(async (req: Request) => {
       status: 200,
       headers: corsHeaders
     });
-  } catch (error) {
-    console.error('ONE delete-account failed', error);
+  } catch {
+    // Do not log JWTs, storage paths, personal records or backend error details.
+    console.error('NEVER delete-account failed');
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Account deletion failed' }),
+      JSON.stringify({ error: 'account_deletion_failed' }),
       { status: 500, headers: corsHeaders }
     );
   }
 });
 
 async function deleteUserAttachments(admin: ReturnType<typeof createClient>, userId: string) {
-  while (true) {
+  await deleteStoragePrefix(admin, userId, 0);
+}
+
+async function deleteStoragePrefix(admin: ReturnType<typeof createClient>, prefix: string, depth: number) {
+  if (depth > 8) throw new Error('Attachment nesting exceeded the safety limit');
+  let previousBatch = '';
+  // Always re-list from offset zero after deleting; offset pagination can skip objects.
+  // Re-listing also verifies that each removal really took effect before deleting the account.
+  for (let batch = 0; batch < 1000; batch++) {
     const { data, error } = await admin.storage
       .from(BUCKET)
-      .list(userId, { limit: 100, offset: 0 });
+      .list(prefix, { limit: 100, offset: 0 });
 
     if (error) throw error;
     if (!data?.length) return;
 
+    const signature = data.map((entry) => `${entry.id ?? 'folder'}:${entry.name}`).join('|');
+    if (signature === previousBatch) throw new Error('Attachment deletion made no progress');
+
+    const folders = data.filter((entry) => entry.id === null && entry.name);
+    for (const folder of folders) {
+      await deleteStoragePrefix(admin, `${prefix}/${folder.name}`, depth + 1);
+    }
+
     const paths = data
-      .filter((entry) => entry.name)
-      .map((entry) => `${userId}/${entry.name}`);
+      .filter((entry) => entry.id !== null && entry.name)
+      .map((entry) => `${prefix}/${entry.name}`);
 
-    if (!paths.length) return;
+    if (paths.length) {
+      const { error: removeError } = await admin.storage
+        .from(BUCKET)
+        .remove(paths);
+      if (removeError) throw removeError;
+    }
 
-    const { error: removeError } = await admin.storage
-      .from(BUCKET)
-      .remove(paths);
-    if (removeError) throw removeError;
-
-    if (data.length < 100) return;
+    previousBatch = signature;
   }
+  throw new Error('Attachment deletion exceeded the safety limit');
 }

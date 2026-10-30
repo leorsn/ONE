@@ -7,6 +7,9 @@ const corsHeaders = {
 }
 
 function getPublicClientKey() {
+  const direct = Deno.env.get('SUPABASE_PUBLISHABLE_KEY')
+  if (direct) return direct
+
   const publishableKeys = Deno.env.get('SUPABASE_PUBLISHABLE_KEYS')
   if (publishableKeys) {
     try {
@@ -23,27 +26,38 @@ function getPublicClientKey() {
   return Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 }
 
-function userClient(req: Request) {
-  const authorization = req.headers.get('Authorization')
-  if (!authorization) throw new Error('Missing Authorization header')
-
+function userClient(authorization: string) {
   return createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     getPublicClientKey(),
-    { global: { headers: { Authorization: authorization } } }
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: authorization } }
+    }
   )
 }
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
+
+  const authorization = req.headers.get('Authorization')
+  if (!authorization || !/^Bearer \S+$/.test(authorization)) {
+    return json({ error: 'authentication_required' }, 401)
+  }
 
   try {
+    const supabase = userClient(authorization)
+    const { data: authData, error: authError } = await supabase.auth.getUser(authorization.slice(7))
+    if (authError || !authData.user) return json({ error: 'authentication_required' }, 401)
+
     const openAiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openAiKey) {
       return json({ error: 'ai_not_configured' }, 503)
     }
 
     const body = await req.json()
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return json({ error: 'invalid_body' }, 400)
     const query = typeof body.query === 'string' ? body.query.trim().slice(0, 800) : ''
     const itemIds = Array.isArray(body.itemIds)
       ? Array.from(new Set(body.itemIds.filter((value: unknown) => typeof value === 'string'))).slice(0, 6)
@@ -51,11 +65,11 @@ Deno.serve(async (req: Request) => {
 
     if (!query || !itemIds.length) return json({ error: 'query_and_item_ids_required' }, 400)
 
-    const supabase = userClient(req)
     const { data, error } = await supabase
       .from('items')
       .select('id,title,summary,raw_input,user_context,tags,entities,people,item_date,item_time,captured_at,url,extracted_text,extracted_urls,source_type,category')
       .in('id', itemIds)
+      .eq('user_id', authData.user.id)
 
     if (error) throw error
     const rows = data ?? []
@@ -149,7 +163,7 @@ Deno.serve(async (req: Request) => {
 
     const responseBody = await response.json()
     if (!response.ok) {
-      return json({ error: 'model_request_failed', detail: responseBody?.error?.message || 'OpenAI request failed' }, 502)
+      return json({ error: 'model_request_failed' }, 502)
     }
 
     const outputText = extractOutputText(responseBody)
@@ -193,8 +207,8 @@ Deno.serve(async (req: Request) => {
       },
       model,
     }, 200)
-  } catch (error) {
-    return json({ error: error instanceof Error ? error.message : 'Unknown error' }, 400)
+  } catch {
+    return json({ error: 'recall_unavailable' }, 500)
   }
 })
 

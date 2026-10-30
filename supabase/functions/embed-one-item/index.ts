@@ -26,14 +26,14 @@ function getPublicClientKey() {
   return Deno.env.get('SUPABASE_ANON_KEY') ?? ''
 }
 
-function userClient(req: Request) {
-  const authorization = req.headers.get('Authorization')
-  if (!authorization) throw new Error('Missing Authorization header')
-
+function userClient(authorization: string) {
   return createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     getPublicClientKey(),
-    { global: { headers: { Authorization: authorization } } }
+    {
+      auth: { persistSession: false, autoRefreshToken: false },
+      global: { headers: { Authorization: authorization } }
+    }
   )
 }
 
@@ -41,29 +41,32 @@ const model = new Supabase.ai.Session('gte-small')
 
 Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
+  if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
+
+  const authorization = req.headers.get('Authorization')
+  if (!authorization || !/^Bearer \S+$/.test(authorization)) {
+    return json({ error: 'authentication_required' }, 401)
+  }
 
   try {
-    const supabase = userClient(req)
-    const { itemId } = await req.json()
+    const supabase = userClient(authorization)
+    const { data: authData, error: authError } = await supabase.auth.getUser(authorization.slice(7))
+    if (authError || !authData.user) return json({ error: 'authentication_required' }, 401)
 
-    if (!itemId || typeof itemId !== 'string') {
-      return new Response(JSON.stringify({ error: 'itemId is required' }), {
-        status: 400,
-        headers: corsHeaders,
-      })
-    }
+    const body = await req.json()
+    const itemId = body && typeof body.itemId === 'string' ? body.itemId : ''
+
+    if (!itemId || itemId.length > 128) return json({ error: 'item_id_required' }, 400)
 
     const { data: item, error: readError } = await supabase
       .from('items')
       .select('id,title,summary,kind,destination,people,raw_input,category,notes,original_text,extracted_text,user_context,document_kind,merchant,amount,currency,tags,entities')
       .eq('id', itemId)
+      .eq('user_id', authData.user.id)
       .single()
 
     if (readError || !item) {
-      return new Response(JSON.stringify({ error: 'Item not found' }), {
-        status: 404,
-        headers: corsHeaders,
-      })
+      return json({ error: 'item_not_found' }, 404)
     }
 
     const content = [
@@ -86,32 +89,29 @@ Deno.serve(async (req: Request) => {
     ].filter(Boolean).join('\n').slice(0, 12000)
 
     if (!content.trim()) {
-      return new Response(JSON.stringify({ embedded: false, reason: 'empty-content' }), {
-        status: 200,
-        headers: corsHeaders,
-      })
+      return json({ embedded: false, reason: 'empty-content' }, 200)
     }
 
     const output = await model.run(content, { mean_pool: true, normalize: true })
     const embedding = Array.from(output)
 
-    const { error: updateError } = await supabase
+    const { data: updated, error: updateError } = await supabase
       .from('items')
       .update({ embedding: JSON.stringify(embedding) })
       .eq('id', itemId)
+      .eq('user_id', authData.user.id)
+      .select('id')
+      .maybeSingle()
 
     if (updateError) throw updateError
+    if (!updated) return json({ error: 'item_not_found' }, 404)
 
-    return new Response(JSON.stringify({ embedded: true, itemId }), {
-      status: 200,
-      headers: corsHeaders,
-    })
-  } catch (error) {
-    return new Response(JSON.stringify({
-      error: error instanceof Error ? error.message : 'Unknown error',
-    }), {
-      status: 400,
-      headers: corsHeaders,
-    })
+    return json({ embedded: true, itemId }, 200)
+  } catch {
+    return json({ error: 'embedding_unavailable' }, 500)
   }
 })
+
+function json(value: unknown, status: number) {
+  return new Response(JSON.stringify(value), { status, headers: corsHeaders })
+}

@@ -15,7 +15,8 @@ test('NEVER account deletion removes attachments, items and the authenticated us
   assert.match(edge, /await deleteUserAttachments\(admin, userId\)/);
   assert.match(edge, /\.from\('items'\)[\s\S]*?\.delete\(\)[\s\S]*?\.eq\('user_id', userId\)/);
   assert.match(edge, /admin\.auth\.admin\.deleteUser\(userId\)/);
-  assert.match(edge, /\.from\(BUCKET\)[\s\S]*?\.list\(userId/);
+  assert.match(edge, /await deleteStoragePrefix\(admin, userId, 0\)/);
+  assert.match(edge, /\.from\(BUCKET\)[\s\S]*?\.list\(prefix/);
   assert.match(edge, /\.remove\(paths\)/);
 
   assert.match(schema, /user_id uuid not null references auth\.users\(id\) on delete cascade/);
