@@ -1,4 +1,3 @@
-const personalDeviceTest = process.env.NEVER_LOCAL_DEVICE_TEST === '1';
 const targetSupabaseUrl = 'https://nywfoprcwbnsxybdqpma.supabase.co';
 const targetPublishableKey = 'sb_publishable_FoG2PKUsPg55YaGoq_uSEg_ZPITmLaf';
 
@@ -7,6 +6,7 @@ function pluginName(entry) {
 }
 
 module.exports = ({ config }) => {
+  const personalDeviceTest = process.env.NEVER_LOCAL_DEVICE_TEST === '1';
   // EAS profile env flags force the migration gate during config resolution,
   // even when an EAS environment overrides the defaults in project.ts.
   const releaseProfile = ['preview', 'partner-preview', 'production'].includes(process.env.EAS_BUILD_PROFILE);
@@ -16,6 +16,20 @@ module.exports = ({ config }) => {
     if (suppliedUrl !== targetSupabaseUrl || suppliedKey !== targetPublishableKey) {
       throw new Error(
         'NEVER release blocked: EAS Supabase URL/publishable key must match the approved NEVER project. Review EAS preview/production environment variables before building.'
+      );
+    }
+  }
+
+  // Local iPhone testing needs no Expo/EAS account. The built-in public defaults
+  // are valid here, but an inherited shell .env must never silently send a
+  // test account or attachment to the retired ONE or KENTON backend.
+  if (personalDeviceTest) {
+    const localUrl = process.env.EXPO_PUBLIC_SUPABASE_URL?.trim();
+    const localKey = process.env.EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY?.trim();
+    if ((localUrl && localUrl !== targetSupabaseUrl) ||
+        (localKey && localKey !== targetPublishableKey)) {
+      throw new Error(
+        'NEVER local device test blocked: Supabase environment overrides do not match the approved NEVER project.'
       );
     }
   }

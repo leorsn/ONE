@@ -10,7 +10,7 @@ Deno.serve(async (req: Request) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
   if (req.method !== 'POST') return json({ error: 'method_not_allowed' }, 405)
   const authorization = req.headers.get('Authorization')
-  if (!authorization?.startsWith('Bearer ')) return json({ error: 'authentication_required' }, 401)
+  if (!authorization || !/^Bearer \S+$/.test(authorization)) return json({ error: 'authentication_required' }, 401)
 
   try {
     // Validate the user independently of the gateway's JWT configuration before spending model credits.
@@ -23,6 +23,7 @@ Deno.serve(async (req: Request) => {
     if (!openAiKey) return json({ error: 'ai_not_configured' }, 503)
 
     const body = await req.json()
+    if (!body || typeof body !== 'object' || Array.isArray(body)) return json({ error: 'invalid_body' }, 400)
     const text = typeof body.text === 'string' ? body.text.trim().slice(0, 12000) : ''
     const sourceType = typeof body.sourceType === 'string' ? body.sourceType.slice(0, 40) : undefined
     const suppliedUrl = typeof body.url === 'string' ? body.url.trim().slice(0, 2000) : undefined
@@ -97,7 +98,7 @@ Deno.serve(async (req: Request) => {
     })
 
     const responseBody = await response.json()
-    if (!response.ok) return json({ error: 'model_request_failed', detail: 'upstream_request_failed'?.error?.message || 'OpenAI request failed' }, 502)
+    if (!response.ok) return json({ error: 'model_request_failed' }, 502)
     const outputText = extractOutputText(responseBody)
     if (!outputText) return json({ error: 'empty_model_response' }, 502)
 
