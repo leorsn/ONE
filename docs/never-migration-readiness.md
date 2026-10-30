@@ -1,10 +1,10 @@
-# NEVER migration readiness — 29 October 2026
+# NEVER migration readiness — updated 30 October 2026
 
 **Status: DATABASE + AUTH + PRIVATE STORAGE MIGRATED; MOBILE APP CUTOVER AND SERVER FUNCTIONS PENDING.** Do not point production clients to the target until every acceptance check passes.
 
 ## Scope and identity
 
-- Source: paused `ONE App` (`uuehozwygopldwcbkfci`), preserved read-only in KENTON Pro.
+- Source: paused legacy `ONE App` (`uuehozwygopldwcbkfci`), natively transferred from KENTON Pro to the NEVER organization on 30 October 2026 (P02). The project ID and region were preserved; do not delete or resume it without a separate decision.
 - Destination: new `NEVER` (`nywfoprcwbnsxybdqpma`) in NEVER Free.
 - Separate system: KENTON Pro's `FOUNDER'S MANUAL` (`yvosncmtxdwksoxhksgw`). Do **not** merge NEVER user data into that project.
 - Source backup verified locally: compressed PostgreSQL cluster export and storage archive. **Never commit either archive or personal row data to GitHub.**
@@ -67,3 +67,9 @@ Device/TestFlight tests and EAS-production-environment verification are still **
 ### Update 29 October 2026 — EAS build guard
 
 `app.config.js` now rejects preview/partner-preview/production builds unless EAS provides the approved NEVER project URL **and** corresponding publishable key. `eas.json` explicitly enables this guard for all three profiles. `scripts/verify-release-env.mjs` independently detects stale or unrelated target URLs. The source suite passed **264/264** including deliberate wrong-project and wrong-key checks (superseding the prior 261-test run). No EAS variables were changed and no signed build was deployed. Coordinate public-key rotation with both guards. The mobile app still requires real-device login, reset, cross-user and attachment acceptance.
+
+### Update 30 October 2026 — P02 transfer and P03 function preparation
+
+P02 verified the native organization transfer of the paused legacy `ONE App` project into NEVER and preserved pre/post backup evidence. It is distinct from the newly migrated NEVER destination project. KENTON retains `FOUNDER'S MANUAL` on Pro. No automatic code or live traffic transfer follows solely from organization membership.
+
+P03 prepared all five source Edge Functions on the isolated `ops/never-p03-functions-hardening-20261030` branch. The functions were **not deployed** to either NEVER project. The new tests, local typecheck and lint pass; the full release test run in the current restricted workspace has three outstanding release-script failures. Details: `docs/never-p03-edge-functions-acceptance.md`. Never merge or activate solely on the strength of mocked tests.
